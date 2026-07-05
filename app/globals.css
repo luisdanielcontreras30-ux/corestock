@@ -1,0 +1,402 @@
+/* ==========================================================================
+   CORESTOCK V2 DESIGN SYSTEM - VERSION FINAL REPLICA
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100vh;
+  width: 100vw;
+  scroll-behavior: smooth;
+  overflow: hidden; /* Evita que toda la pantalla haga scroll, solo el contenido derecho */
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  /* --- Ajuste de Paleta Exacta (Fondo Oscuro Azulado Puro) --- */
+  --bg-primary: #090a14;
+  --bg-secondary: #0c0d16;       /* Color para el Sidebar */
+  --card-bg: #121424;            /* Fondo exacto de los paneles de la imagen */
+  --card-hover: #181b30;
+  --border: #16182c;             /* Líneas sutiles de la imagen */
+
+  /* --- Acentuación Neón Violeta --- */
+  --primary: #5945e4;
+  --primary-hover: #4b39c4;
+  --primary-soft: rgba(89, 69, 228, 0.15);
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  --text-primary: #ffffff;
+  --text-secondary: #61667a;     /* Color gris de los textos secundarios */
+  --text-muted: #474b5e;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.18);
+  --shadow-lg: 0 14px 50px rgba(0, 0, 0, 0.24);
+
+  --glass-bg: rgba(255, 255, 255, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --blur: blur(16px);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}
+
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   ESTRUCTURA DE CONTENEDORES (SIDEBAR + MAIN)
+   ========================================================================== */
+
+/* Contenedor divisor maestro */
+.app-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+}
+
+/* Barra Lateral Izquierda */
+.sidebar-v2 {
+  width: 260px;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  height: 100vh;
+  flex-shrink: 0;
+}
+
+/* Contenedor del contenido a la derecha */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 40px;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+/* ==========================================================================
+   REJILLAS ASIMÉTRICAS DEL DASHBOARD
+   ========================================================================== */
+
+/* Bloque superior de KPIs */
+.estadisticas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+/* Tarjeta individual de KPI */
+.estadistica {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.estadistica h3 {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.estadistica span {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+/* Rejilla Central (Gráfica Lineal, Dona y Stock Bajo) */
+.dashboard-center-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.2fr;
+  gap: 20px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+/* Rejilla Inferior (Tablas y Actividad Reciente) */
+.dashboard-bottom-grid {
+  display: grid;
+  grid-template-columns: 2.5fr 1.5fr;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Elemento de tarjeta base */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: border-color var(--transition-fast);
+}
+
+.card:hover {
+  border-color: var(--card-hover);
+}
+
+/* ==========================================================================
+   COMPONENTES DE TABLAS PREMIUM
+   ========================================================================== */
+
+.tabla {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: var(--card-bg);
+}
+
+.tabla table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla th {
+  padding: 14px 16px;
+  background-color: rgba(12, 13, 22, 0.4);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.tabla td {
+  padding: 16px;
+  color: var(--text-primary);
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabla tr:last-child td {
+  border-bottom: none;
+}
+
+/* ==========================================================================
+   INPUTS, SCROLLBARS Y AJUSTES MENORES
+   ========================================================================== */
+
+input,
+select,
+textarea {
+  width: 100%;
+  background: rgba(9, 10, 20, 0.6);
+  color: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  outline: none;
+  font-size: 13px;
+  transition: var(--transition-fast);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+/* Animación Existente */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.5s ease forwards;
+}
+
+/* ==========================================================================
+   RESPONSIVE LAYOUT
+   ========================================================================== */
+@media (max-width: 1200px) {
+  .app-layout { flex-direction: column; }
+  .sidebar-v2 { width: 100%; height: auto; }
+  html, body { overflow: auto; }
+  .main-content { height: auto; padding: 20px; }
+  .menu-grid, .estadisticas, .dashboard-center-grid, .dashboard-bottom-grid { grid-template-columns: 1fr; }
+}/* ==========================================================================
+   PRODUCTOS PAGE
+   ========================================================================== */
+
+.productos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.productos-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.productos-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.productos-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.upload-box {
+  margin-top: 18px;
+  border: 2px dashed var(--border);
+  background: rgba(255,255,255,0.02);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.upload-box:hover {
+  border-color: var(--primary);
+  background: rgba(89,69,228,0.08);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: #1a1d33;
+  color: white;
+  border: 1px solid var(--border);
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn-edit {
+  background: rgba(59,130,246,0.15);
+  color: #3b82f6;
+  border: 1px solid rgba(59,130,246,0.3);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-delete {
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.3);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-clip {
+  background: rgba(255,255,255,0.04);
+  color: white;
+  border: 1px solid var(--border);
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.product-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.stock-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stock-ok {
+  background: rgba(16,185,129,0.15);
+  color: #10b981;
+}
+
+.stock-low {
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+}
