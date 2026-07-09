@@ -2112,6 +2112,13 @@ textarea:focus {
   gap: 18px;
 }
 
+.dashboard-2fr-1fr {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
 .graficas-split-layout {
   display: grid;
   grid-template-columns: 2.2fr 1fr;
@@ -2127,6 +2134,10 @@ textarea:focus {
 
 @media (max-width: 780px) {
   .form-grid-2col {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-2fr-1fr {
     grid-template-columns: 1fr;
   }
 
