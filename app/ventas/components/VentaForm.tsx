@@ -1,6 +1,7 @@
 "use client";
 
 import { Producto, Cliente } from "../types";
+import { useIdioma } from "../../../components/LanguageProvider";
 
 interface Props {
   productos: Producto[];
@@ -31,25 +32,21 @@ export default function VentaForm({
   guardando,
   onGuardar,
 }: Props) {
+  const { t } = useIdioma();
+
   return (
     <div className="card">
-      <h2 style={{ marginBottom: 20 }}>Registrar Venta</h2>
+      <h2 style={{ marginBottom: 20 }}>{t("ventas.registrar_venta")}</h2>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2,minmax(0,1fr))",
-          gap: 18,
-        }}
-      >
+      <div className="form-grid-2col">
         <div>
-          <label>Producto</label>
+          <label>{t("tabla.producto")}</label>
 
           <select
             value={productoId}
             onChange={(e) => setProductoId(e.target.value)}
           >
-            <option value="">Selecciona un producto</option>
+            <option value="">{t("ventas.selecciona_producto")}</option>
 
             {productos.map((p) => (
               <option key={p.id} value={p.id}>
@@ -60,12 +57,12 @@ export default function VentaForm({
         </div>
 
         <div>
-          <label>Cliente</label>
+          <label>{t("ventas.cliente")}</label>
 
           <input
             type="text"
             list="lista-clientes"
-            placeholder="Buscar cliente..."
+            placeholder={t("ventas.buscar_cliente")}
             value={clienteNombre}
             onChange={(e) => setClienteNombre(e.target.value)}
           />
@@ -78,7 +75,7 @@ export default function VentaForm({
         </div>
 
         <div>
-          <label>Cantidad</label>
+          <label>{t("tabla.cantidad")}</label>
 
           <input
             type="number"
@@ -89,7 +86,7 @@ export default function VentaForm({
         </div>
 
         <div>
-          <label>Total</label>
+          <label>{t("tabla.total")}</label>
 
           <input readOnly value={`$${total.toFixed(2)}`} />
         </div>
@@ -104,9 +101,9 @@ export default function VentaForm({
             background: "var(--glass-bg)",
           }}
         >
-          <strong>Stock disponible:</strong> {producto.stock}
+          <strong>{t("ventas.stock_disponible")}:</strong> {producto.stock}
           <br />
-          <strong>Precio:</strong> ${producto.precio_venta.toFixed(2)}
+          <strong>{t("productos.precio")}:</strong> ${producto.precio_venta.toFixed(2)}
         </div>
       )}
 
@@ -122,7 +119,7 @@ export default function VentaForm({
           disabled={guardando}
           onClick={onGuardar}
         >
-          {guardando ? "Guardando..." : "Registrar Venta"}
+          {guardando ? t("ventas.guardando") : t("ventas.registrar_venta")}
         </button>
       </div>
     </div>

@@ -1,28 +1,76 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { supabase } from "../lib/supabase";
+import { Bell, CheckCircle2 } from "lucide-react";
+import { useIdioma } from "./LanguageProvider";
+import { useAuth } from "./AuthProvider";
+
+interface ProductoAlerta {
+  id: number;
+  nombre: string;
+  stock: number;
+}
 
 export default function Header({
   onToggleSidebar,
 }: {
   onToggleSidebar: () => void;
 }) {
-  const [correo, setCorreo] = useState("");
-  const [abierto, setAbierto] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const { t } = useIdioma();
+  const { user } = useAuth();
+  const correo = user?.email ?? "";
+
+  const [notisAbiertas, setNotisAbiertas] = useState(false);
+  const [alertas, setAlertas] = useState<ProductoAlerta[]>([]);
+  const [posicion, setPosicion] = useState({ top: 0, right: 0 });
+  const [montado, setMontado] = useState(false);
+
+  const notisRef = useRef<HTMLDivElement>(null);
+  const bellBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setCorreo(data.user.email || "");
-    });
+    setMontado(true);
   }, []);
 
   useEffect(() => {
+    if (user) cargarAlertas();
+  }, [user]);
+
+  async function cargarAlertas() {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("productos")
+      .select("id, nombre, stock")
+      .eq("user_id", user.id)
+      .lte("stock", 5)
+      .order("stock");
+
+    if (data) setAlertas(data as ProductoAlerta[]);
+  }
+
+  function alAbrirNotis() {
+    if (bellBtnRef.current) {
+      const rect = bellBtnRef.current.getBoundingClientRect();
+      setPosicion({
+        top: rect.bottom + 10,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setNotisAbiertas((v) => !v);
+    cargarAlertas();
+  }
+
+  useEffect(() => {
     function alHacerClicFuera(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setAbierto(false);
+      const clicEnBoton = bellBtnRef.current?.contains(e.target as Node);
+      const clicEnDropdown = notisRef.current?.contains(e.target as Node);
+
+      if (!clicEnBoton && !clicEnDropdown) {
+        setNotisAbiertas(false);
       }
     }
     document.addEventListener("mousedown", alHacerClicFuera);
@@ -30,12 +78,62 @@ export default function Header({
       document.removeEventListener("mousedown", alHacerClicFuera);
   }, []);
 
-  async function cerrarSesion() {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  }
-
   const inicial = correo ? correo.charAt(0).toUpperCase() : "U";
+  const agotados = alertas.filter((a) => a.stock === 0).length;
+
+  const dropdownNotis = notisAbiertas && (
+    <div
+      ref={notisRef}
+      className="user-dropdown fade-up notis-dropdown notis-dropdown-portal"
+      style={{
+        position: "fixed",
+        top: posicion.top,
+        right: posicion.right,
+      }}
+    >
+      <div className="notis-header">
+        <p className="user-dropdown-name">{t("header.notificaciones")}</p>
+        {agotados > 0 && (
+          <span className="notis-agotados-pill">
+            {agotados} {t("header.agotados")}
+          </span>
+        )}
+      </div>
+
+      {alertas.length === 0 ? (
+        <p className="notis-vacio">
+          <CheckCircle2 size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
+          {t("header.sin_alertas")}
+        </p>
+      ) : (
+        <div className="notis-lista">
+          {alertas.slice(0, 6).map((p) => (
+            <div key={p.id} className="notis-item">
+              <span
+                className="notis-dot"
+                style={{
+                  background: p.stock === 0 ? "#ef4444" : "#f59e0b",
+                }}
+              />
+              <span className="notis-nombre">{p.nombre}</span>
+              <span className="notis-stock">
+                {p.stock === 0 ? "0" : `${p.stock} uds.`}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Link
+        href="/alertas"
+        className="user-dropdown-item"
+        onClick={() => setNotisAbiertas(false)}
+        style={{ textAlign: "center", justifyContent: "center" }}
+      >
+        {t("header.ver_todas_alertas")}
+      </Link>
+    </div>
+  );
 
   return (
     <header className="topbar fade-up">
@@ -51,44 +149,29 @@ export default function Header({
 
       <div className="topbar-spacer" />
 
-      <div className="user-menu" ref={menuRef}>
+      {/* NOTIFICACIONES */}
+      <div className="user-menu">
         <button
-          className="user-avatar-btn"
-          onClick={() => setAbierto((v) => !v)}
+          ref={bellBtnRef}
+          className="bell-btn"
+          onClick={alAbrirNotis}
+          aria-label={t("header.notificaciones")}
         >
-          <span className="user-avatar">{inicial}</span>
-          <span className="user-email-preview" title={correo}>
-            {correo || "Cargando..."}
-          </span>
-          <span className={`chevron ${abierto ? "chevron-up" : ""}`}>▾</span>
+          <Bell size={17} />
+          {alertas.length > 0 && (
+            <span className="bell-badge">{alertas.length}</span>
+          )}
         </button>
 
-        {abierto && (
-          <div className="user-dropdown fade-up">
-            <div className="user-dropdown-header">
-              <span className="user-avatar user-avatar-lg">{inicial}</span>
-              <div>
-                <p className="user-dropdown-name">Mi cuenta</p>
-                <p className="user-dropdown-email">{correo}</p>
-              </div>
-            </div>
+        {montado && createPortal(dropdownNotis, document.body)}
+      </div>
 
-            <Link
-              href="/cuenta"
-              className="user-dropdown-item"
-              onClick={() => setAbierto(false)}
-            >
-              👤 Ver cuenta
-            </Link>
-
-            <button
-              className="user-dropdown-item user-dropdown-danger"
-              onClick={cerrarSesion}
-            >
-              🚪 Cerrar sesión
-            </button>
-          </div>
-        )}
+      {/* CUENTA: solo muestra correo, sin interacción */}
+      <div className="user-static">
+        <span className="user-avatar">{inicial}</span>
+        <span className="user-email-preview" title={correo}>
+          {correo || t("header.cargando")}
+        </span>
       </div>
     </header>
   );

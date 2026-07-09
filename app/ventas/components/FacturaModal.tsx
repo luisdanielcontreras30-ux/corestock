@@ -1,7 +1,9 @@
 "use client";
 
+import { Printer } from "lucide-react";
 import { Venta } from "../types";
 import { formatoFecha, formatoMoneda } from "../utils";
+import { useIdioma } from "../../../components/LanguageProvider";
 
 interface Props {
   venta: Venta;
@@ -9,6 +11,7 @@ interface Props {
 }
 
 export default function FacturaModal({ venta, onClose }: Props) {
+  const { t } = useIdioma();
   const folio = `F-${String(venta.id).padStart(6, "0")}`;
 
   return (
@@ -19,14 +22,15 @@ export default function FacturaModal({ venta, onClose }: Props) {
       >
         <div className="factura-modal-toolbar">
           <button className="btn-secondary" onClick={onClose}>
-            Cerrar
+            {t("factura.cerrar")}
           </button>
 
           <button
             className="btn-primary"
+            style={{ display: "flex", alignItems: "center", gap: 6 }}
             onClick={() => window.print()}
           >
-            🖨️ Imprimir / Guardar PDF
+            <Printer size={15} /> {t("factura.imprimir")}
           </button>
         </div>
 
@@ -34,11 +38,11 @@ export default function FacturaModal({ venta, onClose }: Props) {
           <div className="factura-header">
             <div>
               <h1>CoreStock</h1>
-              <p>Sistema Inteligente de Inventario</p>
+              <p>{t("factura.subtitulo")}</p>
             </div>
 
             <div className="factura-folio">
-              <p className="factura-folio-label">FACTURA</p>
+              <p className="factura-folio-label">{t("factura.numero")}</p>
               <p className="factura-folio-numero">{folio}</p>
               <p className="factura-folio-fecha">
                 {formatoFecha(venta.fecha)}
@@ -47,19 +51,19 @@ export default function FacturaModal({ venta, onClose }: Props) {
           </div>
 
           <div className="factura-cliente">
-            <p className="factura-cliente-label">Facturado a</p>
+            <p className="factura-cliente-label">{t("factura.facturado_a")}</p>
             <p className="factura-cliente-nombre">
-              {venta.clientes?.nombre ?? "Cliente General"}
+              {venta.clientes?.nombre ?? t("ventas.cliente_general")}
             </p>
           </div>
 
           <table className="factura-tabla">
             <thead>
               <tr>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Precio unitario</th>
-                <th>Total</th>
+                <th>{t("tabla.producto")}</th>
+                <th>{t("tabla.cantidad")}</th>
+                <th>{t("factura.precio_unitario")}</th>
+                <th>{t("tabla.total")}</th>
               </tr>
             </thead>
 
@@ -75,13 +79,13 @@ export default function FacturaModal({ venta, onClose }: Props) {
 
           <div className="factura-totales">
             <div className="factura-total-fila factura-total-final">
-              <span>Total</span>
+              <span>{t("tabla.total")}</span>
               <span>{formatoMoneda(venta.total)}</span>
             </div>
           </div>
 
           <p className="factura-footer">
-            Gracias por su compra — generado con CoreStock
+            {t("factura.gracias")}
           </p>
         </div>
       </div>

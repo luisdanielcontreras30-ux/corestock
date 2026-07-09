@@ -2,26 +2,21 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../lib/supabase";
+import { useAuth } from "../components/AuthProvider";
 
 export default function Home() {
   const router = useRouter();
+  const { user, cargando } = useAuth();
 
   useEffect(() => {
-    async function verificarSesion() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    if (cargando) return;
 
-      if (user) {
-        router.push("/menu");
-      } else {
-        router.push("/login");
-      }
+    if (user) {
+      router.push("/menu");
+    } else {
+      router.push("/bienvenida");
     }
-
-    verificarSesion();
-  }, [router]);
+  }, [cargando, user, router]);
 
   return null;
 }

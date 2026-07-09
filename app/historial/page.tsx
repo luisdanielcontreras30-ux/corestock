@@ -1,99 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabase";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default function Historial() {
-  const [ventas, setVentas] = useState<any[]>([]);
+// El historial de ventas ahora vive dentro de /ventas (ya no es una
+// página aparte en el menú). Esta ruta se mantiene solo por si alguien
+// tiene el enlace viejo guardado, y redirige al lugar correcto.
+export default function HistorialRedirect() {
+  const router = useRouter();
 
   useEffect(() => {
-    cargarVentas();
-  }, []);
+    router.replace("/ventas");
+  }, [router]);
 
-  async function cargarVentas() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
-
-    const { data } = await supabase
-      .from("ventas")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("fecha", {
-        ascending: false,
-      });
-
-    if (data) {
-      setVentas(data);
-    }
-  }
-
-  return (
-    <main className="container">
-
-      <a
-        href="/menu"
-        className="menu-btn"
-      >
-        ← Menú
-      </a>
-
-      <h1>Historial de Ventas</h1>
-
-      <div className="grid">
-
-        {ventas.map((venta) => (
-          <div
-            className="card"
-            key={venta.id}
-          >
-            <h3>
-              {venta.producto}
-            </h3>
-
-            <p>
-              Cantidad:
-              {" "}
-              {venta.cantidad}
-            </p>
-
-            <p>
-              Precio:
-              {" "}
-              ${venta.precio}
-            </p>
-
-            <p>
-              Total:
-              {" "}
-              ${venta.total}
-            </p>
-
-            <p>
-              📅 Fecha:
-              {" "}
-              {new Date(
-                venta.fecha
-              ).toLocaleDateString()}
-            </p>
-
-            <p>
-              🕒 Hora:
-              {" "}
-              {new Date(
-                venta.fecha
-              ).toLocaleTimeString()}
-            </p>
-          </div>
-        ))}
-
-      </div>
-
-    </main>
-  );
+  return null;
 }

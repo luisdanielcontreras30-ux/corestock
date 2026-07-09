@@ -3,14 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import * as XLSX from "xlsx";
+import { ImagePlus } from "lucide-react";
+import { useIdioma } from "../../components/LanguageProvider";
+import { useAuth } from "../../components/AuthProvider";
 
 export default function Productos() {
+  const { t } = useIdioma();
+  const { user } = useAuth();
   const [productos, setProductos] = useState<any[]>([]);
-  const [user, setUser] = useState<any>(null);
 
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState("");
   const [precio, setPrecio] = useState("");
+  const [costo, setCosto] = useState("");
   const [stock, setStock] = useState("");
   const [busqueda, setBusqueda] = useState("");
 
@@ -22,16 +27,11 @@ export default function Productos() {
   const excelInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    cargar();
-  }, []);
+    if (user) cargar();
+  }, [user]);
 
   async function cargar() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     if (!user) return;
-    setUser(user);
 
     const { data } = await supabase
       .from("productos")
@@ -72,6 +72,7 @@ export default function Productos() {
       nombre,
       categoria,
       precio_venta: Number(precio),
+      costo: Number(costo) || 0,
       stock: Number(stock),
       user_id: user.id,
       imagen: imagenUrl,
@@ -92,6 +93,7 @@ export default function Productos() {
     setNombre(p.nombre);
     setCategoria(p.categoria);
     setPrecio(p.precio_venta);
+    setCosto(p.costo ?? "");
     setStock(p.stock);
     setPreview(p.imagen || "");
   }
@@ -106,6 +108,7 @@ export default function Productos() {
     setNombre("");
     setCategoria("");
     setPrecio("");
+    setCosto("");
     setStock("");
     setImagen(null);
     setPreview("");
@@ -126,24 +129,25 @@ export default function Productos() {
 
   return (
     <>
-      <h1 className="productos-header">Productos</h1>
+      <h1 className="productos-header">{t("productos.titulo")}</h1>
 
       <div className="card productos-form">
-        <h2>{editando ? "Editar producto" : "Añadir producto"}</h2>
+        <h2>{editando ? t("productos.editar_producto") : t("productos.anadir_producto")}</h2>
 
         <div className="productos-grid">
-          <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" />
-          <input value={categoria} onChange={(e) => setCategoria(e.target.value)} placeholder="Categoría" />
-          <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder="Precio" type="number" />
-          <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder="Stock" type="number" />
+          <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={t("productos.nombre")} />
+          <input value={categoria} onChange={(e) => setCategoria(e.target.value)} placeholder={t("productos.categoria")} />
+          <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" />
+          <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" />
+          <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" />
         </div>
 
         {/* UPLOAD IMAGE */}
         <div className="upload-box" onClick={() => fileInputRef.current?.click()}>
           {!preview ? (
             <>
-              <div style={{ fontSize: 40 }}>📷</div>
-              <p>Subir imagen</p>
+              <ImagePlus size={34} color="var(--text-muted)" />
+              <p>{t("productos.subir_imagen")}</p>
             </>
           ) : (
             <div>
@@ -151,11 +155,11 @@ export default function Productos() {
 
               <div className="productos-actions" style={{ marginTop: 10 }}>
                 <button className="btn-edit" onClick={() => fileInputRef.current?.click()}>
-                  Cambiar
+                  {t("productos.cambiar")}
                 </button>
 
                 <button className="btn-delete" onClick={limpiar}>
-                  Quitar
+                  {t("productos.quitar")}
                 </button>
               </div>
             </div>
@@ -179,20 +183,20 @@ export default function Productos() {
         {/* BUTTONS */}
         <div className="productos-toolbar">
           <button onClick={guardar} className="btn-primary">
-            {editando ? "Actualizar" : "Guardar"}
+            {editando ? t("productos.actualizar") : t("productos.guardar")}
           </button>
 
           <button onClick={exportarExcel} className="btn-secondary">
-            Exportar Excel
+            {t("productos.exportar_excel")}
           </button>
 
           <button onClick={() => excelInputRef.current?.click()} className="btn-secondary">
-            Importar Excel
+            {t("productos.importar_excel")}
           </button>
 
           {editando && (
             <button onClick={limpiar} className="btn-delete">
-              Cancelar
+              {t("productos.cancelar")}
             </button>
           )}
         </div>
@@ -217,6 +221,7 @@ export default function Productos() {
                   nombre: item.nombre,
                   categoria: item.categoria,
                   precio_venta: Number(item.precio_venta),
+                  costo: Number(item.costo) || 0,
                   stock: Number(item.stock),
                   user_id: user.id,
                 },
@@ -230,7 +235,7 @@ export default function Productos() {
 
       <input
         style={{ marginTop: 24 }}
-        placeholder="Buscar producto..."
+        placeholder={t("productos.buscar")}
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
       />
@@ -239,12 +244,13 @@ export default function Productos() {
         <table>
           <thead>
             <tr>
-              <th>Imagen</th>
-              <th>Producto</th>
-              <th>Categoría</th>
-              <th>Precio</th>
-              <th>Stock</th>
-              <th>Acciones</th>
+              <th>{t("productos.col_imagen")}</th>
+              <th>{t("productos.col_producto")}</th>
+              <th>{t("productos.categoria")}</th>
+              <th>{t("productos.precio")}</th>
+              <th>{t("productos.costo")}</th>
+              <th>{t("productos.stock")}</th>
+              <th>{t("productos.col_acciones")}</th>
             </tr>
           </thead>
 
@@ -260,16 +266,17 @@ export default function Productos() {
                 <td>{p.nombre}</td>
                 <td>{p.categoria}</td>
                 <td>${p.precio_venta}</td>
+                <td>${p.costo ?? 0}</td>
                 <td>{p.stock}</td>
 
                 <td>
                   <div className="productos-actions">
                     <button onClick={() => editar(p)} className="btn-edit">
-                      Editar
+                      {t("productos.editar")}
                     </button>
 
                     <button onClick={() => eliminar(p.id)} className="btn-delete">
-                      Eliminar
+                      {t("productos.eliminar")}
                     </button>
                   </div>
                 </td>

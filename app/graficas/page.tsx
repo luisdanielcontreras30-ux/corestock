@@ -3,7 +3,7 @@
 import "./graficas.css";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { DollarSign, ShoppingBag, Box, TrendingUp, Trophy } from "lucide-react";
+import { DollarSign, ShoppingBag, Box, TrendingUp, TrendingDown, BarChart3, Trophy } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -23,14 +23,21 @@ import {
   Periodo,
 } from "./utils";
 import { VentaCruda } from "./types";
+import { useIdioma } from "../../components/LanguageProvider";
+import { useTheme } from "../../components/ThemeProvider";
+import { obtenerPaletaGrafica } from "../../lib/chartColors";
+import ContadorAnimado from "../../components/ContadorAnimado";
 
-const PERIODOS: { valor: Periodo; etiqueta: string }[] = [
-  { valor: "semanal", etiqueta: "Últimos 7 días" },
-  { valor: "mensual", etiqueta: "Este mes" },
-  { valor: "anual", etiqueta: "Este año" },
+const PERIODOS: { valor: Periodo; clave: string }[] = [
+  { valor: "semanal", clave: "graficas.periodo_semanal" },
+  { valor: "mensual", clave: "graficas.periodo_mensual" },
+  { valor: "anual", clave: "graficas.periodo_anual" },
 ];
 
 export default function GraficasPage() {
+  const { t } = useIdioma();
+  const { tema } = useTheme();
+  const COLORES_PIE = obtenerPaletaGrafica(tema);
   const [loading, setLoading] = useState(true);
   const [ventasCrudas, setVentasCrudas] = useState<VentaCruda[]>([]);
   const [periodo, setPeriodo] = useState<Periodo>("semanal");
@@ -133,7 +140,7 @@ export default function GraficasPage() {
   if (loading) {
     return (
       <main className="fade-up">
-        <div className="card">Cargando gráficas...</div>
+        <div className="card">{t("graficas.cargando")}</div>
       </main>
     );
   }
@@ -142,54 +149,92 @@ export default function GraficasPage() {
     <main className="fade-up">
       <div className="section-title">
         <div>
-          <h1>📊 Análisis de Ventas</h1>
-          <p>Estadísticas y análisis en tiempo real</p>
+          <h1 style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <BarChart3 size={26} /> {t("graficas.titulo")}
+          </h1>
+          <p>{t("graficas.subtitulo")}</p>
         </div>
       </div>
 
-      {/* TARJETAS DE ESTADÍSTICAS */}
-      <div className="estadisticas-grid">
-        <TarjetaMetrica
-          icono={<ShoppingBag size={18} color="#fff" />}
-          colorIcono="#7c3aed"
-          titulo="Total de ventas"
-          valor={String(estadisticas.totalVentas)}
-          cambio={cambio.totalVentas}
-        />
+      {/* TARJETAS DE ESTADÍSTICAS: GRID ASIMÉTRICO */}
+      <div className="dashboard-hero-grid">
+        {/* HÉROE: INGRESOS TOTALES, con sparkline de la gráfica principal */}
+        <div
+          className="dashboard-card-hero card"
+          style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}
+        >
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: COLORES_PIE[0], display: "grid", placeItems: "center" }}>
+                <DollarSign size={19} color="#fff" />
+              </div>
+              <p style={{ color: "var(--text-secondary)", fontSize: "12.5px", fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
+                {t("graficas.ingresos_totales")}
+              </p>
+            </div>
+            <h2 style={{ fontSize: 34, fontWeight: 700, margin: "0 0 6px 0" }}>
+              $<ContadorAnimado valor={estadisticas.ingresos} decimales={2} />
+            </h2>
+            <span style={{ color: cambio.ingresos >= 0 ? "#10b981" : "#ef4444", fontSize: 12.5 }}>
+              {cambio.ingresos >= 0 ? "▲" : "▼"} {Math.abs(cambio.ingresos).toFixed(0)}% {t("graficas.vs_periodo_anterior")}
+            </span>
+          </div>
 
-        <TarjetaMetrica
-          icono={<DollarSign size={18} color="#fff" />}
-          colorIcono="#10b981"
-          titulo="Ingresos totales"
-          valor={`$${estadisticas.ingresos.toFixed(2)}`}
-          cambio={cambio.ingresos}
-        />
+          <div style={{ width: "100%", height: 70, marginTop: 16 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={puntosGrafica} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="sparkIngresos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORES_PIE[0]} stopOpacity={0.5} />
+                    <stop offset="95%" stopColor={COLORES_PIE[0]} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="ventas" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkIngresos)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
-        <TarjetaMetrica
-          icono={<Box size={18} color="#fff" />}
-          colorIcono="#3b82f6"
-          titulo="Productos vendidos"
-          valor={String(estadisticas.productosVendidos)}
-          cambio={cambio.productosVendidos}
-        />
+        <div className="dashboard-card-mes card">
+          <TarjetaMetricaContenido
+            icono={<ShoppingBag size={18} color="#fff" />}
+            colorIcono={COLORES_PIE[1]}
+            titulo={t("graficas.total_ventas")}
+            valor={estadisticas.totalVentas}
+            decimales={0}
+            cambio={cambio.totalVentas}
+          />
+        </div>
 
-        <TarjetaMetrica
-          icono={<TrendingUp size={18} color="#fff" />}
-          colorIcono="#f97316"
-          titulo="Venta promedio"
-          valor={`$${estadisticas.ventaPromedio.toFixed(2)}`}
-          cambio={cambio.ventaPromedio}
-        />
+        <div className="dashboard-card-prod card">
+          <TarjetaMetricaContenido
+            icono={<Box size={18} color="#fff" />}
+            colorIcono={COLORES_PIE[2]}
+            titulo={t("graficas.productos_vendidos")}
+            valor={estadisticas.productosVendidos}
+            decimales={0}
+            cambio={cambio.productosVendidos}
+          />
+        </div>
+
+        <div className="dashboard-card-alertas card">
+          <TarjetaMetricaContenido
+            icono={<TrendingUp size={18} color="#fff" />}
+            colorIcono={COLORES_PIE[3]}
+            titulo={t("graficas.venta_promedio")}
+            valor={estadisticas.ventaPromedio}
+            decimales={2}
+            prefijo="$"
+            cambio={cambio.ventaPromedio}
+          />
+        </div>
       </div>
 
       {/* GRÁFICA PRINCIPAL + TOP PRODUCTOS */}
       <div
+        className="graficas-split-layout"
         style={{
-          display: "grid",
-          gridTemplateColumns: "2.2fr 1fr",
-          gap: 24,
           marginTop: 24,
-          alignItems: "start",
         }}
       >
         <div className="card" style={{ padding: 24 }}>
@@ -204,9 +249,9 @@ export default function GraficasPage() {
             }}
           >
             <div>
-              <h2 style={{ fontSize: 22, fontWeight: 700 }}>Ventas</h2>
-              <p style={{ color: "#9ca3af" }}>
-                Rendimiento de ventas en el periodo seleccionado
+              <h2 style={{ fontSize: 22, fontWeight: 700 }}>{t("graficas.ventas_card")}</h2>
+              <p style={{ color: "var(--text-secondary)" }}>
+                {t("graficas.rendimiento_periodo")}
               </p>
             </div>
 
@@ -217,7 +262,7 @@ export default function GraficasPage() {
             >
               {PERIODOS.map((p) => (
                 <option key={p.valor} value={p.valor}>
-                  {p.etiqueta}
+                  {t(p.clave)}
                 </option>
               ))}
             </select>
@@ -231,20 +276,20 @@ export default function GraficasPage() {
               >
                 <defs>
                   <linearGradient id="ventas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
 
-                <CartesianGrid strokeDasharray="3 3" stroke="#293548" />
-                <XAxis dataKey="nombre" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
+                <YAxis stroke="var(--text-secondary)" />
                 <Tooltip />
 
                 <Area
                   type="monotone"
                   dataKey="ventas"
-                  stroke="#7c3aed"
+                  stroke="var(--primary)"
                   strokeWidth={3}
                   fill="url(#ventas)"
                 />
@@ -254,24 +299,22 @@ export default function GraficasPage() {
 
           {/* RESUMEN: MEJOR / PEOR / CRECIMIENTO */}
           <div
+            className="resumen-3col"
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 12,
               marginTop: 16,
-              background: "#0c0d16",
-              border: "1px solid #1c1f3b",
+              background: "var(--bg-secondary)",
+              border: "1px solid var(--border)",
               borderRadius: 12,
               padding: "14px 18px",
             }}
           >
             <div>
-              <p style={{ color: "#61667a", fontSize: 11, margin: 0 }}>
-                📈 Mejor punto
+              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0, display: "flex", alignItems: "center", gap: 5 }}>
+                <TrendingUp size={12} /> {t("graficas.mejor_punto")}
               </p>
               <p
                 style={{
-                  color: "#a78bfa",
+                  color: COLORES_PIE[0],
                   fontWeight: 600,
                   fontSize: 13,
                   margin: "4px 0 0 0",
@@ -279,16 +322,16 @@ export default function GraficasPage() {
               >
                 {mejorPeorPunto.mejor ? mejorPeorPunto.mejor.nombre : "—"}
               </p>
-              <p style={{ color: "#61667a", fontSize: 11, margin: 0 }}>
+              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0 }}>
                 {mejorPeorPunto.mejor
                   ? `$${mejorPeorPunto.mejor.ventas.toFixed(2)}`
-                  : "Sin datos"}
+                  : t("graficas.sin_datos")}
               </p>
             </div>
 
             <div>
-              <p style={{ color: "#61667a", fontSize: 11, margin: 0 }}>
-                📉 Peor punto
+              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0, display: "flex", alignItems: "center", gap: 5 }}>
+                <TrendingDown size={12} /> {t("graficas.peor_punto")}
               </p>
               <p
                 style={{
@@ -300,16 +343,16 @@ export default function GraficasPage() {
               >
                 {mejorPeorPunto.peor ? mejorPeorPunto.peor.nombre : "—"}
               </p>
-              <p style={{ color: "#61667a", fontSize: 11, margin: 0 }}>
+              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0 }}>
                 {mejorPeorPunto.peor
                   ? `$${mejorPeorPunto.peor.ventas.toFixed(2)}`
-                  : "Sin datos"}
+                  : t("graficas.sin_datos")}
               </p>
             </div>
 
             <div>
-              <p style={{ color: "#61667a", fontSize: 11, margin: 0 }}>
-                📊 Crecimiento
+              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0, display: "flex", alignItems: "center", gap: 5 }}>
+                <BarChart3 size={12} /> {t("graficas.crecimiento")}
               </p>
               <p
                 style={{
@@ -322,8 +365,8 @@ export default function GraficasPage() {
                 {cambio.ingresos >= 0 ? "+" : ""}
                 {cambio.ingresos.toFixed(0)}%
               </p>
-              <p style={{ color: "#61667a", fontSize: 11, margin: 0 }}>
-                vs periodo anterior
+              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0 }}>
+                {t("graficas.vs_periodo_anterior")}
               </p>
             </div>
           </div>
@@ -340,16 +383,16 @@ export default function GraficasPage() {
             }}
           >
             <Trophy size={16} color="#f59e0b" />
-            <h2 style={{ fontSize: 20, fontWeight: 700 }}>Top Productos</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t("graficas.top_productos")}</h2>
           </div>
-          <p style={{ color: "#9ca3af", marginBottom: 18 }}>
-            Por ingresos generados
+          <p style={{ color: "var(--text-secondary)", marginBottom: 18 }}>
+            {t("graficas.por_ingresos")}
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {topProductos.length === 0 ? (
-              <p style={{ color: "#61667a", fontSize: 13 }}>
-                Sin ventas en este periodo.
+              <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>
+                {t("graficas.sin_ventas_periodo")}
               </p>
             ) : (
               topProductos.map((producto, idx) => (
@@ -363,7 +406,7 @@ export default function GraficasPage() {
                     }}
                   >
                     <span
-                      style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}
+                      style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600 }}
                     >
                       #{idx + 1} {producto.nombre}
                     </span>
@@ -387,8 +430,8 @@ export default function GraficasPage() {
                     />
                   </div>
 
-                  <span style={{ color: "#61667a", fontSize: 11 }}>
-                    {producto.unidades} unidades
+                  <span style={{ color: "var(--text-secondary)", fontSize: 11 }}>
+                    {producto.unidades} {t("graficas.unidades")}
                   </span>
                 </div>
               ))
@@ -400,15 +443,15 @@ export default function GraficasPage() {
       {/* PRODUCTOS CON RENDIMIENTO */}
       <div className="card" style={{ padding: 24, marginTop: 24 }}>
         <h2 style={{ fontSize: 22, fontWeight: 700 }}>
-          Productos con rendimiento
+          {t("graficas.productos_rendimiento")}
         </h2>
-        <p style={{ color: "#9ca3af", marginBottom: 20 }}>
-          Desempeño de cada producto en los últimos 7 días
+        <p style={{ color: "var(--text-secondary)", marginBottom: 20 }}>
+          {t("graficas.desempeno_7dias")}
         </p>
 
         {productosRendimiento.length === 0 ? (
-          <p style={{ color: "#61667a", fontSize: 13 }}>
-            No hay ventas registradas todavía.
+          <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>
+            {t("graficas.sin_ventas_aun")}
           </p>
         ) : (
           <div className="productos-grid">
@@ -416,8 +459,8 @@ export default function GraficasPage() {
               <div
                 key={producto.nombre}
                 style={{
-                  background: "#0c0d16",
-                  border: "1px solid #1c1f3b",
+                  background: "var(--bg-secondary)",
+                  border: "1px solid var(--border)",
                   borderRadius: 14,
                   padding: 18,
                 }}
@@ -430,13 +473,13 @@ export default function GraficasPage() {
                     marginBottom: 10,
                   }}
                 >
-                  <span style={{ color: "#fff", fontSize: 16, fontWeight: 700 }}>
+                  <span style={{ color: "var(--text-primary)", fontSize: 16, fontWeight: 700 }}>
                     {producto.nombre}
                   </span>
                   <span
                     style={{
-                      background: "rgba(124,58,237,0.15)",
-                      color: "#a78bfa",
+                      background: "var(--primary-soft)",
+                      color: "var(--primary)",
                       fontSize: 11,
                       fontWeight: 700,
                       padding: "2px 8px",
@@ -462,13 +505,13 @@ export default function GraficasPage() {
                           x2="0"
                           y2="1"
                         >
-                          <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.6} />
-                          <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
+                          <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.6} />
+                          <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <XAxis
                         dataKey="nombre"
-                        stroke="#4e5264"
+                        stroke="var(--text-muted)"
                         fontSize={10}
                         tickLine={false}
                         axisLine={false}
@@ -476,7 +519,7 @@ export default function GraficasPage() {
                       <Area
                         type="monotone"
                         dataKey="ventas"
-                        stroke="#7c3aed"
+                        stroke="var(--primary)"
                         strokeWidth={2}
                         fill={`url(#mini-${idx})`}
                       />
@@ -491,12 +534,12 @@ export default function GraficasPage() {
                     gap: 8,
                     marginTop: 8,
                     fontSize: 12,
-                    color: "#61667a",
+                    color: "var(--text-secondary)",
                   }}
                 >
-                  <span>Unidades: {producto.unidades}</span>
+                  <span>{t("graficas.unidades").charAt(0).toUpperCase() + t("graficas.unidades").slice(1)}: {producto.unidades}</span>
                   <span>
-                    Precio prom.: $
+                    {t("graficas.precio_prom")}: $
                     {producto.unidades > 0
                       ? (producto.ingresos / producto.unidades).toFixed(2)
                       : "0.00"}
@@ -511,21 +554,27 @@ export default function GraficasPage() {
   );
 }
 
-function TarjetaMetrica({
+function TarjetaMetricaContenido({
   icono,
   colorIcono,
   titulo,
   valor,
+  decimales,
+  prefijo = "",
   cambio,
 }: {
   icono: React.ReactNode;
   colorIcono: string;
   titulo: string;
-  valor: string;
+  valor: number;
+  decimales: number;
+  prefijo?: string;
   cambio: number;
 }) {
+  const { t } = useIdioma();
+
   return (
-    <div className="card" style={{ position: "relative", overflow: "hidden" }}>
+    <>
       <div
         style={{
           display: "flex",
@@ -546,12 +595,15 @@ function TarjetaMetrica({
         >
           {icono}
         </div>
-        <p style={{ color: "#9ca3af", fontSize: 13, fontWeight: 500, margin: 0 }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: 13, fontWeight: 500, margin: 0 }}>
           {titulo}
         </p>
       </div>
 
-      <h2 style={{ fontSize: 30, margin: "0 0 6px 0" }}>{valor}</h2>
+      <h2 style={{ fontSize: 26, margin: "0 0 6px 0" }}>
+        {prefijo}
+        <ContadorAnimado valor={valor} decimales={decimales} />
+      </h2>
 
       <span
         style={{
@@ -560,9 +612,8 @@ function TarjetaMetrica({
           fontWeight: 500,
         }}
       >
-        {cambio >= 0 ? "▲" : "▼"} {Math.abs(cambio).toFixed(0)}% vs periodo
-        anterior
+        {cambio >= 0 ? "▲" : "▼"} {Math.abs(cambio).toFixed(0)}% {t("graficas.vs_periodo_anterior")}
       </span>
-    </div>
+    </>
   );
 }

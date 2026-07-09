@@ -3,104 +3,116 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  BarChart3,
+  Package,
+  Bell,
+  DollarSign,
+  Settings,
+  Sparkles,
+  LucideIcon,
+} from "lucide-react";
+import { useIdioma } from "./LanguageProvider";
 
-export default function Sidebar() {
+interface ItemNav {
+  claveNombre: string;
+  href: string;
+  Icono: LucideIcon;
+}
+
+interface Seccion {
+  claveTitulo: string;
+  items: ItemNav[];
+}
+
+const secciones: Seccion[] = [
+  {
+    claveTitulo: "sidebar.principal",
+    items: [
+      { claveNombre: "sidebar.dashboard", href: "/menu", Icono: LayoutDashboard },
+      { claveNombre: "sidebar.graficas", href: "/graficas", Icono: BarChart3 },
+      { claveNombre: "sidebar.asistente", href: "/asistente", Icono: Sparkles },
+    ],
+  },
+  {
+    claveTitulo: "sidebar.inventario",
+    items: [
+      { claveNombre: "sidebar.productos", href: "/productos", Icono: Package },
+      { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell },
+    ],
+  },
+  {
+    claveTitulo: "sidebar.operaciones",
+    items: [
+      { claveNombre: "sidebar.ventas", href: "/ventas", Icono: DollarSign },
+    ],
+  },
+  {
+    claveTitulo: "sidebar.sistema",
+    items: [
+      { claveNombre: "sidebar.configuracion", href: "/configuracion", Icono: Settings },
+    ],
+  },
+];
+
+export default function Sidebar({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const pathname = usePathname();
-
-  // Configuración de los botones de navegación
-  const menuItems = [
-    { name: "Dashboard", href: "/menu", icon: "📊" },
-    { name: "Productos", href: "/productos", icon: "📦" },
-    { name: "Ventas", href: "/ventas", icon: "💰" },
-    { name: "Historial", href: "/historial", icon: "📋" },
-    { name: "Gráficas", href: "/graficas", icon: "📈" },
-    { name: "Cuenta", href: "/cuenta", icon: "👤" },
-  ];
+  const { t } = useIdioma();
 
   return (
-    <aside style={{
-      width: "260px",
-      minHeight: "100vh",
-      backgroundColor: "#0c0d16", // Fondo ligeramente más oscuro que el dashboard para dar profundidad
-      borderRight: "1px solid #1c1f3b",
-      padding: "24px 16px",
-      display: "flex",
-      flexDirection: "column",
-      fontFamily: "sans-serif",
-      position: "sticky",
-      top: 0
-    }}>
-      
-      {/* LOGO / BRANDING */}
-      <div style={{ marginBottom: "32px", paddingLeft: "8px" }}>
-        <h2 style={{ color: "#ffffff", fontSize: "19px", fontWeight: "700", margin: 0, letterSpacing: "-0.02em", display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ color: "#5945e4" }}>⬢</span> CoreStock
-        </h2>
-        <p style={{ color: "#4e5264", fontSize: "11px", margin: "4px 0 0 0", fontWeight: "500" }}>SISTEMA DE INVENTARIO</p>
-      </div>
+    <>
+      {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
 
-      {/* MENÚ DE NAVEGACIÓN */}
-      <nav style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}>
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href;
-          
-          return (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "12px 14px",
-                borderRadius: "10px",
-                color: isActive ? "#ffffff" : "#61667a",
-                backgroundColor: isActive ? "rgba(89, 69, 228, 0.15)" : "transparent",
-                border: isActive ? "1px solid rgba(89, 69, 228, 0.3)" : "1px solid transparent",
-                textDecoration: "none",
-                fontSize: "14px",
-                fontWeight: isActive ? "600" : "500",
-                transition: "all 0.2s ease",
-              }}
-              // Efecto hover simple integrado
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.color = "#ffffff";
-                  e.currentTarget.style.backgroundColor = "#121424";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.color = "#61667a";
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }
-              }}
-            >
-              <span style={{ 
-                fontSize: "16px", 
-                filter: isActive ? "none" : "grayscale(100%) opacity(0.7)" 
-              }}>
-                {item.icon}
-              </span>
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* FOOTER DE LA BARRA LATERAL */}
-      <div style={{ borderTop: "1px solid #16182c", paddingTop: "16px", paddingLeft: "8px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#5945e4", display: "grid", placeItems: "center", fontSize: "13px", fontWeight: "600", color: "#ffffff" }}>
-            U
-          </div>
-          <div>
-            <p style={{ color: "#ffffff", fontSize: "13px", fontWeight: "600", margin: 0 }}>Usuario Activo</p>
-            <p style={{ color: "#4e5264", fontSize: "11px", margin: 0 }}>Sesión protegida</p>
-          </div>
+      <aside className={`sidebar-v2 ${isOpen ? "sidebar-open" : ""}`}>
+        <div className="sidebar-brand">
+          <h2>
+            <span className="sidebar-brand-icon">⬢</span> CoreStock
+          </h2>
+          <p>SISTEMA DE INVENTARIO</p>
         </div>
-      </div>
 
-    </aside>
+        <nav className="sidebar-nav">
+          {secciones.map((seccion) => (
+            <div key={seccion.claveTitulo} className="sidebar-section">
+              <p className="sidebar-section-title">{t(seccion.claveTitulo)}</p>
+
+              {seccion.items.map((item) => {
+                const isActive = pathname === item.href;
+                const Icono = item.Icono;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    className={`sidebar-link ${
+                      isActive ? "sidebar-link-active" : ""
+                    }`}
+                  >
+                    <Icono
+                      size={17}
+                      className="sidebar-link-icon"
+                      color={isActive ? "var(--primary)" : "var(--text-secondary)"}
+                    />
+                    {t(item.claveNombre)}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <p className="sidebar-footer-text">CoreStock v2</p>
+        </div>
+      </aside>
+    </>
   );
 }

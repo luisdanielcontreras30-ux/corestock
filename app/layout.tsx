@@ -1,7 +1,10 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
-import Sidebar from "../components/Sidebar";
+import AppShell from "../components/AppShell";
+import ThemeProvider from "../components/ThemeProvider";
+import LanguageProvider from "../components/LanguageProvider";
+import AuthProvider from "../components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "CoreStock",
@@ -16,17 +19,13 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-
-        <div className="app-layout">
-
-          <Sidebar />
-
-          <div className="main-content">
-            {children}
-          </div>
-
-        </div>
-
+        <AuthProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <AppShell>{children}</AppShell>
+            </LanguageProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

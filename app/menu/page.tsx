@@ -3,6 +3,19 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
+import {
+  DollarSign,
+  CalendarDays,
+  Package,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
+import { useTheme } from "../../components/ThemeProvider";
+import { useIdioma } from "../../components/LanguageProvider";
+import { LOCALES } from "../../lib/i18n";
+import { useAuth } from "../../components/AuthProvider";
+import ContadorAnimado from "../../components/ContadorAnimado";
+import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -39,10 +52,12 @@ interface DataGraficoPie {
   value: number;
 }
 
-const COLORES_PIE = ["#5945e4", "#8b5cf6", "#a78bfa", "#10b981", "#059669", "#3b82f6"];
-
 export default function DashboardPremium() {
   const router = useRouter();
+  const { tema } = useTheme();
+  const { t, idioma } = useIdioma();
+  const { user, cargando: cargandoAuth } = useAuth();
+  const COLORES_PIE = obtenerPaletaGrafica(tema);
   
   // Estados analíticos de tarjetas
   const [ventasHoy, setVentasHoy] = useState<number>(0);
@@ -61,22 +76,23 @@ export default function DashboardPremium() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    cargarDatosDashboard();
-  }, []);
+    if (cargandoAuth) return;
 
-  async function cargarDatosDashboard() {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    cargarDatosDashboard(user.id);
+  }, [cargandoAuth, user]);
+
+  async function cargarDatosDashboard(userId: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-
       // 1. OBTENER PRODUCTOS (Select corregido para TypeScript)
       const { data: productos } = await supabase
         .from("productos")
         .select("id, nombre, stock")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       if (productos) {
         setTotalProductos(productos.length);
@@ -90,7 +106,7 @@ export default function DashboardPremium() {
       const { data: ventas } = await supabase
         .from("ventas")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       if (ventas) {
         const ventasTipadas = ventas as VentaReciente[];
@@ -171,8 +187,8 @@ export default function DashboardPremium() {
         display: "grid", 
         placeItems: "center", 
         height: "100vh", 
-        color: "#ffffff", 
-        backgroundColor: "#090a14", 
+        color: "var(--text-primary)", 
+        backgroundColor: "var(--bg-primary)", 
         fontFamily: "sans-serif",
         width: "100%"
       }}>
@@ -181,7 +197,7 @@ export default function DashboardPremium() {
             width: "40px",
             height: "40px",
             border: "3px solid rgba(89, 69, 228, 0.1)",
-            borderTop: "3px solid #5945e4",
+            borderTop: "3px solid var(--primary)",
             borderRadius: "50%",
             animation: "spin 1s linear infinite",
             margin: "0 auto 16px auto"
@@ -192,8 +208,8 @@ export default function DashboardPremium() {
               100% { transform: rotate(360deg); }
             }
           `}</style>
-          <p style={{ fontSize: "14px", color: "#61667a", letterSpacing: "0.05em", margin: 0 }}>
-            Construyendo interfaz analítica...
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)", letterSpacing: "0.05em", margin: 0 }}>
+            {t("dashboard.cargando")}
           </p>
         </div>
       </div>
@@ -201,40 +217,141 @@ export default function DashboardPremium() {
   }
 
   return (
-    <div style={{ padding: "12px 24px 24px 24px", color: "#ffffff", fontFamily: "sans-serif", backgroundColor: "#090a14", minHeight: "100vh", width: "100%" }}>
+    <div style={{ padding: "12px 24px 24px 24px", color: "var(--text-primary)", fontFamily: "sans-serif", backgroundColor: "var(--bg-primary)", minHeight: "100vh", width: "100%" }}>
       
       {/* SECCIÓN SUPERIOR: ENCABEZADO */}
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
         <div>
-          <h1 style={{ fontSize: "24px", fontWeight: "700", margin: 0, letterSpacing: "-0.02em" }}>Dashboard</h1>
-          <p style={{ color: "#61667a", fontSize: "13px", margin: "4px 0 0 0" }}>Resumen analítico en tiempo real conectado a Supabase</p>
+          <h1 style={{ fontSize: "24px", fontWeight: "700", margin: 0, letterSpacing: "-0.02em" }}>
+            {t("dashboard.saludo")}
+            {user?.email ? `, ${user.email.split("@")[0]}` : ""} 👋
+          </h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "4px 0 0 0", textTransform: "capitalize" }}>
+            {new Date().toLocaleDateString(LOCALES[idioma], {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })}
+          </p>
         </div>
       </header>
 
-      {/* METRIC CARDS GRID */}
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px", marginBottom: "28px" }}>
-        <div style={{ backgroundColor: "#121424", border: "1px solid #1c1f3b", borderRadius: "14px", padding: "20px" }}>
-          <p style={{ color: "#61667a", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>Ventas de hoy</p>
-          <h2 style={{ fontSize: "26px", fontWeight: "700", margin: "10px 0 6px 0" }}>${ventasHoy.toLocaleString("en-US", { minimumFractionDigits: 2 })}</h2>
-          <span style={{ color: "#10b981", fontSize: "12px" }}>▲ En tiempo real</span>
+      {/* METRIC CARDS: GRID ASIMÉTRICO */}
+      <section className="dashboard-hero-grid" style={{ marginBottom: "28px" }}>
+        {/* TARJETA HÉROE: VENTAS DE HOY, con sparkline */}
+        <div
+          className="dashboard-card-hero"
+          style={{
+            backgroundColor: "var(--card-bg)",
+            border: "1px solid var(--border)",
+            borderRadius: "14px",
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: COLORES_PIE[0], display: "grid", placeItems: "center" }}>
+                <DollarSign size={19} color="#fff" />
+              </div>
+              <p style={{ color: "var(--text-secondary)", fontSize: "12.5px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.ventas_hoy")}</p>
+            </div>
+            <h2 style={{ fontSize: "34px", fontWeight: "700", margin: "0 0 6px 0", color: "var(--text-primary)" }}>
+              $<ContadorAnimado valor={ventasHoy} decimales={2} />
+            </h2>
+            <span style={{ color: "#10b981", fontSize: "12.5px" }}>▲ {t("dashboard.tiempo_real")}</span>
+          </div>
+
+          <div style={{ width: "100%", height: "70px", marginTop: 16 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={dataLinea} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="sparkHoy" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORES_PIE[0]} stopOpacity={0.5} />
+                    <stop offset="95%" stopColor={COLORES_PIE[0]} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="monto" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkHoy)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div style={{ backgroundColor: "#121424", border: "1px solid #1c1f3b", borderRadius: "14px", padding: "20px" }}>
-          <p style={{ color: "#61667a", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>Ventas del mes</p>
-          <h2 style={{ fontSize: "26px", fontWeight: "700", margin: "10px 0 6px 0" }}>${ventasMes.toLocaleString("en-US", { minimumFractionDigits: 2 })}</h2>
-          <span style={{ color: "#10b981", fontSize: "12px" }}>▲ Acumulado bruto</span>
+        {/* VENTAS DEL MES, con sparkline */}
+        <div
+          className="dashboard-card-mes"
+          style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "20px" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: COLORES_PIE[1], display: "grid", placeItems: "center" }}>
+              <CalendarDays size={18} color="#fff" />
+            </div>
+            <p style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.ventas_mes")}</p>
+          </div>
+          <h2 style={{ fontSize: "26px", fontWeight: "700", margin: "0 0 6px 0", color: "var(--text-primary)" }}>
+            $<ContadorAnimado valor={ventasMes} decimales={2} />
+          </h2>
+          <span style={{ color: "#10b981", fontSize: "12px" }}>▲ {t("dashboard.acumulado_bruto")}</span>
+
+          <div style={{ width: "100%", height: "40px", marginTop: 10 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={dataLinea} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="sparkMes" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORES_PIE[1]} stopOpacity={0.5} />
+                    <stop offset="95%" stopColor={COLORES_PIE[1]} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="monto" stroke={COLORES_PIE[1]} strokeWidth={2} fill="url(#sparkMes)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div style={{ backgroundColor: "#121424", border: "1px solid #1c1f3b", borderRadius: "14px", padding: "20px" }}>
-          <p style={{ color: "#61667a", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>Productos en Catálogo</p>
-          <h2 style={{ fontSize: "26px", fontWeight: "700", margin: "10px 0 6px 0" }}>{totalProductos}</h2>
-          <span style={{ color: "#3b82f6", fontSize: "12px" }}>● Items activos</span>
+        {/* PRODUCTOS EN CATÁLOGO */}
+        <div
+          className="dashboard-card-prod"
+          style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "20px" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: COLORES_PIE[2], display: "grid", placeItems: "center" }}>
+              <Package size={18} color="#fff" />
+            </div>
+            <p style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.productos_catalogo")}</p>
+          </div>
+          <h2 style={{ fontSize: "26px", fontWeight: "700", margin: "0 0 6px 0", color: "var(--text-primary)" }}>
+            <ContadorAnimado valor={totalProductos} decimales={0} />
+          </h2>
+          <span style={{ color: COLORES_PIE[2], fontSize: "12px" }}>● {t("dashboard.items_activos")}</span>
         </div>
 
-        <div style={{ backgroundColor: "#121424", border: "1px solid #1c1f3b", borderRadius: "14px", padding: "20px" }}>
-          <p style={{ color: "#61667a", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>Alertas de stock</p>
-          <h2 style={{ fontSize: "26px", fontWeight: "700", margin: "10px 0 6px 0", color: alertasStockCount > 0 ? "#ef4444" : "#ffffff" }}>{alertasStockCount}</h2>
-          <span style={{ color: alertasStockCount > 0 ? "#ef4444" : "#61667a", fontSize: "12px" }}>{alertasStockCount > 0 ? "⚠️ Requiere atención" : "✓ Inventario óptimo"}</span>
+        {/* ALERTAS DE STOCK (se mantiene en rojo/neutro: es una señal universal, no de marca) */}
+        <div
+          className="dashboard-card-alertas"
+          style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "20px" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: alertasStockCount > 0 ? "#ef4444" : "#61667a", display: "grid", placeItems: "center" }}>
+              <AlertTriangle size={18} color="#fff" />
+            </div>
+            <p style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.alertas_stock")}</p>
+          </div>
+          <h2 style={{ fontSize: "26px", fontWeight: "700", margin: "0 0 6px 0", color: alertasStockCount > 0 ? "#ef4444" : "var(--text-primary)" }}>
+            <ContadorAnimado valor={alertasStockCount} decimales={0} />
+          </h2>
+          <span style={{ color: alertasStockCount > 0 ? "#ef4444" : "var(--text-secondary)", fontSize: "12px", display: "inline-flex", alignItems: "center", gap: 5 }}>
+            {alertasStockCount > 0 ? (
+              <>
+                <AlertTriangle size={12} /> {t("dashboard.requiere_atencion")}
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={12} /> {t("dashboard.inventario_optimo")}
+              </>
+            )}
+          </span>
         </div>
       </section>
 
@@ -242,36 +359,36 @@ export default function DashboardPremium() {
       <section style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px", marginBottom: "28px" }}>
         
         {/* GRÁFICO A: TENDENCIA DE VENTAS */}
-        <div style={{ backgroundColor: "#121424", border: "1px solid #1c1f3b", borderRadius: "14px", padding: "24px" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 20px 0" }}>Rendimiento de Ingresos (Últimos días)</h3>
+        <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px" }}>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 20px 0" }}>{t("dashboard.rendimiento_ingresos")}</h3>
           <div style={{ width: "100%", height: "260px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorMonto" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#5945e4" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#5945e4" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="fecha" stroke="#4e5264" fontSize={11} tickLine={false} />
-                <YAxis stroke="#4e5264" fontSize={11} tickLine={false} axisLine={false} />
+                <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: "#0c0d16", border: "1px solid #1c1f3b", borderRadius: "8px" }}
-                  labelStyle={{ color: "#61667a", fontSize: "12px" }}
-                  itemStyle={{ color: "#ffffff", fontSize: "13px" }}
+                  contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                  labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                  itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                 />
-                <Area type="monotone" dataKey="monto" name="Total Ventas" stroke="#5945e4" strokeWidth={2} fillOpacity={1} fill="url(#colorMonto)" />
+                <Area type="monotone" dataKey="monto" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorMonto)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* GRÁFICO B: DISTRIBUCIÓN DE PARTICIPACIÓN */}
-        <div style={{ backgroundColor: "#121424", border: "1px solid #1c1f3b", borderRadius: "14px", padding: "24px", display: "flex", flexDirection: "column" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 10px 0" }}>Top Artículos</h3>
+        <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px", display: "flex", flexDirection: "column" }}>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 10px 0" }}>{t("dashboard.top_articulos")}</h3>
           <div style={{ width: "100%", height: "200px", flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {dataPie.length === 0 ? (
-              <p style={{ color: "#61667a", fontSize: "13px" }}>Sin datos suficientes</p>
+              <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{t("dashboard.sin_datos")}</p>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -289,8 +406,8 @@ export default function DashboardPremium() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: "#0c0d16", border: "1px solid #1c1f3b", borderRadius: "8px" }}
-                    itemStyle={{ color: "#ffffff", fontSize: "12px" }}
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "12px" }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -300,7 +417,7 @@ export default function DashboardPremium() {
             {dataPie.map((item, idx) => (
               <div key={item.name} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: COLORES_PIE[idx % COLORES_PIE.length] }}></div>
-                <span style={{ fontSize: "11px", color: "#cbd5e1" }}>{item.name.substring(0, 10)}...</span>
+                <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{item.name.substring(0, 10)}...</span>
               </div>
             ))}
           </div>
@@ -312,30 +429,30 @@ export default function DashboardPremium() {
       <section style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px", alignItems: "start" }}>
         
         {/* TABLA DE VENTAS */}
-        <div style={{ backgroundColor: "#121424", border: "1px solid #1c1f3b", borderRadius: "14px", padding: "24px" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 20px 0" }}>Ventas recientes</h3>
+        <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px" }}>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 20px 0" }}>{t("dashboard.ventas_recientes")}</h3>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
               <thead>
-                <tr style={{ color: "#61667a", borderBottom: "1px solid #1c1f3b", textAlign: "left" }}>
-                  <th style={{ padding: "12px 8px", fontWeight: "500" }}>Producto</th>
-                  <th style={{ padding: "12px 8px", fontWeight: "500" }}>Cantidad</th>
-                  <th style={{ padding: "12px 8px", fontWeight: "500" }}>Total</th>
-                  <th style={{ padding: "12px 8px", fontWeight: "500" }}>Fecha</th>
+                <tr style={{ color: "var(--text-secondary)", borderBottom: "1px solid var(--border)", textAlign: "left" }}>
+                  <th style={{ padding: "12px 8px", fontWeight: "500" }}>{t("tabla.producto")}</th>
+                  <th style={{ padding: "12px 8px", fontWeight: "500" }}>{t("tabla.cantidad")}</th>
+                  <th style={{ padding: "12px 8px", fontWeight: "500" }}>{t("tabla.total")}</th>
+                  <th style={{ padding: "12px 8px", fontWeight: "500" }}>{t("tabla.fecha")}</th>
                 </tr>
               </thead>
               <tbody>
                 {ventasRecientes.length === 0 ? (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: "center", color: "#61667a", padding: "32px 0" }}>No hay transacciones recientes en el historial.</td>
+                    <td colSpan={4} style={{ textAlign: "center", color: "var(--text-secondary)", padding: "32px 0" }}>{t("dashboard.sin_transacciones")}</td>
                   </tr>
                 ) : (
                   ventasRecientes.map((venta) => (
-                    <tr key={venta.id} style={{ borderBottom: "1px solid #16182c" }}>
+                    <tr key={venta.id} style={{ borderBottom: "1px solid var(--border)" }}>
                       <td style={{ padding: "14px 8px", fontWeight: "500" }}>{venta.producto}</td>
-                      <td style={{ padding: "14px 8px", color: "#cbd5e1" }}>{venta.cantidad} uds.</td>
+                      <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>{venta.cantidad} {t("tabla.unidades_abrev")}</td>
                       <td style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981" }}>${Number(venta.total).toFixed(2)}</td>
-                      <td style={{ padding: "14px 8px", color: "#61667a" }}>{new Date(venta.fecha).toLocaleDateString()}</td>
+                      <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>{new Date(venta.fecha).toLocaleDateString()}</td>
                     </tr>
                   ))
                 )}
@@ -345,23 +462,23 @@ export default function DashboardPremium() {
         </div>
 
         {/* COMPONENTE ALERTAS DE STOCK CRÍTICO */}
-        <div style={{ backgroundColor: "#121424", border: "1px solid #1c1f3b", borderRadius: "14px", padding: "24px" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 4px 0" }}>Alertas de stock bajo</h3>
-          <p style={{ color: "#61667a", fontSize: "12px", margin: "0 0 20px 0" }}>Artículos con existencia crítica (≤ 5 unidades)</p>
+        <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px" }}>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 4px 0" }}>{t("dashboard.alertas_stock_bajo")}</h3>
+          <p style={{ color: "var(--text-secondary)", fontSize: "12px", margin: "0 0 20px 0" }}>{t("dashboard.articulos_criticos")}</p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {productosAlerta.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "#10b981", fontSize: "13px", border: "1px dashed #1c1f3b", borderRadius: "10px" }}>
-                ✓ No tienes productos con inventario bajo.
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, textAlign: "center", padding: "40px 0", color: "#10b981", fontSize: "13px", border: "1px dashed var(--border)", borderRadius: "10px" }}>
+                <CheckCircle2 size={15} /> {t("dashboard.sin_inventario_bajo")}
               </div>
             ) : (
               productosAlerta.map((prod) => (
-                <div key={prod.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", backgroundColor: "#0c0d16", border: "1px solid #16182c", borderRadius: "10px" }}>
+                <div key={prod.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "10px" }}>
                   <div>
                     <h4 style={{ margin: 0, fontSize: "14px", fontWeight: "500" }}>{prod.nombre}</h4>
-                    <span style={{ fontSize: "12px", color: "#ef4444", fontWeight: "500" }}>Stock actual: {prod.stock}</span>
+                    <span style={{ fontSize: "12px", color: "#ef4444", fontWeight: "500" }}>{t("dashboard.stock_actual")}: {prod.stock}</span>
                   </div>
-                  <span style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#ef4444", padding: "4px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: "600" }}>Crítico</span>
+                  <span style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#ef4444", padding: "4px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: "600" }}>{t("dashboard.critico")}</span>
                 </div>
               ))
             )}
