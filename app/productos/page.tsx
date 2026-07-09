@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import * as XLSX from "xlsx";
 import { ImagePlus } from "lucide-react";
@@ -8,8 +9,18 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
 
 export default function Productos() {
+  return (
+    <Suspense fallback={null}>
+      <ProductosInterno />
+    </Suspense>
+  );
+}
+
+function ProductosInterno() {
   const { t } = useIdioma();
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const abrirCamaraAlEntrar = searchParams.get("camara") === "1";
   const [productos, setProductos] = useState<any[]>([]);
 
   const [nombre, setNombre] = useState("");
@@ -29,6 +40,17 @@ export default function Productos() {
   useEffect(() => {
     if (user) cargar();
   }, [user]);
+
+  // Si venimos del botón de acción rápida ("+" > Nuevo producto en
+  // celular), abrimos la cámara automáticamente al llegar.
+  useEffect(() => {
+    if (abrirCamaraAlEntrar) {
+      const temporizador = setTimeout(() => {
+        fileInputRef.current?.click();
+      }, 400);
+      return () => clearTimeout(temporizador);
+    }
+  }, [abrirCamaraAlEntrar]);
 
   async function cargar() {
     if (!user) return;
@@ -171,6 +193,7 @@ export default function Productos() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          capture={abrirCamaraAlEntrar ? "environment" : undefined}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;

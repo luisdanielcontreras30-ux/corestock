@@ -8,7 +8,7 @@ import React, {
   ReactNode,
 } from "react";
 
-export type Tema = "dark" | "green" | "blue" | "purple" | "amber" | "slate" | "light" | "pink";
+export type Tema = "dark" | "green" | "blue" | "purple" | "amber" | "slate" | "cyan" | "wine" | "light" | "pink" | "mint";
 
 interface TemaContexto {
   tema: Tema;
@@ -40,7 +40,7 @@ export default function ThemeProvider({
 
     const inicial: Tema =
       guardado &&
-      ["dark", "green", "blue", "purple", "amber", "slate", "light", "pink"].includes(guardado)
+      ["dark", "green", "blue", "purple", "amber", "slate", "cyan", "wine", "light", "pink", "mint"].includes(guardado)
         ? guardado
         : "dark";
 

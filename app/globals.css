@@ -230,6 +230,66 @@ html[data-theme="slate"] {
   --table-header-bg: rgba(4, 5, 7, 0.4);
 }
 
+html[data-theme="cyan"] {
+  --bg-primary: #061417;
+  --bg-secondary: #081b1f;
+  --card-bg: #0d262b;
+  --card-hover: #133036;
+  --border: #163a41;
+  --primary: #06b6d4;
+  --primary-hover: #0596ac;
+  --primary-soft: rgba(6, 182, 212, 0.16);
+  --text-primary: #ffffff;
+  --text-secondary: #7ba7ad;
+  --text-muted: #4e7378;
+  --glass-bg: rgba(6, 182, 212, 0.04);
+  --glass-border: rgba(6, 182, 212, 0.1);
+  --input-bg: rgba(3, 9, 11, 0.6);
+  --btn-secondary-bg: #133036;
+  --table-header-bg: rgba(3, 9, 11, 0.4);
+}
+
+html[data-theme="wine"] {
+  --bg-primary: #150609;
+  --bg-secondary: #1c090d;
+  --card-bg: #271015;
+  --card-hover: #33161c;
+  --border: #401d24;
+  --primary: #e11d48;
+  --primary-hover: #be123c;
+  --primary-soft: rgba(225, 29, 72, 0.16);
+  --text-primary: #ffffff;
+  --text-secondary: #b17d85;
+  --text-muted: #7d5158;
+  --glass-bg: rgba(225, 29, 72, 0.04);
+  --glass-border: rgba(225, 29, 72, 0.1);
+  --input-bg: rgba(10, 3, 4, 0.6);
+  --btn-secondary-bg: #33161c;
+  --table-header-bg: rgba(10, 3, 4, 0.4);
+}
+
+html[data-theme="mint"] {
+  --bg-primary: #eafaf3;
+  --bg-secondary: #ffffff;
+  --card-bg: #ffffff;
+  --card-hover: #f0fbf6;
+  --border: #cdeee0;
+  --primary: #10b981;
+  --primary-hover: #0d9668;
+  --primary-soft: rgba(16, 185, 129, 0.1);
+  --text-primary: #0b2b21;
+  --text-secondary: #4c7767;
+  --text-muted: #86ac9d;
+  --glass-bg: rgba(16, 185, 129, 0.04);
+  --glass-border: rgba(16, 185, 129, 0.1);
+  --shadow-sm: 0 2px 10px rgba(11, 43, 33, 0.06);
+  --shadow-md: 0 8px 24px rgba(11, 43, 33, 0.08);
+  --shadow-lg: 0 14px 40px rgba(11, 43, 33, 0.12);
+  --input-bg: rgba(11, 43, 33, 0.04);
+  --btn-secondary-bg: #eafaf3;
+  --table-header-bg: rgba(11, 43, 33, 0.04);
+}
+
 body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
   background: var(--bg-primary);
@@ -2208,7 +2268,41 @@ textarea:focus {
   }
 
   .main-content {
+    padding: 14px;
     padding-bottom: 90px;
+    overflow-x: hidden;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 24px !important;
+  }
+
+  h2 {
+    font-size: 18px !important;
+  }
+
+  .tabla th,
+  .tabla td {
+    padding: 10px 8px;
+    font-size: 12.5px;
+  }
+
+  .estadisticas-grid,
+  .productos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-tabs {
+    gap: 4px;
+  }
+
+  .config-tab {
+    font-size: 12px;
+    padding: 8px 4px;
   }
 
   .mobile-tabbar {
@@ -2224,6 +2318,23 @@ textarea:focus {
     border-top: 1px solid var(--border);
     z-index: 300;
     padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .dashboard-card-hero,
+  .dashboard-card-mes,
+  .dashboard-card-prod,
+  .dashboard-card-alertas {
+    padding: 16px !important;
+  }
+
+  .dashboard-card-hero h2 {
+    font-size: 26px !important;
+  }
+
+  .dashboard-card-mes h2,
+  .dashboard-card-prod h2,
+  .dashboard-card-alertas h2 {
+    font-size: 20px !important;
   }
 
   .mobile-tab {
@@ -2253,6 +2364,8 @@ textarea:focus {
     height: 50px;
     border-radius: 50%;
     background: var(--primary);
+    border: none;
+    cursor: pointer;
     box-shadow: 0 6px 18px var(--primary-soft);
     margin-top: -30px;
     text-decoration: none;
@@ -2324,5 +2437,50 @@ textarea:focus {
 
   .mobile-mas-item-activo {
     color: var(--primary);
+  }
+
+  .mobile-fab-sheet {
+    position: fixed;
+    left: 50%;
+    bottom: 100px;
+    transform: translateX(-50%);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 10px;
+    z-index: 320;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 220px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .mobile-fab-opcion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .mobile-fab-opcion:hover {
+    background: var(--glass-bg);
+  }
+
+  .mobile-fab-opcion-icono {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
   }
 }

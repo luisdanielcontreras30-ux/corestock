@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   DollarSign,
@@ -13,14 +13,17 @@ import {
   Bell,
   Sparkles,
   Settings,
+  Camera,
   X,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
 
 export default function MobileTabBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useIdioma();
   const [masAbierto, setMasAbierto] = useState(false);
+  const [fabAbierto, setFabAbierto] = useState(false);
 
   const tabs = [
     { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard" },
@@ -34,6 +37,18 @@ export default function MobileTabBar() {
     { href: "/asistente", Icono: Sparkles, clave: "sidebar.asistente" },
     { href: "/configuracion", Icono: Settings, clave: "sidebar.configuracion" },
   ];
+
+  function irANuevaVenta() {
+    setFabAbierto(false);
+    router.push("/ventas");
+  }
+
+  function irANuevoProducto() {
+    setFabAbierto(false);
+    // El parámetro le dice a la página de Productos que abra
+    // la cámara automáticamente para tomar la foto del producto.
+    router.push("/productos?camara=1");
+  }
 
   return (
     <>
@@ -72,6 +87,31 @@ export default function MobileTabBar() {
         </div>
       )}
 
+      {fabAbierto && (
+        <div
+          className="mobile-mas-overlay"
+          onClick={() => setFabAbierto(false)}
+        />
+      )}
+
+      {fabAbierto && (
+        <div className="mobile-fab-sheet fade-up">
+          <button className="mobile-fab-opcion" onClick={irANuevaVenta}>
+            <span className="mobile-fab-opcion-icono" style={{ background: "#10b981" }}>
+              <DollarSign size={18} color="#fff" />
+            </span>
+            {t("mobile.nueva_venta")}
+          </button>
+
+          <button className="mobile-fab-opcion" onClick={irANuevoProducto}>
+            <span className="mobile-fab-opcion-icono" style={{ background: "var(--primary)" }}>
+              <Camera size={18} color="#fff" />
+            </span>
+            {t("mobile.nuevo_producto")}
+          </button>
+        </div>
+      )}
+
       <nav className="mobile-tabbar">
         {tabs.slice(0, 2).map((tab) => {
           const Icono = tab.Icono;
@@ -89,9 +129,20 @@ export default function MobileTabBar() {
           );
         })}
 
-        <Link href="/ventas" className="mobile-tab-fab" aria-label={t("sidebar.ventas")}>
-          <Plus size={24} color="#fff" />
-        </Link>
+        <button
+          className="mobile-tab-fab"
+          aria-label={t("mobile.acciones_rapidas")}
+          onClick={() => setFabAbierto((v) => !v)}
+        >
+          <Plus
+            size={24}
+            color="#fff"
+            style={{
+              transform: fabAbierto ? "rotate(45deg)" : "none",
+              transition: "transform .2s ease",
+            }}
+          />
+        </button>
 
         {tabs.slice(2).map((tab) => {
           const Icono = tab.Icono;
