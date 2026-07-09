@@ -17,6 +17,8 @@ export const TRADUCCIONES: Diccionario = {
   "sidebar.dashboard": { es: "Dashboard", en: "Dashboard", pt: "Painel", fr: "Tableau de bord", de: "Übersicht", zh: "仪表盘" },
   "sidebar.graficas": { es: "Gráficas", en: "Charts", pt: "Gráficos", fr: "Graphiques", de: "Diagramme", zh: "图表" },
   "sidebar.asistente": { es: "Asistente", en: "Assistant", pt: "Assistente", fr: "Assistant", de: "Assistent", zh: "助手" },
+  "sidebar.mas": { es: "Más", en: "More", pt: "Mais", fr: "Plus", de: "Mehr", zh: "更多" },
+  "sidebar.mas_opciones": { es: "Más opciones", en: "More options", pt: "Mais opções", fr: "Plus d'options", de: "Weitere Optionen", zh: "更多选项" },
   "sidebar.inventario": { es: "Inventario", en: "Inventory", pt: "Estoque", fr: "Inventaire", de: "Inventar", zh: "库存" },
   "sidebar.productos": { es: "Productos", en: "Products", pt: "Produtos", fr: "Produits", de: "Produkte", zh: "产品" },
   "sidebar.alertas": { es: "Alertas", en: "Alerts", pt: "Alertas", fr: "Alertes", de: "Warnungen", zh: "警报" },

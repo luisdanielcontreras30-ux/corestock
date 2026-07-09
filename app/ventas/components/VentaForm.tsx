@@ -38,13 +38,7 @@ export default function VentaForm({
     <div className="card">
       <h2 style={{ marginBottom: 20 }}>{t("ventas.registrar_venta")}</h2>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2,minmax(0,1fr))",
-          gap: 18,
-        }}
-      >
+      <div className="form-grid-2col">
         <div>
           <label>{t("tabla.producto")}</label>
 

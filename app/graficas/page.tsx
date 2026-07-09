@@ -232,12 +232,9 @@ export default function GraficasPage() {
 
       {/* GRÁFICA PRINCIPAL + TOP PRODUCTOS */}
       <div
+        className="graficas-split-layout"
         style={{
-          display: "grid",
-          gridTemplateColumns: "2.2fr 1fr",
-          gap: 24,
           marginTop: 24,
-          alignItems: "start",
         }}
       >
         <div className="card" style={{ padding: 24 }}>
@@ -302,10 +299,8 @@ export default function GraficasPage() {
 
           {/* RESUMEN: MEJOR / PEOR / CRECIMIENTO */}
           <div
+            className="resumen-3col"
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 12,
               marginTop: 16,
               background: "var(--bg-secondary)",
               border: "1px solid var(--border)",

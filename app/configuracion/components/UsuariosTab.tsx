@@ -387,10 +387,8 @@ export default function UsuariosTab() {
                 </label>
 
                 <div
+                  className="form-grid-2col"
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 8,
                     background: "var(--glass-bg)",
                     border: "1px solid var(--border)",
                     borderRadius: "var(--radius-md)",

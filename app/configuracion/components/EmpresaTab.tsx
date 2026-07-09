@@ -178,13 +178,7 @@ export default function EmpresaTab() {
         </div>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          gap: 18,
-        }}
-      >
+      <div className="form-grid-2col">
         <div>
           <label>{t("empresa.nombre_negocio")}</label>
           <input

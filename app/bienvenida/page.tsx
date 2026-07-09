@@ -250,7 +250,78 @@ export default function BienvenidaPage() {
         </div>
       </section>
 
-      {/* POR QUÉ CAMBIAR */}
+
+      {/* MUESTRA DE GRÁFICAS */}
+      <section className="landing-preview fade-up">
+        <div className="landing-section-header">
+          <span className="landing-badge">
+            <BarChart3 size={13} /> Así se ve por dentro
+          </span>
+          <h2>Tus números, de un vistazo</h2>
+          <p>
+            Nada de hojas de cálculo crípticas — gráficas claras, alertas
+            visibles, y un Dashboard que se adapta a tu gusto (8 temas,
+            6 idiomas).
+          </p>
+        </div>
+
+        <div className="landing-preview-frame">
+          <div className="landing-preview-topbar">
+            <span className="landing-preview-dot" style={{ background: "#ef4444" }} />
+            <span className="landing-preview-dot" style={{ background: "#f59e0b" }} />
+            <span className="landing-preview-dot" style={{ background: "#10b981" }} />
+          </div>
+
+          <svg viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "auto" }}>
+            <defs>
+              <linearGradient id="barraG" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#7c6cff" />
+                <stop offset="100%" stopColor="#5945e4" />
+              </linearGradient>
+              <linearGradient id="areaG" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#7c6cff" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#7c6cff" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+
+            <rect x="20" y="20" width="150" height="70" rx="10" fill="#161a2e" stroke="#2a3155" />
+            <circle cx="42" cy="45" r="10" fill="#7c6cff" />
+            <rect x="34" y="62" width="90" height="9" rx="3" fill="#3a4270" />
+            <rect x="34" y="76" width="60" height="7" rx="3" fill="#2a3155" />
+
+            <rect x="182" y="20" width="150" height="70" rx="10" fill="#161a2e" stroke="#2a3155" />
+            <circle cx="204" cy="45" r="10" fill="#10b981" />
+            <rect x="196" y="62" width="90" height="9" rx="3" fill="#3a4270" />
+            <rect x="196" y="76" width="60" height="7" rx="3" fill="#2a3155" />
+
+            <rect x="344" y="20" width="150" height="70" rx="10" fill="#161a2e" stroke="#2a3155" />
+            <circle cx="366" cy="45" r="10" fill="#3b82f6" />
+            <rect x="358" y="62" width="90" height="9" rx="3" fill="#3a4270" />
+            <rect x="358" y="76" width="60" height="7" rx="3" fill="#2a3155" />
+
+            <rect x="506" y="20" width="174" height="70" rx="10" fill="#161a2e" stroke="#2a3155" />
+            <circle cx="528" cy="45" r="10" fill="#f59e0b" />
+            <rect x="520" y="62" width="90" height="9" rx="3" fill="#3a4270" />
+            <rect x="520" y="76" width="60" height="7" rx="3" fill="#2a3155" />
+
+            <rect x="20" y="110" width="430" height="210" rx="10" fill="#161a2e" stroke="#2a3155" />
+            <path d="M40 260 L100 230 L160 245 L220 190 L280 210 L340 160 L400 180 L430 140 L430 300 L40 300 Z" fill="url(#areaG)" />
+            <path d="M40 260 L100 230 L160 245 L220 190 L280 210 L340 160 L400 180 L430 140" fill="none" stroke="#7c6cff" strokeWidth="3" />
+
+            <rect x="466" y="110" width="214" height="210" rx="10" fill="#161a2e" stroke="#2a3155" />
+            <rect x="484" y="140" width="178" height="10" rx="4" fill="#3a4270" />
+            <rect x="484" y="140" width="120" height="10" rx="4" fill="url(#barraG)" />
+            <rect x="484" y="168" width="178" height="10" rx="4" fill="#3a4270" />
+            <rect x="484" y="168" width="90" height="10" rx="4" fill="#10b981" />
+            <rect x="484" y="196" width="178" height="10" rx="4" fill="#3a4270" />
+            <rect x="484" y="196" width="60" height="10" rx="4" fill="#3b82f6" />
+            <rect x="484" y="224" width="178" height="10" rx="4" fill="#3a4270" />
+            <rect x="484" y="224" width="40" height="10" rx="4" fill="#f59e0b" />
+          </svg>
+        </div>
+      </section>
+
+
       <section className="landing-comparativa fade-up">
         <div className="landing-section-header">
           <span className="landing-badge">
@@ -273,6 +344,8 @@ export default function BienvenidaPage() {
               <li><X size={15} /> Facturas hechas en Word o a mano</li>
               <li><X size={15} /> La información vive en un solo celular o PC</li>
               <li><X size={15} /> Ver "cómo va el negocio" toma horas</li>
+              <li><X size={15} /> Un solo idioma, sin opción para tu equipo</li>
+              <li><X size={15} /> Sin control de quién hizo qué venta</li>
             </ul>
           </div>
 
@@ -284,6 +357,8 @@ export default function BienvenidaPage() {
               <li><Check size={15} /> Facturas generadas en 2 clics</li>
               <li><Check size={15} /> Accede desde cualquier dispositivo, con tu cuenta</li>
               <li><Check size={15} /> Tu Dashboard te lo resume en un vistazo</li>
+              <li><Check size={15} /> 6 idiomas para ti y para tu equipo</li>
+              <li><Check size={15} /> Roles y permisos por persona</li>
             </ul>
           </div>
         </div>

@@ -67,7 +67,7 @@ function LoginInterno() {
 
     setCargando(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: correo,
       password,
     });
@@ -75,6 +75,13 @@ function LoginInterno() {
     if (error) {
       setError(traducirError(error.message));
       setCargando(false);
+      return;
+    }
+
+    // Si Supabase ya regresó una sesión activa (confirmación de correo
+    // desactivada en el proyecto), entra directo sin pedir que confirme.
+    if (data.session) {
+      router.push("/menu");
       return;
     }
 
