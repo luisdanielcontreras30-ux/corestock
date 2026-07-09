@@ -25,7 +25,6 @@
       ]
     },
 
-    "ignoreDeprecations": "6.0",
 
     "plugins": [
       {
