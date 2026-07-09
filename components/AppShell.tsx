@@ -4,6 +4,7 @@ import React, { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import MobileTabBar from "./MobileTabBar";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -34,6 +35,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
           {children}
         </div>
       </div>
+
+      <MobileTabBar />
     </div>
   );
 }

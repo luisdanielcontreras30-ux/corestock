@@ -356,7 +356,7 @@ export default function DashboardPremium() {
       </section>
 
       {/* BLOCK CENTRAL DE GRÁFICAS INTERACTIVAS */}
-      <section style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px", marginBottom: "28px" }}>
+      <section className="dashboard-2fr-1fr" style={{ marginBottom: "28px" }}>
         
         {/* GRÁFICO A: TENDENCIA DE VENTAS */}
         <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px" }}>
@@ -426,7 +426,7 @@ export default function DashboardPremium() {
       </section>
 
       {/* REJILLA INFERIOR: TABLA DE VENTAS RECIENTES + ALERTAS */}
-      <section style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px", alignItems: "start" }}>
+      <section className="dashboard-2fr-1fr">
         
         {/* TABLA DE VENTAS */}
         <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px" }}>

@@ -2112,6 +2112,13 @@ textarea:focus {
   gap: 18px;
 }
 
+.dashboard-2fr-1fr {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
 .graficas-split-layout {
   display: grid;
   grid-template-columns: 2.2fr 1fr;
@@ -2127,6 +2134,10 @@ textarea:focus {
 
 @media (max-width: 780px) {
   .form-grid-2col {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-2fr-1fr {
     grid-template-columns: 1fr;
   }
 
@@ -2172,4 +2183,146 @@ textarea:focus {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+}
+
+/* ==========================================================================
+   BARRA DE NAVEGACIÓN INFERIOR (MÓVIL, ESTILO APP NATIVA)
+   ========================================================================== */
+
+.mobile-tabbar {
+  display: none;
+}
+
+.mobile-mas-overlay,
+.mobile-mas-sheet {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: none;
+  }
+
+  .sidebar-v2 {
+    display: none;
+  }
+
+  .main-content {
+    padding-bottom: 90px;
+  }
+
+  .mobile-tabbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    z-index: 300;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .mobile-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 10px;
+    text-decoration: none;
+  }
+
+  .mobile-tab-activo {
+    color: var(--primary);
+  }
+
+  .mobile-tab-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 6px 18px var(--primary-soft);
+    margin-top: -30px;
+    text-decoration: none;
+  }
+
+  .mobile-mas-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 310;
+  }
+
+  .mobile-mas-sheet {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    border-radius: 18px 18px 0 0;
+    padding: 16px;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0));
+    z-index: 320;
+  }
+
+  .mobile-mas-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .mobile-mas-sheet-header p {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0;
+  }
+
+  .mobile-mas-sheet-header button {
+    background: var(--glass-bg);
+    border: none;
+    color: var(--text-secondary);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+
+  .mobile-mas-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 10px;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 10px;
+  }
+
+  .mobile-mas-item:hover {
+    background: var(--glass-bg);
+  }
+
+  .mobile-mas-item-activo {
+    color: var(--primary);
+  }
 }
