@@ -17,8 +17,11 @@ const opciones: OpcionTema[] = [
   { valor: "purple", claveNombre: "tema.purple.nombre", claveDesc: "tema.purple.desc", colores: ["#0f0817", "#1d1129", "#a855f7"] },
   { valor: "amber", claveNombre: "tema.amber.nombre", claveDesc: "tema.amber.desc", colores: ["#150f08", "#251b0f", "#f59e0b"] },
   { valor: "slate", claveNombre: "tema.slate.nombre", claveDesc: "tema.slate.desc", colores: ["#0b0d10", "#171b20", "#64748b"] },
+  { valor: "cyan", claveNombre: "tema.cyan.nombre", claveDesc: "tema.cyan.desc", colores: ["#061417", "#0d262b", "#06b6d4"] },
+  { valor: "wine", claveNombre: "tema.wine.nombre", claveDesc: "tema.wine.desc", colores: ["#150609", "#271015", "#e11d48"] },
   { valor: "light", claveNombre: "tema.light.nombre", claveDesc: "tema.light.desc", colores: ["#eef0f9", "#ffffff", "#5945e4"] },
   { valor: "pink", claveNombre: "tema.pink.nombre", claveDesc: "tema.pink.desc", colores: ["#f4a9cf", "#fce3ee", "#c2255f"] },
+  { valor: "mint", claveNombre: "tema.mint.nombre", claveDesc: "tema.mint.desc", colores: ["#eafaf3", "#ffffff", "#10b981"] },
 ];
 
 export default function ApariciarenciaTab() {

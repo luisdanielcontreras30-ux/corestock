@@ -371,7 +371,17 @@ export default function DashboardPremium() {
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis
+                  stroke="var(--text-muted)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(valor) =>
+                    valor >= 1000
+                      ? `${(valor / 1000).toFixed(0)}k`
+                      : String(valor)
+                  }
+                />
                 <Tooltip 
                   contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                   labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
@@ -386,7 +396,7 @@ export default function DashboardPremium() {
         {/* GRÁFICO B: DISTRIBUCIÓN DE PARTICIPACIÓN */}
         <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px", display: "flex", flexDirection: "column" }}>
           <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 10px 0" }}>{t("dashboard.top_articulos")}</h3>
-          <div style={{ width: "100%", height: "200px", flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "100%", height: "220px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {dataPie.length === 0 ? (
               <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{t("dashboard.sin_datos")}</p>
             ) : (
