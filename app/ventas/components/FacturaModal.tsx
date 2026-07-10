@@ -1,6 +1,6 @@
 "use client";
 
-import { Printer } from "lucide-react";
+import { Printer, MessageCircle } from "lucide-react";
 import { Venta } from "../types";
 import { formatoFecha, formatoMoneda } from "../utils";
 import { useIdioma } from "../../../components/LanguageProvider";
@@ -14,6 +14,21 @@ export default function FacturaModal({ venta, onClose }: Props) {
   const { t } = useIdioma();
   const folio = `F-${String(venta.id).padStart(6, "0")}`;
 
+  function compartirPorWhatsApp() {
+    const cliente = venta.clientes?.nombre ?? t("ventas.cliente_general");
+
+    const mensaje =
+      `🧾 *CoreStock — ${t("factura.numero")} ${folio}*\n\n` +
+      `${t("factura.facturado_a")}: ${cliente}\n` +
+      `${formatoFecha(venta.fecha)}\n\n` +
+      `${venta.producto} x${venta.cantidad}\n` +
+      `${t("tabla.total")}: ${formatoMoneda(venta.total)}\n\n` +
+      `${t("factura.gracias")}`;
+
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, "_blank");
+  }
+
   return (
     <div className="factura-overlay" onClick={onClose}>
       <div
@@ -25,13 +40,22 @@ export default function FacturaModal({ venta, onClose }: Props) {
             {t("factura.cerrar")}
           </button>
 
-          <button
-            className="btn-primary"
-            style={{ display: "flex", alignItems: "center", gap: 6 }}
-            onClick={() => window.print()}
-          >
-            <Printer size={15} /> {t("factura.imprimir")}
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn-whatsapp"
+              onClick={compartirPorWhatsApp}
+            >
+              <MessageCircle size={15} /> {t("factura.whatsapp")}
+            </button>
+
+            <button
+              className="btn-primary"
+              style={{ display: "flex", alignItems: "center", gap: 6 }}
+              onClick={() => window.print()}
+            >
+              <Printer size={15} /> {t("factura.imprimir")}
+            </button>
+          </div>
         </div>
 
         <div className="factura-hoja">

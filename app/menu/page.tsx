@@ -460,9 +460,11 @@ export default function DashboardPremium() {
                   ventasRecientes.map((venta) => (
                     <tr key={venta.id} style={{ borderBottom: "1px solid var(--border)" }}>
                       <td className="dashboard-tabla-mini-producto" style={{ padding: "14px 8px", fontWeight: "500" }}>{venta.producto}</td>
-                      <td style={{ padding: "14px 8px", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>{venta.cantidad} {t("tabla.unidades_abrev")}</td>
-                      <td style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981", whiteSpace: "nowrap" }}>${Number(venta.total).toFixed(2)}</td>
-                      <td style={{ padding: "14px 8px", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>{new Date(venta.fecha).toLocaleDateString()}</td>
+                      <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>{venta.cantidad} {t("tabla.unidades_abrev")}</td>
+                      <td style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981" }}>${Number(venta.total).toFixed(2)}</td>
+                      <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>
+                        {new Date(venta.fecha).toLocaleDateString("es-MX", { day: "numeric", month: "numeric" })}
+                      </td>
                     </tr>
                   ))
                 )}

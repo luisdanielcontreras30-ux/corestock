@@ -1300,6 +1300,26 @@ textarea:focus {
   gap: 12px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.btn-whatsapp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #25d366;
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-whatsapp:hover {
+  background: #1ebe57;
 }
 
 .factura-hoja {
@@ -2344,17 +2364,21 @@ textarea:focus {
 
   .dashboard-tabla-mini {
     table-layout: fixed;
-    font-size: 12px !important;
+    font-size: 11.5px !important;
   }
 
   .dashboard-tabla-mini th,
   .dashboard-tabla-mini td {
     padding: 8px 4px !important;
-    font-size: 12px !important;
+    font-size: 11.5px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0;
   }
 
   .dashboard-tabla-mini-producto {
-    max-width: 80px;
+    max-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2377,21 +2401,6 @@ textarea:focus {
 
   .mobile-tab-activo {
     color: var(--primary);
-  }
-
-  .mobile-tab-fab {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: var(--primary);
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 6px 18px var(--primary-soft);
-    margin-top: -30px;
-    text-decoration: none;
   }
 
   .mobile-mas-overlay {
@@ -2460,50 +2469,5 @@ textarea:focus {
 
   .mobile-mas-item-activo {
     color: var(--primary);
-  }
-
-  .mobile-fab-sheet {
-    position: fixed;
-    left: 50%;
-    bottom: 100px;
-    transform: translateX(-50%);
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 10px;
-    z-index: 320;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 220px;
-    box-shadow: var(--shadow-lg);
-  }
-
-  .mobile-fab-opcion {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: transparent;
-    border: none;
-    padding: 10px;
-    border-radius: 10px;
-    color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: left;
-  }
-
-  .mobile-fab-opcion:hover {
-    background: var(--glass-bg);
-  }
-
-  .mobile-fab-opcion-icono {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
   }
 }

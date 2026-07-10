@@ -323,6 +323,7 @@ export const TRADUCCIONES: Diccionario = {
   // Factura
   "factura.cerrar": { es: "Cerrar", en: "Close", pt: "Fechar", fr: "Fermer", de: "Schließen", zh: "关闭" },
   "factura.imprimir": { es: "Imprimir / Guardar PDF", en: "Print / Save PDF", pt: "Imprimir / Salvar PDF", fr: "Imprimer / Enregistrer en PDF", de: "Drucken / Als PDF speichern", zh: "打印 / 保存为 PDF" },
+  "factura.whatsapp": { es: "WhatsApp", en: "WhatsApp", pt: "WhatsApp", fr: "WhatsApp", de: "WhatsApp", zh: "WhatsApp" },
   "factura.subtitulo": { es: "Sistema Inteligente de Inventario", en: "Smart Inventory System", pt: "Sistema Inteligente de Estoque", fr: "Système intelligent d'inventaire", de: "Intelligentes Bestandssystem", zh: "智能库存系统" },
   "factura.numero": { es: "FACTURA", en: "INVOICE", pt: "FATURA", fr: "FACTURE", de: "RECHNUNG", zh: "发票" },
   "factura.facturado_a": { es: "Facturado a", en: "Billed to", pt: "Faturado para", fr: "Facturé à", de: "Rechnung an", zh: "开票对象" },
