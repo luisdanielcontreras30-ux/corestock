@@ -137,20 +137,22 @@ export default function VentasPage() {
         </p>
       </div>
 
-      <VentaForm
-        productos={productos}
-        clientes={clientes}
-        producto={producto}
-        productoId={productoId}
-        setProductoId={setProductoId}
-        clienteNombre={clienteNombre}
-        setClienteNombre={alCambiarClienteNombre}
-        cantidad={cantidad}
-        setCantidad={setCantidad}
-        total={total}
-        guardando={guardando}
-        onGuardar={guardarVenta}
-      />
+      <div className="ventas-form-desktop">
+        <VentaForm
+          productos={productos}
+          clientes={clientes}
+          producto={producto}
+          productoId={productoId}
+          setProductoId={setProductoId}
+          clienteNombre={clienteNombre}
+          setClienteNombre={alCambiarClienteNombre}
+          cantidad={cantidad}
+          setCantidad={setCantidad}
+          total={total}
+          guardando={guardando}
+          onGuardar={guardarVenta}
+        />
+      </div>
 
       {loading ? (
         <div className="card">{t("header.cargando")}</div>

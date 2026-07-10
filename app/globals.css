@@ -2470,4 +2470,69 @@ textarea:focus {
   .mobile-mas-item-activo {
     color: var(--primary);
   }
+
+  .mobile-tab-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary);
+    box-shadow: 0 6px 18px var(--primary-soft);
+    margin-top: -30px;
+    cursor: pointer;
+  }
+
+  /* En celular, registrar una venta se hace solo desde el botón + de
+     la barra inferior; la página de Ventas solo muestra el historial. */
+  .ventas-form-desktop {
+    display: none;
+  }
+
+  .mobile-fab-sheet {
+    position: fixed;
+    left: 50%;
+    bottom: 100px;
+    transform: translateX(-50%);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 10px;
+    z-index: 320;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 220px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .mobile-fab-opcion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .mobile-fab-opcion:hover {
+    background: var(--glass-bg);
+  }
+
+  .mobile-fab-opcion-icono {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
 }
