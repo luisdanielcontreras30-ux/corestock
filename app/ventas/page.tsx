@@ -69,6 +69,8 @@ export default function VentasPage() {
   }
 
   async function guardarVenta() {
+    if (guardando) return;
+
     if (!producto) {
       alert(t("ventas.msg_selecciona_producto"));
       return;
@@ -113,7 +115,8 @@ export default function VentasPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("ventas.msg_error_eliminar"));
+      const detalle = error instanceof Error ? error.message : "";
+      alert(`${t("ventas.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`);
     }
   }
 

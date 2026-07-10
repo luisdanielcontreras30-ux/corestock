@@ -33,6 +33,7 @@ function ProductosInterno() {
   const [imagen, setImagen] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [editando, setEditando] = useState<number | null>(null);
+  const [guardando, setGuardando] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const excelInputRef = useRef<HTMLInputElement>(null);
@@ -81,33 +82,47 @@ function ProductosInterno() {
   }
 
   async function guardar() {
-    if (!user) return;
+    if (!user || guardando) return;
 
-    let imagenUrl = preview;
+    setGuardando(true);
 
-    if (imagen) {
-      const url = await subirImagen(imagen);
-      if (url) imagenUrl = url;
+    try {
+      let imagenUrl = preview;
+
+      if (imagen) {
+        const url = await subirImagen(imagen);
+        if (url) imagenUrl = url;
+      }
+
+      const producto = {
+        nombre,
+        categoria,
+        precio_venta: Number(precio),
+        costo: Number(costo) || 0,
+        stock: Number(stock),
+        user_id: user.id,
+        imagen: imagenUrl,
+      };
+
+      if (editando) {
+        const { error } = await supabase
+          .from("productos")
+          .update(producto)
+          .eq("id", editando);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("productos").insert([producto]);
+        if (error) throw error;
+      }
+
+      limpiar();
+      await cargar();
+    } catch (error) {
+      console.error(error);
+      alert(t("productos.msg_error_guardar"));
+    } finally {
+      setGuardando(false);
     }
-
-    const producto = {
-      nombre,
-      categoria,
-      precio_venta: Number(precio),
-      costo: Number(costo) || 0,
-      stock: Number(stock),
-      user_id: user.id,
-      imagen: imagenUrl,
-    };
-
-    if (editando) {
-      await supabase.from("productos").update(producto).eq("id", editando);
-    } else {
-      await supabase.from("productos").insert([producto]);
-    }
-
-    limpiar();
-    cargar();
   }
 
   function editar(p: any) {
@@ -121,8 +136,28 @@ function ProductosInterno() {
   }
 
   async function eliminar(id: number) {
-    await supabase.from("productos").delete().eq("id", id);
-    cargar();
+    if (!confirm(t("productos.confirmar_eliminar"))) return;
+
+    try {
+      const { error } = await supabase
+        .from("productos")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        if (error.message.includes("foreign key") || error.code === "23503") {
+          alert(t("productos.msg_error_eliminar_fk"));
+        } else {
+          alert(`${t("productos.msg_error_eliminar")}: ${error.message}`);
+        }
+        return;
+      }
+
+      await cargar();
+    } catch (error) {
+      console.error(error);
+      alert(t("productos.msg_error_eliminar"));
+    }
   }
 
   function limpiar() {
@@ -205,8 +240,12 @@ function ProductosInterno() {
 
         {/* BUTTONS */}
         <div className="productos-toolbar">
-          <button onClick={guardar} className="btn-primary">
-            {editando ? t("productos.actualizar") : t("productos.guardar")}
+          <button onClick={guardar} className="btn-primary" disabled={guardando}>
+            {guardando
+              ? t("productos.guardando")
+              : editando
+              ? t("productos.actualizar")
+              : t("productos.guardar")}
           </button>
 
           <button onClick={exportarExcel} className="btn-secondary">

@@ -441,8 +441,8 @@ export default function DashboardPremium() {
         {/* TABLA DE VENTAS */}
         <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px" }}>
           <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 20px 0" }}>{t("dashboard.ventas_recientes")}</h3>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+          <div className="dashboard-tabla-mini-wrap" style={{ overflowX: "auto" }}>
+            <table className="dashboard-tabla-mini" style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
               <thead>
                 <tr style={{ color: "var(--text-secondary)", borderBottom: "1px solid var(--border)", textAlign: "left" }}>
                   <th style={{ padding: "12px 8px", fontWeight: "500" }}>{t("tabla.producto")}</th>
@@ -459,10 +459,12 @@ export default function DashboardPremium() {
                 ) : (
                   ventasRecientes.map((venta) => (
                     <tr key={venta.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                      <td style={{ padding: "14px 8px", fontWeight: "500" }}>{venta.producto}</td>
-                      <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>{venta.cantidad} {t("tabla.unidades_abrev")}</td>
-                      <td style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981" }}>${Number(venta.total).toFixed(2)}</td>
-                      <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>{new Date(venta.fecha).toLocaleDateString()}</td>
+                      <td className="dashboard-tabla-mini-producto" style={{ padding: "14px 8px", fontWeight: "500" }}>{venta.producto}</td>
+                      <td className="dashboard-tabla-mini-celda" style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>{venta.cantidad} {t("tabla.unidades_abrev")}</td>
+                      <td className="dashboard-tabla-mini-celda" style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981" }}>${Number(venta.total).toFixed(2)}</td>
+                      <td className="dashboard-tabla-mini-celda" style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>
+                        {new Date(venta.fecha).toLocaleDateString("es-MX", { day: "numeric", month: "numeric" })}
+                      </td>
                     </tr>
                   ))
                 )}
