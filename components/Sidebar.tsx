@@ -12,6 +12,7 @@ import {
   Settings,
   Sparkles,
   Truck,
+  Users,
   LucideIcon,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
@@ -48,6 +49,7 @@ const secciones: Seccion[] = [
     claveTitulo: "sidebar.operaciones",
     items: [
       { claveNombre: "sidebar.ventas", href: "/ventas", Icono: DollarSign },
+      { claveNombre: "sidebar.clientes", href: "/clientes", Icono: Users },
     ],
   },
   {

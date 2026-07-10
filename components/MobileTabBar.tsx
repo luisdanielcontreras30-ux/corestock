@@ -13,6 +13,7 @@ import {
   Sparkles,
   Settings,
   Truck,
+  Users,
   X,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
@@ -31,6 +32,7 @@ export default function MobileTabBar() {
   // de secciones viven solo dentro de "Más" en celular.
   const masItems = [
     { href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas" },
+    { href: "/clientes", Icono: Users, clave: "sidebar.clientes" },
     { href: "/graficas", Icono: BarChart3, clave: "sidebar.graficas" },
     { href: "/proveedores", Icono: Truck, clave: "sidebar.proveedores" },
     { href: "/alertas", Icono: Bell, clave: "sidebar.alertas" },
