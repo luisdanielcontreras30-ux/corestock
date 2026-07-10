@@ -11,6 +11,7 @@ import {
   DollarSign,
   Settings,
   Sparkles,
+  Truck,
   LucideIcon,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
@@ -39,6 +40,7 @@ const secciones: Seccion[] = [
     claveTitulo: "sidebar.inventario",
     items: [
       { claveNombre: "sidebar.productos", href: "/productos", Icono: Package },
+      { claveNombre: "sidebar.proveedores", href: "/proveedores", Icono: Truck },
       { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell },
     ],
   },

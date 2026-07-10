@@ -182,24 +182,25 @@ export async function eliminarVenta(
       .from("productos")
       .select("stock")
       .eq("id", venta.producto_id)
-      .single();
+      .maybeSingle();
 
-    if (errorProducto) {
-      throw errorProducto;
-    }
+    // Si el producto ya no existe (fue borrado por separado), no hay
+    // stock que restaurar — seguimos adelante y borramos la venta igual,
+    // en vez de bloquear todo el borrado por esto.
+    if (!errorProducto && producto) {
+      const { error: errorStock } =
+        await supabase
+          .from("productos")
+          .update({
+            stock:
+              producto.stock +
+              venta.cantidad,
+          })
+          .eq("id", venta.producto_id);
 
-    const { error: errorStock } =
-      await supabase
-        .from("productos")
-        .update({
-          stock:
-            producto.stock +
-            venta.cantidad,
-        })
-        .eq("id", venta.producto_id);
-
-    if (errorStock) {
-      throw errorStock;
+      if (errorStock) {
+        throw errorStock;
+      }
     }
   }
 

@@ -2268,7 +2268,41 @@ textarea:focus {
   }
 
   .main-content {
+    padding: 14px;
     padding-bottom: 90px;
+    overflow-x: hidden;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 24px !important;
+  }
+
+  h2 {
+    font-size: 18px !important;
+  }
+
+  .tabla th,
+  .tabla td {
+    padding: 10px 8px;
+    font-size: 12.5px;
+  }
+
+  .estadisticas-grid,
+  .productos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-tabs {
+    gap: 4px;
+  }
+
+  .config-tab {
+    font-size: 12px;
+    padding: 8px 4px;
   }
 
   .mobile-tabbar {
@@ -2284,6 +2318,46 @@ textarea:focus {
     border-top: 1px solid var(--border);
     z-index: 300;
     padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .dashboard-card-hero,
+  .dashboard-card-mes,
+  .dashboard-card-prod,
+  .dashboard-card-alertas {
+    padding: 16px !important;
+  }
+
+  .dashboard-card-hero h2 {
+    font-size: 26px !important;
+  }
+
+  .dashboard-card-mes h2,
+  .dashboard-card-prod h2,
+  .dashboard-card-alertas h2 {
+    font-size: 20px !important;
+  }
+
+  .dashboard-tabla-mini-wrap {
+    max-width: 100%;
+    overflow-x: hidden !important;
+  }
+
+  .dashboard-tabla-mini {
+    table-layout: fixed;
+    font-size: 12px !important;
+  }
+
+  .dashboard-tabla-mini th,
+  .dashboard-tabla-mini td {
+    padding: 8px 4px !important;
+    font-size: 12px !important;
+  }
+
+  .dashboard-tabla-mini-producto {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .mobile-tab {

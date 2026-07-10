@@ -13,6 +13,7 @@ import {
   Bell,
   Sparkles,
   Settings,
+  Truck,
   Camera,
   X,
 } from "lucide-react";
@@ -33,6 +34,7 @@ export default function MobileTabBar() {
 
   const masItems = [
     { href: "/graficas", Icono: BarChart3, clave: "sidebar.graficas" },
+    { href: "/proveedores", Icono: Truck, clave: "sidebar.proveedores" },
     { href: "/alertas", Icono: Bell, clave: "sidebar.alertas" },
     { href: "/asistente", Icono: Sparkles, clave: "sidebar.asistente" },
     { href: "/configuracion", Icono: Settings, clave: "sidebar.configuracion" },
