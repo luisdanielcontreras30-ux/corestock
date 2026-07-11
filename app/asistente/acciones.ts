@@ -29,10 +29,13 @@ async function obtenerDatos(userId: string) {
   };
 }
 
+// Límite superior exclusivo: evita que una venta justo en el borde entre
+// dos rangos consecutivos (ej. inicio de "esta semana" == fin de "semana
+// anterior") se cuente en ambos.
 function ventasEnRango(ventas: VentaRaw[], desde: Date, hasta: Date): VentaRaw[] {
   return ventas.filter((v) => {
     const f = new Date(v.fecha);
-    return f >= desde && f <= hasta;
+    return f >= desde && f < hasta;
   });
 }
 

@@ -19,6 +19,10 @@ interface Mensaje {
   id: number;
   autor: "usuario" | "asistente";
   texto: string;
+  // Si viene presente, el texto se traduce en cada render (para que
+  // reaccione a cambios de idioma) en vez de quedar fijo en el idioma
+  // que estaba activo cuando se generó el mensaje.
+  claveTexto?: string;
 }
 
 // Convierte **negritas** y saltos de línea en JSX simple.
@@ -53,9 +57,8 @@ export default function AsistentePage() {
 
   useEffect(() => {
     setMensajes([
-      { id: 0, autor: "asistente", texto: t("asistente.saludo_inicial") },
+      { id: 0, autor: "asistente", texto: "", claveTexto: "asistente.saludo_inicial" },
     ]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -288,7 +291,7 @@ export default function AsistentePage() {
                 lineHeight: 1.5,
               }}
             >
-              {renderizarTexto(m.texto)}
+              {renderizarTexto(m.claveTexto ? t(m.claveTexto) : m.texto)}
             </div>
           </div>
         ))}

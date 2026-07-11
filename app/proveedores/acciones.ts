@@ -33,22 +33,28 @@ export async function crearProveedor(
 }
 
 export async function actualizarProveedor(
+  userId: string,
   id: string,
   cambios: Partial<Proveedor>
 ): Promise<void> {
   const { error } = await supabase
     .from("proveedores")
     .update(cambios)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", userId);
 
   if (error) throw error;
 }
 
-export async function eliminarProveedor(id: string): Promise<void> {
+export async function eliminarProveedor(
+  userId: string,
+  id: string
+): Promise<void> {
   const { error } = await supabase
     .from("proveedores")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", userId);
 
   if (error) throw error;
 }

@@ -3,6 +3,7 @@
 import "./graficas.css";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DollarSign, ShoppingBag, Box, TrendingUp, TrendingDown, BarChart3, Trophy } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -25,6 +26,7 @@ import {
 import { VentaCruda } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useTheme } from "../../components/ThemeProvider";
+import { useAuth } from "../../components/AuthProvider";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import ContadorAnimado from "../../components/ContadorAnimado";
 
@@ -37,14 +39,23 @@ const PERIODOS: { valor: Periodo; clave: string }[] = [
 export default function GraficasPage() {
   const { t } = useIdioma();
   const { tema } = useTheme();
+  const router = useRouter();
+  const { user, cargando: cargandoAuth } = useAuth();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
   const [loading, setLoading] = useState(true);
   const [ventasCrudas, setVentasCrudas] = useState<VentaCruda[]>([]);
   const [periodo, setPeriodo] = useState<Periodo>("semanal");
 
   useEffect(() => {
+    if (cargandoAuth) return;
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     cargarDatos();
-  }, []);
+  }, [cargandoAuth, user]);
 
   async function cargarDatos() {
     try {
@@ -129,15 +140,15 @@ export default function GraficasPage() {
   }, [puntosGrafica]);
 
   const productosAgregados = useMemo(
-    () => agregarPorProducto(ventasActual),
-    [ventasActual]
+    () => agregarPorProducto(ventasActual, ventasCrudas),
+    [ventasActual, ventasCrudas]
   );
 
   const topProductos = productosAgregados.slice(0, 4);
   const maxIngresoTop = topProductos.length > 0 ? topProductos[0].ingresos : 1;
   const productosRendimiento = productosAgregados.slice(0, 6);
 
-  if (loading) {
+  if (cargandoAuth || !user || loading) {
     return (
       <main className="fade-up">
         <div className="card">{t("graficas.cargando")}</div>

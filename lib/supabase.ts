@@ -1,9 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = "https://rdsmngtxytftnrxhuurp.supabase.co";
-const supabaseAnonKey = "sb_publishable_lZ2zexM3tGS8zv2mqdrk_w_TDiE-IP5";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-);
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    "Faltan NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY. Define esas variables en tu archivo .env.local."
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

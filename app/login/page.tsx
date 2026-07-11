@@ -22,6 +22,7 @@ function LoginInterno() {
   const [modo, setModo] = useState<"login" | "registro">(modoInicial);
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmarPassword, setConfirmarPassword] = useState("");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
@@ -62,6 +63,11 @@ function LoginInterno() {
 
     if (password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    if (password !== confirmarPassword) {
+      setError("Las contraseñas no coinciden.");
       return;
     }
 
@@ -166,6 +172,18 @@ function LoginInterno() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
+          {modo === "registro" && (
+            <>
+              <label className="login-label">Confirmar contraseña</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={confirmarPassword}
+                onChange={(e) => setConfirmarPassword(e.target.value)}
+              />
+            </>
+          )}
+
           <button className="btn-login" disabled={cargando} type="submit">
             {cargando ? (
               <span className="login-spinner" />
@@ -184,6 +202,7 @@ function LoginInterno() {
               setModo(modo === "login" ? "registro" : "login");
               setError("");
               setMensaje("");
+              setConfirmarPassword("");
             }}
           >
             {modo === "login"

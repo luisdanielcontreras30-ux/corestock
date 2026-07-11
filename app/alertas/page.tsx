@@ -19,6 +19,7 @@ export default function Alertas() {
   const { user, cargando: cargandoAuth } = useAuth();
   const [alertas, setAlertas] = useState<ProductoAlerta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (cargandoAuth) return;
@@ -33,16 +34,21 @@ export default function Alertas() {
 
   async function cargar(userId: string) {
     setLoading(true);
+    setError(false);
 
-    const { data } = await supabase
+    const { data, error: errorConsulta } = await supabase
       .from("productos")
       .select("*")
       .eq("user_id", userId)
       .lte("stock", 5)
       .order("stock");
 
-    if (data) {
-      setAlertas(data as ProductoAlerta[]);
+    if (errorConsulta) {
+      console.error(errorConsulta);
+      setError(true);
+      setAlertas([]);
+    } else {
+      setAlertas((data ?? []) as ProductoAlerta[]);
     }
 
     setLoading(false);
@@ -55,6 +61,19 @@ export default function Alertas() {
     return (
       <main className="fade-up">
         <div className="card">{t("alertas.cargando")}</div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="fade-up">
+        <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
+          <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("alertas.msg_error_cargar")}</p>
+          <button className="btn-primary" onClick={() => user && cargar(user.id)}>
+            {t("empresa.reintentar")}
+          </button>
+        </div>
       </main>
     );
   }

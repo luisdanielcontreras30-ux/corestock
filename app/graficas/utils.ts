@@ -166,15 +166,19 @@ export function agruparPorPeriodo(
   return puntos;
 }
 
-// Agrupa ventas por producto, con historial de los últimos 7 días
-// (para las mini-gráficas), sin importar el periodo seleccionado.
+// Agrupa ventas del periodo seleccionado por producto (ingresos/unidades),
+// con historial de los últimos 7 días para las mini-gráficas. El historial
+// se calcula siempre sobre el historial completo de ventas (ventasTodas),
+// sin importar el periodo seleccionado, para que no se corte cuando el
+// periodo empieza a menos de 7 días (ej. los primeros días de un mes).
 export function agregarPorProducto(
-  ventas: VentaCruda[]
+  ventasPeriodo: VentaCruda[],
+  ventasTodas: VentaCruda[] = ventasPeriodo
 ): ProductoAgregado[] {
   const hoy = new Date();
   const mapa = new Map<string, ProductoAgregado>();
 
-  for (const venta of ventas) {
+  for (const venta of ventasPeriodo) {
     if (!mapa.has(venta.producto)) {
       mapa.set(venta.producto, {
         nombre: venta.producto,
@@ -194,7 +198,7 @@ export function agregarPorProducto(
       const dia = new Date(hoy);
       dia.setDate(hoy.getDate() - i);
 
-      const total = ventas
+      const total = ventasTodas
         .filter(
           (v) =>
             v.producto === producto.nombre &&

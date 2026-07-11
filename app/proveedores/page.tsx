@@ -74,7 +74,7 @@ export default function ProveedoresPage() {
 
     try {
       if (editando) {
-        await actualizarProveedor(editando.id, {
+        await actualizarProveedor(user.id, editando.id, {
           nombre,
           telefono,
           correo,
@@ -95,12 +95,14 @@ export default function ProveedoresPage() {
   }
 
   async function alEliminar(p: Proveedor) {
+    if (!user) return;
+
     if (!confirm(t("proveedores.confirmar_eliminar").replace("{nombre}", p.nombre))) {
       return;
     }
 
     try {
-      await eliminarProveedor(p.id);
+      await eliminarProveedor(user.id, p.id);
       await refrescar();
     } catch (error) {
       console.error(error);

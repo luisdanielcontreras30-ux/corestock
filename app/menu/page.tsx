@@ -226,7 +226,10 @@ export default function DashboardPremium() {
             {t("dashboard.saludo")}
             {user?.email ? `, ${user.email.split("@")[0]}` : ""} 👋
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "4px 0 0 0", textTransform: "capitalize" }}>
+          <p
+            suppressHydrationWarning
+            style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "4px 0 0 0", textTransform: "capitalize" }}
+          >
             {new Date().toLocaleDateString(LOCALES[idioma], {
               weekday: "long",
               day: "numeric",

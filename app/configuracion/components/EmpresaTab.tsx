@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, XCircle, ImagePlus, X } from "lucide-react";
 import { EmpresaConfig, EMPRESA_VACIA } from "../types";
 import { cargarEmpresa, guardarEmpresa } from "../acciones";
-import { supabase } from "../../../lib/supabase";
+import { subirImagenSegura } from "../../../lib/uploads";
 import { useIdioma } from "../../../components/LanguageProvider";
 
 const MONEDAS = ["MXN", "USD", "EUR", "COP", "ARS", "CLP", "PEN"];
@@ -29,19 +29,30 @@ export default function EmpresaTab() {
   const { t } = useIdioma();
   const [empresa, setEmpresa] = useState<EmpresaConfig>(EMPRESA_VACIA);
   const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [subiendoLogo, setSubiendoLogo] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
   const inputArchivoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    cargar();
+  }, []);
+
+  function cargar() {
+    setCargando(true);
+    setErrorCarga(false);
+
     cargarEmpresa()
       .then((datos) => {
         if (datos) setEmpresa(datos);
       })
-      .catch((error) => console.error(error))
+      .catch((error) => {
+        console.error(error);
+        setErrorCarga(true);
+      })
       .finally(() => setCargando(false));
-  }, []);
+  }
 
   function actualizarCampo<K extends keyof EmpresaConfig>(
     campo: K,
@@ -52,29 +63,21 @@ export default function EmpresaTab() {
 
   async function alSubirLogo(archivo: File) {
     setSubiendoLogo(true);
+    setMensaje(null);
 
-    try {
-      const nombreArchivo = `logo-${Date.now()}-${archivo.name}`;
+    const { url, error } = await subirImagenSegura("productos", archivo, "logo-");
 
-      const { error: errorSubida } = await supabase.storage
-        .from("productos")
-        .upload(nombreArchivo, archivo);
-
-      if (errorSubida) {
-        throw errorSubida;
-      }
-
-      const { data } = supabase.storage
-        .from("productos")
-        .getPublicUrl(nombreArchivo);
-
-      actualizarCampo("logo_url", data.publicUrl);
-    } catch (error) {
-      console.error(error);
+    if (error === "tipo_invalido") {
+      setMensaje({ tipo: "error", texto: t("empresa.msg_logo_tipo_invalido") });
+    } else if (error === "muy_grande") {
+      setMensaje({ tipo: "error", texto: t("empresa.msg_logo_muy_grande") });
+    } else if (error || !url) {
       setMensaje({ tipo: "error", texto: t("empresa.msg_error_logo") });
-    } finally {
-      setSubiendoLogo(false);
+    } else {
+      actualizarCampo("logo_url", url);
     }
+
+    setSubiendoLogo(false);
   }
 
   async function alGuardar() {
@@ -94,6 +97,19 @@ export default function EmpresaTab() {
 
   if (cargando) {
     return <div className="card">{t("empresa.cargando")}</div>;
+  }
+
+  if (errorCarga) {
+    return (
+      <div className="card">
+        <p style={{ color: "#ef4444", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
+          <XCircle size={16} /> {t("empresa.msg_error_cargar")}
+        </p>
+        <button className="btn-primary" onClick={cargar}>
+          {t("empresa.reintentar")}
+        </button>
+      </div>
+    );
   }
 
   return (

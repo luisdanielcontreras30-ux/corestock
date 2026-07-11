@@ -35,6 +35,7 @@ export default function UsuariosTab() {
   const [guardando, setGuardando] = useState(false);
 
   const [nuevaContrasena, setNuevaContrasena] = useState("");
+  const [confirmarContrasena, setConfirmarContrasena] = useState("");
   const [guardandoPass, setGuardandoPass] = useState(false);
   const [mensajePass, setMensajePass] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
 
@@ -140,6 +141,11 @@ export default function UsuariosTab() {
       return;
     }
 
+    if (nuevaContrasena !== confirmarContrasena) {
+      setMensajePass({ tipo: "error", texto: t("usuarios.msg_pass_no_coincide") });
+      return;
+    }
+
     setGuardandoPass(true);
     setMensajePass(null);
 
@@ -147,6 +153,7 @@ export default function UsuariosTab() {
       await cambiarMiContrasena(nuevaContrasena);
       setMensajePass({ tipo: "ok", texto: t("usuarios.msg_pass_ok") });
       setNuevaContrasena("");
+      setConfirmarContrasena("");
     } catch (error) {
       console.error(error);
       setMensajePass({ tipo: "error", texto: t("usuarios.msg_pass_error") });
@@ -193,6 +200,14 @@ export default function UsuariosTab() {
             placeholder={t("usuarios.nueva_contrasena")}
             value={nuevaContrasena}
             onChange={(e) => setNuevaContrasena(e.target.value)}
+            style={{ maxWidth: 260 }}
+          />
+
+          <input
+            type="password"
+            placeholder={t("usuarios.confirmar_contrasena")}
+            value={confirmarContrasena}
+            onChange={(e) => setConfirmarContrasena(e.target.value)}
             style={{ maxWidth: 260 }}
           />
 

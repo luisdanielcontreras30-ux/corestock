@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { subirImagenSegura } from "../../lib/uploads";
 import * as XLSX from "xlsx";
 import { ImagePlus } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -43,24 +44,26 @@ export default function Productos() {
     if (data) setProductos(data);
   }
 
-  async function subirImagen(file: File) {
-    const fileName = `${Date.now()}-${file.name}`;
-
-    const { error } = await supabase.storage
-      .from("productos")
-      .upload(fileName, file);
-
-    if (error) return null;
-
-    const { data } = supabase.storage
-      .from("productos")
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
-  }
-
   async function guardar() {
     if (!user || guardando) return;
+
+    if (!nombre.trim()) {
+      alert(t("productos.msg_falta_nombre"));
+      return;
+    }
+
+    const precioNum = Number(precio);
+    const costoNum = costo === "" ? 0 : Number(costo);
+    const stockNum = Number(stock);
+
+    if (
+      !Number.isFinite(precioNum) || precioNum < 0 ||
+      !Number.isFinite(costoNum) || costoNum < 0 ||
+      !Number.isFinite(stockNum) || stockNum < 0
+    ) {
+      alert(t("productos.msg_valores_invalidos"));
+      return;
+    }
 
     setGuardando(true);
 
@@ -68,25 +71,37 @@ export default function Productos() {
       let imagenUrl = preview;
 
       if (imagen) {
-        const url = await subirImagen(imagen);
+        const { url, error } = await subirImagenSegura("productos", imagen);
+
+        if (error === "tipo_invalido") {
+          alert(t("productos.msg_imagen_tipo_invalido"));
+          setGuardando(false);
+          return;
+        }
+        if (error === "muy_grande") {
+          alert(t("productos.msg_imagen_muy_grande"));
+          setGuardando(false);
+          return;
+        }
         if (url) imagenUrl = url;
       }
 
       const producto = {
-        nombre,
+        nombre: nombre.trim(),
         categoria,
-        precio_venta: Number(precio),
-        costo: Number(costo) || 0,
-        stock: Number(stock),
+        precio_venta: precioNum,
+        costo: costoNum,
+        stock: stockNum,
         user_id: user.id,
         imagen: imagenUrl,
       };
 
-      if (editando) {
+      if (editando !== null) {
         const { error } = await supabase
           .from("productos")
           .update(producto)
-          .eq("id", editando);
+          .eq("id", editando)
+          .eq("user_id", user.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("productos").insert([producto]);
@@ -111,16 +126,20 @@ export default function Productos() {
     setCosto(p.costo ?? "");
     setStock(p.stock);
     setPreview(p.imagen || "");
+    setImagen(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function eliminar(id: number) {
+    if (!user) return;
     if (!confirm(t("productos.confirmar_eliminar"))) return;
 
     try {
       const { error } = await supabase
         .from("productos")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
 
       if (error) {
         if (error.message.includes("foreign key") || error.code === "23503") {
@@ -159,7 +178,7 @@ export default function Productos() {
   }
 
   const filtrados = productos.filter((p) =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
+    (p.nombre ?? "").toLowerCase().includes(busqueda.toLowerCase())
   );
 
   return (
@@ -167,14 +186,14 @@ export default function Productos() {
       <h1 className="productos-header">{t("productos.titulo")}</h1>
 
       <div className="card productos-form">
-        <h2>{editando ? t("productos.editar_producto") : t("productos.anadir_producto")}</h2>
+        <h2>{editando !== null ? t("productos.editar_producto") : t("productos.anadir_producto")}</h2>
 
         <div className="productos-grid">
           <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={t("productos.nombre")} />
           <input value={categoria} onChange={(e) => setCategoria(e.target.value)} placeholder={t("productos.categoria")} />
-          <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" />
-          <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" />
-          <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" />
+          <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
+          <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
+          <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" min="0" step="1" />
         </div>
 
         {/* UPLOAD IMAGE */}
@@ -220,7 +239,7 @@ export default function Productos() {
           <button onClick={guardar} className="btn-primary" disabled={guardando}>
             {guardando
               ? t("productos.guardando")
-              : editando
+              : editando !== null
               ? t("productos.actualizar")
               : t("productos.guardar")}
           </button>
@@ -233,7 +252,7 @@ export default function Productos() {
             {t("productos.importar_excel")}
           </button>
 
-          {editando && (
+          {editando !== null && (
             <button onClick={limpiar} className="btn-delete">
               {t("productos.cancelar")}
             </button>
@@ -254,20 +273,51 @@ export default function Productos() {
             const ws = wb.Sheets[wb.SheetNames[0]];
             const data = XLSX.utils.sheet_to_json(ws);
 
+            let importados = 0;
+            let omitidos = 0;
+
             for (const item of data as any[]) {
-              await supabase.from("productos").insert([
+              const nombreItem = typeof item.nombre === "string" ? item.nombre.trim() : "";
+              const precioItem = Number(item.precio_venta);
+              const stockItem = Number(item.stock);
+              const costoItem = item.costo != null ? Number(item.costo) : 0;
+
+              if (
+                !nombreItem ||
+                !Number.isFinite(precioItem) || precioItem < 0 ||
+                !Number.isFinite(stockItem) || stockItem < 0 ||
+                !Number.isFinite(costoItem) || costoItem < 0
+              ) {
+                omitidos++;
+                continue;
+              }
+
+              const { error } = await supabase.from("productos").insert([
                 {
-                  nombre: item.nombre,
-                  categoria: item.categoria,
-                  precio_venta: Number(item.precio_venta),
-                  costo: Number(item.costo) || 0,
-                  stock: Number(item.stock),
+                  nombre: nombreItem,
+                  categoria: item.categoria ?? "",
+                  precio_venta: precioItem,
+                  costo: costoItem,
+                  stock: stockItem,
                   user_id: user.id,
                 },
               ]);
+
+              if (error) {
+                omitidos++;
+              } else {
+                importados++;
+              }
             }
 
-            cargar();
+            if (excelInputRef.current) excelInputRef.current.value = "";
+
+            await cargar();
+            alert(
+              t("productos.msg_importacion_resultado")
+                .replace("{importados}", String(importados))
+                .replace("{omitidos}", String(omitidos))
+            );
           }}
         />
       </div>

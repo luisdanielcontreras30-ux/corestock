@@ -111,10 +111,28 @@ export async function registrarVenta(
     }
   }
 
+  // Releemos el stock justo antes de vender: evita usar un valor ya
+  // desactualizado que traiga la UI si pasó tiempo desde que se cargó.
+  const { data: productoActual, error: errorProductoActual } =
+    await supabase
+      .from("productos")
+      .select("stock")
+      .eq("id", producto.id)
+      .eq("user_id", user.id)
+      .single();
+
+  if (errorProductoActual) {
+    throw errorProductoActual;
+  }
+
+  if (productoActual.stock < cantidad) {
+    throw new Error("No hay suficiente stock para esta venta.");
+  }
+
   const total =
     producto.precio_venta * cantidad;
 
-  const { error: errorVenta } =
+  const { data: ventaCreada, error: errorVenta } =
     await supabase
       .from("ventas")
       .insert({
@@ -126,25 +144,42 @@ export async function registrarVenta(
         precio: producto.precio_venta,
         total,
         user_id: user.id,
-      });
+      })
+      .select("id")
+      .single();
 
   if (errorVenta) {
     throw errorVenta;
   }
 
   const nuevoStock =
-    producto.stock - cantidad;
+    productoActual.stock - cantidad;
 
-  const { error: errorStock } =
+  // Update "compare-and-swap": solo aplica si el stock sigue siendo el
+  // que acabamos de leer. Si otra venta concurrente ya lo cambió, esto
+  // afecta 0 filas y detectamos la condición de carrera en vez de
+  // pisar silenciosamente el resultado de la otra venta.
+  const { data: actualizado, error: errorStock } =
     await supabase
       .from("productos")
       .update({
         stock: nuevoStock,
       })
-      .eq("id", producto.id);
+      .eq("id", producto.id)
+      .eq("user_id", user.id)
+      .eq("stock", productoActual.stock)
+      .select("id");
 
   if (errorStock) {
+    await supabase.from("ventas").delete().eq("id", ventaCreada.id);
     throw errorStock;
+  }
+
+  if (!actualizado || actualizado.length === 0) {
+    await supabase.from("ventas").delete().eq("id", ventaCreada.id);
+    throw new Error(
+      "El stock de este producto cambió mientras se procesaba la venta. Intenta de nuevo."
+    );
   }
 }
 export async function eliminarVenta(
@@ -182,6 +217,7 @@ export async function eliminarVenta(
       .from("productos")
       .select("stock")
       .eq("id", venta.producto_id)
+      .eq("user_id", user.id)
       .maybeSingle();
 
     // Si el producto ya no existe (fue borrado por separado), no hay
@@ -196,7 +232,8 @@ export async function eliminarVenta(
               producto.stock +
               venta.cantidad,
           })
-          .eq("id", venta.producto_id);
+          .eq("id", venta.producto_id)
+          .eq("user_id", user.id);
 
       if (errorStock) {
         throw errorStock;

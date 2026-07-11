@@ -51,6 +51,8 @@ export default function NuevaVentaModal({ onClose }: Props) {
   }
 
   async function guardarVenta() {
+    if (guardando) return;
+
     if (!producto) {
       alert(t("ventas.msg_selecciona_producto"));
       return;
@@ -72,7 +74,8 @@ export default function NuevaVentaModal({ onClose }: Props) {
       onClose();
     } catch (error) {
       console.error(error);
-      alert(t("ventas.msg_error_registrar"));
+      const detalle = error instanceof Error ? error.message : "";
+      alert(detalle || t("ventas.msg_error_registrar"));
     } finally {
       setGuardando(false);
     }

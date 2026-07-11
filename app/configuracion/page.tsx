@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useAuth } from "../../components/AuthProvider";
 import ConfigTabs from "./components/ConfigTabs";
 import ApariciarenciaTab from "./components/ApariciarenciaTab";
 import EmpresaTab from "./components/EmpresaTab";
@@ -12,6 +14,21 @@ import IdiomaTab from "./components/IdiomaTab";
 export default function ConfiguracionPage() {
   const [tab, setTab] = useState("apariencia");
   const { t } = useIdioma();
+  const router = useRouter();
+  const { user, cargando: cargandoAuth } = useAuth();
+
+  useEffect(() => {
+    if (cargandoAuth) return;
+    if (!user) router.push("/login");
+  }, [cargandoAuth, user, router]);
+
+  if (cargandoAuth || !user) {
+    return (
+      <main className="fade-up">
+        <div className="card">{t("header.cargando")}</div>
+      </main>
+    );
+  }
 
   return (
     <main

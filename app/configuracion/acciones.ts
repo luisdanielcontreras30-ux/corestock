@@ -95,10 +95,13 @@ export async function actualizarMiembro(
   id: string,
   cambios: Partial<Miembro>
 ): Promise<void> {
+  const user = await obtenerUsuarioActual();
+
   const { error } = await supabase
     .from("miembros_equipo")
     .update(cambios)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", user.id);
 
   if (error) {
     throw error;
@@ -106,10 +109,13 @@ export async function actualizarMiembro(
 }
 
 export async function eliminarMiembro(id: string): Promise<void> {
+  const user = await obtenerUsuarioActual();
+
   const { error } = await supabase
     .from("miembros_equipo")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", user.id);
 
   if (error) {
     throw error;

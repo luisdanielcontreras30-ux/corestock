@@ -45,10 +45,15 @@ export default function ClientesPage() {
   async function obtenerDatos() {
     setLoading(true);
 
-    const { clientes: clientesCargados } = await cargarClientes();
-    setClientes(clientesCargados);
-
-    setLoading(false);
+    try {
+      const { clientes: clientesCargados } = await cargarClientes();
+      setClientes(clientesCargados);
+    } catch (error) {
+      console.error(error);
+      alert(t("clientes.msg_error_cargar"));
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -64,7 +69,7 @@ export default function ClientesPage() {
     try {
       setGuardando(true);
 
-      if (editandoId) {
+      if (editandoId !== null) {
         await actualizarCliente(editandoId, datos);
       } else {
         await crearCliente(datos);

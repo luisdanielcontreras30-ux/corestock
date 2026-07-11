@@ -99,7 +99,8 @@ export default function VentasPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("ventas.msg_error_registrar"));
+      const detalle = error instanceof Error ? error.message : "";
+      alert(detalle || t("ventas.msg_error_registrar"));
     } finally {
       setGuardando(false);
     }
