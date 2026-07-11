@@ -9,14 +9,7 @@ import {
   Package,
   Plus,
   Menu as MenuIcon,
-  BarChart3,
-  Bell,
-  Sparkles,
-  Settings,
-  Truck,
-  Users,
   Camera,
-  X,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
 import NuevaVentaModal from "../app/ventas/components/NuevaVentaModal";
@@ -25,7 +18,6 @@ export default function MobileTabBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useIdioma();
-  const [masAbierto, setMasAbierto] = useState(false);
   const [fabAbierto, setFabAbierto] = useState(false);
   const [ventaModalAbierto, setVentaModalAbierto] = useState(false);
 
@@ -33,15 +25,6 @@ export default function MobileTabBar() {
     { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard" },
     { href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas" },
     { href: "/productos", Icono: Package, clave: "sidebar.productos" },
-  ];
-
-  const masItems = [
-    { href: "/clientes", Icono: Users, clave: "sidebar.clientes" },
-    { href: "/graficas", Icono: BarChart3, clave: "sidebar.graficas" },
-    { href: "/proveedores", Icono: Truck, clave: "sidebar.proveedores" },
-    { href: "/alertas", Icono: Bell, clave: "sidebar.alertas" },
-    { href: "/asistente", Icono: Sparkles, clave: "sidebar.asistente" },
-    { href: "/configuracion", Icono: Settings, clave: "sidebar.configuracion" },
   ];
 
   function abrirNuevaVenta() {
@@ -58,41 +41,6 @@ export default function MobileTabBar() {
 
   return (
     <>
-      {masAbierto && (
-        <div
-          className="mobile-mas-overlay"
-          onClick={() => setMasAbierto(false)}
-        />
-      )}
-
-      {masAbierto && (
-        <div className="mobile-mas-sheet fade-up">
-          <div className="mobile-mas-sheet-header">
-            <p>{t("sidebar.mas_opciones")}</p>
-            <button onClick={() => setMasAbierto(false)} aria-label="Cerrar">
-              <X size={18} />
-            </button>
-          </div>
-
-          {masItems.map((item) => {
-            const Icono = item.Icono;
-            const activo = pathname === item.href;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMasAbierto(false)}
-                className={`mobile-mas-item ${activo ? "mobile-mas-item-activo" : ""}`}
-              >
-                <Icono size={18} />
-                {t(item.clave)}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
       {fabAbierto && (
         <div
           className="mobile-mas-overlay"
@@ -170,13 +118,13 @@ export default function MobileTabBar() {
           );
         })}
 
-        <button
-          className={`mobile-tab ${masAbierto ? "mobile-tab-activo" : ""}`}
-          onClick={() => setMasAbierto((v) => !v)}
+        <Link
+          href="/mas"
+          className={`mobile-tab ${pathname === "/mas" ? "mobile-tab-activo" : ""}`}
         >
           <MenuIcon size={21} />
           <span>{t("sidebar.mas")}</span>
-        </button>
+        </Link>
       </nav>
     </>
   );

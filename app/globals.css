@@ -2536,3 +2536,119 @@ textarea:focus {
     flex-shrink: 0;
   }
 }
+
+/* ==========================================================================
+   PÁGINA "MÁS" (celular) — grid de accesos a todos los módulos secundarios
+   ========================================================================== */
+
+.mas-page {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.mas-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mas-seccion-titulo {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.mas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.mas-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.mas-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.mas-card-icono {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   PÁGINAS "PRÓXIMAMENTE" (módulos aún sin funcionalidad propia)
+   ========================================================================== */
+
+.proximamente-page {
+  display: flex;
+  min-height: 60vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.proximamente-card {
+  max-width: 420px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 32px;
+}
+
+.proximamente-icono {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--primary-soft);
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+}
+
+.proximamente-badge {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.proximamente-card h1 {
+  font-size: 22px;
+  margin: 4px 0 0 0;
+}
+
+.proximamente-card p {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0;
+}

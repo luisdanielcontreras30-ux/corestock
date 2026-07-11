@@ -3,62 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  BarChart3,
-  Package,
-  Bell,
-  DollarSign,
-  Settings,
-  Sparkles,
-  Truck,
-  Users,
-  LucideIcon,
-} from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
-
-interface ItemNav {
-  claveNombre: string;
-  href: string;
-  Icono: LucideIcon;
-}
-
-interface Seccion {
-  claveTitulo: string;
-  items: ItemNav[];
-}
-
-const secciones: Seccion[] = [
-  {
-    claveTitulo: "sidebar.principal",
-    items: [
-      { claveNombre: "sidebar.dashboard", href: "/menu", Icono: LayoutDashboard },
-      { claveNombre: "sidebar.graficas", href: "/graficas", Icono: BarChart3 },
-      { claveNombre: "sidebar.asistente", href: "/asistente", Icono: Sparkles },
-    ],
-  },
-  {
-    claveTitulo: "sidebar.inventario",
-    items: [
-      { claveNombre: "sidebar.productos", href: "/productos", Icono: Package },
-      { claveNombre: "sidebar.proveedores", href: "/proveedores", Icono: Truck },
-      { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell },
-    ],
-  },
-  {
-    claveTitulo: "sidebar.operaciones",
-    items: [
-      { claveNombre: "sidebar.ventas", href: "/ventas", Icono: DollarSign },
-      { claveNombre: "sidebar.clientes", href: "/clientes", Icono: Users },
-    ],
-  },
-  {
-    claveTitulo: "sidebar.sistema",
-    items: [
-      { claveNombre: "sidebar.configuracion", href: "/configuracion", Icono: Settings },
-    ],
-  },
-];
+import { SECCIONES_NAV } from "../lib/navegacion";
 
 export default function Sidebar({
   isOpen,
@@ -83,7 +29,7 @@ export default function Sidebar({
         </div>
 
         <nav className="sidebar-nav">
-          {secciones.map((seccion) => (
+          {SECCIONES_NAV.map((seccion) => (
             <div key={seccion.claveTitulo} className="sidebar-section">
               <p className="sidebar-section-title">{t(seccion.claveTitulo)}</p>
 
