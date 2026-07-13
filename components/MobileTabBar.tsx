@@ -23,8 +23,8 @@ export default function MobileTabBar() {
 
   const tabs = [
     { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard" },
-    { href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas" },
     { href: "/productos", Icono: Package, clave: "sidebar.productos" },
+    { href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas" },
   ];
 
   function abrirNuevaVenta() {
