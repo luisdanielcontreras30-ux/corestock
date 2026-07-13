@@ -343,7 +343,7 @@ export default function BienvenidaPage() {
               <li><X size={15} /> Reportes de ventas armados a mano, tarde</li>
               <li><X size={15} /> Facturas hechas en Word o a mano</li>
               <li><X size={15} /> La información vive en un solo celular o PC</li>
-              <li><X size={15} /> Ver "cómo va el negocio" toma horas</li>
+              <li><X size={15} /> Ver &quot;cómo va el negocio&quot; toma horas</li>
               <li><X size={15} /> Un solo idioma, sin opción para tu equipo</li>
               <li><X size={15} /> Sin control de quién hizo qué venta</li>
             </ul>

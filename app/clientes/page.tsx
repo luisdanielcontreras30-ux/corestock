@@ -108,10 +108,12 @@ export default function ClientesPage() {
     try {
       await eliminarCliente(id);
       await obtenerDatos();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
 
-      if (error?.code === "23503") {
+      const codigo = error && typeof error === "object" && "code" in error ? error.code : null;
+
+      if (codigo === "23503") {
         alert(t("clientes.msg_error_fk"));
       } else {
         alert(t("clientes.msg_error_eliminar"));

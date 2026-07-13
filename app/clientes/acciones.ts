@@ -1,6 +1,5 @@
 import { supabase } from "../../lib/supabase";
 import {
-  Cliente,
   ClienteConResumen,
   CompraCliente,
   DatosClienteForm,

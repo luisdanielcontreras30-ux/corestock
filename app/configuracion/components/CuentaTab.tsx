@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LogOut } from "lucide-react";
 import { supabase } from "../../../lib/supabase";
 import { useIdioma } from "../../../components/LanguageProvider";

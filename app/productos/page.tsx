@@ -8,10 +8,20 @@ import { ImagePlus } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
 
+interface Producto {
+  id: number;
+  nombre: string;
+  categoria: string;
+  precio_venta: number;
+  costo: number | null;
+  stock: number;
+  imagen: string | null;
+}
+
 export default function Productos() {
   const { t } = useIdioma();
   const { user } = useAuth();
-  const [productos, setProductos] = useState<any[]>([]);
+  const [productos, setProductos] = useState<Producto[]>([]);
 
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState("");
@@ -118,13 +128,13 @@ export default function Productos() {
     }
   }
 
-  function editar(p: any) {
+  function editar(p: Producto) {
     setEditando(p.id);
     setNombre(p.nombre);
     setCategoria(p.categoria);
-    setPrecio(p.precio_venta);
-    setCosto(p.costo ?? "");
-    setStock(p.stock);
+    setPrecio(String(p.precio_venta));
+    setCosto(p.costo != null ? String(p.costo) : "");
+    setStock(String(p.stock));
     setPreview(p.imagen || "");
     setImagen(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -205,7 +215,7 @@ export default function Productos() {
             </>
           ) : (
             <div>
-              <img src={preview} className="product-image" />
+              <img src={preview} alt={t("productos.subir_imagen")} className="product-image" />
 
               <div className="productos-actions" style={{ marginTop: 10 }}>
                 <button className="btn-edit" onClick={() => fileInputRef.current?.click()}>
@@ -276,7 +286,15 @@ export default function Productos() {
             let importados = 0;
             let omitidos = 0;
 
-            for (const item of data as any[]) {
+            interface FilaExcelProducto {
+              nombre?: unknown;
+              categoria?: unknown;
+              precio_venta?: unknown;
+              costo?: unknown;
+              stock?: unknown;
+            }
+
+            for (const item of data as FilaExcelProducto[]) {
               const nombreItem = typeof item.nombre === "string" ? item.nombre.trim() : "";
               const precioItem = Number(item.precio_venta);
               const stockItem = Number(item.stock);
@@ -295,7 +313,7 @@ export default function Productos() {
               const { error } = await supabase.from("productos").insert([
                 {
                   nombre: nombreItem,
-                  categoria: item.categoria ?? "",
+                  categoria: typeof item.categoria === "string" ? item.categoria : "",
                   precio_venta: precioItem,
                   costo: costoItem,
                   stock: stockItem,
@@ -348,7 +366,7 @@ export default function Productos() {
               <tr key={p.id}>
                 <td>
                   {p.imagen ? (
-                    <img src={p.imagen} className="product-image" />
+                    <img src={p.imagen} alt={p.nombre} className="product-image" />
                   ) : "—"}
                 </td>
 
