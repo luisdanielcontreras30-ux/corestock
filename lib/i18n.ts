@@ -355,6 +355,24 @@ export const TRADUCCIONES: Diccionario = {
   "facturas.col_folio": { es: "Folio", en: "Invoice #", pt: "Número", fr: "N° de facture", de: "Beleg-Nr.", zh: "单号" },
   "facturas.sin_facturas": { es: "No hay facturas todavía — registra una venta para generar la primera.", en: "No invoices yet — register a sale to generate the first one.", pt: "Ainda não há faturas — registre uma venda para gerar a primeira.", fr: "Pas encore de factures — enregistrez une vente pour générer la première.", de: "Noch keine Rechnungen — erfasse einen Verkauf, um die erste zu erstellen.", zh: "还没有发票 — 登记一笔销售即可生成第一张。" },
 
+  // Cotizaciones
+  "cotizaciones.subtitulo": { es: "Arma una cotización para un cliente — no descuenta stock hasta que la aceptes.", en: "Put together a quote for a customer — doesn't affect stock until you accept it.", pt: "Monte um orçamento para um cliente — não desconta estoque até você aceitá-lo.", fr: "Préparez un devis pour un client — n'affecte pas le stock tant qu'il n'est pas accepté.", de: "Erstelle ein Angebot für einen Kunden — wirkt sich erst auf den Bestand aus, wenn es angenommen wird.", zh: "为客户制作报价单 — 在您接受之前不会影响库存。" },
+  "cotizaciones.registrar": { es: "Crear cotización", en: "Create quote", pt: "Criar orçamento", fr: "Créer un devis", de: "Angebot erstellen", zh: "创建报价单" },
+  "cotizaciones.selecciona_producto": { es: "Selecciona un producto", en: "Select a product", pt: "Selecione um produto", fr: "Sélectionnez un produit", de: "Produkt auswählen", zh: "选择产品" },
+  "cotizaciones.precio_unitario": { es: "Precio unitario", en: "Unit price", pt: "Preço unitário", fr: "Prix unitaire", de: "Einzelpreis", zh: "单价" },
+  "cotizaciones.msg_selecciona_producto": { es: "Selecciona un producto.", en: "Select a product.", pt: "Selecione um produto.", fr: "Sélectionnez un produit.", de: "Wähle ein Produkt aus.", zh: "请选择产品。" },
+  "cotizaciones.msg_cantidad_mayor": { es: "La cantidad debe ser mayor a 0.", en: "Quantity must be greater than 0.", pt: "A quantidade deve ser maior que 0.", fr: "La quantité doit être supérieure à 0.", de: "Die Menge muss größer als 0 sein.", zh: "数量必须大于0。" },
+  "cotizaciones.msg_precio_invalido": { es: "El precio unitario debe ser un número válido y no negativo.", en: "Unit price must be a valid, non-negative number.", pt: "O preço unitário deve ser um número válido e não negativo.", fr: "Le prix unitaire doit être un nombre valide et non négatif.", de: "Der Einzelpreis muss eine gültige, nicht negative Zahl sein.", zh: "单价必须是有效的非负数。" },
+  "cotizaciones.msg_error_guardar": { es: "No se pudo guardar la cotización.", en: "Could not save the quote.", pt: "Não foi possível salvar o orçamento.", fr: "Impossible d'enregistrer le devis.", de: "Angebot konnte nicht gespeichert werden.", zh: "报价单保存失败。" },
+  "cotizaciones.msg_error_estado": { es: "No se pudo actualizar el estado.", en: "Could not update the status.", pt: "Não foi possível atualizar o status.", fr: "Impossible de mettre à jour le statut.", de: "Status konnte nicht aktualisiert werden.", zh: "状态更新失败。" },
+  "cotizaciones.confirmar_eliminar": { es: "¿Eliminar esta cotización?", en: "Delete this quote?", pt: "Excluir este orçamento?", fr: "Supprimer ce devis ?", de: "Dieses Angebot löschen?", zh: "确定要删除此报价单吗？" },
+  "cotizaciones.msg_error_eliminar": { es: "No se pudo eliminar la cotización.", en: "Could not delete the quote.", pt: "Não foi possível excluir o orçamento.", fr: "Impossible de supprimer le devis.", de: "Angebot konnte nicht gelöscht werden.", zh: "报价单删除失败。" },
+  "cotizaciones.col_estado": { es: "Estado", en: "Status", pt: "Status", fr: "Statut", de: "Status", zh: "状态" },
+  "cotizaciones.sin_cotizaciones": { es: "No hay cotizaciones registradas.", en: "No quotes registered.", pt: "Nenhum orçamento registrado.", fr: "Aucun devis enregistré.", de: "Keine Angebote erfasst.", zh: "没有已登记的报价单。" },
+  "cotizaciones.estado_pendiente": { es: "Pendiente", en: "Pending", pt: "Pendente", fr: "En attente", de: "Ausstehend", zh: "待处理" },
+  "cotizaciones.estado_aceptada": { es: "Aceptada", en: "Accepted", pt: "Aceita", fr: "Acceptée", de: "Angenommen", zh: "已接受" },
+  "cotizaciones.estado_rechazada": { es: "Rechazada", en: "Rejected", pt: "Rejeitada", fr: "Refusée", de: "Abgelehnt", zh: "已拒绝" },
+
   // Ventas
   "ventas.titulo": { es: "Ventas", en: "Sales", pt: "Vendas", fr: "Ventes", de: "Verkäufe", zh: "销售" },
   "ventas.subtitulo": { es: "Registra ventas y consulta el historial.", en: "Register sales and check the history.", pt: "Registre vendas e consulte o histórico.", fr: "Enregistrez les ventes et consultez l'historique.", de: "Verkäufe erfassen und Verlauf einsehen.", zh: "登记销售并查看历史记录。" },

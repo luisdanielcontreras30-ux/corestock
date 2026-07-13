@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Receipt } from "lucide-react";
 import { Venta } from "./types";
 import {
   formatoFecha,
   formatoMoneda,
 } from "./utils";
-import FacturaModal from "./components/FacturaModal";
 import { useIdioma } from "../../components/LanguageProvider";
 
 interface Props {
@@ -22,7 +19,6 @@ export default function Historial({
   exportarExcel,
 }: Props) {
   const { t } = useIdioma();
-  const [ventaFactura, setVentaFactura] = useState<Venta | null>(null);
 
   return (
     <div className="card fade-up">
@@ -126,33 +122,16 @@ export default function Historial({
                   </td>
 
                   <td>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                      }}
+                    <button
+                      className="btn-delete"
+                      onClick={() =>
+                        eliminarVenta(
+                          venta.id
+                        )
+                      }
                     >
-                      <button
-                        className="btn-edit"
-                        style={{ display: "flex", alignItems: "center", gap: 5 }}
-                        onClick={() =>
-                          setVentaFactura(venta)
-                        }
-                      >
-                        <Receipt size={13} /> {t("ventas.factura")}
-                      </button>
-
-                      <button
-                        className="btn-delete"
-                        onClick={() =>
-                          eliminarVenta(
-                            venta.id
-                          )
-                        }
-                      >
-                        {t("ventas.eliminar")}
-                      </button>
-                    </div>
+                      {t("ventas.eliminar")}
+                    </button>
                   </td>
                 </tr>
               ))
@@ -160,13 +139,6 @@ export default function Historial({
           </tbody>
         </table>
       </div>
-
-      {ventaFactura && (
-        <FacturaModal
-          venta={ventaFactura}
-          onClose={() => setVentaFactura(null)}
-        />
-      )}
     </div>
   );
 }
