@@ -59,7 +59,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { claveNombre: "sidebar.productos", href: "/productos", Icono: Package },
       { claveNombre: "sidebar.proveedores", href: "/proveedores", Icono: Truck },
       { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell },
-      { claveNombre: "sidebar.ajustes_stock", href: "/ajustes-stock", Icono: SlidersHorizontal, proximamente: true },
+      { claveNombre: "sidebar.ajustes_stock", href: "/ajustes-stock", Icono: SlidersHorizontal },
       { claveNombre: "sidebar.traspasos", href: "/traspasos", Icono: ArrowRightLeft, proximamente: true },
       { claveNombre: "sidebar.fabricacion", href: "/fabricacion", Icono: Factory, proximamente: true },
     ],

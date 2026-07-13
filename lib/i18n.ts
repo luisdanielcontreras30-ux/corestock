@@ -373,6 +373,24 @@ export const TRADUCCIONES: Diccionario = {
   "cotizaciones.estado_aceptada": { es: "Aceptada", en: "Accepted", pt: "Aceita", fr: "Acceptée", de: "Angenommen", zh: "已接受" },
   "cotizaciones.estado_rechazada": { es: "Rechazada", en: "Rejected", pt: "Rejeitada", fr: "Refusée", de: "Abgelehnt", zh: "已拒绝" },
 
+  // Ajustes de Stock
+  "ajustes_stock.subtitulo": { es: "Correcciones manuales de inventario — conteo físico, mercancía dañada, etc.", en: "Manual inventory corrections — physical count, damaged goods, etc.", pt: "Correções manuais de estoque — contagem física, mercadoria danificada, etc.", fr: "Corrections manuelles d'inventaire — comptage physique, marchandise endommagée, etc.", de: "Manuelle Bestandskorrekturen — Inventur, beschädigte Ware usw.", zh: "手动库存调整 — 盘点、货物损坏等。" },
+  "ajustes_stock.registrar": { es: "Registrar ajuste", en: "Register adjustment", pt: "Registrar ajuste", fr: "Enregistrer l'ajustement", de: "Anpassung erfassen", zh: "登记调整" },
+  "ajustes_stock.selecciona_producto": { es: "Selecciona un producto", en: "Select a product", pt: "Selecione um produto", fr: "Sélectionnez un produit", de: "Produkt auswählen", zh: "选择产品" },
+  "ajustes_stock.tipo_agregar": { es: "Agregar stock", en: "Add stock", pt: "Adicionar estoque", fr: "Ajouter du stock", de: "Bestand hinzufügen", zh: "增加库存" },
+  "ajustes_stock.tipo_quitar": { es: "Quitar stock", en: "Remove stock", pt: "Remover estoque", fr: "Retirer du stock", de: "Bestand entfernen", zh: "减少库存" },
+  "ajustes_stock.motivo_placeholder": { es: "Motivo (ej. conteo físico, dañado)", en: "Reason (e.g. physical count, damaged)", pt: "Motivo (ex. contagem física, danificado)", fr: "Motif (ex. comptage physique, endommagé)", de: "Grund (z.B. Inventur, beschädigt)", zh: "原因（如盘点、损坏）" },
+  "ajustes_stock.msg_selecciona_producto": { es: "Selecciona un producto.", en: "Select a product.", pt: "Selecione um produto.", fr: "Sélectionnez un produit.", de: "Wähle ein Produkt aus.", zh: "请选择产品。" },
+  "ajustes_stock.msg_cantidad_mayor": { es: "La cantidad debe ser mayor a 0.", en: "Quantity must be greater than 0.", pt: "A quantidade deve ser maior que 0.", fr: "La quantité doit être supérieure à 0.", de: "Die Menge muss größer als 0 sein.", zh: "数量必须大于0。" },
+  "ajustes_stock.msg_sin_stock": { es: "No puedes quitar más stock del que hay disponible.", en: "You can't remove more stock than what's available.", pt: "Você não pode remover mais estoque do que está disponível.", fr: "Vous ne pouvez pas retirer plus de stock que ce qui est disponible.", de: "Du kannst nicht mehr Bestand entfernen, als verfügbar ist.", zh: "移除的库存不能超过现有库存。" },
+  "ajustes_stock.msg_error_guardar": { es: "No se pudo registrar el ajuste.", en: "Could not register the adjustment.", pt: "Não foi possível registrar o ajuste.", fr: "Impossible d'enregistrer l'ajustement.", de: "Anpassung konnte nicht erfasst werden.", zh: "调整登记失败。" },
+  "ajustes_stock.confirmar_eliminar": { es: "¿Eliminar este ajuste? Esto revierte el cambio de stock que hizo.", en: "Delete this adjustment? This will revert the stock change it made.", pt: "Excluir este ajuste? Isso reverte a alteração de estoque que ele fez.", fr: "Supprimer cet ajustement ? Cela annulera la modification de stock effectuée.", de: "Diese Anpassung löschen? Das macht die dadurch vorgenommene Bestandsänderung rückgängig.", zh: "确定要删除此次调整吗？这将撤销它所做的库存更改。" },
+  "ajustes_stock.msg_error_eliminar": { es: "No se pudo eliminar el ajuste.", en: "Could not delete the adjustment.", pt: "Não foi possível excluir o ajuste.", fr: "Impossible de supprimer l'ajustement.", de: "Anpassung konnte nicht gelöscht werden.", zh: "调整删除失败。" },
+  "ajustes_stock.col_cambio": { es: "Cambio", en: "Change", pt: "Mudança", fr: "Changement", de: "Änderung", zh: "变化" },
+  "ajustes_stock.col_stock_resultante": { es: "Stock resultante", en: "Resulting stock", pt: "Estoque resultante", fr: "Stock résultant", de: "Resultierender Bestand", zh: "调整后库存" },
+  "ajustes_stock.col_motivo": { es: "Motivo", en: "Reason", pt: "Motivo", fr: "Motif", de: "Grund", zh: "原因" },
+  "ajustes_stock.sin_ajustes": { es: "No hay ajustes registrados.", en: "No adjustments registered.", pt: "Nenhum ajuste registrado.", fr: "Aucun ajustement enregistré.", de: "Keine Anpassungen erfasst.", zh: "没有已登记的调整。" },
+
   // Ventas
   "ventas.titulo": { es: "Ventas", en: "Sales", pt: "Vendas", fr: "Ventes", de: "Verkäufe", zh: "销售" },
   "ventas.subtitulo": { es: "Registra ventas y consulta el historial.", en: "Register sales and check the history.", pt: "Registre vendas e consulte o histórico.", fr: "Enregistrez les ventes et consultez l'historique.", de: "Verkäufe erfassen und Verlauf einsehen.", zh: "登记销售并查看历史记录。" },
