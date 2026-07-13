@@ -332,6 +332,23 @@ export const TRADUCCIONES: Diccionario = {
   "proveedores.msg_error_eliminar": { es: "No se pudo eliminar el proveedor.", en: "Could not delete the supplier.", pt: "Não foi possível excluir o fornecedor.", fr: "Impossible de supprimer le fournisseur.", de: "Lieferant konnte nicht gelöscht werden.", zh: "供应商删除失败。" },
   "proveedores.confirmar_eliminar": { es: "¿Eliminar a {nombre}?", en: "Delete {nombre}?", pt: "Excluir {nombre}?", fr: "Supprimer {nombre} ?", de: "{nombre} löschen?", zh: "确定要删除 {nombre} 吗？" },
 
+  // Compras
+  "compras.subtitulo": { es: "Registra compras a tus proveedores — aumenta el stock y guarda el costo pagado.", en: "Register purchases from your suppliers — increases stock and saves the cost paid.", pt: "Registre compras de seus fornecedores — aumenta o estoque e salva o custo pago.", fr: "Enregistrez les achats auprès de vos fournisseurs — augmente le stock et enregistre le coût payé.", de: "Erfasse Einkäufe bei deinen Lieferanten — erhöht den Bestand und speichert die Kosten.", zh: "登记向供应商的采购 — 增加库存并记录支付的成本。" },
+  "compras.registrar": { es: "Registrar compra", en: "Register purchase", pt: "Registrar compra", fr: "Enregistrer l'achat", de: "Einkauf erfassen", zh: "登记采购" },
+  "compras.selecciona_producto": { es: "Selecciona un producto", en: "Select a product", pt: "Selecione um produto", fr: "Sélectionnez un produit", de: "Produkt auswählen", zh: "选择产品" },
+  "compras.proveedor_placeholder": { es: "Proveedor (opcional)", en: "Supplier (optional)", pt: "Fornecedor (opcional)", fr: "Fournisseur (facultatif)", de: "Lieferant (optional)", zh: "供应商（可选）" },
+  "compras.costo_unitario": { es: "Costo unitario", en: "Unit cost", pt: "Custo unitário", fr: "Coût unitaire", de: "Stückkosten", zh: "单位成本" },
+  "compras.nota_placeholder": { es: "Nota (opcional)", en: "Note (optional)", pt: "Nota (opcional)", fr: "Note (facultatif)", de: "Notiz (optional)", zh: "备注（可选）" },
+  "compras.guardando": { es: "Guardando...", en: "Saving...", pt: "Salvando...", fr: "Enregistrement...", de: "Wird gespeichert...", zh: "正在保存..." },
+  "compras.msg_selecciona_producto": { es: "Selecciona un producto.", en: "Select a product.", pt: "Selecione um produto.", fr: "Sélectionnez un produit.", de: "Wähle ein Produkt aus.", zh: "请选择产品。" },
+  "compras.msg_cantidad_mayor": { es: "La cantidad debe ser mayor a 0.", en: "Quantity must be greater than 0.", pt: "A quantidade deve ser maior que 0.", fr: "La quantité doit être supérieure à 0.", de: "Die Menge muss größer als 0 sein.", zh: "数量必须大于0。" },
+  "compras.msg_costo_invalido": { es: "El costo unitario debe ser un número válido y no negativo.", en: "Unit cost must be a valid, non-negative number.", pt: "O custo unitário deve ser um número válido e não negativo.", fr: "Le coût unitaire doit être un nombre valide et non négatif.", de: "Die Stückkosten müssen eine gültige, nicht negative Zahl sein.", zh: "单位成本必须是有效的非负数。" },
+  "compras.msg_error_registrar": { es: "No se pudo registrar la compra.", en: "Could not register the purchase.", pt: "Não foi possível registrar a compra.", fr: "Impossible d'enregistrer l'achat.", de: "Einkauf konnte nicht erfasst werden.", zh: "采购登记失败。" },
+  "compras.confirmar_eliminar": { es: "¿Eliminar esta compra? Esto también reduce el stock que había sumado.", en: "Delete this purchase? This will also remove the stock it added.", pt: "Excluir esta compra? Isso também reduz o estoque que ela havia somado.", fr: "Supprimer cet achat ? Cela retirera aussi le stock qu'il avait ajouté.", de: "Diesen Einkauf löschen? Das entfernt auch den dadurch hinzugefügten Bestand.", zh: "确定要删除此次采购吗？这也会移除它增加的库存。" },
+  "compras.msg_error_eliminar": { es: "No se pudo eliminar la compra.", en: "Could not delete the purchase.", pt: "Não foi possível excluir a compra.", fr: "Impossible de supprimer l'achat.", de: "Einkauf konnte nicht gelöscht werden.", zh: "采购删除失败。" },
+  "compras.col_proveedor": { es: "Proveedor", en: "Supplier", pt: "Fornecedor", fr: "Fournisseur", de: "Lieferant", zh: "供应商" },
+  "compras.sin_compras": { es: "No hay compras registradas.", en: "No purchases registered.", pt: "Nenhuma compra registrada.", fr: "Aucun achat enregistré.", de: "Keine Einkäufe erfasst.", zh: "没有已登记的采购。" },
+
   // Ventas
   "ventas.titulo": { es: "Ventas", en: "Sales", pt: "Vendas", fr: "Ventes", de: "Verkäufe", zh: "销售" },
   "ventas.subtitulo": { es: "Registra ventas y consulta el historial.", en: "Register sales and check the history.", pt: "Registre vendas e consulte o histórico.", fr: "Enregistrez les ventes et consultez l'historique.", de: "Verkäufe erfassen und Verlauf einsehen.", zh: "登记销售并查看历史记录。" },

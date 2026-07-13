@@ -69,7 +69,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
     items: [
       { claveNombre: "sidebar.ventas", href: "/ventas", Icono: DollarSign },
       { claveNombre: "sidebar.clientes", href: "/clientes", Icono: Users },
-      { claveNombre: "sidebar.compras", href: "/compras", Icono: ShoppingCart, proximamente: true },
+      { claveNombre: "sidebar.compras", href: "/compras", Icono: ShoppingCart },
       { claveNombre: "sidebar.cotizaciones", href: "/cotizaciones", Icono: FileText, proximamente: true },
       { claveNombre: "sidebar.facturas", href: "/facturas", Icono: Receipt, proximamente: true },
       { claveNombre: "sidebar.facturas_globales", href: "/facturas-globales", Icono: Files, proximamente: true },
