@@ -35,6 +35,9 @@ export default function MasPage() {
                       <Icono size={20} color="var(--primary)" />
                     </span>
                     {t(item.claveNombre)}
+                    {item.proximamente && (
+                      <span className="mas-card-badge">{t("proximamente.badge")}</span>
+                    )}
                   </Link>
                 );
               })}

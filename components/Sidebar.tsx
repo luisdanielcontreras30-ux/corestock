@@ -52,6 +52,9 @@ export default function Sidebar({
                       color={isActive ? "var(--primary)" : "var(--text-secondary)"}
                     />
                     {t(item.claveNombre)}
+                    {item.proximamente && (
+                      <span className="sidebar-link-badge">{t("proximamente.badge")}</span>
+                    )}
                   </Link>
                 );
               })}

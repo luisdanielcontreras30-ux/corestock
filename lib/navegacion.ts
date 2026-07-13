@@ -31,6 +31,10 @@ export interface ItemNav {
   claveNombre: string;
   href: string;
   Icono: LucideIcon;
+  // Módulos que todavía no tienen funcionalidad real (ver
+  // components/ProximamentePage.tsx) — se marcan en la navegación para
+  // que el usuario no piense que ya funcionan antes de entrar.
+  proximamente?: boolean;
 }
 
 export interface SeccionNav {
@@ -55,9 +59,9 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { claveNombre: "sidebar.productos", href: "/productos", Icono: Package },
       { claveNombre: "sidebar.proveedores", href: "/proveedores", Icono: Truck },
       { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell },
-      { claveNombre: "sidebar.ajustes_stock", href: "/ajustes-stock", Icono: SlidersHorizontal },
-      { claveNombre: "sidebar.traspasos", href: "/traspasos", Icono: ArrowRightLeft },
-      { claveNombre: "sidebar.fabricacion", href: "/fabricacion", Icono: Factory },
+      { claveNombre: "sidebar.ajustes_stock", href: "/ajustes-stock", Icono: SlidersHorizontal, proximamente: true },
+      { claveNombre: "sidebar.traspasos", href: "/traspasos", Icono: ArrowRightLeft, proximamente: true },
+      { claveNombre: "sidebar.fabricacion", href: "/fabricacion", Icono: Factory, proximamente: true },
     ],
   },
   {
@@ -65,30 +69,30 @@ export const SECCIONES_NAV: SeccionNav[] = [
     items: [
       { claveNombre: "sidebar.ventas", href: "/ventas", Icono: DollarSign },
       { claveNombre: "sidebar.clientes", href: "/clientes", Icono: Users },
-      { claveNombre: "sidebar.compras", href: "/compras", Icono: ShoppingCart },
-      { claveNombre: "sidebar.cotizaciones", href: "/cotizaciones", Icono: FileText },
-      { claveNombre: "sidebar.facturas", href: "/facturas", Icono: Receipt },
-      { claveNombre: "sidebar.facturas_globales", href: "/facturas-globales", Icono: Files },
-      { claveNombre: "sidebar.caja", href: "/caja", Icono: Inbox },
-      { claveNombre: "sidebar.cortes_historicos", href: "/cortes-historicos", Icono: CalendarClock },
-      { claveNombre: "sidebar.conciliaciones", href: "/conciliaciones", Icono: Landmark },
+      { claveNombre: "sidebar.compras", href: "/compras", Icono: ShoppingCart, proximamente: true },
+      { claveNombre: "sidebar.cotizaciones", href: "/cotizaciones", Icono: FileText, proximamente: true },
+      { claveNombre: "sidebar.facturas", href: "/facturas", Icono: Receipt, proximamente: true },
+      { claveNombre: "sidebar.facturas_globales", href: "/facturas-globales", Icono: Files, proximamente: true },
+      { claveNombre: "sidebar.caja", href: "/caja", Icono: Inbox, proximamente: true },
+      { claveNombre: "sidebar.cortes_historicos", href: "/cortes-historicos", Icono: CalendarClock, proximamente: true },
+      { claveNombre: "sidebar.conciliaciones", href: "/conciliaciones", Icono: Landmark, proximamente: true },
     ],
   },
   {
     claveTitulo: "sidebar.marketing",
     items: [
-      { claveNombre: "sidebar.promociones", href: "/promociones", Icono: Percent },
-      { claveNombre: "sidebar.catalogo_linea", href: "/catalogo-linea", Icono: BookOpen },
-      { claveNombre: "sidebar.portal_clientes", href: "/portal-clientes", Icono: UserCircle },
-      { claveNombre: "sidebar.whatsapp", href: "/whatsapp", Icono: MessageCircle },
+      { claveNombre: "sidebar.promociones", href: "/promociones", Icono: Percent, proximamente: true },
+      { claveNombre: "sidebar.catalogo_linea", href: "/catalogo-linea", Icono: BookOpen, proximamente: true },
+      { claveNombre: "sidebar.portal_clientes", href: "/portal-clientes", Icono: UserCircle, proximamente: true },
+      { claveNombre: "sidebar.whatsapp", href: "/whatsapp", Icono: MessageCircle, proximamente: true },
     ],
   },
   {
     claveTitulo: "sidebar.sistema",
     items: [
       { claveNombre: "sidebar.configuracion", href: "/configuracion", Icono: Settings },
-      { claveNombre: "sidebar.empleados_ia", href: "/empleados-ia", Icono: Bot },
-      { claveNombre: "sidebar.tutoriales", href: "/tutoriales", Icono: PlayCircle },
+      { claveNombre: "sidebar.empleados_ia", href: "/empleados-ia", Icono: Bot, proximamente: true },
+      { claveNombre: "sidebar.tutoriales", href: "/tutoriales", Icono: PlayCircle, proximamente: true },
     ],
   },
 ];

@@ -890,6 +890,19 @@ textarea:focus {
   flex-shrink: 0;
 }
 
+.sidebar-link-badge {
+  margin-left: auto;
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
 .sidebar-footer {
   border-top: 1px solid var(--border);
   padding-top: 16px;
@@ -2587,6 +2600,17 @@ textarea:focus {
 .mas-card:hover {
   border-color: var(--primary);
   transform: translateY(-2px);
+}
+
+.mas-card-badge {
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
 }
 
 .mas-card-icono {
