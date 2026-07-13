@@ -72,7 +72,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { claveNombre: "sidebar.compras", href: "/compras", Icono: ShoppingCart },
       { claveNombre: "sidebar.cotizaciones", href: "/cotizaciones", Icono: FileText },
       { claveNombre: "sidebar.facturas", href: "/facturas", Icono: Receipt },
-      { claveNombre: "sidebar.facturas_globales", href: "/facturas-globales", Icono: Files, proximamente: true },
+      { claveNombre: "sidebar.facturas_globales", href: "/facturas-globales", Icono: Files },
       { claveNombre: "sidebar.caja", href: "/caja", Icono: Inbox },
       { claveNombre: "sidebar.cortes_historicos", href: "/cortes-historicos", Icono: CalendarClock },
       { claveNombre: "sidebar.conciliaciones", href: "/conciliaciones", Icono: Landmark, proximamente: true },
