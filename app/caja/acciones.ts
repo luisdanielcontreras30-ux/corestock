@@ -23,6 +23,30 @@ export async function cargarMovimientos() {
   return (data ?? []) as MovimientoCaja[];
 }
 
+// Solo los cierres — lo usa la página de Cortes Históricos.
+export async function cargarCierres() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return [] as MovimientoCaja[];
+  }
+
+  const { data, error } = await supabase
+    .from("caja_movimientos")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("tipo", "cierre")
+    .order("fecha", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as MovimientoCaja[];
+}
+
 // Bitácora de solo inserción — no hay función para editar/borrar
 // movimientos, a propósito: una caja real no se "corrige" retroactivo.
 export async function registrarMovimiento(

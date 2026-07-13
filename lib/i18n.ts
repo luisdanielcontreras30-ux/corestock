@@ -442,6 +442,14 @@ export const TRADUCCIONES: Diccionario = {
   "caja.tipo_salida": { es: "Salida", en: "Cash out", pt: "Saída", fr: "Sortie", de: "Auszahlung", zh: "支出" },
   "caja.tipo_cierre": { es: "Cierre", en: "Closing", pt: "Fechamento", fr: "Clôture", de: "Abschluss", zh: "结账" },
 
+  // Cortes Históricos
+  "cortes_historicos.subtitulo": { es: "Historial de todos tus cierres de caja, con el efectivo contado y la diferencia contra lo esperado.", en: "History of all your register closings, with the cash counted and the difference against what was expected.", pt: "Histórico de todos os seus fechamentos de caixa, com o dinheiro contado e a diferença em relação ao esperado.", fr: "Historique de toutes vos clôtures de caisse, avec les espèces comptées et l'écart par rapport à l'attendu.", de: "Verlauf aller deiner Kassenabschlüsse, mit gezähltem Bargeld und der Differenz zum erwarteten Betrag.", zh: "所有收银台结账的历史记录，包括清点的现金和与预期的差额。" },
+  "cortes_historicos.total_cortes": { es: "Total de cortes", en: "Total closings", pt: "Total de fechamentos", fr: "Total des clôtures", de: "Abschlüsse gesamt", zh: "结账总数" },
+  "cortes_historicos.cuadrados": { es: "Cuadrados exactos", en: "Exact matches", pt: "Exatos", fr: "Exacts", de: "Genau ausgeglichen", zh: "完全一致" },
+  "cortes_historicos.diferencia_acumulada": { es: "Diferencia acumulada", en: "Accumulated difference", pt: "Diferença acumulada", fr: "Écart cumulé", de: "Kumulierte Differenz", zh: "累计差额" },
+  "cortes_historicos.col_esperado": { es: "Esperado", en: "Expected", pt: "Esperado", fr: "Attendu", de: "Erwartet", zh: "预期" },
+  "cortes_historicos.sin_cortes": { es: "No hay cortes de caja en este rango.", en: "No register closings in this range.", pt: "Não há fechamentos de caixa nesse período.", fr: "Aucune clôture de caisse dans cette période.", de: "Keine Kassenabschlüsse in diesem Zeitraum.", zh: "此期间没有结账记录。" },
+
   // Ventas
   "ventas.titulo": { es: "Ventas", en: "Sales", pt: "Vendas", fr: "Ventes", de: "Verkäufe", zh: "销售" },
   "ventas.subtitulo": { es: "Registra ventas y consulta el historial.", en: "Register sales and check the history.", pt: "Registre vendas e consulte o histórico.", fr: "Enregistrez les ventes et consultez l'historique.", de: "Verkäufe erfassen und Verlauf einsehen.", zh: "登记销售并查看历史记录。" },
