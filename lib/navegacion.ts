@@ -61,7 +61,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell },
       { claveNombre: "sidebar.ajustes_stock", href: "/ajustes-stock", Icono: SlidersHorizontal },
       { claveNombre: "sidebar.traspasos", href: "/traspasos", Icono: ArrowRightLeft, proximamente: true },
-      { claveNombre: "sidebar.fabricacion", href: "/fabricacion", Icono: Factory, proximamente: true },
+      { claveNombre: "sidebar.fabricacion", href: "/fabricacion", Icono: Factory },
     ],
   },
   {
