@@ -81,6 +81,8 @@ export default function EmpresaTab() {
   }
 
   async function alGuardar() {
+    if (guardando) return;
+
     setGuardando(true);
     setMensaje(null);
 

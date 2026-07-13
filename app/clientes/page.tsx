@@ -61,6 +61,8 @@ export default function ClientesPage() {
   }, []);
 
   async function guardarCliente() {
+    if (guardando) return;
+
     if (!datos.nombre.trim()) {
       alert(t("clientes.msg_nombre_requerido"));
       return;

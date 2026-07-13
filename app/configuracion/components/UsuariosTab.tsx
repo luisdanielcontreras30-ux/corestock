@@ -85,6 +85,8 @@ export default function UsuariosTab() {
   }
 
   async function guardarMiembro() {
+    if (guardando) return;
+
     if (!nombre.trim()) {
       alert(t("usuarios.msg_falta_nombre"));
       return;
@@ -136,6 +138,8 @@ export default function UsuariosTab() {
   }
 
   async function alCambiarContrasena() {
+    if (guardandoPass) return;
+
     if (nuevaContrasena.length < 6) {
       setMensajePass({ tipo: "error", texto: t("usuarios.msg_pass_corta") });
       return;
