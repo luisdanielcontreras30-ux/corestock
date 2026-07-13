@@ -492,6 +492,26 @@ export const TRADUCCIONES: Diccionario = {
   "fabricacion.msg_error_producir": { es: "No se pudo completar la producción.", en: "Could not complete the production.", pt: "Não foi possível completar a produção.", fr: "Impossible de terminer la production.", de: "Produktion konnte nicht abgeschlossen werden.", zh: "生产未能完成。" },
   "fabricacion.sin_producciones": { es: "No hay producciones registradas todavía.", en: "No production runs registered yet.", pt: "Ainda não há produções registradas.", fr: "Aucune production enregistrée pour le moment.", de: "Noch keine Produktionen erfasst.", zh: "还没有生产记录。" },
 
+  // Conciliaciones
+  "conciliaciones.subtitulo": { es: "Concilia tus movimientos contra tu estado de cuenta.", en: "Reconcile your movements against your bank statement.", pt: "Concilie seus movimentos com seu extrato bancário.", fr: "Rapprochez vos mouvements avec votre relevé bancaire.", de: "Gleiche deine Bewegungen mit deinem Kontoauszug ab.", zh: "将您的往来账目与银行对账单核对。" },
+  "conciliaciones.total_abonos": { es: "Total abonos", en: "Total credits", pt: "Total de créditos", fr: "Total des crédits", de: "Gesamteinnahmen", zh: "贷方总额" },
+  "conciliaciones.total_cargos": { es: "Total cargos", en: "Total charges", pt: "Total de débitos", fr: "Total des débits", de: "Gesamtbelastungen", zh: "借方总额" },
+  "conciliaciones.pendientes": { es: "Pendientes de conciliar", en: "Pending reconciliation", pt: "Pendentes de conciliação", fr: "En attente de rapprochement", de: "Ausstehende Abstimmungen", zh: "待对账" },
+  "conciliaciones.registrar": { es: "Registrar movimiento", en: "Register movement", pt: "Registrar movimento", fr: "Enregistrer un mouvement", de: "Bewegung erfassen", zh: "登记往来" },
+  "conciliaciones.descripcion_placeholder": { es: "Descripción (ej. Transferencia de cliente)", en: "Description (e.g. Customer transfer)", pt: "Descrição (ex. Transferência de cliente)", fr: "Description (ex. Virement client)", de: "Beschreibung (z.B. Kundenüberweisung)", zh: "说明（如：客户转账）" },
+  "conciliaciones.tipo_abono": { es: "Abono", en: "Credit", pt: "Crédito", fr: "Crédit", de: "Gutschrift", zh: "贷方" },
+  "conciliaciones.tipo_cargo": { es: "Cargo", en: "Charge", pt: "Débito", fr: "Débit", de: "Belastung", zh: "借方" },
+  "conciliaciones.col_descripcion": { es: "Descripción", en: "Description", pt: "Descrição", fr: "Description", de: "Beschreibung", zh: "说明" },
+  "conciliaciones.conciliado": { es: "Conciliado", en: "Reconciled", pt: "Conciliado", fr: "Rapproché", de: "Abgestimmt", zh: "已对账" },
+  "conciliaciones.pendiente": { es: "Pendiente", en: "Pending", pt: "Pendente", fr: "En attente", de: "Ausstehend", zh: "待处理" },
+  "conciliaciones.sin_movimientos": { es: "No hay movimientos registrados todavía.", en: "No movements registered yet.", pt: "Ainda não há movimentos registrados.", fr: "Aucun mouvement enregistré pour le moment.", de: "Noch keine Bewegungen erfasst.", zh: "还没有登记往来记录。" },
+  "conciliaciones.msg_falta_descripcion": { es: "Escribe una descripción para el movimiento.", en: "Write a description for the movement.", pt: "Escreva uma descrição para o movimento.", fr: "Écrivez une description pour le mouvement.", de: "Gib eine Beschreibung für die Bewegung ein.", zh: "请输入往来说明。" },
+  "conciliaciones.msg_monto_invalido": { es: "El monto debe ser mayor a 0.", en: "The amount must be greater than 0.", pt: "O valor deve ser maior que 0.", fr: "Le montant doit être supérieur à 0.", de: "Der Betrag muss größer als 0 sein.", zh: "金额必须大于0。" },
+  "conciliaciones.msg_error_guardar": { es: "No se pudo guardar el movimiento.", en: "Could not save the movement.", pt: "Não foi possível salvar o movimento.", fr: "Impossible d'enregistrer le mouvement.", de: "Bewegung konnte nicht gespeichert werden.", zh: "往来记录保存失败。" },
+  "conciliaciones.msg_error_estado": { es: "No se pudo actualizar el estado.", en: "Could not update the status.", pt: "Não foi possível atualizar o status.", fr: "Impossible de mettre à jour le statut.", de: "Status konnte nicht aktualisiert werden.", zh: "状态更新失败。" },
+  "conciliaciones.confirmar_eliminar": { es: "¿Eliminar este movimiento?", en: "Delete this movement?", pt: "Excluir este movimento?", fr: "Supprimer ce mouvement ?", de: "Diese Bewegung löschen?", zh: "确定要删除此往来记录吗？" },
+  "conciliaciones.msg_error_eliminar": { es: "No se pudo eliminar el movimiento.", en: "Could not delete the movement.", pt: "Não foi possível excluir o movimento.", fr: "Impossible de supprimer le mouvement.", de: "Bewegung konnte nicht gelöscht werden.", zh: "往来记录删除失败。" },
+
   // Ventas
   "ventas.titulo": { es: "Ventas", en: "Sales", pt: "Vendas", fr: "Ventes", de: "Verkäufe", zh: "销售" },
   "ventas.subtitulo": { es: "Registra ventas y consulta el historial.", en: "Register sales and check the history.", pt: "Registre vendas e consulte o histórico.", fr: "Enregistrez les ventes et consultez l'historique.", de: "Verkäufe erfassen und Verlauf einsehen.", zh: "登记销售并查看历史记录。" },
