@@ -92,7 +92,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
     items: [
       { claveNombre: "sidebar.configuracion", href: "/configuracion", Icono: Settings },
       { claveNombre: "sidebar.empleados_ia", href: "/empleados-ia", Icono: Bot, proximamente: true },
-      { claveNombre: "sidebar.tutoriales", href: "/tutoriales", Icono: PlayCircle, proximamente: true },
+      { claveNombre: "sidebar.tutoriales", href: "/tutoriales", Icono: PlayCircle },
     ],
   },
 ];
