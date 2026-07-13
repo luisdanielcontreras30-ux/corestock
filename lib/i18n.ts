@@ -349,6 +349,12 @@ export const TRADUCCIONES: Diccionario = {
   "compras.col_proveedor": { es: "Proveedor", en: "Supplier", pt: "Fornecedor", fr: "Fournisseur", de: "Lieferant", zh: "供应商" },
   "compras.sin_compras": { es: "No hay compras registradas.", en: "No purchases registered.", pt: "Nenhuma compra registrada.", fr: "Aucun achat enregistré.", de: "Keine Einkäufe erfasst.", zh: "没有已登记的采购。" },
 
+  // Facturas
+  "facturas.subtitulo": { es: "Todas tus ventas como facturas — búscalas, imprímelas o compártelas por WhatsApp.", en: "All your sales as invoices — search, print or share them on WhatsApp.", pt: "Todas as suas vendas como faturas — busque, imprima ou compartilhe pelo WhatsApp.", fr: "Toutes vos ventes sous forme de factures — recherchez, imprimez ou partagez-les sur WhatsApp.", de: "Alle deine Verkäufe als Rechnungen — suchen, drucken oder per WhatsApp teilen.", zh: "您所有销售的发票 — 搜索、打印或通过 WhatsApp 分享。" },
+  "facturas.buscar_placeholder": { es: "Buscar por folio, cliente o producto...", en: "Search by folio, customer or product...", pt: "Buscar por número, cliente ou produto...", fr: "Rechercher par folio, client ou produit...", de: "Nach Beleg, Kunde oder Produkt suchen...", zh: "按单号、客户或产品搜索..." },
+  "facturas.col_folio": { es: "Folio", en: "Invoice #", pt: "Número", fr: "N° de facture", de: "Beleg-Nr.", zh: "单号" },
+  "facturas.sin_facturas": { es: "No hay facturas todavía — registra una venta para generar la primera.", en: "No invoices yet — register a sale to generate the first one.", pt: "Ainda não há faturas — registre uma venda para gerar a primeira.", fr: "Pas encore de factures — enregistrez une vente pour générer la première.", de: "Noch keine Rechnungen — erfasse einen Verkauf, um die erste zu erstellen.", zh: "还没有发票 — 登记一笔销售即可生成第一张。" },
+
   // Ventas
   "ventas.titulo": { es: "Ventas", en: "Sales", pt: "Vendas", fr: "Ventes", de: "Verkäufe", zh: "销售" },
   "ventas.subtitulo": { es: "Registra ventas y consulta el historial.", en: "Register sales and check the history.", pt: "Registre vendas e consulte o histórico.", fr: "Enregistrez les ventes et consultez l'historique.", de: "Verkäufe erfassen und Verlauf einsehen.", zh: "登记销售并查看历史记录。" },
