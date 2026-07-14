@@ -290,6 +290,25 @@ html[data-theme="mint"] {
   --table-header-bg: rgba(11, 43, 33, 0.04);
 }
 
+html[data-theme="sunset"] {
+  --bg-primary: #170a05;
+  --bg-secondary: #1f0f07;
+  --card-bg: #2a150a;
+  --card-hover: #351b0d;
+  --border: #47270f;
+  --primary: #f97316;
+  --primary-hover: #ea660a;
+  --primary-soft: rgba(249, 115, 22, 0.16);
+  --text-primary: #ffffff;
+  --text-secondary: #c99a72;
+  --text-muted: #8f6a4a;
+  --glass-bg: rgba(249, 115, 22, 0.04);
+  --glass-border: rgba(249, 115, 22, 0.1);
+  --input-bg: rgba(10, 5, 2, 0.6);
+  --btn-secondary-bg: #351b0d;
+  --table-header-bg: rgba(10, 5, 2, 0.4);
+}
+
 body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
   background: var(--bg-primary);

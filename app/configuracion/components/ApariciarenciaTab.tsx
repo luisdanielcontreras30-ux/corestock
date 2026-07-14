@@ -22,6 +22,7 @@ const opciones: OpcionTema[] = [
   { valor: "light", claveNombre: "tema.light.nombre", claveDesc: "tema.light.desc", colores: ["#eef0f9", "#ffffff", "#5945e4"] },
   { valor: "pink", claveNombre: "tema.pink.nombre", claveDesc: "tema.pink.desc", colores: ["#f4a9cf", "#fce3ee", "#c2255f"] },
   { valor: "mint", claveNombre: "tema.mint.nombre", claveDesc: "tema.mint.desc", colores: ["#eafaf3", "#ffffff", "#10b981"] },
+  { valor: "sunset", claveNombre: "tema.sunset.nombre", claveDesc: "tema.sunset.desc", colores: ["#170a05", "#2a150a", "#f97316"] },
 ];
 
 export default function ApariciarenciaTab() {

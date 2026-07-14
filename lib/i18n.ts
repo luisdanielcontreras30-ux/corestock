@@ -194,6 +194,8 @@ export const TRADUCCIONES: Diccionario = {
   "tema.wine.desc": { es: "Oscuro intenso con acento carmesí", en: "Deep dark with crimson accent", pt: "Escuro intenso com detalhes carmesim", fr: "Sombre intense avec accent cramoisi", de: "Tiefdunkel mit purpurrotem Akzent", zh: "深色配深红点缀" },
   "tema.mint.nombre": { es: "Menta", en: "Mint", pt: "Menta", fr: "Menthe", de: "Minze", zh: "薄荷色" },
   "tema.mint.desc": { es: "Claro y fresco, verde suave", en: "Light and fresh, soft green", pt: "Claro e fresco, verde suave", fr: "Clair et frais, vert doux", de: "Hell und frisch, sanftes Grün", zh: "清新明亮的浅绿色" },
+  "tema.sunset.nombre": { es: "Atardecer", en: "Sunset", pt: "Pôr do sol", fr: "Coucher de soleil", de: "Sonnenuntergang", zh: "日落" },
+  "tema.sunset.desc": { es: "Oscuro y cálido, acento naranja", en: "Dark and warm, orange accent", pt: "Escuro e quente, destaque laranja", fr: "Sombre et chaleureux, accent orange", de: "Dunkel und warm, oranger Akzent", zh: "深色暖调，橙色点缀" },
   "tema.light.nombre": { es: "Claro", en: "Light", pt: "Claro", fr: "Clair", de: "Hell", zh: "浅色" },
   "tema.light.desc": { es: "Fondo lavanda suave, ideal para el día", en: "Soft lavender background, great for daytime", pt: "Fundo lavanda suave, ideal para o dia", fr: "Fond lavande doux, idéal pour la journée", de: "Sanfter Lavendelhintergrund, ideal für den Tag", zh: "柔和薰衣草背景，适合白天使用" },
   "tema.pink.nombre": { es: "Rosa pastel", en: "Pastel pink", pt: "Rosa pastel", fr: "Rose pastel", de: "Pastellrosa", zh: "粉彩色" },
