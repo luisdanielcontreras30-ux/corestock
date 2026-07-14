@@ -539,6 +539,11 @@ export const TRADUCCIONES: Diccionario = {
   "ventas.factura": { es: "Factura", en: "Invoice", pt: "Fatura", fr: "Facture", de: "Rechnung", zh: "发票" },
   "ventas.eliminar": { es: "Eliminar", en: "Delete", pt: "Excluir", fr: "Supprimer", de: "Löschen", zh: "删除" },
   "ventas.exportar_excel": { es: "Exportar Excel", en: "Export Excel", pt: "Exportar Excel", fr: "Exporter Excel", de: "Excel exportieren", zh: "导出 Excel" },
+  "ventas.metodo_pago": { es: "Método de pago", en: "Payment method", pt: "Método de pagamento", fr: "Mode de paiement", de: "Zahlungsart", zh: "付款方式" },
+  "ventas.metodo_efectivo": { es: "Efectivo", en: "Cash", pt: "Dinheiro", fr: "Espèces", de: "Bargeld", zh: "现金" },
+  "ventas.metodo_tarjeta": { es: "Tarjeta", en: "Card", pt: "Cartão", fr: "Carte", de: "Karte", zh: "刷卡" },
+  "ventas.metodo_transferencia": { es: "Transferencia", en: "Bank transfer", pt: "Transferência", fr: "Virement", de: "Überweisung", zh: "转账" },
+  "ventas.metodo_otro": { es: "Otro", en: "Other", pt: "Outro", fr: "Autre", de: "Sonstiges", zh: "其他" },
 
   // Clientes
   "clientes.titulo": { es: "Clientes", en: "Customers", pt: "Clientes", fr: "Clients", de: "Kunden", zh: "客户" },

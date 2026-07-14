@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import VentaForm from "./VentaForm";
 import { cargarDatos, registrarVenta } from "../acciones";
-import { Producto, Cliente, Promocion } from "../types";
+import { Producto, Cliente, Promocion, MetodoPago } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../../lib/promociones";
 
@@ -23,6 +23,7 @@ export default function NuevaVentaModal({ onClose }: Props) {
   const [clienteId, setClienteId] = useState("");
   const [clienteNombre, setClienteNombre] = useState("");
   const [cantidad, setCantidad] = useState(1);
+  const [metodoPago, setMetodoPago] = useState<MetodoPago>("efectivo");
   const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
@@ -81,7 +82,7 @@ export default function NuevaVentaModal({ onClose }: Props) {
 
     try {
       setGuardando(true);
-      await registrarVenta(producto, cliente, cantidad, clienteNombre, precioUnitario);
+      await registrarVenta(producto, cliente, cantidad, clienteNombre, precioUnitario, metodoPago);
       onClose();
     } catch (error) {
       console.error(error);
@@ -121,6 +122,8 @@ export default function NuevaVentaModal({ onClose }: Props) {
               setClienteNombre={alCambiarClienteNombre}
               cantidad={cantidad}
               setCantidad={setCantidad}
+              metodoPago={metodoPago}
+              setMetodoPago={setMetodoPago}
               total={total}
               precioUnitario={precioUnitario}
               promocion={promoAplicable}

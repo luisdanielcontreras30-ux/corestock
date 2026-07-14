@@ -1,5 +1,12 @@
 import * as XLSX from "xlsx";
-import { Venta } from "./types";
+import { Venta, MetodoPago } from "./types";
+
+export const CLAVE_METODO_PAGO: Record<MetodoPago, string> = {
+  efectivo: "ventas.metodo_efectivo",
+  tarjeta: "ventas.metodo_tarjeta",
+  transferencia: "ventas.metodo_transferencia",
+  otro: "ventas.metodo_otro",
+};
 
 export function exportarExcel(ventas: Venta[]) {
   const datos = ventas.map((venta) => ({
@@ -8,6 +15,7 @@ export function exportarExcel(ventas: Venta[]) {
     Cantidad: venta.cantidad,
     Precio: venta.precio,
     Total: venta.total,
+    "Metodo de pago": venta.metodo_pago ?? "efectivo",
   }));
 
   const hoja = XLSX.utils.json_to_sheet(datos);

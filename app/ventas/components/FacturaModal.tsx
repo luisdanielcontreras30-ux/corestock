@@ -2,7 +2,7 @@
 
 import { Printer, MessageCircle } from "lucide-react";
 import { Venta } from "../types";
-import { formatoFecha, formatoMoneda } from "../utils";
+import { formatoFecha, formatoMoneda, CLAVE_METODO_PAGO } from "../utils";
 import { useIdioma } from "../../../components/LanguageProvider";
 
 interface Props {
@@ -78,6 +78,9 @@ export default function FacturaModal({ venta, onClose }: Props) {
             <p className="factura-cliente-label">{t("factura.facturado_a")}</p>
             <p className="factura-cliente-nombre">
               {venta.clientes?.nombre ?? t("ventas.cliente_general")}
+            </p>
+            <p style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 4 }}>
+              {t("ventas.metodo_pago")}: {t(CLAVE_METODO_PAGO[venta.metodo_pago] ?? CLAVE_METODO_PAGO.efectivo)}
             </p>
           </div>
 

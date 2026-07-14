@@ -1,7 +1,7 @@
 "use client";
 
 import { Tag } from "lucide-react";
-import { Producto, Cliente } from "../types";
+import { Producto, Cliente, MetodoPago } from "../types";
 import { PromocionAplicable } from "../../../lib/promociones";
 import { useIdioma } from "../../../components/LanguageProvider";
 
@@ -15,6 +15,8 @@ interface Props {
   setClienteNombre: (v: string) => void;
   cantidad: number;
   setCantidad: (v: number) => void;
+  metodoPago: MetodoPago;
+  setMetodoPago: (v: MetodoPago) => void;
   total: number;
   precioUnitario: number;
   promocion?: PromocionAplicable | null;
@@ -32,6 +34,8 @@ export default function VentaForm({
   setClienteNombre,
   cantidad,
   setCantidad,
+  metodoPago,
+  setMetodoPago,
   total,
   precioUnitario,
   promocion,
@@ -95,6 +99,20 @@ export default function VentaForm({
           <label>{t("tabla.total")}</label>
 
           <input readOnly value={`$${total.toFixed(2)}`} />
+        </div>
+
+        <div>
+          <label>{t("ventas.metodo_pago")}</label>
+
+          <select
+            value={metodoPago}
+            onChange={(e) => setMetodoPago(e.target.value as MetodoPago)}
+          >
+            <option value="efectivo">{t("ventas.metodo_efectivo")}</option>
+            <option value="tarjeta">{t("ventas.metodo_tarjeta")}</option>
+            <option value="transferencia">{t("ventas.metodo_transferencia")}</option>
+            <option value="otro">{t("ventas.metodo_otro")}</option>
+          </select>
         </div>
       </div>
 

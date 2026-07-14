@@ -1,5 +1,5 @@
 import { supabase } from "../../lib/supabase";
-import { Producto, Cliente, Venta, Promocion } from "./types";
+import { Producto, Cliente, Venta, Promocion, MetodoPago } from "./types";
 
 export async function cargarDatos() {
   const {
@@ -82,7 +82,8 @@ export async function registrarVenta(
   cliente: Cliente | null,
   cantidad: number,
   nombreCliente: string,
-  precioUnitario: number = producto.precio_venta
+  precioUnitario: number = producto.precio_venta,
+  metodoPago: MetodoPago = "efectivo"
 ) {
   const {
     data: { user },
@@ -158,6 +159,7 @@ export async function registrarVenta(
         cantidad,
         precio: precioUnitario,
         total,
+        metodo_pago: metodoPago,
         user_id: user.id,
       })
       .select("id")

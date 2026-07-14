@@ -4,6 +4,7 @@ import { Venta } from "./types";
 import {
   formatoFecha,
   formatoMoneda,
+  CLAVE_METODO_PAGO,
 } from "./utils";
 import { useIdioma } from "../../components/LanguageProvider";
 
@@ -69,6 +70,7 @@ export default function Historial({
               <th>{t("tabla.cantidad")}</th>
               <th>{t("productos.precio")}</th>
               <th>{t("tabla.total")}</th>
+              <th>{t("ventas.metodo_pago")}</th>
               <th>{t("usuarios.col_acciones")}</th>
             </tr>
           </thead>
@@ -77,7 +79,7 @@ export default function Historial({
             {ventas.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   style={{
                     textAlign: "center",
                     padding: 30,
@@ -120,6 +122,8 @@ export default function Historial({
                       venta.total
                     )}
                   </td>
+
+                  <td>{t(CLAVE_METODO_PAGO[venta.metodo_pago] ?? CLAVE_METODO_PAGO.efectivo)}</td>
 
                   <td>
                     <button

@@ -22,6 +22,8 @@ export interface Promocion {
   fecha_fin: string | null;
 }
 
+export type MetodoPago = "efectivo" | "tarjeta" | "transferencia" | "otro";
+
 export interface Venta {
   id: number;
   fecha: string;
@@ -29,6 +31,7 @@ export interface Venta {
   cantidad: number;
   precio: number;
   total: number;
+  metodo_pago: MetodoPago;
 
   producto_id: number;
   cliente_id: number | null;

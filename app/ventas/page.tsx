@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DollarSign } from "lucide-react";
 import Historial from "./Historial";
 import VentaForm from "./components/VentaForm";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 
 import {
   cargarDatos,
@@ -17,6 +19,7 @@ import {
   Cliente,
   Venta,
   Promocion,
+  MetodoPago,
 } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
 import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../lib/promociones";
@@ -34,6 +37,7 @@ export default function VentasPage() {
   const [clienteId, setClienteId] = useState("");
   const [clienteNombre, setClienteNombre] = useState("");
   const [cantidad, setCantidad] = useState(1);
+  const [metodoPago, setMetodoPago] = useState<MetodoPago>("efectivo");
   const [guardando, setGuardando] = useState(false);
 
   async function obtenerDatos() {
@@ -106,12 +110,13 @@ export default function VentasPage() {
     try {
       setGuardando(true);
 
-      await registrarVenta(producto, cliente, cantidad, clienteNombre, precioUnitario);
+      await registrarVenta(producto, cliente, cantidad, clienteNombre, precioUnitario, metodoPago);
 
       setProductoId("");
       setClienteId("");
       setClienteNombre("");
       setCantidad(1);
+      setMetodoPago("efectivo");
 
       await obtenerDatos();
     } catch (error) {
@@ -147,13 +152,12 @@ export default function VentasPage() {
         gap: 24,
       }}
     >
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700 }}>{t("ventas.titulo")}</h1>
-
-        <p style={{ color: "var(--text-secondary)" }}>
-          {t("ventas.subtitulo")}
-        </p>
-      </div>
+      <EncabezadoModulo
+        Icono={DollarSign}
+        color="#10b981"
+        titulo={t("ventas.titulo")}
+        subtitulo={t("ventas.subtitulo")}
+      />
 
       <div className="ventas-form-desktop">
         <VentaForm
@@ -166,6 +170,8 @@ export default function VentasPage() {
           setClienteNombre={alCambiarClienteNombre}
           cantidad={cantidad}
           setCantidad={setCantidad}
+          metodoPago={metodoPago}
+          setMetodoPago={setMetodoPago}
           total={total}
           precioUnitario={precioUnitario}
           promocion={promoAplicable}
