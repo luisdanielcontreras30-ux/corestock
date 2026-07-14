@@ -553,6 +553,8 @@ export const TRADUCCIONES: Diccionario = {
   "clientes.col_compras": { es: "Compras", en: "Purchases", pt: "Compras", fr: "Achats", de: "Käufe", zh: "购买次数" },
   "clientes.col_total_gastado": { es: "Total Gastado", en: "Total Spent", pt: "Total Gasto", fr: "Total dépensé", de: "Gesamtausgaben", zh: "消费总额" },
   "clientes.ver_historial": { es: "Historial", en: "History", pt: "Histórico", fr: "Historique", de: "Verlauf", zh: "历史记录" },
+  "clientes.copiar_link_portal": { es: "Copiar link del portal", en: "Copy portal link", pt: "Copiar link do portal", fr: "Copier le lien du portail", de: "Portal-Link kopieren", zh: "复制门户链接" },
+  "clientes.link_copiado": { es: "¡Copiado!", en: "Copied!", pt: "Copiado!", fr: "Copié !", de: "Kopiert!", zh: "已复制！" },
   "clientes.editar": { es: "Editar", en: "Edit", pt: "Editar", fr: "Modifier", de: "Bearbeiten", zh: "编辑" },
   "clientes.eliminar": { es: "Eliminar", en: "Delete", pt: "Excluir", fr: "Supprimer", de: "Löschen", zh: "删除" },
   "clientes.sin_clientes": { es: "No hay clientes registrados.", en: "No customers registered.", pt: "Nenhum cliente registrado.", fr: "Aucun client enregistré.", de: "Keine Kunden erfasst.", zh: "没有已登记的客户。" },
@@ -708,6 +710,19 @@ export const TRADUCCIONES: Diccionario = {
   "catalogo_publico.no_disponible": { es: "Este catálogo no está disponible", en: "This catalog isn't available", pt: "Este catálogo não está disponível", fr: "Ce catalogue n'est pas disponible", de: "Dieser Katalog ist nicht verfügbar", zh: "该目录暂不可用" },
   "catalogo_publico.no_disponible_desc": { es: "El enlace es incorrecto o el negocio todavía no activó su catálogo.", en: "The link is incorrect or the business hasn't activated its catalog yet.", pt: "O link está incorreto ou o negócio ainda não ativou seu catálogo.", fr: "Le lien est incorrect ou l'entreprise n'a pas encore activé son catalogue.", de: "Der Link ist falsch oder das Unternehmen hat seinen Katalog noch nicht aktiviert.", zh: "链接有误，或该商家尚未启用其目录。" },
   "catalogo_publico.sin_productos": { es: "Todavía no hay productos publicados.", en: "There are no published products yet.", pt: "Ainda não há produtos publicados.", fr: "Aucun produit publié pour le moment.", de: "Es gibt noch keine veröffentlichten Produkte.", zh: "暂无已发布的产品。" },
+
+  // Portal de Clientes (gestión, autenticado)
+  "portal_clientes.subtitulo": { es: "Cada cliente tiene su propio enlace para ver su historial de compras.", en: "Each customer has their own link to see their purchase history.", pt: "Cada cliente tem seu próprio link para ver seu histórico de compras.", fr: "Chaque client dispose de son propre lien pour consulter son historique d'achats.", de: "Jeder Kunde hat einen eigenen Link, um seinen Kaufverlauf zu sehen.", zh: "每位客户都有自己的链接来查看购买历史。" },
+  "portal_clientes.como_funciona": { es: "¿Cómo funciona?", en: "How does it work?", pt: "Como funciona?", fr: "Comment ça marche ?", de: "Wie funktioniert das?", zh: "如何运作？" },
+  "portal_clientes.como_funciona_desc": { es: "Ve a la página de Clientes y pulsa \"Copiar link del portal\" junto al cliente que quieras. Comparte ese enlace con él — al abrirlo verá su nombre y todas sus compras, sin necesitar contraseña.", en: "Go to the Customers page and tap \"Copy portal link\" next to the customer you want. Share that link with them — when they open it, they'll see their name and all their purchases, no password needed.", pt: "Vá até a página de Clientes e toque em \"Copiar link do portal\" junto ao cliente desejado. Compartilhe esse link com ele — ao abri-lo, verá seu nome e todas as suas compras, sem precisar de senha.", fr: "Allez sur la page Clients et appuyez sur « Copier le lien du portail » à côté du client souhaité. Partagez ce lien avec lui — en l'ouvrant, il verra son nom et tous ses achats, sans mot de passe.", de: "Gehe zur Kundenseite und tippe neben dem gewünschten Kunden auf „Portal-Link kopieren“. Teile diesen Link mit ihm — beim Öffnen sieht er seinen Namen und alle seine Käufe, ohne Passwort.", zh: "前往客户页面，点击所需客户旁的「复制门户链接」。将该链接分享给客户——打开后，客户即可看到自己的姓名和所有购买记录，无需密码。" },
+  "portal_clientes.ir_a_clientes": { es: "Ir a Clientes", en: "Go to Customers", pt: "Ir para Clientes", fr: "Aller aux clients", de: "Zu Kunden", zh: "前往客户" },
+
+  // Portal del cliente (sin sesión)
+  "portal_publico.subtitulo": { es: "Tu historial de compras", en: "Your purchase history", pt: "Seu histórico de compras", fr: "Votre historique d'achats", de: "Dein Kaufverlauf", zh: "您的购买历史" },
+  "portal_publico.total_gastado": { es: "Total gastado", en: "Total spent", pt: "Total gasto", fr: "Total dépensé", de: "Gesamtausgaben", zh: "总消费" },
+  "portal_publico.sin_compras": { es: "Todavía no hay compras registradas.", en: "There are no purchases registered yet.", pt: "Ainda não há compras registradas.", fr: "Aucun achat enregistré pour le moment.", de: "Noch keine Käufe erfasst.", zh: "暂无购买记录。" },
+  "portal_publico.no_disponible": { es: "Este portal no está disponible", en: "This portal isn't available", pt: "Este portal não está disponível", fr: "Ce portail n'est pas disponible", de: "Dieses Portal ist nicht verfügbar", zh: "该门户暂不可用" },
+  "portal_publico.no_disponible_desc": { es: "El enlace es incorrecto o ya no es válido.", en: "The link is incorrect or is no longer valid.", pt: "O link está incorreto ou não é mais válido.", fr: "Le lien est incorrect ou n'est plus valide.", de: "Der Link ist falsch oder nicht mehr gültig.", zh: "链接有误或已失效。" },
 };
 
 export const LOCALES: Record<Idioma, string> = {

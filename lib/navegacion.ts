@@ -83,7 +83,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
     items: [
       { claveNombre: "sidebar.promociones", href: "/promociones", Icono: Percent },
       { claveNombre: "sidebar.catalogo_linea", href: "/catalogo-linea", Icono: BookOpen },
-      { claveNombre: "sidebar.portal_clientes", href: "/portal-clientes", Icono: UserCircle, proximamente: true },
+      { claveNombre: "sidebar.portal_clientes", href: "/portal-clientes", Icono: UserCircle },
       { claveNombre: "sidebar.whatsapp", href: "/whatsapp", Icono: MessageCircle, proximamente: true },
     ],
   },

@@ -4,6 +4,7 @@ export interface Cliente {
   telefono: string | null;
   correo: string | null;
   notas: string | null;
+  token: string;
 }
 
 export interface ClienteConResumen extends Cliente {

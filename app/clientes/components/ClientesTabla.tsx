@@ -1,6 +1,7 @@
 "use client";
 
-import { History } from "lucide-react";
+import { useState } from "react";
+import { History, Link2, Check } from "lucide-react";
 import { ClienteConResumen } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
 
@@ -18,6 +19,14 @@ export default function ClientesTabla({
   onEliminar,
 }: Props) {
   const { t } = useIdioma();
+  const [copiadoId, setCopiadoId] = useState<number | null>(null);
+
+  async function copiarLinkPortal(cliente: ClienteConResumen) {
+    const enlace = `${window.location.origin}/portal-clientes/${cliente.token}`;
+    await navigator.clipboard.writeText(enlace);
+    setCopiadoId(cliente.id);
+    setTimeout(() => setCopiadoId((actual) => (actual === cliente.id ? null : actual)), 2000);
+  }
 
   return (
     <div className="tabla">
@@ -60,6 +69,15 @@ export default function ClientesTabla({
                       onClick={() => onVerHistorial(cliente)}
                     >
                       <History size={13} /> {t("clientes.ver_historial")}
+                    </button>
+
+                    <button
+                      className="btn-secondary"
+                      style={{ display: "flex", alignItems: "center", gap: 5 }}
+                      onClick={() => copiarLinkPortal(cliente)}
+                    >
+                      {copiadoId === cliente.id ? <Check size={13} /> : <Link2 size={13} />}
+                      {copiadoId === cliente.id ? t("clientes.link_copiado") : t("clientes.copiar_link_portal")}
                     </button>
 
                     <button
