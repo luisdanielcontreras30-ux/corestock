@@ -34,6 +34,12 @@ interface VentaReciente {
   cantidad: number;
   total: number;
   fecha: string;
+  cliente_id: number | null;
+}
+
+interface ClienteTop {
+  nombre: string;
+  total: number;
 }
 
 interface ProductoStockBajo {
@@ -69,6 +75,7 @@ export default function DashboardPremium() {
   // Listas de datos dinámicos
   const [ventasRecientes, setVentasRecientes] = useState<VentaReciente[]>([]);
   const [productosAlerta, setProductosAlerta] = useState<ProductoStockBajo[]>([]);
+  const [mejoresClientes, setMejoresClientes] = useState<ClienteTop[]>([]);
   
   // Estados para las gráficas reales
   const [dataLinea, setDataLinea] = useState<DataGraficoLinea[]>([]);
@@ -172,6 +179,40 @@ export default function DashboardPremium() {
         })).sort((a, b) => b.value - a.value).slice(0, 5);
 
         setDataPie(formateadaPie);
+
+        // ==========================================
+        // MEJORES CLIENTES (top 5 por total comprado)
+        // ==========================================
+        const conCliente = ventasTipadas.filter((v) => v.cliente_id != null);
+
+        if (conCliente.length > 0) {
+          const { data: clientes } = await supabase
+            .from("clientes")
+            .select("id, nombre")
+            .eq("user_id", userId);
+
+          const nombrePorId = new Map(
+            (clientes ?? []).map((c) => [c.id as number, c.nombre as string])
+          );
+
+          const mapaClientes = new Map<number, number>();
+          conCliente.forEach((v) => {
+            const id = v.cliente_id as number;
+            mapaClientes.set(id, (mapaClientes.get(id) ?? 0) + Number(v.total));
+          });
+
+          const rankingClientes = Array.from(mapaClientes.entries())
+            .map(([id, total]) => ({
+              nombre: nombrePorId.get(id) ?? t("dashboard.cliente_eliminado"),
+              total,
+            }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 5);
+
+          setMejoresClientes(rankingClientes);
+        } else {
+          setMejoresClientes([]);
+        }
       }
 
     } catch (error) {
@@ -502,6 +543,67 @@ export default function DashboardPremium() {
         </div>
 
       </section>
+
+      {/* MEJORES CLIENTES */}
+      {mejoresClientes.length > 0 && (
+        <section style={{ marginTop: "24px" }}>
+          <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 4px 0" }}>{t("dashboard.mejores_clientes")}</h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: "12px", margin: "0 0 20px 0" }}>{t("dashboard.mejores_clientes_desc")}</p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px" }}>
+              {mejoresClientes.map((cliente, i) => (
+                <div
+                  key={cliente.nombre + i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "12px 14px",
+                    backgroundColor: "var(--bg-secondary)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      flexShrink: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      background: COLORES_PIE[i % COLORES_PIE.length],
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <h4
+                      style={{
+                        margin: 0,
+                        fontSize: "13.5px",
+                        fontWeight: 600,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {cliente.nombre}
+                    </h4>
+                    <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+                      ${cliente.total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
     </div>
   );
