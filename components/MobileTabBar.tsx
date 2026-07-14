@@ -79,21 +79,23 @@ export default function MobileTabBar() {
       )}
 
       <nav className="mobile-tabbar">
-        {tabs.slice(0, 2).map((tab) => {
-          const Icono = tab.Icono;
-          const activo = pathname === tab.href;
+        <div className="mobile-tabbar-lado">
+          {tabs.slice(0, 2).map((tab) => {
+            const Icono = tab.Icono;
+            const activo = pathname === tab.href;
 
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`mobile-tab ${activo ? "mobile-tab-activo" : ""}`}
-            >
-              <Icono size={21} color={activo ? "var(--primary)" : tab.color} />
-              <span>{t(tab.clave)}</span>
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`mobile-tab ${activo ? "mobile-tab-activo" : ""}`}
+              >
+                <Icono size={21} color={activo ? "var(--primary)" : tab.color} />
+                <span>{t(tab.clave)}</span>
+              </Link>
+            );
+          })}
+        </div>
 
         <button
           className="mobile-tab-fab"
@@ -110,29 +112,31 @@ export default function MobileTabBar() {
           />
         </button>
 
-        {tabs.slice(2).map((tab) => {
-          const Icono = tab.Icono;
-          const activo = pathname === tab.href;
+        <div className="mobile-tabbar-lado">
+          {tabs.slice(2).map((tab) => {
+            const Icono = tab.Icono;
+            const activo = pathname === tab.href;
 
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`mobile-tab ${activo ? "mobile-tab-activo" : ""}`}
-            >
-              <Icono size={21} color={activo ? "var(--primary)" : tab.color} />
-              <span>{t(tab.clave)}</span>
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`mobile-tab ${activo ? "mobile-tab-activo" : ""}`}
+              >
+                <Icono size={21} color={activo ? "var(--primary)" : tab.color} />
+                <span>{t(tab.clave)}</span>
+              </Link>
+            );
+          })}
 
-        <Link
-          href="/mas"
-          className={`mobile-tab ${pathname === "/mas" ? "mobile-tab-activo" : ""}`}
-        >
-          <MenuIcon size={21} />
-          <span>{t("sidebar.mas")}</span>
-        </Link>
+          <Link
+            href="/mas"
+            className={`mobile-tab ${pathname === "/mas" ? "mobile-tab-activo" : ""}`}
+          >
+            <MenuIcon size={21} />
+            <span>{t("sidebar.mas")}</span>
+          </Link>
+        </div>
       </nav>
     </>
   );
