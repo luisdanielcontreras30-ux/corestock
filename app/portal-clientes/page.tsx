@@ -1,22 +1,71 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserCircle, Link2, ArrowRight } from "lucide-react";
+import { UserCircle, Link2, Check, ExternalLink } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { copiarAlPortapapeles } from "../../lib/portapapeles";
+import { cargarClientes } from "../clientes/acciones";
+import { ClienteConResumen } from "../clientes/types";
 
 export default function PortalClientesPage() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
 
+  const [loading, setLoading] = useState(true);
+  const [clientes, setClientes] = useState<ClienteConResumen[]>([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [copiadoId, setCopiadoId] = useState<number | null>(null);
+
+  async function obtenerDatos() {
+    setLoading(true);
+    try {
+      const { clientes: clientesCargados } = await cargarClientes();
+      setClientes(clientesCargados);
+    } catch (error) {
+      console.error(error);
+      alert(t("comun.msg_error_cargar_datos"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (cargandoAuth) return;
-    if (!user) router.push("/login");
-  }, [cargandoAuth, user, router]);
 
-  if (cargandoAuth || !user) {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    obtenerDatos();
+  }, [cargandoAuth, user]);
+
+  async function copiarLink(cliente: ClienteConResumen) {
+    if (!cliente.token) {
+      alert(t("clientes.token_pendiente"));
+      return;
+    }
+
+    const enlace = `${window.location.origin}/portal-clientes/${cliente.token}`;
+    const exito = await copiarAlPortapapeles(enlace);
+
+    if (!exito) {
+      alert(t("comun.msg_error_copiar"));
+      return;
+    }
+
+    setCopiadoId(cliente.id);
+    setTimeout(() => setCopiadoId((actual) => (actual === cliente.id ? null : actual)), 2000);
+  }
+
+  const clientesFiltrados = clientes.filter((c) =>
+    c.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  if (cargandoAuth || !user || loading) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -33,34 +82,62 @@ export default function PortalClientesPage() {
         <p style={{ color: "var(--text-secondary)" }}>{t("portal_clientes.subtitulo")}</p>
       </div>
 
-      <div className="card">
-        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 10,
-              background: "rgba(89,69,228,0.12)",
-              display: "grid",
-              placeItems: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Link2 size={20} color="var(--primary)" />
-          </div>
-          <div>
-            <h2 style={{ marginBottom: 6 }}>{t("portal_clientes.como_funciona")}</h2>
-            <p style={{ color: "var(--text-secondary)", fontSize: 13.5, lineHeight: 1.6 }}>
-              {t("portal_clientes.como_funciona_desc")}
-            </p>
-          </div>
-        </div>
+      <input
+        placeholder={t("clientes.buscar")}
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+      />
 
-        <div style={{ marginTop: 20 }}>
-          <a href="/clientes" className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-            {t("portal_clientes.ir_a_clientes")} <ArrowRight size={15} />
-          </a>
-        </div>
+      <div className="tabla">
+        <table>
+          <thead>
+            <tr>
+              <th>{t("clientes.nombre")}</th>
+              <th>{t("clientes.col_compras")}</th>
+              <th>{t("productos.col_acciones")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {clientesFiltrados.length === 0 ? (
+              <tr>
+                <td colSpan={3} style={{ textAlign: "center", padding: 30 }}>
+                  {t("clientes.sin_clientes")}
+                </td>
+              </tr>
+            ) : (
+              clientesFiltrados.map((cliente) => (
+                <tr key={cliente.id}>
+                  <td>{cliente.nombre}</td>
+                  <td>{cliente.compras}</td>
+                  <td>
+                    <div className="productos-actions">
+                      <button
+                        className="btn-secondary"
+                        style={{ display: "flex", alignItems: "center", gap: 5 }}
+                        onClick={() => copiarLink(cliente)}
+                      >
+                        {copiadoId === cliente.id ? <Check size={13} /> : <Link2 size={13} />}
+                        {copiadoId === cliente.id ? t("clientes.link_copiado") : t("clientes.copiar_link_portal")}
+                      </button>
+
+                      {cliente.token && (
+                        <a
+                          href={`/portal-clientes/${cliente.token}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-secondary"
+                          style={{ display: "flex", alignItems: "center", gap: 5, textDecoration: "none" }}
+                        >
+                          <ExternalLink size={13} /> {t("portal_clientes.ver_portal")}
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </main>
   );

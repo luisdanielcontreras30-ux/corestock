@@ -36,13 +36,18 @@ export default function VentasPage() {
   async function obtenerDatos() {
     setLoading(true);
 
-    const datos = await cargarDatos();
+    try {
+      const datos = await cargarDatos();
 
-    setProductos(datos.productos);
-    setClientes(datos.clientes);
-    setVentas(datos.ventas);
-
-    setLoading(false);
+      setProductos(datos.productos);
+      setClientes(datos.clientes);
+      setVentas(datos.ventas);
+    } catch (error) {
+      console.error(error);
+      alert(t("comun.msg_error_cargar_datos"));
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {

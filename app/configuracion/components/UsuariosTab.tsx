@@ -46,6 +46,7 @@ export default function UsuariosTab() {
       setMiembros(datos);
     } catch (error) {
       console.error(error);
+      alert(t("comun.msg_error_cargar_datos"));
     } finally {
       setCargando(false);
     }

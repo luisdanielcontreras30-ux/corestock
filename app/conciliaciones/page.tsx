@@ -28,6 +28,7 @@ export default function ConciliacionesPage() {
       setMovimientos(datos);
     } catch (error) {
       console.error(error);
+      alert(t("comun.msg_error_cargar_datos"));
     } finally {
       setLoading(false);
     }

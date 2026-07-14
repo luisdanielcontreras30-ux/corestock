@@ -54,6 +54,7 @@ export default function FabricacionPage() {
       setProducciones(datos.producciones);
     } catch (error) {
       console.error(error);
+      alert(t("comun.msg_error_cargar_datos"));
     } finally {
       setLoading(false);
     }

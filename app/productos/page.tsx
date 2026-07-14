@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { subirImagenSegura } from "../../lib/uploads";
 import * as XLSX from "xlsx";
@@ -19,8 +20,17 @@ interface Producto {
 }
 
 export default function Productos() {
+  return (
+    <Suspense fallback={null}>
+      <ProductosInterno />
+    </Suspense>
+  );
+}
+
+function ProductosInterno() {
   const { t } = useIdioma();
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [productos, setProductos] = useState<Producto[]>([]);
 
   const [nombre, setNombre] = useState("");
@@ -42,14 +52,28 @@ export default function Productos() {
     if (user) cargar();
   }, [user]);
 
+  // Viene del FAB móvil "Nuevo producto (con cámara)" — abre el
+  // selector de imagen directo para que no sea un botón sin efecto.
+  useEffect(() => {
+    if (searchParams.get("camara") === "1") {
+      fileInputRef.current?.click();
+    }
+  }, [searchParams]);
+
   async function cargar() {
     if (!user) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("productos")
       .select("*")
       .eq("user_id", user.id)
       .order("id", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      alert(t("comun.msg_error_cargar_datos"));
+      return;
+    }
 
     if (data) setProductos(data);
   }

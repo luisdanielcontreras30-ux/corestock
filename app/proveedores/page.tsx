@@ -39,6 +39,7 @@ export default function ProveedoresPage() {
       setProveedores(datos);
     } catch (error) {
       console.error(error);
+      alert(t("comun.msg_error_cargar_datos"));
     } finally {
       setCargando(false);
     }
