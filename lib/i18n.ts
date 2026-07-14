@@ -689,6 +689,25 @@ export const TRADUCCIONES: Diccionario = {
   "traspasos.col_origen": { es: "Origen", en: "Origin", pt: "Origem", fr: "Origine", de: "Ursprung", zh: "起点" },
   "traspasos.col_destino": { es: "Destino", en: "Destination", pt: "Destino", fr: "Destination", de: "Ziel", zh: "目的地" },
   "traspasos.sin_traspasos": { es: "No hay traspasos registrados todavía.", en: "No transfers registered yet.", pt: "Ainda não há transferências registradas.", fr: "Aucun transfert enregistré pour le moment.", de: "Noch keine Umbuchungen erfasst.", zh: "还没有调拨记录。" },
+
+  // Catálogo en Línea (gestión, autenticado)
+  "catalogo_linea.subtitulo": { es: "Comparte un catálogo público de tus productos con tus clientes.", en: "Share a public catalog of your products with your customers.", pt: "Compartilhe um catálogo público dos seus produtos com seus clientes.", fr: "Partagez un catalogue public de vos produits avec vos clients.", de: "Teile einen öffentlichen Katalog deiner Produkte mit deinen Kunden.", zh: "与客户分享您的产品公开目录。" },
+  "catalogo_linea.activar": { es: "Activar catálogo", en: "Activate catalog", pt: "Ativar catálogo", fr: "Activer le catalogue", de: "Katalog aktivieren", zh: "启用目录" },
+  "catalogo_linea.desactivar": { es: "Desactivar catálogo", en: "Deactivate catalog", pt: "Desativar catálogo", fr: "Désactiver le catalogue", de: "Katalog deaktivieren", zh: "停用目录" },
+  "catalogo_linea.activar_desc": { es: "Cuando está activo, cualquiera con el enlace puede ver tu nombre, logo y tus productos activos (sin precios de costo ni datos internos).", en: "When active, anyone with the link can see your name, logo and active products (no cost prices or internal data).", pt: "Quando ativo, qualquer pessoa com o link pode ver seu nome, logo e produtos ativos (sem preços de custo nem dados internos).", fr: "Lorsqu'il est actif, toute personne disposant du lien peut voir votre nom, logo et produits actifs (sans prix de revient ni données internes).", de: "Wenn aktiv, kann jeder mit dem Link deinen Namen, dein Logo und deine aktiven Produkte sehen (keine Kostenpreise oder internen Daten).", zh: "启用后，任何持有链接的人都可以看到您的名称、标志和已上架产品（不含成本价或内部数据）。" },
+  "catalogo_linea.msg_falta_empresa": { es: "Primero guarda los datos de tu negocio en Configuración → Empresa.", en: "First save your business info in Settings → Company.", pt: "Primeiro salve os dados da sua empresa em Configurações → Empresa.", fr: "Enregistrez d'abord les informations de votre entreprise dans Paramètres → Entreprise.", de: "Speichere zuerst deine Unternehmensdaten unter Einstellungen → Unternehmen.", zh: "请先在「设置 → 公司」中保存您的企业信息。" },
+  "catalogo_linea.msg_error_guardar": { es: "No se pudo actualizar el catálogo.", en: "Could not update the catalog.", pt: "Não foi possível atualizar o catálogo.", fr: "Impossible de mettre à jour le catalogue.", de: "Katalog konnte nicht aktualisiert werden.", zh: "目录更新失败。" },
+  "catalogo_linea.copiar_enlace": { es: "Copiar enlace", en: "Copy link", pt: "Copiar link", fr: "Copier le lien", de: "Link kopieren", zh: "复制链接" },
+  "catalogo_linea.copiado": { es: "¡Copiado!", en: "Copied!", pt: "Copiado!", fr: "Copié !", de: "Kopiert!", zh: "已复制！" },
+  "catalogo_linea.ver_catalogo": { es: "Ver catálogo", en: "View catalog", pt: "Ver catálogo", fr: "Voir le catalogue", de: "Katalog ansehen", zh: "查看目录" },
+  "catalogo_linea.vista_previa": { es: "Vista previa", en: "Preview", pt: "Pré-visualização", fr: "Aperçu", de: "Vorschau", zh: "预览" },
+  "catalogo_linea.sin_productos": { es: "No tienes productos activos todavía.", en: "You don't have any active products yet.", pt: "Você ainda não tem produtos ativos.", fr: "Vous n'avez pas encore de produits actifs.", de: "Du hast noch keine aktiven Produkte.", zh: "您还没有已上架的产品。" },
+
+  // Catálogo público (sin sesión)
+  "catalogo_publico.subtitulo": { es: "Catálogo de productos", en: "Product catalog", pt: "Catálogo de produtos", fr: "Catalogue de produits", de: "Produktkatalog", zh: "产品目录" },
+  "catalogo_publico.no_disponible": { es: "Este catálogo no está disponible", en: "This catalog isn't available", pt: "Este catálogo não está disponível", fr: "Ce catalogue n'est pas disponible", de: "Dieser Katalog ist nicht verfügbar", zh: "该目录暂不可用" },
+  "catalogo_publico.no_disponible_desc": { es: "El enlace es incorrecto o el negocio todavía no activó su catálogo.", en: "The link is incorrect or the business hasn't activated its catalog yet.", pt: "O link está incorreto ou o negócio ainda não ativou seu catálogo.", fr: "Le lien est incorrect ou l'entreprise n'a pas encore activé son catalogue.", de: "Der Link ist falsch oder das Unternehmen hat seinen Katalog noch nicht aktiviert.", zh: "链接有误，或该商家尚未启用其目录。" },
+  "catalogo_publico.sin_productos": { es: "Todavía no hay productos publicados.", en: "There are no published products yet.", pt: "Ainda não há produtos publicados.", fr: "Aucun produit publié pour le moment.", de: "Es gibt noch keine veröffentlichten Produkte.", zh: "暂无已发布的产品。" },
 };
 
 export const LOCALES: Record<Idioma, string> = {

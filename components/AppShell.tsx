@@ -10,10 +10,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
 
-  // La pantalla de login/registro y la de bienvenida se muestran solas,
-  // sin sidebar ni header.
+  // La pantalla de login/registro, la de bienvenida y el catálogo
+  // público (sin sesión) se muestran solas, sin sidebar ni header.
   const esPantallaPublica =
-    pathname === "/login" || pathname === "/bienvenida";
+    pathname === "/login" ||
+    pathname === "/bienvenida" ||
+    pathname.startsWith("/catalogo/");
 
   if (esPantallaPublica) {
     return <>{children}</>;
