@@ -1354,6 +1354,44 @@ textarea:focus {
   background: #1ebe57;
 }
 
+.btn-instagram {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-instagram:hover {
+  filter: brightness(0.92);
+}
+
+.btn-correo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-correo:hover {
+  background: #2563eb;
+}
+
 .factura-hoja {
   background: #ffffff;
   color: #14162b;

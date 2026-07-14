@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Check, X, Trash2, ShoppingCart } from "lucide-react";
+import { FileText, Check, X, Trash2, ShoppingCart, Share2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import CotizacionCompartirModal from "./components/CotizacionCompartirModal";
 import { Producto, Cliente, Cotizacion, EstadoCotizacion } from "./types";
 import {
   cargarDatos,
@@ -41,6 +42,7 @@ export default function CotizacionesPage() {
   const [convirtiendoId, setConvirtiendoId] = useState<number | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState<EstadoCotizacion | "">("");
+  const [compartiendo, setCompartiendo] = useState<Cotizacion | null>(null);
 
   async function obtenerDatos() {
     setLoading(true);
@@ -349,6 +351,13 @@ export default function CotizacionesPage() {
                   </td>
                   <td>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      <button
+                        className="btn-edit"
+                        aria-label={t("cotizaciones.compartir")}
+                        onClick={() => setCompartiendo(c)}
+                      >
+                        <Share2 size={14} />
+                      </button>
                       {c.estado === "pendiente" && (
                         <>
                           <button
@@ -393,6 +402,13 @@ export default function CotizacionesPage() {
           </tbody>
         </table>
       </div>
+
+      {compartiendo && (
+        <CotizacionCompartirModal
+          cotizacion={compartiendo}
+          onClose={() => setCompartiendo(null)}
+        />
+      )}
     </main>
   );
 }
