@@ -17,6 +17,7 @@ interface Producto {
   precio_venta: number;
   costo: number | null;
   stock: number;
+  stock_minimo: number | null;
   imagen: string | null;
 }
 
@@ -39,6 +40,7 @@ function ProductosInterno() {
   const [precio, setPrecio] = useState("");
   const [costo, setCosto] = useState("");
   const [stock, setStock] = useState("");
+  const [stockMinimo, setStockMinimo] = useState("5");
   const [busqueda, setBusqueda] = useState("");
 
   const [imagen, setImagen] = useState<File | null>(null);
@@ -90,11 +92,13 @@ function ProductosInterno() {
     const precioNum = Number(precio);
     const costoNum = costo === "" ? 0 : Number(costo);
     const stockNum = Number(stock);
+    const stockMinimoNum = stockMinimo === "" ? 5 : Number(stockMinimo);
 
     if (
       !Number.isFinite(precioNum) || precioNum < 0 ||
       !Number.isFinite(costoNum) || costoNum < 0 ||
-      !Number.isFinite(stockNum) || stockNum < 0
+      !Number.isFinite(stockNum) || stockNum < 0 ||
+      !Number.isFinite(stockMinimoNum) || stockMinimoNum < 0
     ) {
       alert(t("productos.msg_valores_invalidos"));
       return;
@@ -127,6 +131,7 @@ function ProductosInterno() {
         precio_venta: precioNum,
         costo: costoNum,
         stock: stockNum,
+        stock_minimo: stockMinimoNum,
         user_id: user.id,
         imagen: imagenUrl,
       };
@@ -160,6 +165,7 @@ function ProductosInterno() {
     setPrecio(String(p.precio_venta));
     setCosto(p.costo != null ? String(p.costo) : "");
     setStock(String(p.stock));
+    setStockMinimo(p.stock_minimo != null ? String(p.stock_minimo) : "5");
     setPreview(p.imagen || "");
     setImagen(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -199,6 +205,7 @@ function ProductosInterno() {
     setPrecio("");
     setCosto("");
     setStock("");
+    setStockMinimo("5");
     setImagen(null);
     setPreview("");
 
@@ -236,6 +243,7 @@ function ProductosInterno() {
           <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
           <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
           <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" min="0" step="1" />
+          <input value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} placeholder={t("productos.stock_minimo")} type="number" min="0" step="1" />
         </div>
 
         {/* UPLOAD IMAGE */}
@@ -324,6 +332,7 @@ function ProductosInterno() {
               precio_venta?: unknown;
               costo?: unknown;
               stock?: unknown;
+              stock_minimo?: unknown;
             }
 
             for (const item of data as FilaExcelProducto[]) {
@@ -331,12 +340,14 @@ function ProductosInterno() {
               const precioItem = Number(item.precio_venta);
               const stockItem = Number(item.stock);
               const costoItem = item.costo != null ? Number(item.costo) : 0;
+              const stockMinimoItem = item.stock_minimo != null ? Number(item.stock_minimo) : 5;
 
               if (
                 !nombreItem ||
                 !Number.isFinite(precioItem) || precioItem < 0 ||
                 !Number.isFinite(stockItem) || stockItem < 0 ||
-                !Number.isFinite(costoItem) || costoItem < 0
+                !Number.isFinite(costoItem) || costoItem < 0 ||
+                !Number.isFinite(stockMinimoItem) || stockMinimoItem < 0
               ) {
                 omitidos++;
                 continue;
@@ -349,6 +360,7 @@ function ProductosInterno() {
                   precio_venta: precioItem,
                   costo: costoItem,
                   stock: stockItem,
+                  stock_minimo: stockMinimoItem,
                   user_id: user.id,
                 },
               ]);

@@ -12,6 +12,7 @@ interface ProductoAlerta {
   id: number;
   nombre: string;
   stock: number;
+  stock_minimo: number | null;
 }
 
 export default function Header({
@@ -44,12 +45,16 @@ export default function Header({
 
     const { data } = await supabase
       .from("productos")
-      .select("id, nombre, stock")
+      .select("id, nombre, stock, stock_minimo")
       .eq("user_id", user.id)
-      .lte("stock", 5)
       .order("stock");
 
-    if (data) setAlertas(data as ProductoAlerta[]);
+    if (data) {
+      const bajos = (data as ProductoAlerta[]).filter(
+        (p) => p.stock <= (p.stock_minimo ?? 5)
+      );
+      setAlertas(bajos);
+    }
   }
 
   function alAbrirNotis() {

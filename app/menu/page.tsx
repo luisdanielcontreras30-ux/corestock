@@ -40,6 +40,7 @@ interface ProductoStockBajo {
   id: number;
   nombre: string;
   stock: number;
+  stock_minimo: number | null;
 }
 
 interface DataGraficoLinea {
@@ -91,13 +92,13 @@ export default function DashboardPremium() {
       // 1. OBTENER PRODUCTOS (Select corregido para TypeScript)
       const { data: productos } = await supabase
         .from("productos")
-        .select("id, nombre, stock")
+        .select("id, nombre, stock, stock_minimo")
         .eq("user_id", userId);
 
       if (productos) {
         setTotalProductos(productos.length);
         const productosTipados = productos as ProductoStockBajo[];
-        const bajos = productosTipados.filter(p => p.stock <= 5);
+        const bajos = productosTipados.filter(p => p.stock <= (p.stock_minimo ?? 5));
         setProductosAlerta(bajos.slice(0, 4));
         setAlertasStockCount(bajos.length);
       }

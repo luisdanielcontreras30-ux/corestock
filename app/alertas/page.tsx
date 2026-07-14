@@ -12,6 +12,7 @@ interface ProductoAlerta {
   nombre: string;
   categoria: string;
   stock: number;
+  stock_minimo: number | null;
   imagen: string | null;
 }
 
@@ -41,7 +42,6 @@ export default function Alertas() {
       .from("productos")
       .select("*")
       .eq("user_id", userId)
-      .lte("stock", 5)
       .order("stock");
 
     if (errorConsulta) {
@@ -49,7 +49,10 @@ export default function Alertas() {
       setError(true);
       setAlertas([]);
     } else {
-      setAlertas((data ?? []) as ProductoAlerta[]);
+      const bajos = ((data ?? []) as ProductoAlerta[]).filter(
+        (p) => p.stock <= (p.stock_minimo ?? 5)
+      );
+      setAlertas(bajos);
     }
 
     setLoading(false);
