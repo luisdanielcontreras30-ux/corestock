@@ -14,6 +14,7 @@ import {
   analizarProductoTop,
   analizarAgotados,
   analizarInventario,
+  analizarMejorCliente,
 } from "./acciones";
 
 interface Mensaje {
@@ -73,6 +74,7 @@ export default function AsistentePage() {
     { texto: t("asistente.q_resumen"), fn: analizarResumenSemana },
     { texto: t("asistente.q_topproducto"), fn: analizarProductoTop },
     { texto: t("asistente.q_agotados"), fn: analizarAgotados },
+    { texto: t("asistente.q_mejorcliente"), fn: analizarMejorCliente },
   ];
 
   async function enviarPregunta(
@@ -153,6 +155,9 @@ export default function AsistentePage() {
     }
     if (t.includes("inventario") || t.includes("catálogo") || t.includes("catalogo") || t.includes("cuántos productos") || t.includes("cuantos productos")) {
       return analizarInventario;
+    }
+    if (t.includes("mejor cliente") || t.includes("mejores clientes") || t.includes("best customer") || t.includes("top cliente") || t.includes("top client")) {
+      return analizarMejorCliente;
     }
 
     return null;

@@ -6,6 +6,7 @@ interface ProductoRaw {
   precio_venta: number;
   costo: number | null;
   stock: number;
+  stock_minimo: number | null;
   categoria: string;
 }
 
@@ -15,17 +16,25 @@ interface VentaRaw {
   cantidad: number;
   total: number;
   fecha: string;
+  cliente_id: number | null;
+}
+
+interface ClienteRaw {
+  id: number;
+  nombre: string;
 }
 
 async function obtenerDatos(userId: string) {
-  const [{ data: productos }, { data: ventas }] = await Promise.all([
+  const [{ data: productos }, { data: ventas }, { data: clientes }] = await Promise.all([
     supabase.from("productos").select("*").eq("user_id", userId),
     supabase.from("ventas").select("*").eq("user_id", userId),
+    supabase.from("clientes").select("id, nombre").eq("user_id", userId),
   ]);
 
   return {
     productos: (productos ?? []) as ProductoRaw[],
     ventas: (ventas ?? []) as VentaRaw[],
+    clientes: (clientes ?? []) as ClienteRaw[],
   };
 }
 
@@ -67,10 +76,10 @@ export async function analizarQueComprar(userId: string): Promise<string> {
   const ventasRecientes = ventasEnRango(ventas, hace30, hoy);
   const velocidad = unidadesPorProducto(ventasRecientes);
 
-  const bajos = productos.filter((p) => p.stock <= 5);
+  const bajos = productos.filter((p) => p.stock <= (p.stock_minimo ?? 5));
 
   if (bajos.length === 0) {
-    return "✅ No tienes productos con stock bajo (5 unidades o menos) en este momento. No necesitas comprar nada urgente.";
+    return "✅ No tienes productos por debajo de su stock mínimo en este momento. No necesitas comprar nada urgente.";
   }
 
   const conVelocidad = bajos
@@ -273,7 +282,7 @@ export async function analizarInventario(userId: string): Promise<string> {
     (sum, p) => sum + Number(p.stock) * Number(p.precio_venta),
     0
   );
-  const bajos = productos.filter((p) => p.stock <= 5 && p.stock > 0).length;
+  const bajos = productos.filter((p) => p.stock <= (p.stock_minimo ?? 5) && p.stock > 0).length;
   const agotados = productos.filter((p) => p.stock === 0).length;
 
   return `Tu catálogo tiene **${productos.length} productos**, con **${unidadesTotales} unidades** en total.\n\nValor estimado del inventario (a precio de venta): **$${valorInventario.toFixed(2)}**.\n\n${agotados} agotados, ${bajos} con stock bajo.`;
@@ -317,4 +326,41 @@ export async function analizarResumenSemana(userId: string): Promise<string> {
     : "No hubo ventas registradas esta semana.";
 
   return `**Resumen de los últimos 7 días:**\n\n- Ingresos totales: $${totalActual.toFixed(2)} (${lineaCambio})\n- Ventas registradas: ${numTransacciones}\n- Ticket promedio: $${ticketPromedio.toFixed(2)}\n\n${lineaTop}`;
+}
+
+// ----------------- 9. MEJORES CLIENTES -----------------
+
+export async function analizarMejorCliente(userId: string): Promise<string> {
+  const { ventas, clientes } = await obtenerDatos(userId);
+
+  const conCliente = ventas.filter((v) => v.cliente_id != null);
+
+  if (conCliente.length === 0) {
+    return "Todavía no tienes ventas asociadas a un cliente específico. Elige un cliente al registrar una venta para que pueda darte este análisis.";
+  }
+
+  const nombrePorId = new Map(clientes.map((c) => [c.id, c.nombre]));
+
+  const totales = new Map<number, { total: number; compras: number }>();
+  for (const v of conCliente) {
+    const id = v.cliente_id as number;
+    const actual = totales.get(id) ?? { total: 0, compras: 0 };
+    actual.total += Number(v.total);
+    actual.compras += 1;
+    totales.set(id, actual);
+  }
+
+  const ranking = Array.from(totales.entries())
+    .map(([id, datos]) => ({
+      nombre: nombrePorId.get(id) ?? "Cliente eliminado",
+      ...datos,
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  const lineas = ranking
+    .slice(0, 5)
+    .map((c, i) => `${i + 1}. **${c.nombre}** — $${c.total.toFixed(2)} en ${c.compras} compra(s).`)
+    .join("\n");
+
+  return `Tus mejores clientes por total comprado:\n\n${lineas}`;
 }
