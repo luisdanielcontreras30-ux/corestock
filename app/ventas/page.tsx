@@ -22,10 +22,12 @@ import {
   MetodoPago,
 } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
 import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../lib/promociones";
 
 export default function VentasPage() {
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
   const [loading, setLoading] = useState(true);
 
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -118,6 +120,7 @@ export default function VentasPage() {
       setCantidad(1);
       setMetodoPago("efectivo");
 
+      mostrarToast(t("ventas.msg_venta_registrada"), "exito");
       await obtenerDatos();
     } catch (error) {
       console.error(error);

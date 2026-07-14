@@ -5,6 +5,7 @@ import VentaForm from "./VentaForm";
 import { cargarDatos, registrarVenta } from "../acciones";
 import { Producto, Cliente, Promocion, MetodoPago } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { useToast } from "../../../components/ToastProvider";
 import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../../lib/promociones";
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 
 export default function NuevaVentaModal({ onClose }: Props) {
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
   const [loading, setLoading] = useState(true);
 
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -83,6 +85,7 @@ export default function NuevaVentaModal({ onClose }: Props) {
     try {
       setGuardando(true);
       await registrarVenta(producto, cliente, cantidad, clienteNombre, precioUnitario, metodoPago);
+      mostrarToast(t("ventas.msg_venta_registrada"), "exito");
       onClose();
     } catch (error) {
       console.error(error);

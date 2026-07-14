@@ -410,11 +410,13 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 24px;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .card:hover {
   border-color: var(--card-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* ==========================================================================
@@ -511,6 +513,113 @@ textarea:focus {
 }
 
 /* ==========================================================================
+   NOTIFICACIONES FLOTANTES (TOAST)
+   ========================================================================== */
+@keyframes toastVaciarBarra {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.toast-contenedor {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  left: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 40px 14px 16px;
+  box-shadow: var(--shadow-lg);
+  max-width: 380px;
+  width: 100%;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.toast-exito .toast-icono {
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+.toast-error .toast-icono {
+  color: var(--danger);
+  flex-shrink: 0;
+}
+
+.toast-mensaje {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toast-cerrar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.toast-cerrar:hover {
+  background: var(--glass-bg);
+  color: var(--text-secondary);
+}
+
+.toast-barra {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--success);
+  animation-name: toastVaciarBarra;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.toast-error .toast-barra {
+  background: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-barra {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .toast-contenedor {
+    top: auto;
+    bottom: 90px;
+    left: 12px;
+    right: 12px;
+    align-items: stretch;
+  }
+
+  .toast {
+    max-width: none;
+  }
+}
+
+/* ==========================================================================
    RESPONSIVE LAYOUT
    ========================================================================== */
 @media (max-width: 1200px) {
@@ -578,6 +687,8 @@ textarea:focus {
 
 .btn-primary:hover {
   background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px var(--primary-soft);
 }
 
 .btn-secondary {
@@ -589,6 +700,11 @@ textarea:focus {
   cursor: pointer;
 }
 
+.btn-secondary:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
 .btn-edit {
   background: rgba(59,130,246,0.15);
   color: #3b82f6;
@@ -596,6 +712,11 @@ textarea:focus {
   padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.btn-edit:hover {
+  background: rgba(59,130,246,0.25);
+  transform: translateY(-1px);
 }
 
 .btn-delete {
@@ -607,6 +728,11 @@ textarea:focus {
   cursor: pointer;
 }
 
+.btn-delete:hover {
+  background: rgba(239,68,68,0.25);
+  transform: translateY(-1px);
+}
+
 .btn-clip {
   background: var(--glass-bg);
   color: var(--text-primary);
@@ -614,6 +740,11 @@ textarea:focus {
   padding: 12px 18px;
   border-radius: 10px;
   cursor: pointer;
+}
+
+.btn-clip:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .product-image {
@@ -1219,8 +1350,8 @@ textarea:focus {
   background-color: rgba(255, 255, 255, 0.025);
 }
 
-.btn-primary, .btn-secondary, .btn-edit, .btn-delete {
-  transition: transform var(--transition-fast), opacity var(--transition-fast);
+.btn-primary, .btn-secondary, .btn-edit, .btn-delete, .btn-clip {
+  transition: transform var(--transition-fast), opacity var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .btn-primary:active, .btn-secondary:active, .btn-edit:active, .btn-delete:active {
@@ -1317,6 +1448,16 @@ textarea:focus {
    FACTURACIÓN
    ========================================================================== */
 
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .factura-overlay {
   position: fixed;
   inset: 0;
@@ -1327,6 +1468,7 @@ textarea:focus {
   padding: 40px 20px;
   overflow-y: auto;
   z-index: 200;
+  animation: overlayFade 0.2s ease;
 }
 
 .factura-modal {
@@ -1336,6 +1478,7 @@ textarea:focus {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   overflow: hidden;
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .factura-modal-toolbar {
@@ -2579,6 +2722,11 @@ textarea:focus {
     box-shadow: 0 6px 18px var(--primary-soft);
     margin-top: -30px;
     cursor: pointer;
+    transition: transform var(--transition-fast);
+  }
+
+  .mobile-tab-fab:active {
+    transform: scale(0.92);
   }
 
   /* En celular, registrar una venta se hace solo desde el botón + de
@@ -2602,6 +2750,12 @@ textarea:focus {
     flex-direction: column;
     gap: 12px;
     box-shadow: var(--shadow-lg);
+    animation: sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes sheetSlideUp {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .mobile-fab-sheet-header {
@@ -2643,10 +2797,15 @@ textarea:focus {
     font-weight: 700;
     cursor: pointer;
     text-align: left;
+    transition: transform var(--transition-fast), background-color var(--transition-fast);
   }
 
   .mobile-fab-opcion:hover {
     background: var(--card-bg-hover, var(--glass-bg));
+  }
+
+  .mobile-fab-opcion:active {
+    transform: scale(0.97);
   }
 
   .mobile-fab-opcion-icono {

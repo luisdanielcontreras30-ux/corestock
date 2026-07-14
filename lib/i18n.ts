@@ -600,6 +600,7 @@ export const TRADUCCIONES: Diccionario = {
   "ventas.msg_cantidad_mayor": { es: "La cantidad debe ser mayor a 0.", en: "Quantity must be greater than 0.", pt: "A quantidade deve ser maior que 0.", fr: "La quantité doit être supérieure à 0.", de: "Die Menge muss größer als 0 sein.", zh: "数量必须大于0。" },
   "ventas.msg_sin_stock": { es: "No hay suficiente stock.", en: "Not enough stock.", pt: "Estoque insuficiente.", fr: "Stock insuffisant.", de: "Nicht genügend Bestand.", zh: "库存不足。" },
   "ventas.msg_error_registrar": { es: "No se pudo registrar la venta.", en: "Could not register the sale.", pt: "Não foi possível registrar a venda.", fr: "Impossible d'enregistrer la vente.", de: "Verkauf konnte nicht erfasst werden.", zh: "销售登记失败。" },
+  "ventas.msg_venta_registrada": { es: "Venta registrada con éxito", en: "Sale registered successfully", pt: "Venda registrada com sucesso", fr: "Vente enregistrée avec succès", de: "Verkauf erfolgreich registriert", zh: "销售登记成功" },
   "ventas.confirmar_eliminar": { es: "¿Eliminar esta venta?", en: "Delete this sale?", pt: "Excluir esta venda?", fr: "Supprimer cette vente ?", de: "Diesen Verkauf löschen?", zh: "确定要删除此销售记录吗？" },
   "ventas.msg_error_eliminar": { es: "No se pudo eliminar.", en: "Could not delete.", pt: "Não foi possível excluir.", fr: "Impossible de supprimer.", de: "Konnte nicht gelöscht werden.", zh: "删除失败。" },
   "ventas.historial_titulo": { es: "Historial de Ventas", en: "Sales History", pt: "Histórico de Vendas", fr: "Historique des ventes", de: "Verkaufsverlauf", zh: "销售历史" },
