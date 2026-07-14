@@ -17,3 +17,9 @@ alter table empresa_config add column if not exists suscripcion_periodo_fin time
 create unique index if not exists empresa_config_stripe_customer_id_key
   on empresa_config (stripe_customer_id)
   where stripe_customer_id is not null;
+
+-- Necesaria para que el webhook pueda hacer upsert por user_id: si el
+-- negocio nunca guardó nada en Configuración → Empresa, todavía no
+-- existe una fila para él, y el upsert debe poder crearla.
+create unique index if not exists empresa_config_user_id_key
+  on empresa_config (user_id);

@@ -46,15 +46,22 @@ export async function POST(request: Request) {
             : session.subscription?.id;
 
         if (userId && customerId) {
+          // upsert (no update): si el negocio todavía no había guardado
+          // nada en Configuración → Empresa, no existe fila en
+          // empresa_config para este usuario todavía — un update no
+          // crea la fila y el pago se perdería en silencio.
           await admin
             .from("empresa_config")
-            .update({
-              plan: "plus",
-              stripe_customer_id: customerId,
-              stripe_subscription_id: subscriptionId ?? null,
-              suscripcion_estado: "active",
-            })
-            .eq("user_id", userId);
+            .upsert(
+              {
+                user_id: userId,
+                plan: "plus",
+                stripe_customer_id: customerId,
+                stripe_subscription_id: subscriptionId ?? null,
+                suscripcion_estado: "active",
+              },
+              { onConflict: "user_id" }
+            );
         }
 
         break;
