@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Venta } from "./types";
 import {
   formatoFecha,
@@ -20,6 +21,18 @@ export default function Historial({
   exportarExcel,
 }: Props) {
   const { t } = useIdioma();
+  const [busqueda, setBusqueda] = useState("");
+
+  const ventasFiltradas = ventas.filter((venta) => {
+    const termino = busqueda.toLowerCase().trim();
+    if (!termino) return true;
+
+    const nombreCliente = (venta.clientes?.nombre ?? t("ventas.cliente_general")).toLowerCase();
+    return (
+      nombreCliente.includes(termino) ||
+      venta.producto.toLowerCase().includes(termino)
+    );
+  });
 
   return (
     <div className="card fade-up">
@@ -60,6 +73,13 @@ export default function Historial({
         </button>
       </div>
 
+      <input
+        style={{ marginBottom: 16 }}
+        placeholder={t("ventas.buscar_historial")}
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+      />
+
       <div className="tabla">
         <table>
           <thead>
@@ -76,7 +96,7 @@ export default function Historial({
           </thead>
 
           <tbody>
-            {ventas.length === 0 ? (
+            {ventasFiltradas.length === 0 ? (
               <tr>
                 <td
                   colSpan={8}
@@ -85,11 +105,11 @@ export default function Historial({
                     padding: 30,
                   }}
                 >
-                  {t("ventas.sin_ventas")}
+                  {ventas.length === 0 ? t("ventas.sin_ventas") : t("ventas.sin_resultados_busqueda")}
                 </td>
               </tr>
             ) : (
-              ventas.map((venta) => (
+              ventasFiltradas.map((venta) => (
                 <tr key={venta.id}>
                   <td>
                     {formatoFecha(

@@ -541,6 +541,8 @@ export const TRADUCCIONES: Diccionario = {
   "ventas.historial_titulo": { es: "Historial de Ventas", en: "Sales History", pt: "Histórico de Vendas", fr: "Historique des ventes", de: "Verkaufsverlauf", zh: "销售历史" },
   "ventas.historial_subtitulo": { es: "Ventas registradas.", en: "Registered sales.", pt: "Vendas registradas.", fr: "Ventes enregistrées.", de: "Erfasste Verkäufe.", zh: "已登记的销售。" },
   "ventas.sin_ventas": { es: "No hay ventas registradas.", en: "No sales registered.", pt: "Nenhuma venda registrada.", fr: "Aucune vente enregistrée.", de: "Keine Verkäufe erfasst.", zh: "没有已登记的销售。" },
+  "ventas.buscar_historial": { es: "Buscar por cliente o producto...", en: "Search by customer or product...", pt: "Buscar por cliente ou produto...", fr: "Rechercher par client ou produit...", de: "Nach Kunde oder Produkt suchen...", zh: "按客户或产品搜索..." },
+  "ventas.sin_resultados_busqueda": { es: "Ninguna venta coincide con tu búsqueda.", en: "No sales match your search.", pt: "Nenhuma venda corresponde à sua busca.", fr: "Aucune vente ne correspond à votre recherche.", de: "Keine Verkäufe entsprechen deiner Suche.", zh: "没有符合搜索条件的销售。" },
   "ventas.cliente_general": { es: "Cliente General", en: "General Customer", pt: "Cliente Geral", fr: "Client général", de: "Allgemeiner Kunde", zh: "普通客户" },
   "ventas.factura": { es: "Factura", en: "Invoice", pt: "Fatura", fr: "Facture", de: "Rechnung", zh: "发票" },
   "ventas.eliminar": { es: "Eliminar", en: "Delete", pt: "Excluir", fr: "Supprimer", de: "Löschen", zh: "删除" },
