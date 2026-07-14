@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Sparkles, Send, Bot } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import {
   analizarQueComprar,
   analizarGanancias,
@@ -212,14 +213,12 @@ export default function AsistentePage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 20, height: "calc(100vh - 64px)" }}>
-      <div>
-        <h1 style={{ fontSize: 30, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <Sparkles size={24} color="var(--primary)" /> {t("asistente.titulo")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: 13, maxWidth: 640 }}>
-          {t("asistente.subtitulo")}
-        </p>
-      </div>
+      <EncabezadoModulo
+        Icono={Sparkles}
+        color="#a855f7"
+        titulo={t("asistente.titulo")}
+        subtitulo={t("asistente.subtitulo")}
+      />
 
       {/* CHIPS DE PREGUNTAS SUGERIDAS */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>

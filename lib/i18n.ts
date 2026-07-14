@@ -279,6 +279,7 @@ export const TRADUCCIONES: Diccionario = {
 
   // Productos
   "productos.titulo": { es: "Productos", en: "Products", pt: "Produtos", fr: "Produits", de: "Produkte", zh: "产品" },
+  "productos.subtitulo": { es: "Tu catálogo — precio, costo, stock e imagen de cada producto.", en: "Your catalog — price, cost, stock and image for each product.", pt: "Seu catálogo — preço, custo, estoque e imagem de cada produto.", fr: "Votre catalogue — prix, coût, stock et image de chaque produit.", de: "Dein Katalog — Preis, Kosten, Bestand und Bild für jedes Produkt.", zh: "您的产品目录 — 每个产品的价格、成本、库存和图片。" },
   "productos.editar_producto": { es: "Editar producto", en: "Edit product", pt: "Editar produto", fr: "Modifier le produit", de: "Produkt bearbeiten", zh: "编辑产品" },
   "productos.anadir_producto": { es: "Añadir producto", en: "Add product", pt: "Adicionar produto", fr: "Ajouter un produit", de: "Produkt hinzufügen", zh: "添加产品" },
   "productos.nombre": { es: "Nombre", en: "Name", pt: "Nome", fr: "Nom", de: "Name", zh: "名称" },

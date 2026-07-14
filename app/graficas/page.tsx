@@ -5,6 +5,7 @@ import "./graficas.css";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DollarSign, ShoppingBag, Box, TrendingUp, TrendingDown, BarChart3, Trophy } from "lucide-react";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -159,12 +160,12 @@ export default function GraficasPage() {
   return (
     <main className="fade-up">
       <div className="section-title">
-        <div>
-          <h1 style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <BarChart3 size={26} /> {t("graficas.titulo")}
-          </h1>
-          <p>{t("graficas.subtitulo")}</p>
-        </div>
+        <EncabezadoModulo
+          Icono={BarChart3}
+          color="#06b6d4"
+          titulo={t("graficas.titulo")}
+          subtitulo={t("graficas.subtitulo")}
+        />
       </div>
 
       {/* TARJETAS DE ESTADÍSTICAS: GRID ASIMÉTRICO */}

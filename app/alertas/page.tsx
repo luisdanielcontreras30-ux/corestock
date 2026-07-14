@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { Package, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { Package, CheckCircle2, XCircle, AlertTriangle, Bell } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 
 interface ProductoAlerta {
   id: number;
@@ -83,12 +84,12 @@ export default function Alertas() {
       className="fade-up"
       style={{ display: "flex", flexDirection: "column", gap: 24 }}
     >
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700 }}>{t("alertas.titulo")}</h1>
-        <p style={{ color: "var(--text-secondary)" }}>
-          {t("alertas.subtitulo")}
-        </p>
-      </div>
+      <EncabezadoModulo
+        Icono={Bell}
+        color="#ef4444"
+        titulo={t("alertas.titulo")}
+        subtitulo={t("alertas.subtitulo")}
+      />
 
       <div
         style={{

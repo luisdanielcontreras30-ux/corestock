@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Users } from "lucide-react";
 import ClienteForm from "./components/ClienteForm";
 import ClientesTabla from "./components/ClientesTabla";
 import HistorialModal from "./components/HistorialModal";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 
 import {
   cargarClientes,
@@ -147,15 +149,12 @@ export default function ClientesPage() {
       className="fade-up"
       style={{ display: "flex", flexDirection: "column", gap: 24 }}
     >
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700 }}>
-          {t("clientes.titulo")}
-        </h1>
-
-        <p style={{ color: "var(--text-secondary)" }}>
-          {t("clientes.subtitulo")}
-        </p>
-      </div>
+      <EncabezadoModulo
+        Icono={Users}
+        color="#ec4899"
+        titulo={t("clientes.titulo")}
+        subtitulo={t("clientes.subtitulo")}
+      />
 
       <ClienteForm
         datos={datos}

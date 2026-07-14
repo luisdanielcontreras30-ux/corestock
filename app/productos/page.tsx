@@ -5,9 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { subirImagenSegura } from "../../lib/uploads";
 import * as XLSX from "xlsx";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Package } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 
 interface Producto {
   id: number;
@@ -217,7 +218,14 @@ function ProductosInterno() {
 
   return (
     <>
-      <h1 className="productos-header">{t("productos.titulo")}</h1>
+      <div className="productos-header">
+        <EncabezadoModulo
+          Icono={Package}
+          color="#22c55e"
+          titulo={t("productos.titulo")}
+          subtitulo={t("productos.subtitulo")}
+        />
+      </div>
 
       <div className="card productos-form">
         <h2>{editando !== null ? t("productos.editar_producto") : t("productos.anadir_producto")}</h2>

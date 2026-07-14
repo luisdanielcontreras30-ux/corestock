@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Settings } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import ConfigTabs from "./components/ConfigTabs";
 import ApariciarenciaTab from "./components/ApariciarenciaTab";
 import EmpresaTab from "./components/EmpresaTab";
@@ -35,12 +37,12 @@ export default function ConfiguracionPage() {
       className="fade-up"
       style={{ display: "flex", flexDirection: "column", gap: 24 }}
     >
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700 }}>{t("config.titulo")}</h1>
-        <p style={{ color: "var(--text-secondary)" }}>
-          {t("config.subtitulo")}
-        </p>
-      </div>
+      <EncabezadoModulo
+        Icono={Settings}
+        color="#64748b"
+        titulo={t("config.titulo")}
+        subtitulo={t("config.subtitulo")}
+      />
 
       <ConfigTabs activa={tab} onCambiar={setTab} />
 

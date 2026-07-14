@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Phone, Mail, Plus, Truck } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { Proveedor } from "./types";
 import {
   cargarProveedores,
@@ -114,12 +115,12 @@ export default function ProveedoresPage() {
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-            <Truck size={28} /> {t("proveedores.titulo")}
-          </h1>
-          <p style={{ color: "var(--text-secondary)" }}>{t("proveedores.subtitulo")}</p>
-        </div>
+        <EncabezadoModulo
+          Icono={Truck}
+          color="#f59e0b"
+          titulo={t("proveedores.titulo")}
+          subtitulo={t("proveedores.subtitulo")}
+        />
 
         <button className="btn-primary" onClick={abrirNuevo} style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <Plus size={16} /> {t("proveedores.agregar")}
