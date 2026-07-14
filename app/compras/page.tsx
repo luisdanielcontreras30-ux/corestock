@@ -198,6 +198,10 @@ export default function ComprasPage() {
           />
         </div>
 
+        <p style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 8 }}>
+          {t("compras.nota_actualiza_costo")}
+        </p>
+
         <input
           style={{ marginTop: 12 }}
           value={nota}

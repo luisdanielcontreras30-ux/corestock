@@ -110,9 +110,12 @@ export async function registrarCompra(
 
   // Update "compare-and-swap": igual que en Ventas, evita pisar el
   // resultado de otra compra/venta concurrente sobre el mismo producto.
+  // De paso actualizamos el costo del producto al de esta compra (costeo
+  // por última compra), para que Ganancias en el Asistente no quede
+  // calculando con un costo viejo.
   const { data: actualizado, error: errorStock } = await supabase
     .from("productos")
-    .update({ stock: nuevoStock })
+    .update({ stock: nuevoStock, costo: costoUnitario })
     .eq("id", producto.id)
     .eq("user_id", user.id)
     .eq("stock", productoActual.stock)
