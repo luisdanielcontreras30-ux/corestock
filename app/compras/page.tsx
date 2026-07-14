@@ -26,6 +26,7 @@ export default function ComprasPage() {
   const [costoUnitario, setCostoUnitario] = useState("");
   const [nota, setNota] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
 
   async function obtenerDatos() {
     setLoading(true);
@@ -137,6 +138,15 @@ export default function ComprasPage() {
     }
   }
 
+  const comprasFiltradas = compras.filter((c) => {
+    const termino = busqueda.toLowerCase().trim();
+    if (!termino) return true;
+    return (
+      c.producto.toLowerCase().includes(termino) ||
+      (c.proveedor_nombre ?? "").toLowerCase().includes(termino)
+    );
+  });
+
   if (cargandoAuth || !user || loading) {
     return (
       <main className="fade-up">
@@ -229,6 +239,12 @@ export default function ComprasPage() {
         </div>
       </div>
 
+      <input
+        placeholder={t("compras.buscar")}
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+      />
+
       <div className="tabla">
         <table>
           <thead>
@@ -244,14 +260,14 @@ export default function ComprasPage() {
           </thead>
 
           <tbody>
-            {compras.length === 0 ? (
+            {comprasFiltradas.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
-                  {t("compras.sin_compras")}
+                  {compras.length === 0 ? t("compras.sin_compras") : t("compras.sin_resultados_busqueda")}
                 </td>
               </tr>
             ) : (
-              compras.map((c) => (
+              comprasFiltradas.map((c) => (
                 <tr key={c.id}>
                   <td>{new Date(c.fecha).toLocaleDateString()}</td>
                   <td>{c.producto}</td>

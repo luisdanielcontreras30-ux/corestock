@@ -27,6 +27,7 @@ export default function ProveedoresPage() {
   const [telefono, setTelefono] = useState("");
   const [correo, setCorreo] = useState("");
   const [notas, setNotas] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
     if (user) refrescar();
@@ -112,6 +113,10 @@ export default function ProveedoresPage() {
     }
   }
 
+  const proveedoresFiltrados = proveedores.filter((p) =>
+    p.nombre.toLowerCase().includes(busqueda.toLowerCase().trim())
+  );
+
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
@@ -127,15 +132,27 @@ export default function ProveedoresPage() {
         </button>
       </div>
 
+      {!cargando && proveedores.length > 0 && (
+        <input
+          placeholder={t("proveedores.buscar")}
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      )}
+
       {cargando ? (
         <div className="card">{t("header.cargando")}</div>
       ) : proveedores.length === 0 ? (
         <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
           <p style={{ color: "var(--text-secondary)" }}>{t("proveedores.sin_proveedores")}</p>
         </div>
+      ) : proveedoresFiltrados.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
+          <p style={{ color: "var(--text-secondary)" }}>{t("proveedores.sin_resultados_busqueda")}</p>
+        </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
-          {proveedores.map((p) => (
+          {proveedoresFiltrados.map((p) => (
             <div key={p.id} className="card">
               <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>{p.nombre}</h3>
 

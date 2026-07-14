@@ -320,6 +320,8 @@ export const TRADUCCIONES: Diccionario = {
   "proveedores.subtitulo": { es: "Contactos de tus proveedores, con llamada directa.", en: "Your supplier contacts, with direct calling.", pt: "Contatos dos seus fornecedores, com chamada direta.", fr: "Contacts de vos fournisseurs, avec appel direct.", de: "Deine Lieferantenkontakte, mit Direktanruf.", zh: "您的供应商联系方式，可直接拨打电话。" },
   "proveedores.agregar": { es: "Agregar proveedor", en: "Add supplier", pt: "Adicionar fornecedor", fr: "Ajouter un fournisseur", de: "Lieferant hinzufügen", zh: "添加供应商" },
   "proveedores.sin_proveedores": { es: "Aún no has agregado ningún proveedor.", en: "You haven't added any suppliers yet.", pt: "Você ainda não adicionou nenhum fornecedor.", fr: "Vous n'avez encore ajouté aucun fournisseur.", de: "Du hast noch keine Lieferanten hinzugefügt.", zh: "您还没有添加任何供应商。" },
+  "proveedores.buscar": { es: "Buscar proveedor...", en: "Search supplier...", pt: "Buscar fornecedor...", fr: "Rechercher un fournisseur...", de: "Lieferant suchen...", zh: "搜索供应商..." },
+  "proveedores.sin_resultados_busqueda": { es: "Ningún proveedor coincide con tu búsqueda.", en: "No suppliers match your search.", pt: "Nenhum fornecedor corresponde à sua busca.", fr: "Aucun fournisseur ne correspond à votre recherche.", de: "Keine Lieferanten entsprechen deiner Suche.", zh: "没有符合搜索条件的供应商。" },
   "proveedores.llamar": { es: "Llamar", en: "Call", pt: "Ligar", fr: "Appeler", de: "Anrufen", zh: "拨打" },
   "proveedores.correo": { es: "Correo", en: "Email", pt: "E-mail", fr: "E-mail", de: "E-Mail", zh: "邮箱" },
   "proveedores.editar": { es: "Editar", en: "Edit", pt: "Editar", fr: "Modifier", de: "Bearbeiten", zh: "编辑" },
@@ -353,6 +355,8 @@ export const TRADUCCIONES: Diccionario = {
   "compras.msg_error_eliminar": { es: "No se pudo eliminar la compra.", en: "Could not delete the purchase.", pt: "Não foi possível excluir a compra.", fr: "Impossible de supprimer l'achat.", de: "Einkauf konnte nicht gelöscht werden.", zh: "采购删除失败。" },
   "compras.col_proveedor": { es: "Proveedor", en: "Supplier", pt: "Fornecedor", fr: "Fournisseur", de: "Lieferant", zh: "供应商" },
   "compras.sin_compras": { es: "No hay compras registradas.", en: "No purchases registered.", pt: "Nenhuma compra registrada.", fr: "Aucun achat enregistré.", de: "Keine Einkäufe erfasst.", zh: "没有已登记的采购。" },
+  "compras.buscar": { es: "Buscar por producto o proveedor...", en: "Search by product or supplier...", pt: "Buscar por produto ou fornecedor...", fr: "Rechercher par produit ou fournisseur...", de: "Nach Produkt oder Lieferant suchen...", zh: "按产品或供应商搜索..." },
+  "compras.sin_resultados_busqueda": { es: "Ninguna compra coincide con tu búsqueda.", en: "No purchases match your search.", pt: "Nenhuma compra corresponde à sua busca.", fr: "Aucun achat ne correspond à votre recherche.", de: "Keine Einkäufe entsprechen deiner Suche.", zh: "没有符合搜索条件的采购。" },
 
   // Facturas
   "facturas.subtitulo": { es: "Todas tus ventas como facturas — búscalas, imprímelas o compártelas por WhatsApp.", en: "All your sales as invoices — search, print or share them on WhatsApp.", pt: "Todas as suas vendas como faturas — busque, imprima ou compartilhe pelo WhatsApp.", fr: "Toutes vos ventes sous forme de factures — recherchez, imprimez ou partagez-les sur WhatsApp.", de: "Alle deine Verkäufe als Rechnungen — suchen, drucken oder per WhatsApp teilen.", zh: "您所有销售的发票 — 搜索、打印或通过 WhatsApp 分享。" },
