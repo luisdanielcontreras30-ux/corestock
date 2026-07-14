@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Sparkles, Send, Bot } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { Idioma } from "../../lib/i18n";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import {
   analizarQueComprar,
@@ -50,7 +51,7 @@ function renderizarTexto(texto: string) {
 
 export default function AsistentePage() {
   const { user } = useAuth();
-  const { t } = useIdioma();
+  const { t, idioma } = useIdioma();
 
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [entrada, setEntrada] = useState("");
@@ -79,7 +80,7 @@ export default function AsistentePage() {
 
   async function enviarPregunta(
     texto: string,
-    calcular: (userId: string) => Promise<string>
+    calcular: (userId: string, idioma: Idioma) => Promise<string>
   ) {
     if (!user || pensando) return;
 
@@ -94,7 +95,7 @@ export default function AsistentePage() {
     // Pequeña pausa artificial: hace tangible que "está pensando",
     // aunque el cálculo real ya se está haciendo detrás.
     const [respuesta] = await Promise.all([
-      calcular(user.id),
+      calcular(user.id, idioma),
       new Promise((r) => setTimeout(r, 450)),
     ]);
 
