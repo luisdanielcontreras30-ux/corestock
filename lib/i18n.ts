@@ -298,6 +298,7 @@ export const TRADUCCIONES: Diccionario = {
   "productos.importar_excel": { es: "Importar Excel", en: "Import Excel", pt: "Importar Excel", fr: "Importer Excel", de: "Excel importieren", zh: "导入 Excel" },
   "productos.cancelar": { es: "Cancelar", en: "Cancel", pt: "Cancelar", fr: "Annuler", de: "Abbrechen", zh: "取消" },
   "productos.buscar": { es: "Buscar producto...", en: "Search product...", pt: "Buscar produto...", fr: "Rechercher un produit...", de: "Produkt suchen...", zh: "搜索产品..." },
+  "productos.todas_categorias": { es: "Todas las categorías", en: "All categories", pt: "Todas as categorias", fr: "Toutes les catégories", de: "Alle Kategorien", zh: "所有类别" },
   "productos.col_imagen": { es: "Imagen", en: "Image", pt: "Imagem", fr: "Image", de: "Bild", zh: "图片" },
   "productos.col_producto": { es: "Producto", en: "Product", pt: "Produto", fr: "Produit", de: "Produkt", zh: "产品" },
   "productos.col_acciones": { es: "Acciones", en: "Actions", pt: "Ações", fr: "Actions", de: "Aktionen", zh: "操作" },

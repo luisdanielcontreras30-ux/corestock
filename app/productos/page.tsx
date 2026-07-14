@@ -42,6 +42,7 @@ function ProductosInterno() {
   const [stock, setStock] = useState("");
   const [stockMinimo, setStockMinimo] = useState("5");
   const [busqueda, setBusqueda] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
 
   const [imagen, setImagen] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
@@ -219,8 +220,14 @@ function ProductosInterno() {
     XLSX.writeFile(wb, "productos.xlsx");
   }
 
-  const filtrados = productos.filter((p) =>
-    (p.nombre ?? "").toLowerCase().includes(busqueda.toLowerCase())
+  const categorias = Array.from(
+    new Set(productos.map((p) => p.categoria).filter((c): c is string => !!c?.trim()))
+  ).sort((a, b) => a.localeCompare(b));
+
+  const filtrados = productos.filter(
+    (p) =>
+      (p.nombre ?? "").toLowerCase().includes(busqueda.toLowerCase()) &&
+      (filtroCategoria === "" || p.categoria === filtroCategoria)
   );
 
   return (
@@ -384,12 +391,29 @@ function ProductosInterno() {
         />
       </div>
 
-      <input
-        style={{ marginTop: 24 }}
-        placeholder={t("productos.buscar")}
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-      />
+      <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+        <input
+          style={{ flex: 1, minWidth: 200 }}
+          placeholder={t("productos.buscar")}
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+
+        {categorias.length > 0 && (
+          <select
+            style={{ minWidth: 180 }}
+            value={filtroCategoria}
+            onChange={(e) => setFiltroCategoria(e.target.value)}
+          >
+            <option value="">{t("productos.todas_categorias")}</option>
+            {categorias.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
 
       <div className="tabla" style={{ marginTop: 24 }}>
         <table>
