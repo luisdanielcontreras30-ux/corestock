@@ -39,6 +39,8 @@ export default function CotizacionesPage() {
   const [nota, setNota] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [convirtiendoId, setConvirtiendoId] = useState<number | null>(null);
+  const [busqueda, setBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState<EstadoCotizacion | "">("");
 
   async function obtenerDatos() {
     setLoading(true);
@@ -177,6 +179,16 @@ export default function CotizacionesPage() {
     }
   }
 
+  const cotizacionesFiltradas = cotizaciones.filter((c) => {
+    if (filtroEstado !== "" && c.estado !== filtroEstado) return false;
+
+    const termino = busqueda.toLowerCase().trim();
+    if (!termino) return true;
+
+    const nombreCliente = (c.cliente_nombre ?? t("ventas.cliente_general")).toLowerCase();
+    return nombreCliente.includes(termino) || c.producto.toLowerCase().includes(termino);
+  });
+
   if (cargandoAuth || !user || loading) {
     return (
       <main className="fade-up">
@@ -265,6 +277,26 @@ export default function CotizacionesPage() {
         </div>
       </div>
 
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <input
+          style={{ flex: 1, minWidth: 200 }}
+          placeholder={t("cotizaciones.buscar")}
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+
+        <select
+          style={{ minWidth: 180 }}
+          value={filtroEstado}
+          onChange={(e) => setFiltroEstado(e.target.value as EstadoCotizacion | "")}
+        >
+          <option value="">{t("cotizaciones.todos_estados")}</option>
+          <option value="pendiente">{t("cotizaciones.estado_pendiente")}</option>
+          <option value="aceptada">{t("cotizaciones.estado_aceptada")}</option>
+          <option value="rechazada">{t("cotizaciones.estado_rechazada")}</option>
+        </select>
+      </div>
+
       <div className="tabla">
         <table>
           <thead>
@@ -280,14 +312,14 @@ export default function CotizacionesPage() {
           </thead>
 
           <tbody>
-            {cotizaciones.length === 0 ? (
+            {cotizacionesFiltradas.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
-                  {t("cotizaciones.sin_cotizaciones")}
+                  {cotizaciones.length === 0 ? t("cotizaciones.sin_cotizaciones") : t("cotizaciones.sin_resultados_busqueda")}
                 </td>
               </tr>
             ) : (
-              cotizaciones.map((c) => (
+              cotizacionesFiltradas.map((c) => (
                 <tr key={c.id}>
                   <td>{new Date(c.fecha).toLocaleDateString()}</td>
                   <td>{c.cliente_nombre || t("ventas.cliente_general")}</td>
