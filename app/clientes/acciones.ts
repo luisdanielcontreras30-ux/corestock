@@ -16,27 +16,26 @@ export async function cargarClientes() {
 
   const userId = user.id;
 
-  const { data: clientes, error: errorClientes } =
-    await supabase
+  // Las 2 consultas son independientes — se piden en paralelo en vez de
+  // una tras otra para no sumar sus tiempos de ida y vuelta.
+  const [
+    { data: clientes, error: errorClientes },
+    { data: ventas, error: errorVentas },
+  ] = await Promise.all([
+    supabase
       .from("clientes")
       .select("*")
       .eq("user_id", userId)
-      .order("nombre");
-
-  if (errorClientes) {
-    throw errorClientes;
-  }
-
-  const { data: ventas, error: errorVentas } =
-    await supabase
+      .order("nombre"),
+    supabase
       .from("ventas")
       .select("cliente_id, total")
       .eq("user_id", userId)
-      .not("cliente_id", "is", null);
+      .not("cliente_id", "is", null),
+  ]);
 
-  if (errorVentas) {
-    throw errorVentas;
-  }
+  if (errorClientes) throw errorClientes;
+  if (errorVentas) throw errorVentas;
 
   const resumenPorCliente = new Map<
     number,

@@ -16,36 +16,34 @@ export async function cargarDatos() {
 
   const userId = user.id;
 
-  const { data: productos, error: errorProductos } = await supabase
-    .from("productos")
-    .select("id, nombre, costo, stock")
-    .eq("user_id", userId)
-    .eq("activo", true)
-    .order("nombre");
+  // Las 3 consultas son independientes — se piden en paralelo en vez de
+  // una tras otra para no sumar sus tiempos de ida y vuelta.
+  const [
+    { data: productos, error: errorProductos },
+    { data: proveedores, error: errorProveedores },
+    { data: compras, error: errorCompras },
+  ] = await Promise.all([
+    supabase
+      .from("productos")
+      .select("id, nombre, costo, stock")
+      .eq("user_id", userId)
+      .eq("activo", true)
+      .order("nombre"),
+    supabase
+      .from("proveedores")
+      .select("id, nombre")
+      .eq("user_id", userId)
+      .order("nombre"),
+    supabase
+      .from("compras")
+      .select("*")
+      .eq("user_id", userId)
+      .order("id", { ascending: false }),
+  ]);
 
-  if (errorProductos) {
-    throw errorProductos;
-  }
-
-  const { data: proveedores, error: errorProveedores } = await supabase
-    .from("proveedores")
-    .select("id, nombre")
-    .eq("user_id", userId)
-    .order("nombre");
-
-  if (errorProveedores) {
-    throw errorProveedores;
-  }
-
-  const { data: compras, error: errorCompras } = await supabase
-    .from("compras")
-    .select("*")
-    .eq("user_id", userId)
-    .order("id", { ascending: false });
-
-  if (errorCompras) {
-    throw errorCompras;
-  }
+  if (errorProductos) throw errorProductos;
+  if (errorProveedores) throw errorProveedores;
+  if (errorCompras) throw errorCompras;
 
   return {
     productos: (productos ?? []) as Producto[],

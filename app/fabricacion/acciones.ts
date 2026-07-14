@@ -17,37 +17,40 @@ export async function cargarDatos() {
 
   const userId = user.id;
 
-  const { data: productos, error: errorProductos } = await supabase
-    .from("productos")
-    .select("id, nombre, stock")
-    .eq("user_id", userId)
-    .eq("activo", true)
-    .order("nombre");
+  // Las 4 consultas son independientes — se piden en paralelo en vez de
+  // una tras otra para no sumar sus tiempos de ida y vuelta.
+  const [
+    { data: productos, error: errorProductos },
+    { data: materiasPrimas, error: errorMaterias },
+    { data: recetas, error: errorRecetas },
+    { data: producciones, error: errorProducciones },
+  ] = await Promise.all([
+    supabase
+      .from("productos")
+      .select("id, nombre, stock")
+      .eq("user_id", userId)
+      .eq("activo", true)
+      .order("nombre"),
+    supabase
+      .from("materias_primas")
+      .select("*")
+      .eq("user_id", userId)
+      .order("nombre"),
+    supabase
+      .from("recetas")
+      .select("*")
+      .eq("user_id", userId)
+      .order("id"),
+    supabase
+      .from("producciones")
+      .select("*")
+      .eq("user_id", userId)
+      .order("id", { ascending: false }),
+  ]);
 
   if (errorProductos) throw errorProductos;
-
-  const { data: materiasPrimas, error: errorMaterias } = await supabase
-    .from("materias_primas")
-    .select("*")
-    .eq("user_id", userId)
-    .order("nombre");
-
   if (errorMaterias) throw errorMaterias;
-
-  const { data: recetas, error: errorRecetas } = await supabase
-    .from("recetas")
-    .select("*")
-    .eq("user_id", userId)
-    .order("id");
-
   if (errorRecetas) throw errorRecetas;
-
-  const { data: producciones, error: errorProducciones } = await supabase
-    .from("producciones")
-    .select("*")
-    .eq("user_id", userId)
-    .order("id", { ascending: false });
-
   if (errorProducciones) throw errorProducciones;
 
   return {

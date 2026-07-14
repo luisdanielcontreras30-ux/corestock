@@ -15,26 +15,27 @@ export async function cargarDatos() {
 
   const userId = user.id;
 
-  const { data: productos, error: errorProductos } = await supabase
-    .from("productos")
-    .select("id, nombre")
-    .eq("user_id", userId)
-    .eq("activo", true)
-    .order("nombre");
+  // Las 2 consultas son independientes — se piden en paralelo en vez de
+  // una tras otra para no sumar sus tiempos de ida y vuelta.
+  const [
+    { data: productos, error: errorProductos },
+    { data: promociones, error: errorPromociones },
+  ] = await Promise.all([
+    supabase
+      .from("productos")
+      .select("id, nombre")
+      .eq("user_id", userId)
+      .eq("activo", true)
+      .order("nombre"),
+    supabase
+      .from("promociones")
+      .select("*")
+      .eq("user_id", userId)
+      .order("id", { ascending: false }),
+  ]);
 
-  if (errorProductos) {
-    throw errorProductos;
-  }
-
-  const { data: promociones, error: errorPromociones } = await supabase
-    .from("promociones")
-    .select("*")
-    .eq("user_id", userId)
-    .order("id", { ascending: false });
-
-  if (errorPromociones) {
-    throw errorPromociones;
-  }
+  if (errorProductos) throw errorProductos;
+  if (errorPromociones) throw errorPromociones;
 
   return {
     productos: (productos ?? []) as Producto[],

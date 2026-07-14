@@ -330,9 +330,6 @@ function ProductosInterno() {
             const ws = wb.Sheets[wb.SheetNames[0]];
             const data = XLSX.utils.sheet_to_json(ws);
 
-            let importados = 0;
-            let omitidos = 0;
-
             interface FilaExcelProducto {
               nombre?: unknown;
               categoria?: unknown;
@@ -341,6 +338,17 @@ function ProductosInterno() {
               stock?: unknown;
               stock_minimo?: unknown;
             }
+
+            let omitidos = 0;
+            const filasValidas: {
+              nombre: string;
+              categoria: string;
+              precio_venta: number;
+              costo: number;
+              stock: number;
+              stock_minimo: number;
+              user_id: string;
+            }[] = [];
 
             for (const item of data as FilaExcelProducto[]) {
               const nombreItem = typeof item.nombre === "string" ? item.nombre.trim() : "";
@@ -360,22 +368,29 @@ function ProductosInterno() {
                 continue;
               }
 
-              const { error } = await supabase.from("productos").insert([
-                {
-                  nombre: nombreItem,
-                  categoria: typeof item.categoria === "string" ? item.categoria : "",
-                  precio_venta: precioItem,
-                  costo: costoItem,
-                  stock: stockItem,
-                  stock_minimo: stockMinimoItem,
-                  user_id: user.id,
-                },
-              ]);
+              filasValidas.push({
+                nombre: nombreItem,
+                categoria: typeof item.categoria === "string" ? item.categoria : "",
+                precio_venta: precioItem,
+                costo: costoItem,
+                stock: stockItem,
+                stock_minimo: stockMinimoItem,
+                user_id: user.id,
+              });
+            }
+
+            // Una sola llamada con todas las filas en vez de una petición
+            // por fila — con un Excel de cientos de productos, esto pasa
+            // de tardar minutos a tardar segundos.
+            let importados = 0;
+            if (filasValidas.length > 0) {
+              const { error } = await supabase.from("productos").insert(filasValidas);
 
               if (error) {
-                omitidos++;
+                console.error(error);
+                omitidos += filasValidas.length;
               } else {
-                importados++;
+                importados = filasValidas.length;
               }
             }
 

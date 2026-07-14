@@ -17,31 +17,26 @@ export async function cargarDatos() {
 
   const userId = user.id;
 
-  const { data: productos, error: errorProductos } =
-    await supabase
+  // Las 4 consultas son independientes entre sí — se piden en paralelo
+  // en vez de una tras otra para no sumar sus tiempos de ida y vuelta.
+  const [
+    { data: productos, error: errorProductos },
+    { data: clientes, error: errorClientes },
+    { data: ventas, error: errorVentas },
+    { data: promociones, error: errorPromociones },
+  ] = await Promise.all([
+    supabase
       .from("productos")
       .select("*")
       .eq("user_id", userId)
       .eq("activo", true)
-      .order("nombre");
-
-  if (errorProductos) {
-    throw errorProductos;
-  }
-
-  const { data: clientes, error: errorClientes } =
-    await supabase
+      .order("nombre"),
+    supabase
       .from("clientes")
       .select("*")
       .eq("user_id", userId)
-      .order("nombre");
-
-  if (errorClientes) {
-    throw errorClientes;
-  }
-
-  const { data: ventas, error: errorVentas } =
-    await supabase
+      .order("nombre"),
+    supabase
       .from("ventas")
       .select(`
         *,
@@ -52,23 +47,20 @@ export async function cargarDatos() {
       .eq("user_id", userId)
       .order("id", {
         ascending: false,
-      });
+      }),
+    // Solo promociones activas — la vigencia por fecha se evalúa al
+    // momento de vender (lib/promociones.ts).
+    supabase
+      .from("promociones")
+      .select("id, nombre, producto_id, tipo, valor, fecha_inicio, fecha_fin")
+      .eq("user_id", userId)
+      .eq("activa", true),
+  ]);
 
-  if (errorVentas) {
-    throw errorVentas;
-  }
-
-  // Solo promociones activas — la vigencia por fecha se evalúa al
-  // momento de vender (lib/promociones.ts).
-  const { data: promociones, error: errorPromociones } = await supabase
-    .from("promociones")
-    .select("id, nombre, producto_id, tipo, valor, fecha_inicio, fecha_fin")
-    .eq("user_id", userId)
-    .eq("activa", true);
-
-  if (errorPromociones) {
-    throw errorPromociones;
-  }
+  if (errorProductos) throw errorProductos;
+  if (errorClientes) throw errorClientes;
+  if (errorVentas) throw errorVentas;
+  if (errorPromociones) throw errorPromociones;
 
   return {
     productos: productos ?? [],

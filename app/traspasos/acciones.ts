@@ -17,37 +17,40 @@ export async function cargarDatos() {
 
   const userId = user.id;
 
-  const { data: productos, error: errorProductos } = await supabase
-    .from("productos")
-    .select("id, nombre, stock")
-    .eq("user_id", userId)
-    .eq("activo", true)
-    .order("nombre");
+  // Las 4 consultas son independientes — se piden en paralelo en vez de
+  // una tras otra para no sumar sus tiempos de ida y vuelta.
+  const [
+    { data: productos, error: errorProductos },
+    { data: ubicaciones, error: errorUbicaciones },
+    { data: stockUbicaciones, error: errorStock },
+    { data: traspasos, error: errorTraspasos },
+  ] = await Promise.all([
+    supabase
+      .from("productos")
+      .select("id, nombre, stock")
+      .eq("user_id", userId)
+      .eq("activo", true)
+      .order("nombre"),
+    supabase
+      .from("ubicaciones")
+      .select("id, nombre")
+      .eq("user_id", userId)
+      .order("nombre"),
+    supabase
+      .from("stock_ubicaciones")
+      .select("id, producto_id, ubicacion_id, stock, productos(nombre)")
+      .eq("user_id", userId)
+      .gt("stock", 0),
+    supabase
+      .from("traspasos")
+      .select("*")
+      .eq("user_id", userId)
+      .order("fecha", { ascending: false }),
+  ]);
 
   if (errorProductos) throw errorProductos;
-
-  const { data: ubicaciones, error: errorUbicaciones } = await supabase
-    .from("ubicaciones")
-    .select("id, nombre")
-    .eq("user_id", userId)
-    .order("nombre");
-
   if (errorUbicaciones) throw errorUbicaciones;
-
-  const { data: stockUbicaciones, error: errorStock } = await supabase
-    .from("stock_ubicaciones")
-    .select("id, producto_id, ubicacion_id, stock, productos(nombre)")
-    .eq("user_id", userId)
-    .gt("stock", 0);
-
   if (errorStock) throw errorStock;
-
-  const { data: traspasos, error: errorTraspasos } = await supabase
-    .from("traspasos")
-    .select("*")
-    .eq("user_id", userId)
-    .order("fecha", { ascending: false });
-
   if (errorTraspasos) throw errorTraspasos;
 
   return {

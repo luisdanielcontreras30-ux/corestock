@@ -15,21 +15,26 @@ export async function cargarEstadoCatalogo() {
     };
   }
 
-  const { data: empresa, error: errorEmpresa } = await supabase
-    .from("empresa_config")
-    .select("catalogo_activo")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Las 2 consultas son independientes — se piden en paralelo en vez de
+  // una tras otra para no sumar sus tiempos de ida y vuelta.
+  const [
+    { data: empresa, error: errorEmpresa },
+    { data: productos, error: errorProductos },
+  ] = await Promise.all([
+    supabase
+      .from("empresa_config")
+      .select("catalogo_activo")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("productos")
+      .select("id, nombre, precio_venta, imagen")
+      .eq("user_id", user.id)
+      .eq("activo", true)
+      .order("nombre"),
+  ]);
 
   if (errorEmpresa) throw errorEmpresa;
-
-  const { data: productos, error: errorProductos } = await supabase
-    .from("productos")
-    .select("id, nombre, precio_venta, imagen")
-    .eq("user_id", user.id)
-    .eq("activo", true)
-    .order("nombre");
-
   if (errorProductos) throw errorProductos;
 
   return {
