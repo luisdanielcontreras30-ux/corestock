@@ -16,7 +16,7 @@ interface TemaContexto {
 }
 
 const Contexto = createContext<TemaContexto>({
-  tema: "dark",
+  tema: "light",
   cambiarTema: () => {},
 });
 
@@ -31,7 +31,7 @@ export default function ThemeProvider({
 }: {
   children: ReactNode;
 }) {
-  const [tema, setTema] = useState<Tema>("dark");
+  const [tema, setTema] = useState<Tema>("light");
 
   useEffect(() => {
     const guardado = window.localStorage.getItem(
@@ -42,7 +42,7 @@ export default function ThemeProvider({
       guardado &&
       ["dark", "green", "blue", "purple", "amber", "slate", "cyan", "wine", "light", "pink", "mint", "sunset"].includes(guardado)
         ? guardado
-        : "dark";
+        : "light";
 
     setTema(inicial);
     document.documentElement.setAttribute("data-theme", inicial);
