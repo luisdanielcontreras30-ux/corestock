@@ -60,10 +60,13 @@ export default function SuscripcionProvider({
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (!error && data?.plan === "plus") {
-      setPlan("plus");
+    if (error) {
+      // Error transitorio de red/servidor: no degradamos a un cliente
+      // Plus+ legítimo a "free" por una falla pasajera — dejamos el
+      // último plan conocido y lo reintentamos en la próxima llamada.
+      console.error(error);
     } else {
-      setPlan("free");
+      setPlan(data?.plan === "plus" ? "plus" : "free");
     }
 
     setCargando(false);

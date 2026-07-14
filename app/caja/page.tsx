@@ -9,6 +9,12 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { MovimientoCaja } from "./types";
 import { cargarMovimientos, registrarMovimiento } from "./acciones";
 
+// Evita que errores de redondeo de punto flotante (ej. 0.1 + 0.2) marquen
+// como "no cuadrado" un cierre de caja que en realidad sí cuadra.
+function esDiferenciaCero(diferencia: number) {
+  return Math.abs(diferencia) < 0.005;
+}
+
 function calcularEstado(movimientos: MovimientoCaja[]) {
   let abierta = false;
   let saldo = 0;
@@ -297,7 +303,7 @@ export default function CajaPage() {
               {montoContado && Number.isFinite(Number(montoContado)) && (
                 <p style={{ fontSize: 12.5, marginTop: 10, color: "var(--text-secondary)" }}>
                   {t("caja.diferencia")}:{" "}
-                  <strong style={{ color: Number(montoContado) - saldo === 0 ? "#10b981" : "#ef4444" }}>
+                  <strong style={{ color: esDiferenciaCero(Number(montoContado) - saldo) ? "#10b981" : "#ef4444" }}>
                     ${(Number(montoContado) - saldo).toFixed(2)}
                   </strong>
                 </p>
@@ -357,7 +363,7 @@ export default function CajaPage() {
                   <td>{m.motivo || "—"}</td>
                   <td>
                     {m.diferencia != null ? (
-                      <span style={{ color: m.diferencia === 0 ? "#10b981" : "#ef4444", fontWeight: 700 }}>
+                      <span style={{ color: esDiferenciaCero(m.diferencia) ? "#10b981" : "#ef4444", fontWeight: 700 }}>
                         ${Number(m.diferencia).toFixed(2)}
                       </span>
                     ) : (

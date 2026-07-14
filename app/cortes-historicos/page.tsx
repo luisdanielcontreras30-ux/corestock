@@ -10,6 +10,12 @@ import RequierePlus from "../../components/RequierePlus";
 import { MovimientoCaja } from "../caja/types";
 import { cargarCierres } from "../caja/acciones";
 
+// Evita que errores de redondeo de punto flotante (ej. 0.1 + 0.2) marquen
+// como "no cuadrado" un cierre de caja que en realidad sí cuadra.
+function esDiferenciaCero(diferencia: number) {
+  return Math.abs(diferencia) < 0.005;
+}
+
 export default function CortesHistoricosPage() {
   return (
     <RequierePlus>
@@ -51,7 +57,7 @@ function CortesHistoricosContenido() {
 
   const totalCortes = filtrados.length;
   const diferenciaAcumulada = filtrados.reduce((sum, c) => sum + (c.diferencia ?? 0), 0);
-  const cuadrados = filtrados.filter((c) => (c.diferencia ?? 0) === 0).length;
+  const cuadrados = filtrados.filter((c) => esDiferenciaCero(c.diferencia ?? 0)).length;
 
   if (cargandoAuth || !user || loading) {
     return (
@@ -99,7 +105,7 @@ function CortesHistoricosContenido() {
             style={{
               fontSize: 30,
               margin: "10px 0 0 0",
-              color: diferenciaAcumulada === 0 ? "var(--text-primary)" : "#ef4444",
+              color: esDiferenciaCero(diferenciaAcumulada) ? "var(--text-primary)" : "#ef4444",
             }}
           >
             ${diferenciaAcumulada.toFixed(2)}

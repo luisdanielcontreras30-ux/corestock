@@ -239,14 +239,19 @@ export async function realizarTraspaso(
 
       if (error) throw error;
 
-      const { error: errorUpdate } = await supabase
+      const { data: actualizadoDestino, error: errorUpdate } = await supabase
         .from("productos")
         .update({ stock: productoActual.stock + cantidad })
         .eq("id", producto.id)
         .eq("user_id", user.id)
-        .eq("stock", productoActual.stock);
+        .eq("stock", productoActual.stock)
+        .select("id");
 
       if (errorUpdate) throw errorUpdate;
+
+      if (!actualizadoDestino || actualizadoDestino.length === 0) {
+        throw new Error("El stock de este producto cambió mientras se procesaba. Intenta de nuevo.");
+      }
     } else {
       await ajustarStockUbicacion(user.id, producto.id, destinoId, cantidad);
     }
