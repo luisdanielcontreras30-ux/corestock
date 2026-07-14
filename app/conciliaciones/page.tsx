@@ -6,10 +6,19 @@ import { Landmark, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import { MovimientoConciliacion, TipoMovimientoConciliacion } from "./types";
 import { cargarMovimientos, crearMovimiento, alternarConciliado, eliminarMovimiento } from "./acciones";
 
 export default function ConciliacionesPage() {
+  return (
+    <RequierePlus>
+      <ConciliacionesContenido />
+    </RequierePlus>
+  );
+}
+
+function ConciliacionesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();

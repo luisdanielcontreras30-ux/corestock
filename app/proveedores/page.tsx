@@ -5,6 +5,7 @@ import { Phone, Mail, Plus, Truck } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import { Proveedor } from "./types";
 import {
   cargarProveedores,
@@ -14,6 +15,14 @@ import {
 } from "./acciones";
 
 export default function ProveedoresPage() {
+  return (
+    <RequierePlus>
+      <ProveedoresContenido />
+    </RequierePlus>
+  );
+}
+
+function ProveedoresContenido() {
   const { user } = useAuth();
   const { t } = useIdioma();
 

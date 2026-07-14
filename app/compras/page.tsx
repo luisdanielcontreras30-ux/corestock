@@ -6,10 +6,19 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import { Producto, Proveedor, Compra } from "./types";
 import { cargarDatos, registrarCompra, eliminarCompra } from "./acciones";
 
 export default function ComprasPage() {
+  return (
+    <RequierePlus>
+      <ComprasContenido />
+    </RequierePlus>
+  );
+}
+
+function ComprasContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();

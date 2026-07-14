@@ -6,11 +6,20 @@ import { UserCircle, Link2, Check, ExternalLink } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
 import { cargarClientes } from "../clientes/acciones";
 import { ClienteConResumen } from "../clientes/types";
 
 export default function PortalClientesPage() {
+  return (
+    <RequierePlus>
+      <PortalClientesContenido />
+    </RequierePlus>
+  );
+}
+
+function PortalClientesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();

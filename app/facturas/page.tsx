@@ -6,6 +6,7 @@ import { Receipt } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import { cargarDatos } from "../ventas/acciones";
 import { formatoFecha, formatoMoneda } from "../ventas/utils";
 import { Venta } from "../ventas/types";
@@ -16,6 +17,14 @@ function folioDe(id: number) {
 }
 
 export default function FacturasPage() {
+  return (
+    <RequierePlus>
+      <FacturasContenido />
+    </RequierePlus>
+  );
+}
+
+function FacturasContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();

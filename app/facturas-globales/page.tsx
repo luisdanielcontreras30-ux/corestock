@@ -6,6 +6,7 @@ import { Files, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import { FacturaGlobal } from "./types";
 import {
   cargarFacturasGlobales,
@@ -18,6 +19,14 @@ function folioDe(id: number) {
 }
 
 export default function FacturasGlobalesPage() {
+  return (
+    <RequierePlus>
+      <FacturasGlobalesContenido />
+    </RequierePlus>
+  );
+}
+
+function FacturasGlobalesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();

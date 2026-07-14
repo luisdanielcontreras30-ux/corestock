@@ -5,6 +5,7 @@ import AppShell from "../components/AppShell";
 import ThemeProvider from "../components/ThemeProvider";
 import LanguageProvider from "../components/LanguageProvider";
 import AuthProvider from "../components/AuthProvider";
+import SuscripcionProvider from "../components/SuscripcionProvider";
 
 export const metadata: Metadata = {
   title: "CoreStock",
@@ -20,11 +21,13 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <AuthProvider>
-          <ThemeProvider>
-            <LanguageProvider>
-              <AppShell>{children}</AppShell>
-            </LanguageProvider>
-          </ThemeProvider>
+          <SuscripcionProvider>
+            <ThemeProvider>
+              <LanguageProvider>
+                <AppShell>{children}</AppShell>
+              </LanguageProvider>
+            </ThemeProvider>
+          </SuscripcionProvider>
         </AuthProvider>
       </body>
     </html>

@@ -6,10 +6,19 @@ import { CalendarClock } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import { MovimientoCaja } from "../caja/types";
 import { cargarCierres } from "../caja/acciones";
 
 export default function CortesHistoricosPage() {
+  return (
+    <RequierePlus>
+      <CortesHistoricosContenido />
+    </RequierePlus>
+  );
+}
+
+function CortesHistoricosContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();

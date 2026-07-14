@@ -6,6 +6,7 @@ import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { Idioma } from "../../lib/i18n";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import {
   analizarQueComprar,
   analizarGanancias,
@@ -50,6 +51,14 @@ function renderizarTexto(texto: string) {
 }
 
 export default function AsistentePage() {
+  return (
+    <RequierePlus>
+      <AsistenteContenido />
+    </RequierePlus>
+  );
+}
+
+function AsistenteContenido() {
   const { user } = useAuth();
   const { t, idioma } = useIdioma();
 
@@ -84,6 +93,7 @@ export default function AsistentePage() {
   ) {
     if (!user || pensando) return;
 
+    // eslint-disable-next-line react-hooks/purity -- id de mensaje generado en un manejador de clic, no durante el render
     const idUsuario = Date.now();
     setMensajes((prev) => [
       ...prev,

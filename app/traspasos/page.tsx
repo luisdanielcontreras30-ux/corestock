@@ -6,12 +6,21 @@ import { ArrowRightLeft, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import { Producto, Ubicacion, StockUbicacion, Traspaso } from "./types";
 import { cargarDatos, crearUbicacion, eliminarUbicacion, realizarTraspaso } from "./acciones";
 
 const TIENDA = "__tienda__";
 
 export default function TraspasosPage() {
+  return (
+    <RequierePlus>
+      <TraspasosContenido />
+    </RequierePlus>
+  );
+}
+
+function TraspasosContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();

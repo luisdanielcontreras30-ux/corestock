@@ -6,6 +6,7 @@ import { Percent, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import { Producto, Promocion, TipoDescuento } from "./types";
 import {
   cargarDatos,
@@ -15,6 +16,14 @@ import {
 } from "./acciones";
 
 export default function PromocionesPage() {
+  return (
+    <RequierePlus>
+      <PromocionesContenido />
+    </RequierePlus>
+  );
+}
+
+function PromocionesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();

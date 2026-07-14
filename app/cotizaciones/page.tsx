@@ -6,6 +6,7 @@ import { FileText, Check, X, Trash2, ShoppingCart, Share2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
 import CotizacionCompartirModal from "./components/CotizacionCompartirModal";
 import { Producto, Cliente, Cotizacion, EstadoCotizacion } from "./types";
 import {
@@ -23,6 +24,14 @@ const COLOR_ESTADO: Record<EstadoCotizacion, string> = {
 };
 
 export default function CotizacionesPage() {
+  return (
+    <RequierePlus>
+      <CotizacionesContenido />
+    </RequierePlus>
+  );
+}
+
+function CotizacionesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();

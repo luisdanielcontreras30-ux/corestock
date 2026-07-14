@@ -46,6 +46,7 @@ export const TRADUCCIONES: Diccionario = {
   "sidebar.whatsapp": { es: "WhatsApp", en: "WhatsApp", pt: "WhatsApp", fr: "WhatsApp", de: "WhatsApp", zh: "WhatsApp" },
   "sidebar.sistema": { es: "Sistema", en: "System", pt: "Sistema", fr: "Système", de: "System", zh: "系统" },
   "sidebar.configuracion": { es: "Configuración", en: "Settings", pt: "Configurações", fr: "Paramètres", de: "Einstellungen", zh: "设置" },
+  "sidebar.suscripcion": { es: "Suscripción", en: "Subscription", pt: "Assinatura", fr: "Abonnement", de: "Abonnement", zh: "订阅" },
   "sidebar.empleados_ia": { es: "Empleados IA", en: "AI Employees", pt: "Funcionários IA", fr: "Employés IA", de: "KI-Mitarbeiter", zh: "AI员工" },
   "sidebar.tutoriales": { es: "Videos Tutoriales", en: "Tutorial Videos", pt: "Vídeos Tutoriais", fr: "Vidéos tutorielles", de: "Tutorial-Videos", zh: "教程视频" },
 
@@ -865,6 +866,24 @@ export const TRADUCCIONES: Diccionario = {
   "bienvenida.despues_7": { es: "Roles y permisos por persona", en: "Roles and permissions per person", pt: "Funções e permissões por pessoa", fr: "Rôles et permissions par personne", de: "Rollen und Rechte pro Person", zh: "按人员设置角色和权限" },
   "bienvenida.cta_cambiarme": { es: "Cambiarme a CoreStock", en: "Switch to CoreStock", pt: "Migrar para o CoreStock", fr: "Passer à CoreStock", de: "Zu CoreStock wechseln", zh: "切换到 CoreStock" },
   "bienvenida.footer": { es: "CoreStock — Sistema Inteligente de Inventario", en: "CoreStock — Smart Inventory System", pt: "CoreStock — Sistema Inteligente de Estoque", fr: "CoreStock — Système intelligent d'inventaire", de: "CoreStock — Intelligentes Bestandssystem", zh: "CoreStock — 智能库存系统" },
+
+  // CoreStock Plus+ (suscripción)
+  "plus.titulo": { es: "Esto es exclusivo de CoreStock Plus+", en: "This is exclusive to CoreStock Plus+", pt: "Isso é exclusivo do CoreStock Plus+", fr: "Ceci est exclusif à CoreStock Plus+", de: "Dies ist exklusiv für CoreStock Plus+", zh: "此功能仅限 CoreStock Plus+ 使用" },
+  "plus.mensaje": { es: "Actualiza tu plan para desbloquear este módulo y todo lo demás que incluye Plus+.", en: "Upgrade your plan to unlock this module and everything else included in Plus+.", pt: "Atualize seu plano para desbloquear este módulo e tudo mais incluído no Plus+.", fr: "Passez à un plan supérieur pour débloquer ce module et tout le reste inclus dans Plus+.", de: "Upgrade deinen Plan, um dieses Modul und alles andere in Plus+ freizuschalten.", zh: "升级您的套餐即可解锁此模块以及 Plus+ 包含的所有其他功能。" },
+  "plus.boton_ver_planes": { es: "Ver planes", en: "View plans", pt: "Ver planos", fr: "Voir les plans", de: "Pläne ansehen", zh: "查看套餐" },
+  "plus.titulo_pagina": { es: "CoreStock Plus+", en: "CoreStock Plus+", pt: "CoreStock Plus+", fr: "CoreStock Plus+", de: "CoreStock Plus+", zh: "CoreStock Plus+" },
+  "plus.subtitulo_pagina": { es: "Elige tu plan y administra tu suscripción y método de pago.", en: "Choose your plan and manage your subscription and payment method.", pt: "Escolha seu plano e gerencie sua assinatura e forma de pagamento.", fr: "Choisissez votre plan et gérez votre abonnement et votre moyen de paiement.", de: "Wähle deinen Plan und verwalte dein Abonnement und deine Zahlungsmethode.", zh: "选择您的套餐，管理订阅和付款方式。" },
+  "plus.msg_cancelado": { es: "No se completó el pago. Puedes intentarlo de nuevo cuando quieras.", en: "The payment wasn't completed. You can try again whenever you like.", pt: "O pagamento não foi concluído. Você pode tentar novamente quando quiser.", fr: "Le paiement n'a pas été finalisé. Vous pouvez réessayer quand vous voulez.", de: "Die Zahlung wurde nicht abgeschlossen. Du kannst es jederzeit erneut versuchen.", zh: "付款未完成。您可以随时重试。" },
+  "plus.msg_error_checkout": { es: "No se pudo iniciar el proceso de pago. Intenta de nuevo.", en: "Couldn't start the payment process. Please try again.", pt: "Não foi possível iniciar o processo de pagamento. Tente novamente.", fr: "Impossible de démarrer le processus de paiement. Réessayez.", de: "Der Zahlungsvorgang konnte nicht gestartet werden. Bitte versuche es erneut.", zh: "无法启动付款流程，请重试。" },
+  "plus.msg_error_portal": { es: "No se pudo abrir el portal de facturación. Intenta de nuevo.", en: "Couldn't open the billing portal. Please try again.", pt: "Não foi possível abrir o portal de faturamento. Tente novamente.", fr: "Impossible d'ouvrir le portail de facturation. Réessayez.", de: "Das Abrechnungsportal konnte nicht geöffnet werden. Bitte versuche es erneut.", zh: "无法打开账单管理页面，请重试。" },
+  "plus.plan_free_nombre": { es: "Gratis", en: "Free", pt: "Grátis", fr: "Gratuit", de: "Kostenlos", zh: "免费版" },
+  "plus.plan_free_desc": { es: "Lo esencial para vender y llevar tu inventario.", en: "The essentials to sell and track your inventory.", pt: "O essencial para vender e controlar seu estoque.", fr: "L'essentiel pour vendre et suivre votre inventaire.", de: "Das Wesentliche, um zu verkaufen und deinen Bestand zu verwalten.", zh: "销售和库存管理的基础功能。" },
+  "plus.plan_actual": { es: "Tu plan actual", en: "Your current plan", pt: "Seu plano atual", fr: "Votre plan actuel", de: "Dein aktueller Plan", zh: "您当前的套餐" },
+  "plus.plan_plus_nombre": { es: "CoreStock Plus+", en: "CoreStock Plus+", pt: "CoreStock Plus+", fr: "CoreStock Plus+", de: "CoreStock Plus+", zh: "CoreStock Plus+" },
+  "plus.plan_plus_desc": { es: "Todo lo del plan gratis, más las herramientas para hacer crecer tu negocio.", en: "Everything in the free plan, plus the tools to grow your business.", pt: "Tudo do plano grátis, mais as ferramentas para fazer seu negócio crescer.", fr: "Tout du plan gratuit, plus les outils pour développer votre entreprise.", de: "Alles aus dem kostenlosen Plan, plus die Tools, um dein Geschäft auszubauen.", zh: "包含免费版全部功能，外加助力业务增长的工具。" },
+  "plus.procesando": { es: "Procesando…", en: "Processing…", pt: "Processando…", fr: "Traitement…", de: "Wird verarbeitet…", zh: "处理中…" },
+  "plus.boton_gestionar": { es: "Gestionar mi suscripción", en: "Manage my subscription", pt: "Gerenciar minha assinatura", fr: "Gérer mon abonnement", de: "Mein Abonnement verwalten", zh: "管理我的订阅" },
+  "plus.boton_actualizar": { es: "Actualizar a Plus+", en: "Upgrade to Plus+", pt: "Atualizar para Plus+", fr: "Passer à Plus+", de: "Auf Plus+ upgraden", zh: "升级到 Plus+" },
 };
 
 export const LOCALES: Record<Idioma, string> = {
