@@ -7,7 +7,7 @@ import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useSuscripcion } from "../../components/SuscripcionProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
-import { iniciarCheckoutPlus, abrirPortalFacturacion } from "./acciones";
+import { iniciarCheckoutPlus, abrirPortalFacturacion } from "../../lib/suscripcionAcciones";
 
 const CARACTERISTICAS_FREE = [
   "sidebar.ventas",

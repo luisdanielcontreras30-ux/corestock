@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useIdioma } from "../../components/LanguageProvider";
 import { SECCIONES_NAV, RUTAS_EN_TABBAR_MOVIL } from "../../lib/navegacion";
+import { esRutaPlus } from "../../lib/suscripcion";
 
 export default function MasPage() {
   const { t } = useIdioma();
@@ -40,6 +41,9 @@ export default function MasPage() {
                     {t(item.claveNombre)}
                     {item.proximamente && (
                       <span className="mas-card-badge">{t("proximamente.badge")}</span>
+                    )}
+                    {!item.proximamente && esRutaPlus(item.href) && (
+                      <span className="mas-card-badge-plus">Plus+</span>
                     )}
                   </Link>
                 );

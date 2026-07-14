@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useIdioma } from "./LanguageProvider";
 import { SECCIONES_NAV } from "../lib/navegacion";
+import { esRutaPlus } from "../lib/suscripcion";
 
 export default function Sidebar({
   isOpen,
@@ -54,6 +55,9 @@ export default function Sidebar({
                     {t(item.claveNombre)}
                     {item.proximamente && (
                       <span className="sidebar-link-badge">{t("proximamente.badge")}</span>
+                    )}
+                    {!item.proximamente && esRutaPlus(item.href) && (
+                      <span className="sidebar-link-badge-plus">Plus+</span>
                     )}
                   </Link>
                 );

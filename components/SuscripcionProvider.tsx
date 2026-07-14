@@ -35,11 +35,17 @@ export default function SuscripcionProvider({
 }: {
   children: ReactNode;
 }) {
-  const { user } = useAuth();
+  const { user, cargando: cargandoAuth } = useAuth();
   const [plan, setPlan] = useState<Plan>("free");
   const [cargando, setCargando] = useState(true);
 
   const refrescar = useCallback(async () => {
+    // Todavía no sabemos si hay sesión o no — no resolvemos nada
+    // (ni "free" ni "plus") hasta que AuthProvider termine de verificar,
+    // para no marcar "cargando: false" con un plan por defecto antes de
+    // tiempo.
+    if (cargandoAuth) return;
+
     if (!user) {
       setPlan("free");
       setCargando(false);
@@ -61,7 +67,7 @@ export default function SuscripcionProvider({
     }
 
     setCargando(false);
-  }, [user]);
+  }, [user, cargandoAuth]);
 
   useEffect(() => {
     refrescar();

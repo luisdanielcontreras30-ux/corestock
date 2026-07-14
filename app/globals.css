@@ -922,6 +922,18 @@ textarea:focus {
   flex-shrink: 0;
 }
 
+.sidebar-link-badge-plus {
+  margin-left: auto;
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
 .sidebar-footer {
   border-top: 1px solid var(--border);
   padding-top: 16px;
@@ -2670,6 +2682,16 @@ textarea:focus {
   border-radius: 999px;
 }
 
+.mas-card-badge-plus {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
 .mas-card-icono {
   width: 40px;
   height: 40px;
@@ -2788,4 +2810,10 @@ textarea:focus {
 .plus-requerido-boton {
   margin-top: 10px;
   text-decoration: none;
+}
+
+.plus-requerido-link {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  text-decoration: underline;
 }
