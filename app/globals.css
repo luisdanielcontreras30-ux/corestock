@@ -2559,6 +2559,9 @@ textarea:focus {
     justify-content: center;
     width: 50px;
     height: 50px;
+    padding: 0;
+    -webkit-appearance: none;
+    appearance: none;
     border-radius: 50%;
     border: none;
     background: var(--primary);
@@ -2575,44 +2578,70 @@ textarea:focus {
 
   .mobile-fab-sheet {
     position: fixed;
-    left: 50%;
-    bottom: 100px;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 10px;
+    border-top: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 18px;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0));
     z-index: 320;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-width: 220px;
+    gap: 12px;
     box-shadow: var(--shadow-lg);
+  }
+
+  .mobile-fab-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .mobile-fab-sheet-header p {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0;
+  }
+
+  .mobile-fab-sheet-header button {
+    background: var(--glass-bg);
+    border: none;
+    color: var(--text-secondary);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
   }
 
   .mobile-fab-opcion {
     display: flex;
     align-items: center;
-    gap: 12px;
-    background: transparent;
-    border: none;
-    padding: 10px;
-    border-radius: 10px;
+    gap: 16px;
+    background: var(--glass-bg);
+    border: 1px solid var(--border);
+    padding: 18px;
+    border-radius: 16px;
     color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
     text-align: left;
   }
 
   .mobile-fab-opcion:hover {
-    background: var(--glass-bg);
+    background: var(--card-bg-hover, var(--glass-bg));
   }
 
   .mobile-fab-opcion-icono {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
     display: grid;
     place-items: center;
     flex-shrink: 0;

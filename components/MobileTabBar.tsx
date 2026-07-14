@@ -10,6 +10,7 @@ import {
   Plus,
   Menu as MenuIcon,
   Camera,
+  X,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
 import NuevaVentaModal from "../app/ventas/components/NuevaVentaModal";
@@ -50,16 +51,23 @@ export default function MobileTabBar() {
 
       {fabAbierto && (
         <div className="mobile-fab-sheet fade-up">
+          <div className="mobile-fab-sheet-header">
+            <p>{t("mobile.acciones_rapidas")}</p>
+            <button onClick={() => setFabAbierto(false)} aria-label={t("mobile.cerrar")}>
+              <X size={16} />
+            </button>
+          </div>
+
           <button className="mobile-fab-opcion" onClick={abrirNuevaVenta}>
             <span className="mobile-fab-opcion-icono" style={{ background: "#10b981" }}>
-              <DollarSign size={18} color="#fff" />
+              <DollarSign size={26} color="#fff" />
             </span>
             {t("mobile.nueva_venta")}
           </button>
 
           <button className="mobile-fab-opcion" onClick={irANuevoProducto}>
             <span className="mobile-fab-opcion-icono" style={{ background: "var(--primary)" }}>
-              <Camera size={18} color="#fff" />
+              <Camera size={26} color="#fff" />
             </span>
             {t("mobile.nuevo_producto")}
           </button>
