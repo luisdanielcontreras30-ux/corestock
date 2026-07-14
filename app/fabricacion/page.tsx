@@ -115,6 +115,11 @@ export default function FabricacionPage() {
     (r) => r.producto_id === Number(productoRecetaId)
   );
 
+  const costoPorUnidadReceta = recetaSeleccionada.reduce((suma, r) => {
+    const materiaPrima = materiasPrimas.find((m) => m.id === r.materia_prima_id);
+    return suma + r.cantidad_por_unidad * (materiaPrima?.costo_unitario ?? 0);
+  }, 0);
+
   async function guardarIngrediente() {
     if (guardandoIngrediente) return;
 
@@ -165,6 +170,11 @@ export default function FabricacionPage() {
   );
 
   const cantidadProducirNum = Number(cantidadAProducir) || 0;
+
+  const costoTotalProduccion = ingredientesAProducir.reduce((suma, ing) => {
+    const materiaPrima = materiasPrimas.find((m) => m.id === ing.materia_prima_id);
+    return suma + ing.cantidad_por_unidad * cantidadProducirNum * (materiaPrima?.costo_unitario ?? 0);
+  }, 0);
 
   async function alProducir() {
     if (produciendo) return;
@@ -342,7 +352,24 @@ export default function FabricacionPage() {
                   {t("fabricacion.sin_receta")}
                 </p>
               ) : (
-                recetaSeleccionada.map((r) => (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "10px 14px",
+                      background: "rgba(234, 88, 12, 0.08)",
+                      border: "1px solid rgba(234, 88, 12, 0.25)",
+                      borderRadius: 10,
+                      fontSize: 13,
+                      fontWeight: 600,
+                    }}
+                  >
+                    <span>{t("fabricacion.costo_por_unidad")}</span>
+                    <span>${costoPorUnidadReceta.toFixed(2)}</span>
+                  </div>
+                  {recetaSeleccionada.map((r) => (
                   <div
                     key={r.id}
                     style={{
@@ -362,7 +389,8 @@ export default function FabricacionPage() {
                       <Trash2 size={13} />
                     </button>
                   </div>
-                ))
+                ))}
+                </>
               )}
             </div>
           </>
@@ -423,6 +451,24 @@ export default function FabricacionPage() {
                 </div>
               );
             })}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "10px 14px",
+                marginTop: 4,
+                background: "rgba(234, 88, 12, 0.08)",
+                border: "1px solid rgba(234, 88, 12, 0.25)",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              <span>{t("fabricacion.costo_total_estimado")}</span>
+              <span>${costoTotalProduccion.toFixed(2)}</span>
+            </div>
           </div>
         )}
 
