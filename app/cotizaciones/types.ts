@@ -23,4 +23,5 @@ export interface Cotizacion {
   total: number;
   estado: EstadoCotizacion;
   nota: string | null;
+  venta_id: number | null;
 }

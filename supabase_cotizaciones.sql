@@ -19,6 +19,8 @@ alter table cotizaciones add column if not exists estado text not null default '
 alter table cotizaciones add column if not exists nota text;
 alter table cotizaciones add column if not exists fecha timestamptz not null default now();
 alter table cotizaciones add column if not exists created_at timestamptz not null default now();
+-- Se llena cuando la cotización aceptada se convierte en una venta real.
+alter table cotizaciones add column if not exists venta_id bigint references ventas(id) on delete set null;
 
 alter table cotizaciones enable row level security;
 

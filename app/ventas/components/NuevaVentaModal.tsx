@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import VentaForm from "./VentaForm";
 import { cargarDatos, registrarVenta } from "../acciones";
-import { Producto, Cliente } from "../types";
+import { Producto, Cliente, Promocion } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../../lib/promociones";
 
 interface Props {
   onClose: () => void;
@@ -16,6 +17,7 @@ export default function NuevaVentaModal({ onClose }: Props) {
 
   const [productos, setProductos] = useState<Producto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [promociones, setPromociones] = useState<Promocion[]>([]);
 
   const [productoId, setProductoId] = useState("");
   const [clienteId, setClienteId] = useState("");
@@ -27,6 +29,7 @@ export default function NuevaVentaModal({ onClose }: Props) {
     cargarDatos().then((datos) => {
       setProductos(datos.productos);
       setClientes(datos.clientes);
+      setPromociones(datos.promociones);
       setLoading(false);
     });
   }, []);
@@ -38,7 +41,15 @@ export default function NuevaVentaModal({ onClose }: Props) {
   const cliente =
     clientes.find((c) => c.id === Number(clienteId)) ?? null;
 
-  const total = producto ? producto.precio_venta * cantidad : 0;
+  const promoAplicable = producto
+    ? obtenerPromocionAplicable(producto.id, promociones)
+    : null;
+
+  const precioUnitario = producto
+    ? calcularPrecioConDescuento(producto.precio_venta, promoAplicable)
+    : 0;
+
+  const total = precioUnitario * cantidad;
 
   function alCambiarClienteNombre(nombre: string) {
     setClienteNombre(nombre);
@@ -70,7 +81,7 @@ export default function NuevaVentaModal({ onClose }: Props) {
 
     try {
       setGuardando(true);
-      await registrarVenta(producto, cliente, cantidad, clienteNombre);
+      await registrarVenta(producto, cliente, cantidad, clienteNombre, precioUnitario);
       onClose();
     } catch (error) {
       console.error(error);
@@ -111,6 +122,8 @@ export default function NuevaVentaModal({ onClose }: Props) {
               cantidad={cantidad}
               setCantidad={setCantidad}
               total={total}
+              precioUnitario={precioUnitario}
+              promocion={promoAplicable}
               guardando={guardando}
               onGuardar={guardarVenta}
             />

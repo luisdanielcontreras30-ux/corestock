@@ -16,8 +16,10 @@ import {
   Producto,
   Cliente,
   Venta,
+  Promocion,
 } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
+import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../lib/promociones";
 
 export default function VentasPage() {
   const { t } = useIdioma();
@@ -26,6 +28,7 @@ export default function VentasPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [ventas, setVentas] = useState<Venta[]>([]);
+  const [promociones, setPromociones] = useState<Promocion[]>([]);
 
   const [productoId, setProductoId] = useState("");
   const [clienteId, setClienteId] = useState("");
@@ -42,6 +45,7 @@ export default function VentasPage() {
       setProductos(datos.productos);
       setClientes(datos.clientes);
       setVentas(datos.ventas);
+      setPromociones(datos.promociones);
     } catch (error) {
       console.error(error);
       alert(t("comun.msg_error_cargar_datos"));
@@ -61,7 +65,15 @@ export default function VentasPage() {
   const cliente =
     clientes.find((c) => c.id === Number(clienteId)) ?? null;
 
-  const total = producto ? producto.precio_venta * cantidad : 0;
+  const promoAplicable = producto
+    ? obtenerPromocionAplicable(producto.id, promociones)
+    : null;
+
+  const precioUnitario = producto
+    ? calcularPrecioConDescuento(producto.precio_venta, promoAplicable)
+    : 0;
+
+  const total = precioUnitario * cantidad;
 
   function alCambiarClienteNombre(nombre: string) {
     setClienteNombre(nombre);
@@ -94,7 +106,7 @@ export default function VentasPage() {
     try {
       setGuardando(true);
 
-      await registrarVenta(producto, cliente, cantidad, clienteNombre);
+      await registrarVenta(producto, cliente, cantidad, clienteNombre, precioUnitario);
 
       setProductoId("");
       setClienteId("");
@@ -155,6 +167,8 @@ export default function VentasPage() {
           cantidad={cantidad}
           setCantidad={setCantidad}
           total={total}
+          precioUnitario={precioUnitario}
+          promocion={promoAplicable}
           guardando={guardando}
           onGuardar={guardarVenta}
         />

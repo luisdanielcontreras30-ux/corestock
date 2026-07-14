@@ -15,8 +15,12 @@ import {
   Store,
   Rocket,
 } from "lucide-react";
+import { useIdioma } from "../../components/LanguageProvider";
+import { IDIOMAS_DISPONIBLES, Idioma } from "../../lib/i18n";
 
 export default function BienvenidaPage() {
+  const { t, idioma, cambiarIdioma } = useIdioma();
+
   return (
     <main className="landing">
       <div className="landing-blob landing-blob-1" />
@@ -27,35 +31,44 @@ export default function BienvenidaPage() {
         <div className="landing-logo">
           <span className="landing-logo-icon">⬢</span> CoreStock
         </div>
+
+        <select
+          value={idioma}
+          onChange={(e) => cambiarIdioma(e.target.value as Idioma)}
+          aria-label={t("idioma.titulo")}
+          style={{ maxWidth: 150 }}
+        >
+          {IDIOMAS_DISPONIBLES.map((op) => (
+            <option key={op.valor} value={op.valor}>
+              {op.bandera} {op.nombre}
+            </option>
+          ))}
+        </select>
       </nav>
 
       {/* HERO */}
       <section className="landing-hero">
         <div className="landing-hero-text fade-up">
           <span className="landing-badge">
-            <Sparkles size={13} /> Inventario inteligente
+            <Sparkles size={13} /> {t("bienvenida.badge_hero")}
           </span>
 
           <h1>
-            El control de tu inventario,
+            {t("bienvenida.hero_titulo_1")}
             <br />
             <span className="landing-gradient-text">
-              hecho para crecer contigo
+              {t("bienvenida.hero_titulo_2")}
             </span>
           </h1>
 
-          <p>
-            CoreStock centraliza tus productos, tus ventas y tu
-            facturación en un solo lugar — con estadísticas en tiempo
-            real que te ayudan a decidir mejor, más rápido.
-          </p>
+          <p>{t("bienvenida.hero_texto")}</p>
 
           <div className="landing-cta-group">
             <Link href="/login?modo=registro" className="btn-login landing-cta-primary">
-              Registrarte
+              {t("bienvenida.cta_registrarte")}
             </Link>
             <Link href="/login?modo=login" className="landing-cta-secondary">
-              Ya tengo cuenta
+              {t("bienvenida.cta_ya_tengo_cuenta")}
             </Link>
           </div>
         </div>
@@ -126,73 +139,48 @@ export default function BienvenidaPage() {
           <div className="landing-feature-icon" style={{ background: "#5945e4" }}>
             <Package size={20} color="#fff" />
           </div>
-          <h3>Inventario con imágenes</h3>
-          <p>
-            Sube una foto de cada producto y arma un catálogo que se
-            reconoce de un vistazo. Registra precio, stock y categoría,
-            y edítalos cuando quieras — todo desde una sola pantalla.
-          </p>
+          <h3>{t("bienvenida.feat_inventario_titulo")}</h3>
+          <p>{t("bienvenida.feat_inventario_desc")}</p>
         </div>
 
         <div className="landing-feature-card">
           <div className="landing-feature-icon" style={{ background: "#3b82f6" }}>
             <BarChart3 size={20} color="#fff" />
           </div>
-          <h3>Gráficas en tiempo real</h3>
-          <p>
-            Ve tus ventas semanales, mensuales y anuales en gráficas que
-            se actualizan solas. Identifica tu mejor día, tu producto
-            estrella, y hacia dónde va creciendo tu negocio.
-          </p>
+          <h3>{t("bienvenida.feat_graficas_titulo")}</h3>
+          <p>{t("bienvenida.feat_graficas_desc")}</p>
         </div>
 
         <div className="landing-feature-card">
           <div className="landing-feature-icon" style={{ background: "#10b981" }}>
             <Receipt size={20} color="#fff" />
           </div>
-          <h3>Facturación integrada</h3>
-          <p>
-            Cada venta puede convertirse en una factura profesional lista
-            para imprimir o guardar como PDF, con folio y fecha
-            automáticos — sin plantillas sueltas de Word.
-          </p>
+          <h3>{t("bienvenida.feat_facturacion_titulo")}</h3>
+          <p>{t("bienvenida.feat_facturacion_desc")}</p>
         </div>
 
         <div className="landing-feature-card">
           <div className="landing-feature-icon" style={{ background: "#ec4899" }}>
             <Palette size={20} color="#fff" />
           </div>
-          <h3>11 temas, 6 idiomas</h3>
-          <p>
-            Oscuro, verde, azul, morado, ámbar, grafito, cian, vino,
-            claro, rosa o menta — en Español, English, Português,
-            Français, Deutsch o 中文. Configúralo una vez y CoreStock se
-            adapta a ti.
-          </p>
+          <h3>{t("bienvenida.feat_temas_titulo")}</h3>
+          <p>{t("bienvenida.feat_temas_desc")}</p>
         </div>
 
         <div className="landing-feature-card">
           <div className="landing-feature-icon" style={{ background: "#f59e0b" }}>
             <ShieldCheck size={20} color="#fff" />
           </div>
-          <h3>Tus datos, protegidos</h3>
-          <p>
-            Cada cuenta ve únicamente su propia información. Además,
-            puedes organizar tu equipo por roles — Administrador,
-            Gerente, Cajero o Almacén — con permisos a la medida.
-          </p>
+          <h3>{t("bienvenida.feat_datos_titulo")}</h3>
+          <p>{t("bienvenida.feat_datos_desc")}</p>
         </div>
 
         <div className="landing-feature-card">
           <div className="landing-feature-icon" style={{ background: "#6366f1" }}>
             <Store size={20} color="#fff" />
           </div>
-          <h3>Tu negocio, configurado</h3>
-          <p>
-            Nombre, logotipo, dirección, RFC, moneda y zona horaria —
-            configura los datos de tu empresa una vez y aparecen listos
-            en cada factura y reporte que generes.
-          </p>
+          <h3>{t("bienvenida.feat_negocio_titulo")}</h3>
+          <p>{t("bienvenida.feat_negocio_desc")}</p>
         </div>
       </section>
 
@@ -200,28 +188,28 @@ export default function BienvenidaPage() {
       <section className="landing-pasos fade-up">
         <div className="landing-section-header">
           <span className="landing-badge">
-            <Rocket size={13} /> Cómo empezar
+            <Rocket size={13} /> {t("bienvenida.badge_empezar")}
           </span>
-          <h2>De cero a vendiendo, en tres pasos</h2>
+          <h2>{t("bienvenida.empezar_titulo")}</h2>
         </div>
 
         <div className="landing-pasos-grid">
           <div className="landing-paso">
             <span className="landing-paso-numero">1</span>
-            <h3>Crea tu cuenta</h3>
-            <p>Regístrate con tu correo — sin tarjeta, sin instalaciones, listo en menos de un minuto.</p>
+            <h3>{t("bienvenida.paso1_titulo")}</h3>
+            <p>{t("bienvenida.paso1_desc")}</p>
           </div>
 
           <div className="landing-paso">
             <span className="landing-paso-numero">2</span>
-            <h3>Carga tu inventario</h3>
-            <p>Agrega tus productos con foto, precio y stock, o impórtalos desde tu Excel actual.</p>
+            <h3>{t("bienvenida.paso2_titulo")}</h3>
+            <p>{t("bienvenida.paso2_desc")}</p>
           </div>
 
           <div className="landing-paso">
             <span className="landing-paso-numero">3</span>
-            <h3>Vende y mide resultados</h3>
-            <p>Registra ventas, factura al cliente, y ve tus gráficas actualizarse solas.</p>
+            <h3>{t("bienvenida.paso3_titulo")}</h3>
+            <p>{t("bienvenida.paso3_desc")}</p>
           </div>
         </div>
       </section>
@@ -230,24 +218,15 @@ export default function BienvenidaPage() {
       <section className="landing-vision fade-up">
         <div className="landing-vision-text">
           <span className="landing-badge">
-            <Target size={13} /> Nuestra visión
+            <Target size={13} /> {t("bienvenida.badge_vision")}
           </span>
 
           <h2>
-            Que ningún negocio pierda una venta
-            <br /> por no saber qué tiene en su almacén.
+            {t("bienvenida.vision_titulo_1")}
+            <br /> {t("bienvenida.vision_titulo_2")}
           </h2>
 
-          <p>
-            Creamos CoreStock porque vimos a demasiados negocios llevar su
-            inventario en cuadernos, hojas de cálculo sueltas o memoria —
-            y perder dinero por ello: ventas de productos que ya no había,
-            precios desactualizados, y horas perdidas buscando qué se
-            vendió y qué no. Nuestra misión es simple: darle a cualquier
-            negocio, sin importar su tamaño, las mismas herramientas de
-            control y datos que usan las grandes cadenas — pero simples
-            de usar desde el primer día.
-          </p>
+          <p>{t("bienvenida.vision_texto")}</p>
         </div>
       </section>
 
@@ -256,14 +235,10 @@ export default function BienvenidaPage() {
       <section className="landing-preview fade-up">
         <div className="landing-section-header">
           <span className="landing-badge">
-            <BarChart3 size={13} /> Así se ve por dentro
+            <BarChart3 size={13} /> {t("bienvenida.badge_preview")}
           </span>
-          <h2>Tus números, de un vistazo</h2>
-          <p>
-            Nada de hojas de cálculo crípticas — gráficas claras, alertas
-            visibles, y un Dashboard que se adapta a tu gusto (11 temas,
-            6 idiomas).
-          </p>
+          <h2>{t("bienvenida.preview_titulo")}</h2>
+          <p>{t("bienvenida.preview_texto")}</p>
         </div>
 
         <div className="landing-preview-frame">
@@ -326,53 +301,49 @@ export default function BienvenidaPage() {
       <section className="landing-comparativa fade-up">
         <div className="landing-section-header">
           <span className="landing-badge">
-            <ArrowRightLeft size={13} /> La migración
+            <ArrowRightLeft size={13} /> {t("bienvenida.badge_migracion")}
           </span>
-          <h2>¿Por qué dejar tu sistema de ventas actual?</h2>
-          <p>
-            Si hoy llevas tu negocio en cuadernos, WhatsApp, hojas de
-            Excel sueltas o un sistema viejo que ya no te dice nada útil,
-            esto es lo que cambia con CoreStock:
-          </p>
+          <h2>{t("bienvenida.migracion_titulo")}</h2>
+          <p>{t("bienvenida.migracion_texto")}</p>
         </div>
 
         <div className="landing-tabla-comparativa">
           <div className="landing-comp-col landing-comp-antes">
-            <h3>Tu sistema actual</h3>
+            <h3>{t("bienvenida.antes_titulo")}</h3>
             <ul>
-              <li><X size={15} /> No sabes tu stock real hasta que se acaba</li>
-              <li><X size={15} /> Reportes de ventas armados a mano, tarde</li>
-              <li><X size={15} /> Facturas hechas en Word o a mano</li>
-              <li><X size={15} /> La información vive en un solo celular o PC</li>
-              <li><X size={15} /> Ver &quot;cómo va el negocio&quot; toma horas</li>
-              <li><X size={15} /> Un solo idioma, sin opción para tu equipo</li>
-              <li><X size={15} /> Sin control de quién hizo qué venta</li>
+              <li><X size={15} /> {t("bienvenida.antes_1")}</li>
+              <li><X size={15} /> {t("bienvenida.antes_2")}</li>
+              <li><X size={15} /> {t("bienvenida.antes_3")}</li>
+              <li><X size={15} /> {t("bienvenida.antes_4")}</li>
+              <li><X size={15} /> {t("bienvenida.antes_5")}</li>
+              <li><X size={15} /> {t("bienvenida.antes_6")}</li>
+              <li><X size={15} /> {t("bienvenida.antes_7")}</li>
             </ul>
           </div>
 
           <div className="landing-comp-col landing-comp-despues">
-            <h3>Con CoreStock</h3>
+            <h3>{t("bienvenida.despues_titulo")}</h3>
             <ul>
-              <li><Check size={15} /> Alertas automáticas de stock bajo y agotado</li>
-              <li><Check size={15} /> Gráficas semanales, mensuales y anuales, en vivo</li>
-              <li><Check size={15} /> Facturas generadas en 2 clics</li>
-              <li><Check size={15} /> Accede desde cualquier dispositivo, con tu cuenta</li>
-              <li><Check size={15} /> Tu Dashboard te lo resume en un vistazo</li>
-              <li><Check size={15} /> 6 idiomas para ti y para tu equipo</li>
-              <li><Check size={15} /> Roles y permisos por persona</li>
+              <li><Check size={15} /> {t("bienvenida.despues_1")}</li>
+              <li><Check size={15} /> {t("bienvenida.despues_2")}</li>
+              <li><Check size={15} /> {t("bienvenida.despues_3")}</li>
+              <li><Check size={15} /> {t("bienvenida.despues_4")}</li>
+              <li><Check size={15} /> {t("bienvenida.despues_5")}</li>
+              <li><Check size={15} /> {t("bienvenida.despues_6")}</li>
+              <li><Check size={15} /> {t("bienvenida.despues_7")}</li>
             </ul>
           </div>
         </div>
 
         <div className="landing-cta-group" style={{ justifyContent: "center", marginTop: 30 }}>
           <Link href="/login?modo=registro" className="btn-login landing-cta-primary">
-            Cambiarme a CoreStock
+            {t("bienvenida.cta_cambiarme")}
           </Link>
         </div>
       </section>
 
       <footer className="landing-footer">
-        <p>© {new Date().getFullYear()} CoreStock — Sistema Inteligente de Inventario</p>
+        <p>© {new Date().getFullYear()} {t("bienvenida.footer")}</p>
       </footer>
     </main>
   );

@@ -1,5 +1,5 @@
 import { supabase } from "../../lib/supabase";
-import { Producto, Cliente, Venta } from "./types";
+import { Producto, Cliente, Venta, Promocion } from "./types";
 
 export async function cargarDatos() {
   const {
@@ -11,6 +11,7 @@ export async function cargarDatos() {
       productos: [] as Producto[],
       clientes: [] as Cliente[],
       ventas: [] as Venta[],
+      promociones: [] as Promocion[],
     };
   }
 
@@ -57,8 +58,21 @@ export async function cargarDatos() {
     throw errorVentas;
   }
 
+  // Solo promociones activas — la vigencia por fecha se evalúa al
+  // momento de vender (lib/promociones.ts).
+  const { data: promociones, error: errorPromociones } = await supabase
+    .from("promociones")
+    .select("id, nombre, producto_id, tipo, valor, fecha_inicio, fecha_fin")
+    .eq("user_id", userId)
+    .eq("activa", true);
+
+  if (errorPromociones) {
+    throw errorPromociones;
+  }
+
   return {
     productos: productos ?? [],
+    promociones: (promociones ?? []) as Promocion[],
     clientes: clientes ?? [],
     ventas: (ventas ?? []) as Venta[],
   };
@@ -67,7 +81,8 @@ export async function registrarVenta(
   producto: Producto,
   cliente: Cliente | null,
   cantidad: number,
-  nombreCliente: string
+  nombreCliente: string,
+  precioUnitario: number = producto.precio_venta
 ) {
   const {
     data: { user },
@@ -130,7 +145,7 @@ export async function registrarVenta(
   }
 
   const total =
-    producto.precio_venta * cantidad;
+    precioUnitario * cantidad;
 
   const { data: ventaCreada, error: errorVenta } =
     await supabase
@@ -141,7 +156,7 @@ export async function registrarVenta(
         producto_id: producto.id,
         cliente_id: clienteId,
         cantidad,
-        precio: producto.precio_venta,
+        precio: precioUnitario,
         total,
         user_id: user.id,
       })

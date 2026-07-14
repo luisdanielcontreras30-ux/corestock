@@ -1,6 +1,8 @@
 "use client";
 
+import { Tag } from "lucide-react";
 import { Producto, Cliente } from "../types";
+import { PromocionAplicable } from "../../../lib/promociones";
 import { useIdioma } from "../../../components/LanguageProvider";
 
 interface Props {
@@ -14,6 +16,8 @@ interface Props {
   cantidad: number;
   setCantidad: (v: number) => void;
   total: number;
+  precioUnitario: number;
+  promocion?: PromocionAplicable | null;
   guardando: boolean;
   onGuardar: () => void;
 }
@@ -29,6 +33,8 @@ export default function VentaForm({
   cantidad,
   setCantidad,
   total,
+  precioUnitario,
+  promocion,
   guardando,
   onGuardar,
 }: Props) {
@@ -103,7 +109,36 @@ export default function VentaForm({
         >
           <strong>{t("ventas.stock_disponible")}:</strong> {producto.stock}
           <br />
-          <strong>{t("productos.precio")}:</strong> ${producto.precio_venta.toFixed(2)}
+          <strong>{t("productos.precio")}:</strong>{" "}
+          {promocion ? (
+            <>
+              <span style={{ textDecoration: "line-through", color: "var(--text-secondary)" }}>
+                ${producto.precio_venta.toFixed(2)}
+              </span>{" "}
+              <strong style={{ color: "#10b981" }}>${precioUnitario.toFixed(2)}</strong>
+            </>
+          ) : (
+            <>${precioUnitario.toFixed(2)}</>
+          )}
+
+          {promocion && (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                marginLeft: 10,
+                padding: "3px 9px",
+                borderRadius: 999,
+                background: "rgba(16,185,129,0.12)",
+                color: "#10b981",
+                fontSize: 11.5,
+                fontWeight: 700,
+              }}
+            >
+              <Tag size={11} /> {promocion.nombre}
+            </div>
+          )}
         </div>
       )}
 

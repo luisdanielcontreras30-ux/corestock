@@ -12,6 +12,16 @@ export interface Cliente {
   nombre: string;
 }
 
+export interface Promocion {
+  id: number;
+  nombre: string;
+  producto_id: number | null;
+  tipo: "porcentaje" | "monto";
+  valor: number;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+}
+
 export interface Venta {
   id: number;
   fecha: string;

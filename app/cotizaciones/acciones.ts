@@ -114,6 +114,116 @@ export async function cambiarEstadoCotizacion(
   }
 }
 
+// Convierte una cotización aceptada en una venta real, conservando el
+// precio cotizado (no el precio actual del producto, que pudo cambiar
+// desde entonces). Descuenta stock con el mismo candado
+// compare-and-swap que usa el resto de la app.
+export async function convertirEnVenta(cotizacion: Cotizacion) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Usuario no autenticado");
+  }
+
+  if (cotizacion.estado !== "aceptada") {
+    throw new Error("Solo puedes convertir cotizaciones aceptadas.");
+  }
+
+  if (cotizacion.venta_id) {
+    throw new Error("Esta cotización ya se convirtió en una venta.");
+  }
+
+  if (!cotizacion.producto_id) {
+    throw new Error("El producto de esta cotización ya no existe.");
+  }
+
+  let clienteId = cotizacion.cliente_id;
+
+  if (!clienteId && cotizacion.cliente_nombre) {
+    const { data: clienteExistente } = await supabase
+      .from("clientes")
+      .select("id")
+      .eq("user_id", user.id)
+      .ilike("nombre", cotizacion.cliente_nombre)
+      .maybeSingle();
+
+    if (clienteExistente) {
+      clienteId = clienteExistente.id;
+    } else {
+      const { data: nuevoCliente, error: errorCliente } = await supabase
+        .from("clientes")
+        .insert({ nombre: cotizacion.cliente_nombre, user_id: user.id })
+        .select("id")
+        .single();
+
+      if (errorCliente) throw errorCliente;
+
+      clienteId = nuevoCliente.id;
+    }
+  }
+
+  const { data: productoActual, error: errorProducto } = await supabase
+    .from("productos")
+    .select("stock")
+    .eq("id", cotizacion.producto_id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (errorProducto) throw errorProducto;
+
+  if (productoActual.stock < cotizacion.cantidad) {
+    throw new Error("No hay suficiente stock para convertir esta cotización en venta.");
+  }
+
+  const { data: ventaCreada, error: errorVenta } = await supabase
+    .from("ventas")
+    .insert({
+      fecha: new Date().toISOString(),
+      producto: cotizacion.producto,
+      producto_id: cotizacion.producto_id,
+      cliente_id: clienteId,
+      cantidad: cotizacion.cantidad,
+      precio: cotizacion.precio_unitario,
+      total: cotizacion.total,
+      user_id: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (errorVenta) throw errorVenta;
+
+  try {
+    const nuevoStock = productoActual.stock - cotizacion.cantidad;
+
+    const { data: actualizado, error: errorStock } = await supabase
+      .from("productos")
+      .update({ stock: nuevoStock })
+      .eq("id", cotizacion.producto_id)
+      .eq("user_id", user.id)
+      .eq("stock", productoActual.stock)
+      .select("id");
+
+    if (errorStock) throw errorStock;
+
+    if (!actualizado || actualizado.length === 0) {
+      throw new Error("El stock de este producto cambió mientras se procesaba. Intenta de nuevo.");
+    }
+
+    const { error: errorActualizarCotizacion } = await supabase
+      .from("cotizaciones")
+      .update({ venta_id: ventaCreada.id })
+      .eq("id", cotizacion.id)
+      .eq("user_id", user.id);
+
+    if (errorActualizarCotizacion) throw errorActualizarCotizacion;
+  } catch (error) {
+    await supabase.from("ventas").delete().eq("id", ventaCreada.id);
+    throw error;
+  }
+}
+
 export async function eliminarCotizacion(id: number) {
   const {
     data: { user },

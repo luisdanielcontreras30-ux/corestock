@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Check, X, Trash2 } from "lucide-react";
+import { FileText, Check, X, Trash2, ShoppingCart } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
@@ -12,6 +12,7 @@ import {
   crearCotizacion,
   cambiarEstadoCotizacion,
   eliminarCotizacion,
+  convertirEnVenta,
 } from "./acciones";
 
 const COLOR_ESTADO: Record<EstadoCotizacion, string> = {
@@ -37,6 +38,7 @@ export default function CotizacionesPage() {
   const [precioUnitario, setPrecioUnitario] = useState("");
   const [nota, setNota] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [convirtiendoId, setConvirtiendoId] = useState<number | null>(null);
 
   async function obtenerDatos() {
     setLoading(true);
@@ -158,6 +160,23 @@ export default function CotizacionesPage() {
     }
   }
 
+  async function alConvertirEnVenta(cotizacion: Cotizacion) {
+    if (convirtiendoId !== null) return;
+    if (!confirm(t("cotizaciones.confirmar_convertir"))) return;
+
+    try {
+      setConvirtiendoId(cotizacion.id);
+      await convertirEnVenta(cotizacion);
+      await obtenerDatos();
+    } catch (error) {
+      console.error(error);
+      const detalle = error instanceof Error ? error.message : "";
+      alert(detalle || t("cotizaciones.msg_error_convertir"));
+    } finally {
+      setConvirtiendoId(null);
+    }
+  }
+
   if (cargandoAuth || !user || loading) {
     return (
       <main className="fade-up">
@@ -276,21 +295,28 @@ export default function CotizacionesPage() {
                   <td>{c.cantidad}</td>
                   <td>${Number(c.total).toFixed(2)}</td>
                   <td>
-                    <span
-                      style={{
-                        background: `${COLOR_ESTADO[c.estado]}1a`,
-                        color: COLOR_ESTADO[c.estado],
-                        padding: "4px 10px",
-                        borderRadius: 6,
-                        fontSize: 11.5,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {t(`cotizaciones.estado_${c.estado}`)}
-                    </span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
+                      <span
+                        style={{
+                          background: `${COLOR_ESTADO[c.estado]}1a`,
+                          color: COLOR_ESTADO[c.estado],
+                          padding: "4px 10px",
+                          borderRadius: 6,
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {t(`cotizaciones.estado_${c.estado}`)}
+                      </span>
+                      {c.venta_id && (
+                        <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                          {t("cotizaciones.convertida_badge")}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", gap: 6 }}>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                       {c.estado === "pendiente" && (
                         <>
                           <button
@@ -308,6 +334,17 @@ export default function CotizacionesPage() {
                             <X size={14} />
                           </button>
                         </>
+                      )}
+                      {c.estado === "aceptada" && !c.venta_id && (
+                        <button
+                          className="btn-primary"
+                          style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 10px", fontSize: 12 }}
+                          aria-label={t("cotizaciones.convertir_venta")}
+                          onClick={() => alConvertirEnVenta(c)}
+                          disabled={convirtiendoId === c.id}
+                        >
+                          <ShoppingCart size={13} /> {t("cotizaciones.convertir_venta")}
+                        </button>
                       )}
                       <button
                         className="btn-delete"
