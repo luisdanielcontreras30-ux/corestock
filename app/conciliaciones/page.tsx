@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Landmark, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { MovimientoConciliacion, TipoMovimientoConciliacion } from "./types";
 import { cargarMovimientos, crearMovimiento, alternarConciliado, eliminarMovimiento } from "./acciones";
 
@@ -121,12 +122,12 @@ export default function ConciliacionesPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <Landmark size={28} /> {t("sidebar.conciliaciones")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("conciliaciones.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={Landmark}
+        color="#0d9488"
+        titulo={t("sidebar.conciliaciones")}
+        subtitulo={t("conciliaciones.subtitulo")}
+      />
 
       <div
         style={{

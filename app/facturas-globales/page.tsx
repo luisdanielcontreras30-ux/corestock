@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Files, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { FacturaGlobal } from "./types";
 import {
   cargarFacturasGlobales,
@@ -105,12 +106,12 @@ export default function FacturasGlobalesPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <Files size={28} /> {t("sidebar.facturas_globales")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("facturas_globales.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={Files}
+        color="#d946ef"
+        titulo={t("sidebar.facturas_globales")}
+        subtitulo={t("facturas_globales.subtitulo")}
+      />
 
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("facturas_globales.generar")}</h2>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Factory, Trash2, PackagePlus } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "./types";
 import {
   cargarDatos,
@@ -205,12 +206,12 @@ export default function FabricacionPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <Factory size={28} /> {t("sidebar.fabricacion")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("fabricacion.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={Factory}
+        color="#ea580c"
+        titulo={t("sidebar.fabricacion")}
+        subtitulo={t("fabricacion.subtitulo")}
+      />
 
       {/* MATERIAS PRIMAS */}
       <div className="card">

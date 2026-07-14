@@ -5,6 +5,7 @@ import { ShoppingCart, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { Producto, Proveedor, Compra } from "./types";
 import { cargarDatos, registrarCompra, eliminarCompra } from "./acciones";
 
@@ -146,12 +147,12 @@ export default function ComprasPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <ShoppingCart size={28} /> {t("sidebar.compras")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("compras.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={ShoppingCart}
+        color="#14b8a6"
+        titulo={t("sidebar.compras")}
+        subtitulo={t("compras.subtitulo")}
+      />
 
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("compras.registrar")}</h2>

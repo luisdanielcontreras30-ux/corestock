@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Receipt } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { cargarDatos } from "../ventas/acciones";
 import { formatoFecha, formatoMoneda } from "../ventas/utils";
 import { Venta } from "../ventas/types";
@@ -60,12 +61,12 @@ export default function FacturasPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <Receipt size={28} /> {t("sidebar.facturas")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("facturas.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={Receipt}
+        color="#f43f5e"
+        titulo={t("sidebar.facturas")}
+        subtitulo={t("facturas.subtitulo")}
+      />
 
       <input
         value={busqueda}

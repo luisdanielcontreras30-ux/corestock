@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRightLeft, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { Producto, Ubicacion, StockUbicacion, Traspaso } from "./types";
 import { cargarDatos, crearUbicacion, eliminarUbicacion, realizarTraspaso } from "./acciones";
 
@@ -169,12 +170,12 @@ export default function TraspasosPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <ArrowRightLeft size={28} /> {t("sidebar.traspasos")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("traspasos.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={ArrowRightLeft}
+        color="#8b5cf6"
+        titulo={t("sidebar.traspasos")}
+        subtitulo={t("traspasos.subtitulo")}
+      />
 
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("traspasos.ubicaciones")}</h2>

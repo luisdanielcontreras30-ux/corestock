@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarClock } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { MovimientoCaja } from "../caja/types";
 import { cargarCierres } from "../caja/acciones";
 
@@ -53,12 +54,12 @@ export default function CortesHistoricosPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <CalendarClock size={28} /> {t("sidebar.cortes_historicos")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("cortes_historicos.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={CalendarClock}
+        color="#eab308"
+        titulo={t("sidebar.cortes_historicos")}
+        subtitulo={t("cortes_historicos.subtitulo")}
+      />
 
       <div
         style={{

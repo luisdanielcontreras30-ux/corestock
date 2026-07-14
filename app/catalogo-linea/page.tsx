@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BookOpen, Copy, ExternalLink } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { ProductoCatalogo } from "./types";
 import { cargarEstadoCatalogo, actualizarCatalogoActivo } from "./acciones";
 
@@ -81,12 +82,12 @@ export default function CatalogoLineaPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <BookOpen size={28} /> {t("sidebar.catalogo_linea")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("catalogo_linea.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={BookOpen}
+        color="#7c3aed"
+        titulo={t("sidebar.catalogo_linea")}
+        subtitulo={t("catalogo_linea.subtitulo")}
+      />
 
       <div className="card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>

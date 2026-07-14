@@ -31,8 +31,11 @@ export default function MasPage() {
 
                 return (
                   <Link key={item.href} href={item.href} className="mas-card">
-                    <span className="mas-card-icono">
-                      <Icono size={20} color="var(--primary)" />
+                    <span
+                      className="mas-card-icono"
+                      style={{ background: `${item.colorMovil}22` }}
+                    >
+                      <Icono size={20} color={item.colorMovil} />
                     </span>
                     {t(item.claveNombre)}
                     {item.proximamente && (

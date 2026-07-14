@@ -22,9 +22,9 @@ export default function MobileTabBar() {
   const [ventaModalAbierto, setVentaModalAbierto] = useState(false);
 
   const tabs = [
-    { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard" },
-    { href: "/productos", Icono: Package, clave: "sidebar.productos" },
-    { href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas" },
+    { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard", color: "#6366f1" },
+    { href: "/productos", Icono: Package, clave: "sidebar.productos", color: "#22c55e" },
+    { href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas", color: "#10b981" },
   ];
 
   function abrirNuevaVenta() {
@@ -81,7 +81,7 @@ export default function MobileTabBar() {
               href={tab.href}
               className={`mobile-tab ${activo ? "mobile-tab-activo" : ""}`}
             >
-              <Icono size={21} />
+              <Icono size={21} color={activo ? "var(--primary)" : tab.color} />
               <span>{t(tab.clave)}</span>
             </Link>
           );
@@ -112,7 +112,7 @@ export default function MobileTabBar() {
               href={tab.href}
               className={`mobile-tab ${activo ? "mobile-tab-activo" : ""}`}
             >
-              <Icono size={21} />
+              <Icono size={21} color={activo ? "var(--primary)" : tab.color} />
               <span>{t(tab.clave)}</span>
             </Link>
           );

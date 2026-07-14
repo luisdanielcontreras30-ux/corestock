@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { Producto, AjusteStock } from "./types";
 import { cargarDatos, registrarAjuste, eliminarAjuste } from "./acciones";
 
@@ -117,12 +118,12 @@ export default function AjustesStockPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <SlidersHorizontal size={28} /> {t("sidebar.ajustes_stock")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("ajustes_stock.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={SlidersHorizontal}
+        color="#0ea5e9"
+        titulo={t("sidebar.ajustes_stock")}
+        subtitulo={t("ajustes_stock.subtitulo")}
+      />
 
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("ajustes_stock.registrar")}</h2>

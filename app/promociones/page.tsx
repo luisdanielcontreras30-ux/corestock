@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Percent, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { Producto, Promocion, TipoDescuento } from "./types";
 import {
   cargarDatos,
@@ -154,12 +155,12 @@ export default function PromocionesPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <Percent size={28} /> {t("sidebar.promociones")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("promociones.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={Percent}
+        color="#f97316"
+        titulo={t("sidebar.promociones")}
+        subtitulo={t("promociones.subtitulo")}
+      />
 
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("promociones.crear")}</h2>

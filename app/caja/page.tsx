@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Inbox, ArrowDownCircle, ArrowUpCircle, Lock, Unlock } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { MovimientoCaja } from "./types";
 import { cargarMovimientos, registrarMovimiento } from "./acciones";
 
@@ -172,12 +173,12 @@ export default function CajaPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <Inbox size={28} /> {t("sidebar.caja")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("caja.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={Inbox}
+        color="#84cc16"
+        titulo={t("sidebar.caja")}
+        subtitulo={t("caja.subtitulo")}
+      />
 
       {!abierta ? (
         <div className="card">

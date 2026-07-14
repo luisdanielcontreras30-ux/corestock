@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { UserCircle, Link2, Check, ExternalLink } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
 import { cargarClientes } from "../clientes/acciones";
 import { ClienteConResumen } from "../clientes/types";
@@ -75,12 +76,12 @@ export default function PortalClientesPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <UserCircle size={28} /> {t("sidebar.portal_clientes")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("portal_clientes.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={UserCircle}
+        color="#db2777"
+        titulo={t("sidebar.portal_clientes")}
+        subtitulo={t("portal_clientes.subtitulo")}
+      />
 
       <input
         placeholder={t("clientes.buscar")}

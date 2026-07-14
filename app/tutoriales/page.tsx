@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PlayCircle, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { GUIAS } from "./data";
 
 const CATEGORIAS = [
@@ -48,12 +49,12 @@ export default function TutorialesPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <PlayCircle size={28} /> {t("sidebar.tutoriales")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("tutoriales.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={PlayCircle}
+        color="#0891b2"
+        titulo={t("sidebar.tutoriales")}
+        subtitulo={t("tutoriales.subtitulo")}
+      />
 
       <div style={{ position: "relative", maxWidth: 360 }}>
         <Search

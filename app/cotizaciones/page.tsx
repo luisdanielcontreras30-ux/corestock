@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FileText, Check, X, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { Producto, Cliente, Cotizacion, EstadoCotizacion } from "./types";
 import {
   cargarDatos,
@@ -167,12 +168,12 @@ export default function CotizacionesPage() {
 
   return (
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-          <FileText size={28} /> {t("sidebar.cotizaciones")}
-        </h1>
-        <p style={{ color: "var(--text-secondary)" }}>{t("cotizaciones.subtitulo")}</p>
-      </div>
+      <EncabezadoModulo
+        Icono={FileText}
+        color="#3b82f6"
+        titulo={t("sidebar.cotizaciones")}
+        subtitulo={t("cotizaciones.subtitulo")}
+      />
 
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("cotizaciones.registrar")}</h2>
