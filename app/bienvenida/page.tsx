@@ -162,11 +162,12 @@ export default function BienvenidaPage() {
           <div className="landing-feature-icon" style={{ background: "#ec4899" }}>
             <Palette size={20} color="#fff" />
           </div>
-          <h3>8 temas, 6 idiomas</h3>
+          <h3>11 temas, 6 idiomas</h3>
           <p>
-            Oscuro, verde, azul, morado, ámbar, grafito, claro o rosa —
-            en Español, English, Português, Français, Deutsch o 中文.
-            Configúralo una vez y CoreStock se adapta a ti.
+            Oscuro, verde, azul, morado, ámbar, grafito, cian, vino,
+            claro, rosa o menta — en Español, English, Português,
+            Français, Deutsch o 中文. Configúralo una vez y CoreStock se
+            adapta a ti.
           </p>
         </div>
 
@@ -260,7 +261,7 @@ export default function BienvenidaPage() {
           <h2>Tus números, de un vistazo</h2>
           <p>
             Nada de hojas de cálculo crípticas — gráficas claras, alertas
-            visibles, y un Dashboard que se adapta a tu gusto (8 temas,
+            visibles, y un Dashboard que se adapta a tu gusto (11 temas,
             6 idiomas).
           </p>
         </div>
