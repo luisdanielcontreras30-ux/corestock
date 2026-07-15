@@ -20,16 +20,20 @@ import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  PieChart, 
-  Pie, 
-  Cell 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell
 } from "recharts";
 
 interface VentaReciente {
@@ -98,7 +102,7 @@ function dentroDePeriodo(fechaStr: string, periodo: PeriodoRanking): boolean {
 
 export default function DashboardPremium() {
   const router = useRouter();
-  const { tema } = useTheme();
+  const { tema, tipoTendencia, tipoDistribucion } = useTheme();
   const { t, idioma } = useIdioma();
   const { user, cargando: cargandoAuth } = useAuth();
   const { miembroActivo, puede, limpiarMiembroActivo } = useMiembroActivo();
@@ -527,32 +531,76 @@ export default function DashboardPremium() {
           <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 20px 0" }}>{t("dashboard.rendimiento_ingresos")}</h3>
           <div style={{ width: "100%", height: "260px" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorMonto" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
-                <YAxis
-                  stroke="var(--text-muted)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(valor) =>
-                    valor >= 1000
-                      ? `${(valor / 1000).toFixed(0)}k`
-                      : String(valor)
-                  }
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
-                  labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
-                  itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                />
-                <Area type="monotone" dataKey="monto" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorMonto)" />
-              </AreaChart>
+              {tipoTendencia === "barras" ? (
+                <BarChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis
+                    stroke="var(--text-muted)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(valor) =>
+                      valor >= 1000
+                        ? `${(valor / 1000).toFixed(0)}k`
+                        : String(valor)
+                    }
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  />
+                  <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              ) : tipoTendencia === "linea" ? (
+                <LineChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis
+                    stroke="var(--text-muted)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(valor) =>
+                      valor >= 1000
+                        ? `${(valor / 1000).toFixed(0)}k`
+                        : String(valor)
+                    }
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  />
+                  <Line type="monotone" dataKey="monto" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2.5} dot={false} />
+                </LineChart>
+              ) : (
+                <AreaChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorMonto" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis
+                    stroke="var(--text-muted)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(valor) =>
+                      valor >= 1000
+                        ? `${(valor / 1000).toFixed(0)}k`
+                        : String(valor)
+                    }
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  />
+                  <Area type="monotone" dataKey="monto" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorMonto)" />
+                </AreaChart>
+              )}
             </ResponsiveContainer>
           </div>
         </div>
@@ -576,6 +624,31 @@ export default function DashboardPremium() {
           <div style={{ width: "100%", height: "220px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {dataPie.length === 0 ? (
               <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{t("dashboard.sin_datos")}</p>
+            ) : tipoDistribucion === "barras" ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dataPie} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+                  <XAxis type="number" hide />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    stroke="var(--text-muted)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    width={90}
+                    tickFormatter={(valor: string) => (valor.length > 12 ? `${valor.substring(0, 12)}...` : valor)}
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "12px" }}
+                  />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                    {dataPie.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORES_PIE[index % COLORES_PIE.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -600,16 +673,18 @@ export default function DashboardPremium() {
               </ResponsiveContainer>
             )}
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center", marginTop: "10px" }}>
-            {dataPie.map((item, idx) => (
-              <div key={item.name} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: COLORES_PIE[idx % COLORES_PIE.length] }}></div>
-                <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>
-                  {item.name.length > 10 ? `${item.name.substring(0, 10)}...` : item.name}
-                </span>
-              </div>
-            ))}
-          </div>
+          {tipoDistribucion !== "barras" && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center", marginTop: "10px" }}>
+              {dataPie.map((item, idx) => (
+                <div key={item.name} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: COLORES_PIE[idx % COLORES_PIE.length] }}></div>
+                  <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>
+                    {item.name.length > 10 ? `${item.name.substring(0, 10)}...` : item.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
       </section>

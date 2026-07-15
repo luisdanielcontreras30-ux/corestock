@@ -253,6 +253,16 @@ export const TRADUCCIONES: Diccionario = {
   "tema.light.desc": { es: "Fondo lavanda suave, ideal para el día", en: "Soft lavender background, great for daytime", pt: "Fundo lavanda suave, ideal para o dia", fr: "Fond lavande doux, idéal pour la journée", de: "Sanfter Lavendelhintergrund, ideal für den Tag", zh: "柔和薰衣草背景，适合白天使用" },
   "tema.pink.nombre": { es: "Rosa pastel", en: "Pastel pink", pt: "Rosa pastel", fr: "Rose pastel", de: "Pastellrosa", zh: "粉彩色" },
   "tema.pink.desc": { es: "Vibrante y cálido", en: "Vibrant and warm", pt: "Vibrante e caloroso", fr: "Vibrant et chaleureux", de: "Lebendig und warm", zh: "鲜艳而温暖" },
+  "tema.graficas_titulo": { es: "Tipo de gráficas", en: "Chart types", pt: "Tipo de gráficos", fr: "Types de graphiques", de: "Diagrammtypen", zh: "图表类型" },
+  "tema.graficas_subtitulo": { es: "Personaliza cómo se ven las gráficas del dashboard.", en: "Customize how the dashboard charts look.", pt: "Personalize como os gráficos do painel aparecem.", fr: "Personnalisez l'apparence des graphiques du tableau de bord.", de: "Passe an, wie die Dashboard-Diagramme aussehen.", zh: "自定义仪表盘图表的显示方式。" },
+  "tema.grafica_tendencia": { es: "Gráfica de tendencia", en: "Trend chart", pt: "Gráfico de tendência", fr: "Graphique de tendance", de: "Trenddiagramm", zh: "趋势图" },
+  "tema.grafica_tendencia_desc": { es: "Se usa en \"Rendimiento de Ingresos\".", en: "Used in \"Revenue Performance\".", pt: "Usado em \"Desempenho de Receita\".", fr: "Utilisé dans « Performance des revenus ».", de: "Wird bei „Umsatzentwicklung\" verwendet.", zh: "用于\"收入表现\"图表。" },
+  "tema.grafica_distribucion": { es: "Gráfica de distribución", en: "Distribution chart", pt: "Gráfico de distribuição", fr: "Graphique de répartition", de: "Verteilungsdiagramm", zh: "分布图" },
+  "tema.grafica_distribucion_desc": { es: "Se usa en \"Top Artículos\".", en: "Used in \"Top Items\".", pt: "Usado em \"Top Itens\".", fr: "Utilisé dans « Meilleurs articles ».", de: "Wird bei „Top-Artikel\" verwendet.", zh: "用于\"热门商品\"图表。" },
+  "tema.grafica_area": { es: "Área", en: "Area", pt: "Área", fr: "Aire", de: "Fläche", zh: "面积图" },
+  "tema.grafica_linea": { es: "Línea", en: "Line", pt: "Linha", fr: "Ligne", de: "Linie", zh: "折线图" },
+  "tema.grafica_barras": { es: "Barras", en: "Bars", pt: "Barras", fr: "Barres", de: "Balken", zh: "柱状图" },
+  "tema.grafica_pastel": { es: "Pastel", en: "Pie", pt: "Pizza", fr: "Camembert", de: "Kreis", zh: "饼图" },
 
   // Configuración - Empresa
   "empresa.titulo": { es: "Información de la empresa", en: "Business information", pt: "Informações da empresa", fr: "Informations sur l'entreprise", de: "Unternehmensinformationen", zh: "企业信息" },

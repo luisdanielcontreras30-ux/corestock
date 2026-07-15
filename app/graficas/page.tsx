@@ -296,7 +296,11 @@ export default function GraficasPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
                 <YAxis stroke="var(--text-secondary)" />
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                  labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                  itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                />
 
                 <Area
                   type="monotone"

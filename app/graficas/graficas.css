@@ -18,115 +18,12 @@ main.fade-up{
     }
 }
 
-.card{
-    background:#141b2d;
-    border:1px solid rgba(255,255,255,.05);
-    border-radius:20px;
-    padding:24px;
-    box-shadow:
-    0 10px 40px rgba(0,0,0,.35);
-    transition:.25s;
-}
+/* La tarjeta base, los inputs, los botones, los encabezados y el
+   scrollbar ya los define app/globals.css con las variables del tema
+   activo (--card-bg, --text-primary, --border, --primary, etc.) — no
+   se repiten acá para que esta página cambie de color junto con el
+   resto de la app al elegir un tema. */
 
-.card:hover{
-    transform:translateY(-5px);
-    box-shadow:
-    0 20px 45px rgba(0,0,0,.45);
-}
-
-h1{
-    color:#fff;
-    margin:0;
-}
-
-h2{
-    color:#fff;
-    margin:0;
-}
-
-h3{
-    color:#fff;
-    margin:0;
-}
-
-p{
-    color:#9ca3af;
-}
-
-input,
-select{
-
-    width:100%;
-    padding:13px 15px;
-
-    border:none;
-    outline:none;
-
-    border-radius:12px;
-
-    background:#1d2742;
-
-    color:white;
-
-    font-size:15px;
-
-    transition:.25s;
-
-}
-
-input:focus,
-select:focus{
-
-    border:1px solid #7c3aed;
-
-    box-shadow:
-    0 0 0 4px rgba(124,58,237,.15);
-
-}
-
-button{
-
-    border:none;
-
-    cursor:pointer;
-
-    border-radius:12px;
-
-    transition:.25s;
-
-}
-
-.btn-primary{
-
-    background:#7c3aed;
-
-    color:white;
-
-    padding:13px 24px;
-
-    font-weight:600;
-
-}
-
-.btn-primary:hover{
-
-    background:#6d28d9;
-
-}
-
-::-webkit-scrollbar{
-
-    width:8px;
-
-}
-
-::-webkit-scrollbar-thumb{
-
-    background:#7c3aed;
-
-    border-radius:20px;
-
-}
 /* ========================= */
 /* TARJETAS ESTADISTICAS */
 /* ========================= */
@@ -144,52 +41,11 @@ button{
 
 }
 
-.estadisticas-grid .card{
-
-    background:
-    linear-gradient(
-    145deg,
-    #1b2440,
-    #111827);
-
-    overflow:hidden;
-
-    position:relative;
-
-}
-
-.estadisticas-grid .card::before{
-
-    content:"";
-
-    position:absolute;
-
-    width:180px;
-    height:180px;
-
-    right:-80px;
-    top:-80px;
-
-    border-radius:50%;
-
-    background:
-    rgba(124,58,237,.15);
-
-}
-
 .estadisticas-grid h2{
 
     font-size:36px;
 
     margin-top:10px;
-
-}
-
-.estadisticas-grid p{
-
-    font-size:15px;
-
-    color:#94a3b8;
 
 }
 
@@ -300,7 +156,9 @@ button{
 
 .top-item{
 
-    background:#1b2440;
+    background:var(--bg-secondary);
+
+    border:1px solid var(--border);
 
     border-radius:14px;
 
@@ -314,7 +172,7 @@ button{
 
     height:10px;
 
-    background:#26314d;
+    background:var(--border);
 
     border-radius:20px;
 
@@ -328,11 +186,7 @@ button{
 
     height:100%;
 
-    background:
-    linear-gradient(
-    90deg,
-    #7c3aed,
-    #9333ea);
+    background:var(--primary);
 
     border-radius:20px;
 
@@ -399,7 +253,7 @@ button{
 
 .recharts-cartesian-grid line{
 
-    stroke:#2b3655;
+    stroke:var(--border);
 
 }
 
@@ -411,22 +265,22 @@ button{
 
 .recharts-default-tooltip{
 
-    background:#161f36 !important;
+    background:var(--bg-secondary) !important;
 
-    border:none !important;
+    border:1px solid var(--border) !important;
 
     border-radius:14px !important;
 
-    color:white !important;
+    color:var(--text-primary) !important;
 
     box-shadow:
-    0 15px 35px rgba(0,0,0,.35);
+    0 15px 35px rgba(0,0,0,.15);
 
 }
 
 .recharts-legend-item-text{
 
-    color:white !important;
+    color:var(--text-primary) !important;
 
 }
 
@@ -436,13 +290,12 @@ button{
 
 .glass{
 
-    background:
-    rgba(20,28,48,.65);
+    background:var(--glass-bg);
 
     backdrop-filter:blur(18px);
 
     border:
-    1px solid rgba(255,255,255,.08);
+    1px solid var(--glass-border);
 
 }
 
@@ -527,13 +380,5 @@ button{
     font-size:28px;
 
     font-weight:700;
-
-}
-
-.section-title p{
-
-    color:#94a3b8;
-
-    margin-top:5px;
 
 }

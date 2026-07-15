@@ -25,11 +25,30 @@ const opciones: OpcionTema[] = [
   { valor: "sunset", claveNombre: "tema.sunset.nombre", claveDesc: "tema.sunset.desc", colores: ["#170a05", "#2a150a", "#f97316"] },
 ];
 
+const OPCIONES_TENDENCIA: { valor: "area" | "linea" | "barras"; clave: string }[] = [
+  { valor: "area", clave: "tema.grafica_area" },
+  { valor: "linea", clave: "tema.grafica_linea" },
+  { valor: "barras", clave: "tema.grafica_barras" },
+];
+
+const OPCIONES_DISTRIBUCION: { valor: "pastel" | "barras"; clave: string }[] = [
+  { valor: "pastel", clave: "tema.grafica_pastel" },
+  { valor: "barras", clave: "tema.grafica_barras" },
+];
+
 export default function ApariciarenciaTab() {
-  const { tema, cambiarTema } = useTheme();
+  const {
+    tema,
+    cambiarTema,
+    tipoTendencia,
+    cambiarTipoTendencia,
+    tipoDistribucion,
+    cambiarTipoDistribucion,
+  } = useTheme();
   const { t } = useIdioma();
 
   return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
     <div className="card">
       <h2 style={{ marginBottom: 6 }}>{t("tema.titulo")}</h2>
       <p
@@ -123,6 +142,48 @@ export default function ApariciarenciaTab() {
           );
         })}
       </div>
+    </div>
+
+    <div className="card">
+      <h2 style={{ marginBottom: 6 }}>{t("tema.graficas_titulo")}</h2>
+      <p style={{ color: "var(--text-secondary)", marginBottom: 20, fontSize: 13 }}>
+        {t("tema.graficas_subtitulo")}
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <div>
+          <p style={{ fontWeight: 600, fontSize: 13.5, marginBottom: 2 }}>{t("tema.grafica_tendencia")}</p>
+          <p style={{ color: "var(--text-secondary)", fontSize: 12, marginBottom: 10 }}>{t("tema.grafica_tendencia_desc")}</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {OPCIONES_TENDENCIA.map((opcion) => (
+              <button
+                key={opcion.valor}
+                onClick={() => cambiarTipoTendencia(opcion.valor)}
+                className={tipoTendencia === opcion.valor ? "btn-primary" : "btn-secondary"}
+              >
+                {t(opcion.clave)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p style={{ fontWeight: 600, fontSize: 13.5, marginBottom: 2 }}>{t("tema.grafica_distribucion")}</p>
+          <p style={{ color: "var(--text-secondary)", fontSize: 12, marginBottom: 10 }}>{t("tema.grafica_distribucion_desc")}</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {OPCIONES_DISTRIBUCION.map((opcion) => (
+              <button
+                key={opcion.valor}
+                onClick={() => cambiarTipoDistribucion(opcion.valor)}
+                className={tipoDistribucion === opcion.valor ? "btn-primary" : "btn-secondary"}
+              >
+                {t(opcion.clave)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   );
 }
