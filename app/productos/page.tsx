@@ -213,11 +213,22 @@ function ProductosInterno() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
+  const categorias = Array.from(
+    new Set(productos.map((p) => p.categoria).filter((c): c is string => !!c?.trim()))
+  ).sort((a, b) => a.localeCompare(b));
+
+  const filtrados = productos.filter(
+    (p) =>
+      (p.nombre ?? "").toLowerCase().includes(busqueda.toLowerCase()) &&
+      (filtroCategoria === "" || p.categoria === filtroCategoria)
+  );
+
   function exportarExcel() {
     // Solo las columnas que la importación también sabe leer — sin el
     // id interno ni la URL cruda de la imagen, que no aportan nada
-    // útil al abrir el archivo en Excel.
-    const datos = productos.map((p) => ({
+    // útil al abrir el archivo en Excel. Exporta lo que se está
+    // viendo (respeta la búsqueda/filtro activos), no todo el catálogo.
+    const datos = filtrados.map((p) => ({
       nombre: p.nombre,
       categoria: p.categoria,
       precio_venta: p.precio_venta,
@@ -231,16 +242,6 @@ function ProductosInterno() {
     XLSX.utils.book_append_sheet(wb, ws, "Productos");
     XLSX.writeFile(wb, "productos.xlsx");
   }
-
-  const categorias = Array.from(
-    new Set(productos.map((p) => p.categoria).filter((c): c is string => !!c?.trim()))
-  ).sort((a, b) => a.localeCompare(b));
-
-  const filtrados = productos.filter(
-    (p) =>
-      (p.nombre ?? "").toLowerCase().includes(busqueda.toLowerCase()) &&
-      (filtroCategoria === "" || p.categoria === filtroCategoria)
-  );
 
   return (
     <>

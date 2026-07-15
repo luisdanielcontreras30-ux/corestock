@@ -150,7 +150,7 @@ function CortesHistoricosContenido() {
                   <td style={{ fontWeight: 700 }}>${Number(c.monto).toFixed(2)}</td>
                   <td>${Number(c.monto_esperado ?? 0).toFixed(2)}</td>
                   <td>
-                    <span style={{ color: (c.diferencia ?? 0) === 0 ? "#10b981" : "#ef4444", fontWeight: 700 }}>
+                    <span style={{ color: esDiferenciaCero(c.diferencia ?? 0) ? "#10b981" : "#ef4444", fontWeight: 700 }}>
                       ${Number(c.diferencia ?? 0).toFixed(2)}
                     </span>
                   </td>

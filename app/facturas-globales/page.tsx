@@ -86,8 +86,13 @@ function FacturasGlobalesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
-      alert(detalle || t("facturas_globales.msg_error_generar"));
+
+      if (error instanceof Error && error.message === "SIN_VENTAS_EN_RANGO") {
+        alert(t("facturas_globales.msg_sin_ventas_rango"));
+      } else {
+        const detalle = error instanceof Error ? error.message : "";
+        alert(detalle || t("facturas_globales.msg_error_generar"));
+      }
     } finally {
       setGenerando(false);
     }

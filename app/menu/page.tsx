@@ -114,7 +114,11 @@ export default function DashboardPremium() {
   // período elegido sin volver a consultar la base de datos.
   const [ventasTodas, setVentasTodas] = useState<VentaReciente[]>([]);
   const [nombresClientes, setNombresClientes] = useState<Map<number, string>>(new Map());
-  const [periodoRanking, setPeriodoRanking] = useState<PeriodoRanking>("todo");
+
+  // Cada tarjeta tiene su propio selector de período — son controles
+  // independientes, no deben cambiar juntos al mover uno solo.
+  const [periodoTopArticulos, setPeriodoTopArticulos] = useState<PeriodoRanking>("todo");
+  const [periodoMejoresClientes, setPeriodoMejoresClientes] = useState<PeriodoRanking>("todo");
 
   // Estados para las gráficas reales
   const [dataLinea, setDataLinea] = useState<DataGraficoLinea[]>([]);
@@ -132,15 +136,20 @@ export default function DashboardPremium() {
     cargarDatosDashboard(user.id);
   }, [cargandoAuth, user]);
 
-  const ventasEnPeriodo = useMemo(
-    () => ventasTodas.filter((v) => dentroDePeriodo(v.fecha, periodoRanking)),
-    [ventasTodas, periodoRanking]
+  const ventasParaTopArticulos = useMemo(
+    () => ventasTodas.filter((v) => dentroDePeriodo(v.fecha, periodoTopArticulos)),
+    [ventasTodas, periodoTopArticulos]
+  );
+
+  const ventasParaMejoresClientes = useMemo(
+    () => ventasTodas.filter((v) => dentroDePeriodo(v.fecha, periodoMejoresClientes)),
+    [ventasTodas, periodoMejoresClientes]
   );
 
   const dataPie = useMemo<DataGraficoPie[]>(() => {
     const mapaProductos: { [key: string]: number } = {};
 
-    ventasEnPeriodo.forEach((v) => {
+    ventasParaTopArticulos.forEach((v) => {
       if (v.producto) {
         mapaProductos[v.producto] = (mapaProductos[v.producto] || 0) + Number(v.total);
       }
@@ -150,10 +159,10 @@ export default function DashboardPremium() {
       .map((key) => ({ name: key, value: mapaProductos[key] }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
-  }, [ventasEnPeriodo]);
+  }, [ventasParaTopArticulos]);
 
   const mejoresClientes = useMemo<ClienteTop[]>(() => {
-    const conCliente = ventasEnPeriodo.filter((v) => v.cliente_id != null);
+    const conCliente = ventasParaMejoresClientes.filter((v) => v.cliente_id != null);
     const mapaClientes = new Map<number, number>();
 
     conCliente.forEach((v) => {
@@ -168,7 +177,7 @@ export default function DashboardPremium() {
       }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 5);
-  }, [ventasEnPeriodo, nombresClientes, t]);
+  }, [ventasParaMejoresClientes, nombresClientes, t]);
 
   async function cargarDatosDashboard(userId: string) {
     try {
@@ -482,8 +491,8 @@ export default function DashboardPremium() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
             <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0 }}>{t("dashboard.top_articulos")}</h3>
             <select
-              value={periodoRanking}
-              onChange={(e) => setPeriodoRanking(e.target.value as PeriodoRanking)}
+              value={periodoTopArticulos}
+              onChange={(e) => setPeriodoTopArticulos(e.target.value as PeriodoRanking)}
               style={{ width: "auto", fontSize: 12, padding: "6px 10px" }}
             >
               {PERIODOS_RANKING.map((p) => (
@@ -607,8 +616,8 @@ export default function DashboardPremium() {
               <p style={{ color: "var(--text-secondary)", fontSize: "12px", margin: "0 0 20px 0" }}>{t("dashboard.mejores_clientes_desc")}</p>
             </div>
             <select
-              value={periodoRanking}
-              onChange={(e) => setPeriodoRanking(e.target.value as PeriodoRanking)}
+              value={periodoMejoresClientes}
+              onChange={(e) => setPeriodoMejoresClientes(e.target.value as PeriodoRanking)}
               style={{ width: "auto", fontSize: 12, padding: "6px 10px" }}
             >
               {PERIODOS_RANKING.map((p) => (

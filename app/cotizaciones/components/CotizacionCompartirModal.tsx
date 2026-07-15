@@ -46,7 +46,7 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
     // Instagram entre las apps disponibles) cuando el navegador lo soporta.
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title: `CoreStock — ${folio}`, text: mensaje });
+        await navigator.share({ title: `${nombreNegocio} — ${folio}`, text: mensaje });
       } catch {
         // El usuario cerró el panel de compartir — no hacemos nada más.
       }

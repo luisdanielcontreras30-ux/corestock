@@ -55,7 +55,10 @@ export async function generarFacturaGlobal(
   const cantidadVentas = ventas?.length ?? 0;
 
   if (cantidadVentas === 0) {
-    throw new Error("No hay ventas registradas en ese rango de fechas.");
+    // Mensaje sin traducir a propósito: este archivo no tiene acceso al
+    // idioma activo (no es un componente). page.tsx reconoce este texto
+    // exacto y muestra la clave i18n correspondiente en su lugar.
+    throw new Error("SIN_VENTAS_EN_RANGO");
   }
 
   const total = (ventas ?? []).reduce((sum, v) => sum + Number(v.total), 0);

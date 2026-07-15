@@ -309,7 +309,7 @@ function CotizacionesContenido() {
         </select>
 
         {cotizaciones.length > 0 && (
-          <button className="btn-secondary" onClick={() => exportarExcel(cotizaciones)}>
+          <button className="btn-secondary" onClick={() => exportarExcel(cotizacionesFiltradas)}>
             {t("productos.exportar_excel")}
           </button>
         )}

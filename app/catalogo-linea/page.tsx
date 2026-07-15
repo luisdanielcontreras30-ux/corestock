@@ -8,6 +8,7 @@ import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { ProductoCatalogo } from "./types";
 import { cargarEstadoCatalogo, actualizarCatalogoActivo } from "./acciones";
+import { copiarAlPortapapeles } from "../../lib/portapapeles";
 
 export default function CatalogoLineaPage() {
   const router = useRouter();
@@ -67,7 +68,13 @@ export default function CatalogoLineaPage() {
   }
 
   async function copiarEnlace() {
-    await navigator.clipboard.writeText(enlacePublico);
+    const exito = await copiarAlPortapapeles(enlacePublico);
+
+    if (!exito) {
+      alert(t("comun.msg_error_copiar"));
+      return;
+    }
+
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
   }

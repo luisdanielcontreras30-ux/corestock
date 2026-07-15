@@ -258,7 +258,7 @@ function ComprasContenido() {
         />
 
         {compras.length > 0 && (
-          <button className="btn-secondary" onClick={() => exportarExcel(compras)}>
+          <button className="btn-secondary" onClick={() => exportarExcel(comprasFiltradas)}>
             {t("productos.exportar_excel")}
           </button>
         )}
