@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 import {
@@ -9,11 +10,14 @@ import {
   Package,
   AlertTriangle,
   CheckCircle2,
+  Inbox,
+  LogOut,
 } from "lucide-react";
 import { useTheme } from "../../components/ThemeProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { LOCALES } from "../../lib/i18n";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import { 
@@ -97,6 +101,7 @@ export default function DashboardPremium() {
   const { tema } = useTheme();
   const { t, idioma } = useIdioma();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { miembroActivo, puede, limpiarMiembroActivo } = useMiembroActivo();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
   
   // Estados analíticos de tarjetas
@@ -306,9 +311,75 @@ export default function DashboardPremium() {
     );
   }
 
+  async function cerrarSesionMiembro() {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      limpiarMiembroActivo();
+      window.location.href = "/login";
+    }
+  }
+
+  // Un miembro del equipo ve una versión simple del dashboard en vez
+  // del panel de análisis completo: solo accesos directos a los
+  // módulos que le tocan (Caja, Ventas si tiene permiso, Productos) y
+  // una forma de cerrar sesión, sin pasar por Configuración.
+  if (miembroActivo) {
+    return (
+      <div style={{ padding: "24px", color: "var(--text-primary)", fontFamily: "sans-serif", backgroundColor: "var(--bg-primary)", minHeight: "100vh", width: "100%" }}>
+        <header className="dashboard-simple-saludo">
+          <h1 style={{ fontSize: "24px", fontWeight: "700", margin: 0, letterSpacing: "-0.02em" }}>
+            {t("dashboard.saludo")}, {miembroActivo.nombre} 👋
+          </h1>
+          <p
+            suppressHydrationWarning
+            style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "4px 0 0 0", textTransform: "capitalize" }}
+          >
+            {new Date().toLocaleDateString(LOCALES[idioma], {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })}
+          </p>
+        </header>
+
+        <div className="dashboard-simple-tiles">
+          <Link href="/caja" className="dashboard-simple-tile">
+            <span className="dashboard-simple-tile-icono" style={{ background: "#84cc16" }}>
+              <Inbox size={26} color="#fff" />
+            </span>
+            {t("sidebar.caja")}
+          </Link>
+
+          {puede("ver_ventas") && (
+            <Link href="/ventas" className="dashboard-simple-tile">
+              <span className="dashboard-simple-tile-icono" style={{ background: "#10b981" }}>
+                <DollarSign size={26} color="#fff" />
+              </span>
+              {t("sidebar.ventas")}
+            </Link>
+          )}
+
+          <Link href="/productos" className="dashboard-simple-tile">
+            <span className="dashboard-simple-tile-icono" style={{ background: "#22c55e" }}>
+              <Package size={26} color="#fff" />
+            </span>
+            {t("sidebar.productos")}
+          </Link>
+        </div>
+
+        <button className="dashboard-simple-salir" onClick={cerrarSesionMiembro}>
+          <LogOut size={14} /> {t("header.cerrar_sesion")}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: "12px 24px 24px 24px", color: "var(--text-primary)", fontFamily: "sans-serif", backgroundColor: "var(--bg-primary)", minHeight: "100vh", width: "100%" }}>
-      
+
       {/* SECCIÓN SUPERIOR: ENCABEZADO */}
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
         <div>

@@ -106,3 +106,9 @@ export const SECCIONES_NAV: SeccionNav[] = [
 // Rutas que ya tienen su propio ícono fijo en la barra inferior móvil,
 // así que no hace falta repetirlas en la página "Más".
 export const RUTAS_EN_TABBAR_MOVIL = ["/menu", "/ventas", "/productos"];
+
+// Un miembro del equipo (no el dueño) solo puede navegar a estas
+// rutas — Dashboard, Caja, Ventas y Productos. Se usa tanto para
+// ocultar el resto de la navegación (Sidebar, MobileTabBar) como para
+// bloquear el acceso directo por URL (AppShell).
+export const RUTAS_PERMITIDAS_MIEMBRO = ["/menu", "/caja", "/ventas", "/productos"];

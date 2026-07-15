@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useIdioma } from "./LanguageProvider";
-import { SECCIONES_NAV } from "../lib/navegacion";
+import { SECCIONES_NAV, RUTAS_PERMITIDAS_MIEMBRO } from "../lib/navegacion";
 import { esRutaPlus } from "../lib/suscripcion";
 import { useMiembroActivo } from "./MiembroActivoProvider";
 
@@ -17,7 +17,7 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const { t } = useIdioma();
-  const { puede } = useMiembroActivo();
+  const { miembroActivo, puede } = useMiembroActivo();
 
   return (
     <>
@@ -32,44 +32,52 @@ export default function Sidebar({
         </div>
 
         <nav className="sidebar-nav">
-          {SECCIONES_NAV.map((seccion) => (
-            <div key={seccion.claveTitulo} className="sidebar-section">
-              <p className="sidebar-section-title">{t(seccion.claveTitulo)}</p>
+          {SECCIONES_NAV.map((seccion) => {
+            const itemsVisibles = seccion.items.filter((item) => {
+              if (miembroActivo && !RUTAS_PERMITIDAS_MIEMBRO.includes(item.href)) return false;
+              // Un miembro del equipo sin permiso "ver_ventas" no ve
+              // ese acceso en el menú (la página también lo bloquea).
+              if (item.href === "/ventas" && !puede("ver_ventas")) return false;
+              return true;
+            });
 
-              {seccion.items.map((item) => {
-                // Un miembro del equipo sin permiso "ver_ventas" no ve
-                // ese acceso en el menú (la página también lo bloquea).
-                if (item.href === "/ventas" && !puede("ver_ventas")) return null;
+            if (itemsVisibles.length === 0) return null;
 
-                const isActive = pathname === item.href;
-                const Icono = item.Icono;
+            return (
+              <div key={seccion.claveTitulo} className="sidebar-section">
+                <p className="sidebar-section-title">{t(seccion.claveTitulo)}</p>
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={onClose}
-                    className={`sidebar-link ${
-                      isActive ? "sidebar-link-active" : ""
-                    }`}
-                  >
-                    <Icono
-                      size={17}
-                      className="sidebar-link-icon"
-                      color={isActive ? "var(--primary)" : "var(--text-secondary)"}
-                    />
-                    {t(item.claveNombre)}
-                    {item.proximamente && (
-                      <span className="sidebar-link-badge">{t("proximamente.badge")}</span>
-                    )}
-                    {!item.proximamente && esRutaPlus(item.href) && (
-                      <span className="sidebar-link-badge-plus" title={t("plus.badge_tooltip")}>Plus+</span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
+                {itemsVisibles.map((item) => {
+                  const isActive = pathname === item.href;
+                  const Icono = item.Icono;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onClose}
+                      className={`sidebar-link ${
+                        isActive ? "sidebar-link-active" : ""
+                      }`}
+                    >
+                      <Icono
+                        size={17}
+                        className="sidebar-link-icon"
+                        color={isActive ? "var(--primary)" : "var(--text-secondary)"}
+                      />
+                      {t(item.claveNombre)}
+                      {item.proximamente && (
+                        <span className="sidebar-link-badge">{t("proximamente.badge")}</span>
+                      )}
+                      {!item.proximamente && esRutaPlus(item.href) && (
+                        <span className="sidebar-link-badge-plus" title={t("plus.badge_tooltip")}>Plus+</span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="sidebar-footer">

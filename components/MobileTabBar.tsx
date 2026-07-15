@@ -20,7 +20,7 @@ export default function MobileTabBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useIdioma();
-  const { puede } = useMiembroActivo();
+  const { miembroActivo, puede } = useMiembroActivo();
   const [fabAbierto, setFabAbierto] = useState(false);
   const [ventaModalAbierto, setVentaModalAbierto] = useState(false);
 
@@ -88,7 +88,9 @@ export default function MobileTabBar() {
 
       <nav className="mobile-tabbar">
         <div className="mobile-tabbar-lado">
-          {tabs.slice(0, 2).map((tab) => {
+          {/* Un miembro del equipo navega desde el dashboard simple,
+              no desde esta barra — solo ve el "+" del centro. */}
+          {!miembroActivo && tabs.slice(0, 2).map((tab) => {
             const Icono = tab.Icono;
             const activo = pathname === tab.href;
 
@@ -121,7 +123,7 @@ export default function MobileTabBar() {
         </button>
 
         <div className="mobile-tabbar-lado">
-          {tabs.slice(2).map((tab) => {
+          {!miembroActivo && tabs.slice(2).map((tab) => {
             const Icono = tab.Icono;
             const activo = pathname === tab.href;
 
@@ -137,13 +139,15 @@ export default function MobileTabBar() {
             );
           })}
 
-          <Link
-            href="/mas"
-            className={`mobile-tab ${pathname === "/mas" ? "mobile-tab-activo" : ""}`}
-          >
-            <MenuIcon size={21} />
-            <span>{t("sidebar.mas")}</span>
-          </Link>
+          {!miembroActivo && (
+            <Link
+              href="/mas"
+              className={`mobile-tab ${pathname === "/mas" ? "mobile-tab-activo" : ""}`}
+            >
+              <MenuIcon size={21} />
+              <span>{t("sidebar.mas")}</span>
+            </Link>
+          )}
         </div>
       </nav>
     </>

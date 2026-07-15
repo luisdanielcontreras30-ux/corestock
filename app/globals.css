@@ -2558,6 +2558,69 @@ textarea:focus {
 }
 
 /* ==========================================================================
+   DASHBOARD SIMPLE (miembros del equipo): solo accesos directos
+   ========================================================================== */
+
+.dashboard-simple-saludo {
+  margin-bottom: 32px;
+}
+
+.dashboard-simple-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  max-width: 640px;
+}
+
+.dashboard-simple-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 36px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 15px;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.dashboard-simple-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.dashboard-simple-tile-icono {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.dashboard-simple-salir {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.dashboard-simple-salir:hover {
+  color: var(--danger);
+}
+
+/* ==========================================================================
    GRIDS RESPONSIVOS (antes eran inline styles fijos que se rompían en móvil)
    ========================================================================== */
 
