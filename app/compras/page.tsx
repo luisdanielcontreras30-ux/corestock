@@ -9,6 +9,7 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { Producto, Proveedor, Compra } from "./types";
 import { cargarDatos, registrarCompra, eliminarCompra } from "./acciones";
+import { exportarExcel } from "./utils";
 
 export default function ComprasPage() {
   return (
@@ -248,11 +249,20 @@ function ComprasContenido() {
         </div>
       </div>
 
-      <input
-        placeholder={t("compras.buscar")}
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-      />
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <input
+          style={{ flex: 1, minWidth: 200 }}
+          placeholder={t("compras.buscar")}
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+
+        {compras.length > 0 && (
+          <button className="btn-secondary" onClick={() => exportarExcel(compras)}>
+            {t("productos.exportar_excel")}
+          </button>
+        )}
+      </div>
 
       <div className="tabla">
         <table>

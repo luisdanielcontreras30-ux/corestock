@@ -16,6 +16,7 @@ import {
   eliminarCotizacion,
   convertirEnVenta,
 } from "./acciones";
+import { exportarExcel } from "./utils";
 
 const COLOR_ESTADO: Record<EstadoCotizacion, string> = {
   pendiente: "#f59e0b",
@@ -306,6 +307,12 @@ function CotizacionesContenido() {
           <option value="aceptada">{t("cotizaciones.estado_aceptada")}</option>
           <option value="rechazada">{t("cotizaciones.estado_rechazada")}</option>
         </select>
+
+        {cotizaciones.length > 0 && (
+          <button className="btn-secondary" onClick={() => exportarExcel(cotizaciones)}>
+            {t("productos.exportar_excel")}
+          </button>
+        )}
       </div>
 
       <div className="tabla">
