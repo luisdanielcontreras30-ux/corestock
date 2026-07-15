@@ -8,6 +8,7 @@ import { useSuscripcion } from "./SuscripcionProvider";
 import { useIdioma } from "./LanguageProvider";
 import { useToast } from "./ToastProvider";
 import { iniciarCheckoutPlus } from "../lib/suscripcionAcciones";
+import { BLOQUEO_PLUS_ACTIVO } from "../lib/suscripcion";
 
 // Envuelve el contenido de un módulo exclusivo de CoreStock Plus+. Si
 // el negocio no tiene el plan Plus+, muestra un aviso con enlace para
@@ -49,7 +50,7 @@ export default function RequierePlus({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!esPlus) {
+  if (BLOQUEO_PLUS_ACTIVO && !esPlus) {
     return (
       <main className="fade-up plus-requerido-page">
         <div className="card plus-requerido-card">

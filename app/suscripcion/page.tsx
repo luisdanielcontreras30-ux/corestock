@@ -8,6 +8,7 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useSuscripcion } from "../../components/SuscripcionProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { iniciarCheckoutPlus, abrirPortalFacturacion } from "../../lib/suscripcionAcciones";
+import { BLOQUEO_PLUS_ACTIVO } from "../../lib/suscripcion";
 
 const CARACTERISTICAS_FREE = [
   "sidebar.ventas",
@@ -198,7 +199,7 @@ function SuscripcionInterna() {
               <ExternalLink size={15} />
               {procesando ? t("plus.procesando") : t("plus.boton_gestionar")}
             </button>
-          ) : (
+          ) : BLOQUEO_PLUS_ACTIVO ? (
             <button
               className="btn-primary"
               style={{ marginTop: "auto" }}
@@ -207,6 +208,18 @@ function SuscripcionInterna() {
             >
               {procesando ? t("plus.procesando") : t("plus.boton_actualizar")}
             </button>
+          ) : (
+            <span
+              style={{
+                marginTop: "auto",
+                textAlign: "center",
+                fontSize: 12.5,
+                fontWeight: 700,
+                color: "#f59e0b",
+              }}
+            >
+              {t("plus.prueba_gratis_activa")}
+            </span>
           )}
         </div>
       </div>

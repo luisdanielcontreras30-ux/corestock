@@ -912,6 +912,7 @@ export const TRADUCCIONES: Diccionario = {
   "plus.procesando": { es: "Procesando…", en: "Processing…", pt: "Processando…", fr: "Traitement…", de: "Wird verarbeitet…", zh: "处理中…" },
   "plus.boton_gestionar": { es: "Gestionar mi suscripción", en: "Manage my subscription", pt: "Gerenciar minha assinatura", fr: "Gérer mon abonnement", de: "Mein Abonnement verwalten", zh: "管理我的订阅" },
   "plus.boton_actualizar": { es: "Actualizar a Plus+", en: "Upgrade to Plus+", pt: "Atualizar para Plus+", fr: "Passer à Plus+", de: "Auf Plus+ upgraden", zh: "升级到 Plus+" },
+  "plus.prueba_gratis_activa": { es: "Disponible gratis por tiempo limitado: ya puedes usarlo sin pagar.", en: "Free for a limited time — you can already use it at no cost.", pt: "Grátis por tempo limitado: você já pode usar sem pagar.", fr: "Gratuit pour une durée limitée : vous pouvez déjà l'utiliser sans payer.", de: "Für begrenzte Zeit kostenlos — du kannst es schon jetzt gratis nutzen.", zh: "限时免费：您现在就可以免费使用。" },
 
   // Mini tutorial de bienvenida (solo la primera vez que entra una cuenta nueva)
   "tutorial_inicio.paso0_titulo": { es: "¡Bienvenido a CoreStock!", en: "Welcome to CoreStock!", pt: "Bem-vindo ao CoreStock!", fr: "Bienvenue sur CoreStock !", de: "Willkommen bei CoreStock!", zh: "欢迎使用 CoreStock！" },
