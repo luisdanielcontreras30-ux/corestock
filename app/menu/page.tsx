@@ -573,6 +573,33 @@ export default function DashboardPremium() {
                   />
                   <Line type="monotone" dataKey="monto" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2.5} dot={false} />
                 </LineChart>
+              ) : tipoTendencia === "velas" ? (
+                <BarChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis
+                    stroke="var(--text-muted)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(valor) =>
+                      valor >= 1000
+                        ? `${(valor / 1000).toFixed(0)}k`
+                        : String(valor)
+                    }
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  />
+                  <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} radius={[3, 3, 3, 3]}>
+                    {dataLinea.map((punto, index) => {
+                      const anterior = index > 0 ? dataLinea[index - 1].monto : punto.monto;
+                      const sube = punto.monto >= anterior;
+                      return <Cell key={`vela-${index}`} fill={sube ? "#10b981" : "#ef4444"} />;
+                    })}
+                  </Bar>
+                </BarChart>
               ) : (
                 <AreaChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>

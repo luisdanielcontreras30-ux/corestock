@@ -262,6 +262,7 @@ export const TRADUCCIONES: Diccionario = {
   "tema.grafica_area": { es: "Área", en: "Area", pt: "Área", fr: "Aire", de: "Fläche", zh: "面积图" },
   "tema.grafica_linea": { es: "Línea", en: "Line", pt: "Linha", fr: "Ligne", de: "Linie", zh: "折线图" },
   "tema.grafica_barras": { es: "Barras", en: "Bars", pt: "Barras", fr: "Barres", de: "Balken", zh: "柱状图" },
+  "tema.grafica_velas": { es: "Velas", en: "Candlestick", pt: "Velas", fr: "Chandelier", de: "Kerzen", zh: "蜡烛图" },
   "tema.grafica_pastel": { es: "Pastel", en: "Pie", pt: "Pizza", fr: "Camembert", de: "Kreis", zh: "饼图" },
 
   // Configuración - Empresa

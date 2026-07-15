@@ -25,10 +25,11 @@ const opciones: OpcionTema[] = [
   { valor: "sunset", claveNombre: "tema.sunset.nombre", claveDesc: "tema.sunset.desc", colores: ["#170a05", "#2a150a", "#f97316"] },
 ];
 
-const OPCIONES_TENDENCIA: { valor: "area" | "linea" | "barras"; clave: string }[] = [
+const OPCIONES_TENDENCIA: { valor: "area" | "linea" | "barras" | "velas"; clave: string }[] = [
   { valor: "area", clave: "tema.grafica_area" },
   { valor: "linea", clave: "tema.grafica_linea" },
   { valor: "barras", clave: "tema.grafica_barras" },
+  { valor: "velas", clave: "tema.grafica_velas" },
 ];
 
 const OPCIONES_DISTRIBUCION: { valor: "pastel" | "barras"; clave: string }[] = [

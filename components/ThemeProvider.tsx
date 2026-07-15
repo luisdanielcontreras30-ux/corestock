@@ -14,7 +14,7 @@ export type Tema = "dark" | "green" | "blue" | "purple" | "amber" | "slate" | "c
 // para la distribución de artículos (pastel/barras) — se pueden
 // personalizar desde Configuración > Apariencia y afectan a las
 // gráficas del dashboard.
-export type TipoGraficaTendencia = "area" | "linea" | "barras";
+export type TipoGraficaTendencia = "area" | "linea" | "barras" | "velas";
 export type TipoGraficaDistribucion = "pastel" | "barras";
 
 interface TemaContexto {
@@ -44,7 +44,7 @@ const CLAVE_STORAGE_TENDENCIA = "corestock-grafica-tendencia";
 const CLAVE_STORAGE_DISTRIBUCION = "corestock-grafica-distribucion";
 
 const TEMAS_VALIDOS: Tema[] = ["dark", "green", "blue", "purple", "amber", "slate", "cyan", "wine", "light", "pink", "mint", "sunset"];
-const TENDENCIAS_VALIDAS: TipoGraficaTendencia[] = ["area", "linea", "barras"];
+const TENDENCIAS_VALIDAS: TipoGraficaTendencia[] = ["area", "linea", "barras", "velas"];
 const DISTRIBUCIONES_VALIDAS: TipoGraficaDistribucion[] = ["pastel", "barras"];
 
 export default function ThemeProvider({
