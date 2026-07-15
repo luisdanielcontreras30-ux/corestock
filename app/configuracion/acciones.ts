@@ -56,9 +56,12 @@ export async function guardarEmpresa(
 export async function cargarMiembros(): Promise<Miembro[]> {
   const user = await obtenerUsuarioActual();
 
+  // Nunca selecciona password_hash: esta consulta corre con la
+  // sesión del navegador, y ese hash solo debe pasar por rutas de
+  // servidor (app/api/miembros/**).
   const { data, error } = await supabase
     .from("miembros_equipo")
-    .select("*")
+    .select("id, user_id, nombre, correo, rol, permisos, activo, tiene_contrasena, creado_en")
     .eq("user_id", user.id)
     .order("creado_en", { ascending: true });
 
@@ -74,21 +77,27 @@ export async function crearMiembro(
   correo: string,
   rol: Rol,
   permisos: Permiso[]
-): Promise<void> {
+): Promise<string> {
   const user = await obtenerUsuarioActual();
 
-  const { error } = await supabase.from("miembros_equipo").insert({
-    user_id: user.id,
-    nombre,
-    correo,
-    rol,
-    permisos,
-    activo: true,
-  });
+  const { data, error } = await supabase
+    .from("miembros_equipo")
+    .insert({
+      user_id: user.id,
+      nombre,
+      correo,
+      rol,
+      permisos,
+      activo: true,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     throw error;
   }
+
+  return data.id as string;
 }
 
 export async function actualizarMiembro(
@@ -108,30 +117,68 @@ export async function actualizarMiembro(
   }
 }
 
-// Se usa en el login: valida el nombre que escribió quien inició
-// sesión contra los miembros del equipo activos de esa cuenta. No usa
-// obtenerUsuarioActual() porque se llama justo después de un
-// signInWithPassword exitoso, con el id de usuario ya disponible.
-export async function buscarMiembroPorNombre(
-  userId: string,
-  nombre: string
-): Promise<Miembro | null> {
-  const { data, error } = await supabase
-    .from("miembros_equipo")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("activo", true);
+async function obtenerAccessToken(): Promise<string> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (error) {
-    throw error;
+  if (!session) {
+    throw new Error("Sesión no encontrada.");
   }
 
-  const buscado = nombre.trim().toLowerCase();
-  const encontrado = ((data ?? []) as Miembro[]).find(
-    (m) => m.nombre.trim().toLowerCase() === buscado
-  );
+  return session.access_token;
+}
 
-  return encontrado ?? null;
+export type RazonLoginMiembro = "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta";
+
+export type ResultadoLoginMiembro =
+  | { ok: true; miembro: Miembro }
+  | { ok: false; razon: RazonLoginMiembro };
+
+// Se llama en el login, justo después de un signInWithPassword
+// exitoso: confirma en el servidor (nunca en el navegador) que el
+// nombre y la contraseña que escribió la persona coinciden con un
+// miembro del equipo activo de esa cuenta.
+export async function verificarLoginMiembro(
+  nombre: string,
+  password: string
+): Promise<ResultadoLoginMiembro> {
+  const token = await obtenerAccessToken();
+
+  const respuesta = await fetch("/api/miembros/verificar-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ nombre, password }),
+  });
+
+  const datos = await respuesta.json();
+
+  if (!respuesta.ok) {
+    throw new Error(datos.error || "No se pudo verificar el usuario.");
+  }
+
+  return datos as ResultadoLoginMiembro;
+}
+
+// Se llama desde "Miembros del equipo" (crear/editar) cuando el dueño
+// escribe una contraseña para ese miembro. El hash se calcula en el
+// servidor (app/api/miembros/set-password) — nunca en el navegador.
+export async function establecerContrasenaMiembro(
+  miembroId: string,
+  password: string
+): Promise<void> {
+  const token = await obtenerAccessToken();
+
+  const respuesta = await fetch("/api/miembros/set-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ miembroId, password }),
+  });
+
+  if (!respuesta.ok) {
+    const datos = await respuesta.json();
+    throw new Error(datos.error || "No se pudo guardar la contraseña.");
+  }
 }
 
 export async function eliminarMiembro(id: string): Promise<void> {

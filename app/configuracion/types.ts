@@ -51,6 +51,7 @@ export interface Miembro {
   rol: Rol;
   permisos: Permiso[];
   activo: boolean;
+  tiene_contrasena: boolean;
 }
 
 export interface EmpresaConfig {

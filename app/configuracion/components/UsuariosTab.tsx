@@ -16,6 +16,7 @@ import {
   actualizarMiembro,
   eliminarMiembro,
   cambiarMiContrasena,
+  establecerContrasenaMiembro,
 } from "../acciones";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
@@ -36,6 +37,7 @@ export default function UsuariosTab() {
   const [permisos, setPermisos] = useState<Permiso[]>(
     PERMISOS_POR_ROL.cajero
   );
+  const [contrasenaMiembro, setContrasenaMiembro] = useState("");
   const [guardando, setGuardando] = useState(false);
 
   const [nuevaContrasena, setNuevaContrasena] = useState("");
@@ -66,6 +68,7 @@ export default function UsuariosTab() {
     setCorreo("");
     setRol("cajero");
     setPermisos(PERMISOS_POR_ROL.cajero);
+    setContrasenaMiembro("");
     setMostrarForm(true);
   }
 
@@ -75,6 +78,7 @@ export default function UsuariosTab() {
     setCorreo(m.correo ?? "");
     setRol(m.rol);
     setPermisos(m.permisos);
+    setContrasenaMiembro("");
     setMostrarForm(true);
   }
 
@@ -97,18 +101,30 @@ export default function UsuariosTab() {
       return;
     }
 
+    if (contrasenaMiembro && contrasenaMiembro.length < 6) {
+      mostrarToast(t("usuarios.msg_contrasena_corta"), "error");
+      return;
+    }
+
     setGuardando(true);
 
     try {
+      let id: string;
+
       if (editando) {
-        await actualizarMiembro(editando.id, {
-          nombre,
-          correo,
-          rol,
-          permisos,
-        });
+        await actualizarMiembro(editando.id, { nombre, correo, rol, permisos });
+        id = editando.id;
       } else {
-        await crearMiembro(nombre, correo, rol, permisos);
+        id = await crearMiembro(nombre, correo, rol, permisos);
+      }
+
+      if (contrasenaMiembro) {
+        try {
+          await establecerContrasenaMiembro(id, contrasenaMiembro);
+        } catch (error) {
+          console.error(error);
+          mostrarToast(t("usuarios.msg_error_contrasena"), "error");
+        }
       }
 
       setMostrarForm(false);
@@ -290,6 +306,7 @@ export default function UsuariosTab() {
                   <th>{t("usuarios.col_correo")}</th>
                   <th>{t("usuarios.col_rol")}</th>
                   <th>{t("usuarios.col_permisos")}</th>
+                  <th>{t("usuarios.col_contrasena")}</th>
                   <th>{t("usuarios.col_estado")}</th>
                   <th>{t("usuarios.col_acciones")}</th>
                 </tr>
@@ -304,6 +321,19 @@ export default function UsuariosTab() {
                       {t(ROLES.find((r) => r.valor === m.rol)?.clave ?? m.rol)}
                     </td>
                     <td>{m.permisos.length} {t("usuarios.permisos_cantidad")}</td>
+                    <td>
+                      <span
+                        style={{
+                          color: m.tiene_contrasena ? "#10b981" : "#f59e0b",
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {m.tiene_contrasena
+                          ? t("usuarios.contrasena_configurada")
+                          : t("usuarios.contrasena_sin_configurar")}
+                      </span>
+                    </td>
                     <td>
                       <button
                         onClick={() => alternarActivo(m)}
@@ -389,6 +419,20 @@ export default function UsuariosTab() {
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
                   placeholder="correo@ejemplo.com"
+                />
+              </div>
+
+              <div>
+                <label>{t("usuarios.contrasena_miembro")}</label>
+                <input
+                  type="password"
+                  value={contrasenaMiembro}
+                  onChange={(e) => setContrasenaMiembro(e.target.value)}
+                  placeholder={
+                    editando
+                      ? t("usuarios.contrasena_miembro_editar")
+                      : t("usuarios.contrasena_miembro_nueva")
+                  }
                 />
               </div>
 

@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Package, BarChart3, Zap } from "lucide-react";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
-import { buscarMiembroPorNombre } from "../configuracion/acciones";
+import { verificarLoginMiembro } from "../configuracion/acciones";
 
 export default function Login() {
   return (
@@ -24,6 +24,7 @@ function LoginInterno() {
   const [modo, setModo] = useState<"login" | "registro">(modoInicial);
   const [correo, setCorreo] = useState("");
   const [usuario, setUsuario] = useState("");
+  const [passwordMiembro, setPasswordMiembro] = useState("");
   const [password, setPassword] = useState("");
   const [confirmarPassword, setConfirmarPassword] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -40,6 +41,13 @@ function LoginInterno() {
       return;
     }
 
+    const nombreUsuario = usuario.trim();
+
+    if (nombreUsuario && !passwordMiembro) {
+      setError("Escribe tu contraseña de usuario.");
+      return;
+    }
+
     setCargando(true);
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -53,13 +61,11 @@ function LoginInterno() {
       return;
     }
 
-    const nombreUsuario = usuario.trim();
-
     // Sin nombre de usuario, entra como el dueño de la cuenta (sin
     // restricciones) — así sigue funcionando igual que antes de este
     // campo existir. Con un nombre, debe coincidir con un miembro del
-    // equipo activo o se rechaza el acceso aunque el correo y la
-    // contraseña sean correctos.
+    // equipo activo y su propia contraseña, o se rechaza el acceso
+    // aunque el correo y la contraseña de la cuenta sean correctos.
     if (!nombreUsuario) {
       limpiarMiembroActivo();
       router.push("/");
@@ -67,16 +73,16 @@ function LoginInterno() {
     }
 
     try {
-      const miembro = await buscarMiembroPorNombre(data.user!.id, nombreUsuario);
+      const resultado = await verificarLoginMiembro(nombreUsuario, passwordMiembro);
 
-      if (!miembro) {
+      if (!resultado.ok) {
         await supabase.auth.signOut();
-        setError("Este usuario no existe.");
+        setError(traducirRazonLoginMiembro(resultado.razon));
         setCargando(false);
         return;
       }
 
-      establecerMiembroActivo(miembro, data.user!.id);
+      establecerMiembroActivo(resultado.miembro, data.user!.id);
       router.push("/");
     } catch (err) {
       console.error(err);
@@ -84,6 +90,12 @@ function LoginInterno() {
       setError("No se pudo verificar el usuario. Intenta de nuevo.");
       setCargando(false);
     }
+  }
+
+  function traducirRazonLoginMiembro(razon: "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta"): string {
+    if (razon === "no_encontrado") return "Este usuario no existe.";
+    if (razon === "sin_contrasena") return "Este usuario todavía no tiene contraseña. Pide al dueño que te asigne una en Miembros del equipo.";
+    return "Contraseña de usuario incorrecta.";
   }
 
   async function registrarse() {
@@ -212,7 +224,21 @@ function LoginInterno() {
             </>
           )}
 
-          <label className="login-label">Contraseña</label>
+          {modo === "login" && usuario.trim() && (
+            <>
+              <label className="login-label">Tu contraseña</label>
+              <input
+                type="password"
+                placeholder="La tuya, no la de la cuenta"
+                value={passwordMiembro}
+                onChange={(e) => setPasswordMiembro(e.target.value)}
+              />
+            </>
+          )}
+
+          <label className="login-label">
+            {modo === "login" && usuario.trim() ? "Contraseña de la cuenta" : "Contraseña"}
+          </label>
           <input
             type="password"
             placeholder="••••••••"
@@ -251,6 +277,8 @@ function LoginInterno() {
               setError("");
               setMensaje("");
               setConfirmarPassword("");
+              setUsuario("");
+              setPasswordMiembro("");
             }}
           >
             {modo === "login"
