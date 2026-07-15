@@ -19,7 +19,8 @@ returns table (
   producto_id bigint,
   producto_nombre text,
   producto_precio numeric,
-  producto_imagen text
+  producto_imagen text,
+  producto_categoria text
 )
 language sql
 security definer
@@ -32,12 +33,13 @@ as $$
     p.id,
     p.nombre,
     p.precio_venta,
-    p.imagen
+    p.imagen,
+    p.categoria
   from empresa_config e
   left join productos p on p.user_id = e.user_id and p.activo = true
   where e.user_id = p_user_id
     and e.catalogo_activo = true
-  order by p.nombre;
+  order by p.categoria nulls last, p.nombre;
 $$;
 
 grant execute on function public.obtener_catalogo_publico(uuid) to anon, authenticated;

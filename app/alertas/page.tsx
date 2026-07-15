@@ -7,6 +7,7 @@ import { Package, CheckCircle2, XCircle, AlertTriangle, Bell } from "lucide-reac
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import ContadorAnimado from "../../components/ContadorAnimado";
 
 interface ProductoAlerta {
   id: number;
@@ -107,21 +108,27 @@ export default function Alertas() {
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
             {t("alertas.total_alertas")}
           </p>
-          <h2 style={{ fontSize: 30, margin: "10px 0 0 0" }}>{alertas.length}</h2>
+          <h2 style={{ fontSize: 30, margin: "10px 0 0 0" }}>
+            <ContadorAnimado valor={alertas.length} decimales={0} />
+          </h2>
         </div>
 
         <div className="card">
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
             {t("alertas.stock_bajo")}
           </p>
-          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#f59e0b" }}>{stockBajo}</h2>
+          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#f59e0b" }}>
+            <ContadorAnimado valor={stockBajo} decimales={0} />
+          </h2>
         </div>
 
         <div className="card">
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
             {t("alertas.agotados")}
           </p>
-          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#ef4444" }}>{agotados}</h2>
+          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#ef4444" }}>
+            <ContadorAnimado valor={agotados} decimales={0} />
+          </h2>
         </div>
       </div>
 

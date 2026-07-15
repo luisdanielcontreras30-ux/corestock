@@ -7,6 +7,7 @@ import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoConciliacion, TipoMovimientoConciliacion } from "./types";
 import { cargarMovimientos, crearMovimiento, alternarConciliado, eliminarMovimiento } from "./acciones";
 
@@ -150,7 +151,7 @@ function ConciliacionesContenido() {
             {t("conciliaciones.total_abonos")}
           </p>
           <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#10b981" }}>
-            ${resumen.totalAbonos.toFixed(2)}
+            $<ContadorAnimado valor={resumen.totalAbonos} decimales={2} />
           </h2>
         </div>
         <div className="card">
@@ -158,14 +159,16 @@ function ConciliacionesContenido() {
             {t("conciliaciones.total_cargos")}
           </p>
           <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#ef4444" }}>
-            ${resumen.totalCargos.toFixed(2)}
+            $<ContadorAnimado valor={resumen.totalCargos} decimales={2} />
           </h2>
         </div>
         <div className="card">
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
             {t("conciliaciones.pendientes")}
           </p>
-          <h2 style={{ fontSize: 30, margin: "10px 0 0 0" }}>{resumen.pendiente}</h2>
+          <h2 style={{ fontSize: 30, margin: "10px 0 0 0" }}>
+            <ContadorAnimado valor={resumen.pendiente} decimales={0} />
+          </h2>
         </div>
       </div>
 

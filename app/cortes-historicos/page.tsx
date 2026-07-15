@@ -7,6 +7,7 @@ import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoCaja } from "../caja/types";
 import { cargarCierres } from "../caja/acciones";
 
@@ -87,14 +88,18 @@ function CortesHistoricosContenido() {
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
             {t("cortes_historicos.total_cortes")}
           </p>
-          <h2 style={{ fontSize: 30, margin: "10px 0 0 0" }}>{totalCortes}</h2>
+          <h2 style={{ fontSize: 30, margin: "10px 0 0 0" }}>
+            <ContadorAnimado valor={totalCortes} decimales={0} />
+          </h2>
         </div>
 
         <div className="card">
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
             {t("cortes_historicos.cuadrados")}
           </p>
-          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#10b981" }}>{cuadrados}</h2>
+          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#10b981" }}>
+            <ContadorAnimado valor={cuadrados} decimales={0} />
+          </h2>
         </div>
 
         <div className="card">
@@ -108,7 +113,7 @@ function CortesHistoricosContenido() {
               color: esDiferenciaCero(diferenciaAcumulada) ? "var(--text-primary)" : "#ef4444",
             }}
           >
-            ${diferenciaAcumulada.toFixed(2)}
+            $<ContadorAnimado valor={diferenciaAcumulada} decimales={2} />
           </h2>
         </div>
       </div>

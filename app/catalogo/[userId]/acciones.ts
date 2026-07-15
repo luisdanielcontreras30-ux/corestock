@@ -5,6 +5,7 @@ export interface ProductoPublico {
   nombre: string;
   precio: number;
   imagen: string | null;
+  categoria: string;
 }
 
 interface FilaCatalogoPublico {
@@ -15,6 +16,7 @@ interface FilaCatalogoPublico {
   producto_nombre: string | null;
   producto_precio: number | null;
   producto_imagen: string | null;
+  producto_categoria: string | null;
 }
 
 export async function obtenerCatalogoPublico(userId: string) {
@@ -39,6 +41,7 @@ export async function obtenerCatalogoPublico(userId: string) {
       nombre: fila.producto_nombre ?? "",
       precio: fila.producto_precio ?? 0,
       imagen: fila.producto_imagen,
+      categoria: fila.producto_categoria?.trim() || "",
     }));
 
   return {
