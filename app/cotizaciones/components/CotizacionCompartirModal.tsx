@@ -3,6 +3,7 @@
 import { Printer, MessageCircle, Mail, Camera } from "lucide-react";
 import { Cotizacion } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { useToast } from "../../../components/ToastProvider";
 
 interface Props {
   cotizacion: Cotizacion;
@@ -11,6 +12,7 @@ interface Props {
 
 export default function CotizacionCompartirModal({ cotizacion, onClose }: Props) {
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
   const folio = `COT-${String(cotizacion.id).padStart(6, "0")}`;
   const nombreCliente = cotizacion.cliente_nombre || t("ventas.cliente_general");
   const fecha = new Date(cotizacion.fecha).toLocaleDateString();
@@ -50,9 +52,9 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
 
     try {
       await navigator.clipboard.writeText(mensaje);
-      alert(t("cotizaciones.msg_copiado_instagram"));
+      mostrarToast(t("cotizaciones.msg_copiado_instagram"), "exito");
     } catch {
-      alert(t("cotizaciones.msg_copiar_manual"));
+      mostrarToast(t("cotizaciones.msg_copiar_manual"), "error");
     }
     window.open("https://www.instagram.com/direct/inbox/", "_blank");
   }

@@ -40,7 +40,7 @@ export default function HistorialModal({
             </p>
           </div>
 
-          <button className="btn-secondary" onClick={onClose}>
+          <button className="btn-secondary" onClick={onClose} aria-label={t("factura.cerrar")}>
             <X size={16} />
           </button>
         </div>

@@ -135,6 +135,7 @@ export default function UsuariosTab() {
       await refrescar();
     } catch (error) {
       console.error(error);
+      alert(t("usuarios.msg_error_guardar_miembro"));
     }
   }
 

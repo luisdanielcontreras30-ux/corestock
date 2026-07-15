@@ -394,7 +394,11 @@ function FabricacionContenido() {
                     <span style={{ fontSize: 13.5 }}>
                       {r.cantidad_por_unidad} × {r.materia_prima_nombre}
                     </span>
-                    <button className="btn-delete" onClick={() => borrarIngrediente(r.id)}>
+                    <button
+                      className="btn-delete"
+                      onClick={() => borrarIngrediente(r.id)}
+                      aria-label={t("productos.eliminar")}
+                    >
                       <Trash2 size={13} />
                     </button>
                   </div>

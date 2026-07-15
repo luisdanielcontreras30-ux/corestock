@@ -214,7 +214,19 @@ function ProductosInterno() {
   }
 
   function exportarExcel() {
-    const ws = XLSX.utils.json_to_sheet(productos);
+    // Solo las columnas que la importación también sabe leer — sin el
+    // id interno ni la URL cruda de la imagen, que no aportan nada
+    // útil al abrir el archivo en Excel.
+    const datos = productos.map((p) => ({
+      nombre: p.nombre,
+      categoria: p.categoria,
+      precio_venta: p.precio_venta,
+      costo: p.costo ?? 0,
+      stock: p.stock,
+      stock_minimo: p.stock_minimo ?? 5,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(datos);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Productos");
     XLSX.writeFile(wb, "productos.xlsx");
