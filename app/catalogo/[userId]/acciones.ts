@@ -12,6 +12,7 @@ interface FilaCatalogoPublico {
   nombre_negocio: string;
   logo_url: string | null;
   color_principal: string | null;
+  telefono: string | null;
   producto_id: number | null;
   producto_nombre: string | null;
   producto_precio: number | null;
@@ -49,6 +50,7 @@ export async function obtenerCatalogoPublico(userId: string) {
     nombreNegocio: primera.nombre_negocio,
     logoUrl: primera.logo_url,
     colorPrincipal: primera.color_principal ?? "#5945e4",
+    telefono: primera.telefono,
     productos,
   };
 }

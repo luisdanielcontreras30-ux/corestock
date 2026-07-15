@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useMemo, useState } from "react";
-import { Store, PackageX, ChevronDown } from "lucide-react";
+import { Store, PackageX, ChevronDown, MessageCircle, FileText, X } from "lucide-react";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { obtenerCatalogoPublico, ProductoPublico } from "./acciones";
 
@@ -14,6 +14,15 @@ interface Categoria {
   productos: ProductoPublico[];
 }
 
+function limpiarTelefono(telefono: string) {
+  return telefono.replace(/[^\d]/g, "");
+}
+
+function enlaceWhatsApp(telefono: string, mensaje: string) {
+  const numero = limpiarTelefono(telefono);
+  return `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(mensaje)}`;
+}
+
 export default function CatalogoPublicoPage({ params }: Props) {
   const { userId } = use(params);
   const { t } = useIdioma();
@@ -23,7 +32,9 @@ export default function CatalogoPublicoPage({ params }: Props) {
   const [nombreNegocio, setNombreNegocio] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [colorPrincipal, setColorPrincipal] = useState("#5945e4");
+  const [telefono, setTelefono] = useState<string | null>(null);
   const [productos, setProductos] = useState<ProductoPublico[]>([]);
+  const [productoSeleccionado, setProductoSeleccionado] = useState<ProductoPublico | null>(null);
 
   useEffect(() => {
     obtenerCatalogoPublico(userId)
@@ -33,6 +44,7 @@ export default function CatalogoPublicoPage({ params }: Props) {
           setNombreNegocio(datos.nombreNegocio);
           setLogoUrl(datos.logoUrl);
           setColorPrincipal(datos.colorPrincipal);
+          setTelefono(datos.telefono);
           setProductos(datos.productos);
         }
       })
@@ -121,7 +133,11 @@ export default function CatalogoPublicoPage({ params }: Props) {
 
             <div className="catalogo-publico-productos-fila">
               {cat.productos.map((p) => (
-                <div key={p.id} className="card catalogo-publico-producto">
+                <div
+                  key={p.id}
+                  className="card catalogo-publico-producto"
+                  onClick={() => setProductoSeleccionado(p)}
+                >
                   <div className="catalogo-publico-producto-imagen">
                     {p.imagen ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -146,6 +162,62 @@ export default function CatalogoPublicoPage({ params }: Props) {
             )}
           </section>
         ))
+      )}
+
+      {productoSeleccionado && (
+        <div
+          className="catalogo-publico-overlay"
+          onClick={() => setProductoSeleccionado(null)}
+        >
+          <div className="catalogo-publico-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="catalogo-publico-sheet-header">
+              <p>{productoSeleccionado.nombre}</p>
+              <button onClick={() => setProductoSeleccionado(null)} aria-label={t("factura.cerrar")}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {telefono ? (
+              <>
+                <a
+                  className="catalogo-publico-sheet-opcion"
+                  href={enlaceWhatsApp(
+                    telefono,
+                    t("catalogo_publico.msg_cotizar")
+                      .replace("{producto}", productoSeleccionado.nombre)
+                      .replace("{precio}", Number(productoSeleccionado.precio).toFixed(2))
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="catalogo-publico-sheet-opcion-icono" style={{ background: colorPrincipal }}>
+                    <FileText size={20} color="#fff" />
+                  </span>
+                  {t("catalogo_publico.realizar_cotizacion")}
+                </a>
+
+                <a
+                  className="catalogo-publico-sheet-opcion"
+                  href={enlaceWhatsApp(
+                    telefono,
+                    t("catalogo_publico.msg_contactar").replace("{producto}", productoSeleccionado.nombre)
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="catalogo-publico-sheet-opcion-icono" style={{ background: "#25d366" }}>
+                    <MessageCircle size={20} color="#fff" />
+                  </span>
+                  {t("catalogo_publico.comunicarme_whatsapp")}
+                </a>
+              </>
+            ) : (
+              <p style={{ color: "var(--text-secondary)", fontSize: 13.5, padding: "8px 0" }}>
+                {t("catalogo_publico.sin_contacto")}
+              </p>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

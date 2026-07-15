@@ -3097,7 +3097,7 @@ textarea:focus {
 
 .catalogo-publico-productos-fila {
   display: flex;
-  gap: 14px;
+  gap: 8px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding: 4px 4px 12px 4px;
@@ -3107,8 +3107,14 @@ textarea:focus {
 .catalogo-publico-producto {
   scroll-snap-align: start;
   flex: 0 0 auto;
-  width: 190px;
-  padding: 14px;
+  width: 155px;
+  padding: 10px;
+  cursor: pointer;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.catalogo-publico-producto:active {
+  transform: scale(0.97);
 }
 
 .catalogo-publico-producto-imagen {
@@ -3144,4 +3150,87 @@ textarea:focus {
   .catalogo-publico-siguiente {
     animation: none;
   }
+}
+
+.catalogo-publico-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 320;
+  display: flex;
+  align-items: flex-end;
+}
+
+.catalogo-publico-sheet {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 18px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: catalogoSheetSubir 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes catalogoSheetSubir {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.catalogo-publico-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.catalogo-publico-sheet-header p {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 15px;
+  margin: 0;
+}
+
+.catalogo-publico-sheet-header button {
+  background: var(--glass-bg);
+  border: none;
+  color: var(--text-secondary);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.catalogo-publico-sheet-opcion {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 14px;
+  color: var(--text-primary);
+  font-size: 14.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform var(--transition-fast);
+}
+
+.catalogo-publico-sheet-opcion:active {
+  transform: scale(0.97);
+}
+
+.catalogo-publico-sheet-opcion-icono {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
 }

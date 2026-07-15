@@ -4,10 +4,13 @@
 -- empresa_config, y crea una función pública (SECURITY DEFINER) que es
 -- la ÚNICA forma en que alguien sin sesión puede leer datos de tu
 -- negocio — y solo lo que explícitamente decides mostrar (nombre,
--- logo, color y tus productos activos), y solo cuando tú activaste el
--- catálogo. No se otorga ningún permiso de lectura directo sobre
--- "productos" ni "empresa_config" a usuarios anónimos: todo pasa por
--- esta función, que decide qué columnas devolver.
+-- logo, color, teléfono y tus productos activos), y solo cuando tú
+-- activaste el catálogo. El teléfono se incluye a propósito: es el
+-- número al que el botón de WhatsApp del catálogo le escribe al
+-- cliente final, así que necesariamente es público en esta página.
+-- No se otorga ningún permiso de lectura directo sobre "productos" ni
+-- "empresa_config" a usuarios anónimos: todo pasa por esta función,
+-- que decide qué columnas devolver.
 
 alter table empresa_config add column if not exists catalogo_activo boolean not null default false;
 
@@ -21,6 +24,7 @@ returns table (
   nombre_negocio text,
   logo_url text,
   color_principal text,
+  telefono text,
   producto_id bigint,
   producto_nombre text,
   producto_precio numeric,
@@ -35,6 +39,7 @@ as $$
     e.nombre_negocio,
     e.logo_url,
     e.color_principal,
+    e.telefono,
     p.id,
     p.nombre,
     p.precio_venta,
