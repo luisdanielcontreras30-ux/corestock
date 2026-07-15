@@ -652,6 +652,7 @@ export const TRADUCCIONES: Diccionario = {
   "clientes.editar": { es: "Editar", en: "Edit", pt: "Editar", fr: "Modifier", de: "Bearbeiten", zh: "编辑" },
   "clientes.eliminar": { es: "Eliminar", en: "Delete", pt: "Excluir", fr: "Supprimer", de: "Löschen", zh: "删除" },
   "clientes.sin_clientes": { es: "No hay clientes registrados.", en: "No customers registered.", pt: "Nenhum cliente registrado.", fr: "Aucun client enregistré.", de: "Keine Kunden erfasst.", zh: "没有已登记的客户。" },
+  "clientes.sin_resultados_busqueda": { es: "Ningún cliente coincide con tu búsqueda.", en: "No customers match your search.", pt: "Nenhum cliente corresponde à sua busca.", fr: "Aucun client ne correspond à votre recherche.", de: "Kein Kunde entspricht deiner Suche.", zh: "没有符合搜索条件的客户。" },
   "clientes.confirmar_eliminar": { es: "¿Eliminar este cliente?", en: "Delete this customer?", pt: "Excluir este cliente?", fr: "Supprimer ce client ?", de: "Diesen Kunden löschen?", zh: "确定要删除此客户吗？" },
   "clientes.msg_nombre_requerido": { es: "El nombre es obligatorio.", en: "Name is required.", pt: "O nome é obrigatório.", fr: "Le nom est obligatoire.", de: "Der Name ist erforderlich.", zh: "姓名为必填项。" },
   "clientes.msg_error_guardar": { es: "No se pudo guardar el cliente.", en: "Could not save the customer.", pt: "Não foi possível salvar o cliente.", fr: "Impossible d'enregistrer le client.", de: "Kunde konnte nicht gespeichert werden.", zh: "无法保存客户。" },

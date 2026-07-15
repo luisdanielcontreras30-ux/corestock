@@ -177,6 +177,7 @@ export default function ClientesPage() {
       ) : (
         <ClientesTabla
           clientes={clientesFiltrados}
+          hayClientesRegistrados={clientes.length > 0}
           onVerHistorial={verHistorial}
           onEditar={editarCliente}
           onEliminar={borrarCliente}

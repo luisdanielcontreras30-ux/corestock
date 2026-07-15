@@ -51,7 +51,7 @@ export async function cargarClientes() {
     };
 
     actual.compras += 1;
-    actual.totalGastado += venta.total;
+    actual.totalGastado += Number(venta.total);
 
     resumenPorCliente.set(venta.cliente_id, actual);
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Printer, MessageCircle } from "lucide-react";
 import { Venta } from "../types";
 import { formatoFecha, formatoMoneda, CLAVE_METODO_PAGO } from "../utils";
@@ -14,6 +15,7 @@ interface Props {
 export default function FacturaModal({ venta, onClose }: Props) {
   const { t } = useIdioma();
   const empresa = useEmpresa();
+  const [logoRoto, setLogoRoto] = useState(false);
   const nombreNegocio = empresa?.nombre_negocio?.trim() || "CoreStock";
   const folio = `F-${String(venta.id).padStart(6, "0")}`;
 
@@ -64,11 +66,12 @@ export default function FacturaModal({ venta, onClose }: Props) {
         <div className="factura-hoja">
           <div className="factura-header">
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {empresa?.logo_url && (
+              {empresa?.logo_url && !logoRoto && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={empresa.logo_url}
                   alt={nombreNegocio}
+                  onError={() => setLogoRoto(true)}
                   style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }}
                 />
               )}

@@ -34,7 +34,7 @@ export async function cargarProveedores(userId: string): Promise<ProveedorConRes
     };
 
     actual.compras += 1;
-    actual.totalGastado += compra.total;
+    actual.totalGastado += Number(compra.total);
 
     resumenPorProveedor.set(compra.proveedor_id, actual);
   }

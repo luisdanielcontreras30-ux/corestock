@@ -6,6 +6,7 @@ import { useIdioma } from "../../../components/LanguageProvider";
 
 interface Props {
   clientes: ClienteConResumen[];
+  hayClientesRegistrados: boolean;
   onVerHistorial: (cliente: ClienteConResumen) => void;
   onEditar: (cliente: ClienteConResumen) => void;
   onEliminar: (id: number) => void;
@@ -13,6 +14,7 @@ interface Props {
 
 export default function ClientesTabla({
   clientes,
+  hayClientesRegistrados,
   onVerHistorial,
   onEditar,
   onEliminar,
@@ -37,7 +39,7 @@ export default function ClientesTabla({
           {clientes.length === 0 ? (
             <tr>
               <td colSpan={6} style={{ textAlign: "center", padding: 30 }}>
-                {t("clientes.sin_clientes")}
+                {hayClientesRegistrados ? t("clientes.sin_resultados_busqueda") : t("clientes.sin_clientes")}
               </td>
             </tr>
           ) : (

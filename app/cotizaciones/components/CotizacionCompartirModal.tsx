@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Printer, MessageCircle, Mail, Camera } from "lucide-react";
 import { Cotizacion } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
@@ -15,6 +16,7 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const empresa = useEmpresa();
+  const [logoRoto, setLogoRoto] = useState(false);
   const nombreNegocio = empresa?.nombre_negocio?.trim() || "CoreStock";
   const folio = `COT-${String(cotizacion.id).padStart(6, "0")}`;
   const nombreCliente = cotizacion.cliente_nombre || t("ventas.cliente_general");
@@ -99,11 +101,12 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
         <div className="factura-hoja">
           <div className="factura-header">
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {empresa?.logo_url && (
+              {empresa?.logo_url && !logoRoto && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={empresa.logo_url}
                   alt={nombreNegocio}
+                  onError={() => setLogoRoto(true)}
                   style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }}
                 />
               )}
