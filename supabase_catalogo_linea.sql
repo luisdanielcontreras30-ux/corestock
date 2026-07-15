@@ -11,7 +11,12 @@
 
 alter table empresa_config add column if not exists catalogo_activo boolean not null default false;
 
-create or replace function public.obtener_catalogo_publico(p_user_id uuid)
+-- Postgres no deja cambiar las columnas de salida de una función con
+-- CREATE OR REPLACE — hay que borrarla primero (es seguro, se vuelve a
+-- crear justo abajo).
+drop function if exists public.obtener_catalogo_publico(uuid);
+
+create function public.obtener_catalogo_publico(p_user_id uuid)
 returns table (
   nombre_negocio text,
   logo_url text,
