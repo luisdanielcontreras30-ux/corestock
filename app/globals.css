@@ -440,7 +440,7 @@ body {
   padding: 14px 16px;
   background-color: var(--table-header-bg);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   border-bottom: 1px solid var(--border);
   text-align: left;
@@ -449,7 +449,7 @@ body {
 .tabla td {
   padding: 16px;
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 14.5px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -469,9 +469,9 @@ textarea {
   color: var(--text-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
+  padding: 12px 14px;
   outline: none;
-  font-size: 13px;
+  font-size: 15px;
   transition: var(--transition-fast);
 }
 
@@ -679,9 +679,11 @@ textarea:focus {
   background: var(--primary);
   color: white;
   border: none;
-  padding: 12px 18px;
+  padding: 14px 20px;
+  min-height: 46px;
   border-radius: 10px;
   cursor: pointer;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -695,9 +697,11 @@ textarea:focus {
   background: var(--btn-secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border);
-  padding: 12px 18px;
+  padding: 14px 20px;
+  min-height: 46px;
   border-radius: 10px;
   cursor: pointer;
+  font-size: 15px;
 }
 
 .btn-secondary:hover {
@@ -1013,13 +1017,13 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 14px;
+  padding: 13px 14px;
   border-radius: 10px;
   color: var(--text-secondary);
   background: transparent;
   border: 1px solid transparent;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   transition: all var(--transition-fast);
 }
@@ -1531,6 +1535,84 @@ textarea:focus {
 
 .btn-instagram:hover {
   filter: brightness(0.92);
+}
+
+/* ==========================================================================
+   TUTORIAL DE BIENVENIDA (primera vez que entra una cuenta nueva)
+   ========================================================================== */
+
+.tutorial-inicio-modal {
+  max-width: 420px;
+  padding: 32px 26px 26px 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  position: relative;
+}
+
+.tutorial-inicio-omitir {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.tutorial-inicio-icono {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.tutorial-inicio-modal h2 {
+  font-size: 21px;
+  margin: 0;
+}
+
+.tutorial-inicio-modal p {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.tutorial-inicio-puntos {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.tutorial-inicio-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: all var(--transition-fast);
+}
+
+.tutorial-inicio-punto-activo {
+  background: var(--primary);
+  width: 20px;
+}
+
+.tutorial-inicio-botones {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.tutorial-inicio-botones button {
+  flex: 1;
 }
 
 .btn-correo {
@@ -2656,7 +2738,7 @@ textarea:focus {
     background: transparent;
     border: none;
     color: var(--text-secondary);
-    font-size: 10.5px;
+    font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
     padding: 6px 10px;
