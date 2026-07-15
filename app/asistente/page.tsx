@@ -78,12 +78,14 @@ function AsistenteContenido() {
   }, [mensajes, pensando]);
 
   const preguntas = [
+    { texto: t("asistente.q_hoy"), fn: analizarVentasHoy },
     { texto: t("asistente.q_comprar"), fn: analizarQueComprar },
     { texto: t("asistente.q_ganancias"), fn: analizarGanancias },
     { texto: t("asistente.q_bajaron"), fn: analizarBajaVentas },
     { texto: t("asistente.q_resumen"), fn: analizarResumenSemana },
     { texto: t("asistente.q_topproducto"), fn: analizarProductoTop },
     { texto: t("asistente.q_agotados"), fn: analizarAgotados },
+    { texto: t("asistente.q_inventario"), fn: analizarInventario },
     { texto: t("asistente.q_mejorcliente"), fn: analizarMejorCliente },
   ];
 
@@ -119,22 +121,9 @@ function AsistenteContenido() {
   function detectarFuncion(texto: string) {
     const t = texto.toLowerCase().trim();
 
-    // Saludos y small talk primero (no necesitan datos)
-    const saludos = ["hola", "hi", "hello", "hey", "buenas", "buenos días", "buenos dias", "buenas tardes", "buenas noches", "qué tal", "que tal", "oi", "olá", "salut", "hallo", "你好"];
-    if (saludos.some((s) => t === s || t.startsWith(s + " ") || t.startsWith(s + "!") || t.startsWith(s + ","))) {
-      return "saludo" as const;
-    }
-
-    const despedidas = ["gracias", "thanks", "thank you", "adiós", "adios", "bye", "nos vemos", "obrigado", "merci", "danke", "谢谢"];
-    if (despedidas.some((s) => t.includes(s))) {
-      return "despedida" as const;
-    }
-
-    const ayuda = ["ayuda", "help", "qué puedes hacer", "que puedes hacer", "qué sabes hacer", "aide", "hilfe", "帮助"];
-    if (ayuda.some((s) => t.includes(s))) {
-      return "ayuda" as const;
-    }
-
+    // Las intenciones de negocio van primero: un mensaje como "hey,
+    // ¿cuánto vendí hoy?" o "gracias, ¿cómo va mi inventario?" debe
+    // resolver la pregunta real, no quedarse en el saludo/despedida.
     if (
       (t.includes("compr") || t.includes("buy") || t.includes("reabastec")) &&
       !t.includes("gana")
@@ -157,7 +146,7 @@ function AsistenteContenido() {
       return analizarVentasHoy;
     }
     if (
-      (t.includes("más vendido") || t.includes("mas vendido") || t.includes("best sell") || t.includes("estrella") || t.includes("top product")) 
+      (t.includes("más vendido") || t.includes("mas vendido") || t.includes("best sell") || t.includes("estrella") || t.includes("top product"))
     ) {
       return analizarProductoTop;
     }
@@ -169,6 +158,22 @@ function AsistenteContenido() {
     }
     if (t.includes("mejor cliente") || t.includes("mejores clientes") || t.includes("best customer") || t.includes("top cliente") || t.includes("top client")) {
       return analizarMejorCliente;
+    }
+
+    // Saludos y small talk solo si no hay ninguna intención de negocio.
+    const saludos = ["hola", "hi", "hello", "hey", "buenas", "buenos días", "buenos dias", "buenas tardes", "buenas noches", "qué tal", "que tal", "oi", "olá", "salut", "hallo", "你好"];
+    if (saludos.some((s) => t === s || t.startsWith(s + " ") || t.startsWith(s + "!") || t.startsWith(s + ","))) {
+      return "saludo" as const;
+    }
+
+    const despedidas = ["gracias", "thanks", "thank you", "adiós", "adios", "bye", "nos vemos", "obrigado", "merci", "danke", "谢谢"];
+    if (despedidas.some((s) => t.includes(s))) {
+      return "despedida" as const;
+    }
+
+    const ayuda = ["ayuda", "help", "qué puedes hacer", "que puedes hacer", "qué sabes hacer", "aide", "hilfe", "帮助"];
+    if (ayuda.some((s) => t.includes(s))) {
+      return "ayuda" as const;
     }
 
     return null;

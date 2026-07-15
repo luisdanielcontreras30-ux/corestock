@@ -146,7 +146,7 @@ export default function GraficasPage() {
   );
 
   const topProductos = productosAgregados.slice(0, 4);
-  const maxIngresoTop = topProductos.length > 0 ? topProductos[0].ingresos : 1;
+  const maxIngresoTop = topProductos.length > 0 && topProductos[0].ingresos > 0 ? topProductos[0].ingresos : 1;
   const productosRendimiento = productosAgregados.slice(0, 6);
 
   if (cargandoAuth || !user || loading) {

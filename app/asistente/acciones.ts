@@ -135,14 +135,12 @@ export async function analizarGanancias(userId: string, idioma: Idioma): Promise
   const ventasRecientes = ventasEnRango(ventas, hace30, hoy);
   const unidades = unidadesPorProducto(ventasRecientes);
 
-  const tieneCostos = productos.some((p) => Number(p.costo) > 0);
-
   const calculados = productos
     .map((p) => {
       const vendidos = unidades.get(p.nombre) ?? 0;
       const margenUnitario = Number(p.precio_venta) - Number(p.costo ?? 0);
       const gananciaTotal = margenUnitario * vendidos;
-      return { nombre: p.nombre, vendidos, margenUnitario, gananciaTotal };
+      return { nombre: p.nombre, vendidos, margenUnitario, gananciaTotal, tieneCosto: Number(p.costo) > 0 };
     })
     .filter((p) => p.vendidos > 0)
     .sort((a, b) => b.gananciaTotal - a.gananciaTotal);
@@ -151,8 +149,9 @@ export async function analizarGanancias(userId: string, idioma: Idioma): Promise
     return f("asistente.gan_sin_ventas", idioma);
   }
 
-  const lineas = calculados
-    .slice(0, 6)
+  const mostrados = calculados.slice(0, 6);
+
+  const lineas = mostrados
     .map((p, i) =>
       f("asistente.gan_linea", idioma, {
         i: i + 1,
@@ -164,7 +163,12 @@ export async function analizarGanancias(userId: string, idioma: Idioma): Promise
     )
     .join("\n");
 
-  const aviso = !tieneCostos ? `\n\n${f("asistente.gan_aviso_sin_costos", idioma)}` : "";
+  // El aviso se basa solo en los productos que efectivamente se
+  // muestran en el ranking: si esos no tienen costo registrado, su
+  // "ganancia" reportada es en realidad su ingreso completo (aunque
+  // otros productos del inventario sí tengan costo capturado).
+  const tieneCostosEnMostrados = mostrados.some((p) => p.tieneCosto);
+  const aviso = !tieneCostosEnMostrados ? `\n\n${f("asistente.gan_aviso_sin_costos", idioma)}` : "";
 
   return `${f("asistente.gan_header", idioma)}\n\n${lineas}${aviso}`;
 }
