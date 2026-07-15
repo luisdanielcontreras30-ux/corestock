@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { FileText, Check, X, Trash2, ShoppingCart, Share2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import CotizacionCompartirModal from "./components/CotizacionCompartirModal";
@@ -36,6 +38,8 @@ function CotizacionesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -63,7 +67,7 @@ function CotizacionesContenido() {
       setCotizaciones(datos.cotizaciones);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -116,17 +120,17 @@ function CotizacionesContenido() {
     if (guardando) return;
 
     if (!producto) {
-      alert(t("cotizaciones.msg_selecciona_producto"));
+      mostrarToast(t("cotizaciones.msg_selecciona_producto"), "error");
       return;
     }
 
     if (!Number.isFinite(cantidad) || cantidad <= 0) {
-      alert(t("cotizaciones.msg_cantidad_mayor"));
+      mostrarToast(t("cotizaciones.msg_cantidad_mayor"), "error");
       return;
     }
 
     if (!Number.isFinite(precioNum) || precioNum < 0) {
-      alert(t("cotizaciones.msg_precio_invalido"));
+      mostrarToast(t("cotizaciones.msg_precio_invalido"), "error");
       return;
     }
 
@@ -146,7 +150,7 @@ function CotizacionesContenido() {
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
-      alert(detalle || t("cotizaciones.msg_error_guardar"));
+      mostrarToast(detalle || t("cotizaciones.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }
@@ -158,25 +162,25 @@ function CotizacionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("cotizaciones.msg_error_estado"));
+      mostrarToast(t("cotizaciones.msg_error_estado"), "error");
     }
   }
 
   async function borrar(id: number) {
-    if (!confirm(t("cotizaciones.confirmar_eliminar"))) return;
+    if (!(await confirmar(t("cotizaciones.confirmar_eliminar"), { peligroso: true }))) return;
 
     try {
       await eliminarCotizacion(id);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("cotizaciones.msg_error_eliminar"));
+      mostrarToast(t("cotizaciones.msg_error_eliminar"), "error");
     }
   }
 
   async function alConvertirEnVenta(cotizacion: Cotizacion) {
     if (convirtiendoId !== null) return;
-    if (!confirm(t("cotizaciones.confirmar_convertir"))) return;
+    if (!(await confirmar(t("cotizaciones.confirmar_convertir")))) return;
 
     try {
       setConvirtiendoId(cotizacion.id);
@@ -185,7 +189,7 @@ function CotizacionesContenido() {
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
-      alert(detalle || t("cotizaciones.msg_error_convertir"));
+      mostrarToast(detalle || t("cotizaciones.msg_error_convertir"), "error");
     } finally {
       setConvirtiendoId(null);
     }

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { ArrowRightLeft, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { Producto, Ubicacion, StockUbicacion, Traspaso } from "./types";
@@ -24,6 +26,8 @@ function TraspasosContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -52,7 +56,7 @@ function TraspasosContenido() {
       setTraspasos(datos.traspasos);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -75,7 +79,7 @@ function TraspasosContenido() {
     if (guardandoUbicacion) return;
 
     if (!nombreUbicacion.trim()) {
-      alert(t("traspasos.msg_falta_nombre_ubicacion"));
+      mostrarToast(t("traspasos.msg_falta_nombre_ubicacion"), "error");
       return;
     }
 
@@ -86,21 +90,21 @@ function TraspasosContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("traspasos.msg_error_ubicacion"));
+      mostrarToast(t("traspasos.msg_error_ubicacion"), "error");
     } finally {
       setGuardandoUbicacion(false);
     }
   }
 
   async function borrarUbicacion(id: number) {
-    if (!confirm(t("traspasos.confirmar_eliminar_ubicacion"))) return;
+    if (!(await confirmar(t("traspasos.confirmar_eliminar_ubicacion"), { peligroso: true }))) return;
 
     try {
       await eliminarUbicacion(id);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(error instanceof Error ? error.message : t("traspasos.msg_error_eliminar_ubicacion"));
+      mostrarToast(error instanceof Error ? error.message : t("traspasos.msg_error_eliminar_ubicacion"), "error");
     }
   }
 
@@ -127,23 +131,23 @@ function TraspasosContenido() {
     if (traspasando) return;
 
     if (!producto) {
-      alert(t("traspasos.msg_selecciona_producto"));
+      mostrarToast(t("traspasos.msg_selecciona_producto"), "error");
       return;
     }
 
     if (!destino) {
-      alert(t("traspasos.selecciona_destino"));
+      mostrarToast(t("traspasos.selecciona_destino"), "error");
       return;
     }
 
     if (origen === destino) {
-      alert(t("traspasos.msg_origen_destino_iguales"));
+      mostrarToast(t("traspasos.msg_origen_destino_iguales"), "error");
       return;
     }
 
     const cantidadNum = Number(cantidad);
     if (!Number.isFinite(cantidadNum) || cantidadNum <= 0) {
-      alert(t("fabricacion.msg_cantidad_invalida"));
+      mostrarToast(t("fabricacion.msg_cantidad_invalida"), "error");
       return;
     }
 
@@ -159,7 +163,7 @@ function TraspasosContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(error instanceof Error ? error.message : t("traspasos.msg_error_traspaso"));
+      mostrarToast(error instanceof Error ? error.message : t("traspasos.msg_error_traspaso"), "error");
     } finally {
       setTraspasando(false);
     }

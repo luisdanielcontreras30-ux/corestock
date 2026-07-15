@@ -21,6 +21,8 @@ import {
   DatosClienteForm,
 } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 const DATOS_VACIOS: DatosClienteForm = {
   nombre: "",
@@ -31,6 +33,8 @@ const DATOS_VACIOS: DatosClienteForm = {
 
 export default function ClientesPage() {
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<ClienteConResumen[]>([]);
 
@@ -52,7 +56,7 @@ export default function ClientesPage() {
       setClientes(clientesCargados);
     } catch (error) {
       console.error(error);
-      alert(t("clientes.msg_error_cargar"));
+      mostrarToast(t("clientes.msg_error_cargar"), "error");
     } finally {
       setLoading(false);
     }
@@ -66,7 +70,7 @@ export default function ClientesPage() {
     if (guardando) return;
 
     if (!datos.nombre.trim()) {
-      alert(t("clientes.msg_nombre_requerido"));
+      mostrarToast(t("clientes.msg_nombre_requerido"), "error");
       return;
     }
 
@@ -83,7 +87,7 @@ export default function ClientesPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("clientes.msg_error_guardar"));
+      mostrarToast(t("clientes.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }
@@ -105,7 +109,7 @@ export default function ClientesPage() {
   }
 
   async function borrarCliente(id: number) {
-    if (!confirm(t("clientes.confirmar_eliminar"))) {
+    if (!(await confirmar(t("clientes.confirmar_eliminar"), { peligroso: true }))) {
       return;
     }
 
@@ -118,9 +122,9 @@ export default function ClientesPage() {
       const codigo = error && typeof error === "object" && "code" in error ? error.code : null;
 
       if (codigo === "23503") {
-        alert(t("clientes.msg_error_fk"));
+        mostrarToast(t("clientes.msg_error_fk"), "error");
       } else {
-        alert(t("clientes.msg_error_eliminar"));
+        mostrarToast(t("clientes.msg_error_eliminar"), "error");
       }
     }
   }
@@ -135,7 +139,7 @@ export default function ClientesPage() {
     } catch (error) {
       console.error(error);
       setCompras([]);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setCargandoHistorial(false);
     }

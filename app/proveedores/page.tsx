@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Phone, Mail, Plus, Truck, History } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import HistorialModal from "./components/HistorialModal";
@@ -27,6 +29,8 @@ export default function ProveedoresPage() {
 function ProveedoresContenido() {
   const { user } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [proveedores, setProveedores] = useState<ProveedorConResumen[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -56,7 +60,7 @@ function ProveedoresContenido() {
       setProveedores(datos);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setCargando(false);
     }
@@ -92,7 +96,7 @@ function ProveedoresContenido() {
     } catch (error) {
       console.error(error);
       setComprasHistorial([]);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setCargandoHistorial(false);
     }
@@ -102,7 +106,7 @@ function ProveedoresContenido() {
     if (!user || guardando) return;
 
     if (!nombre.trim()) {
-      alert(t("proveedores.msg_falta_nombre"));
+      mostrarToast(t("proveedores.msg_falta_nombre"), "error");
       return;
     }
 
@@ -124,7 +128,7 @@ function ProveedoresContenido() {
       await refrescar();
     } catch (error) {
       console.error(error);
-      alert(t("proveedores.msg_error_guardar"));
+      mostrarToast(t("proveedores.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }
@@ -133,7 +137,7 @@ function ProveedoresContenido() {
   async function alEliminar(p: ProveedorConResumen) {
     if (!user) return;
 
-    if (!confirm(t("proveedores.confirmar_eliminar").replace("{nombre}", p.nombre))) {
+    if (!(await confirmar(t("proveedores.confirmar_eliminar").replace("{nombre}", p.nombre), { peligroso: true }))) {
       return;
     }
 
@@ -142,7 +146,7 @@ function ProveedoresContenido() {
       await refrescar();
     } catch (error) {
       console.error(error);
-      alert(t("proveedores.msg_error_eliminar"));
+      mostrarToast(t("proveedores.msg_error_eliminar"), "error");
     }
   }
 

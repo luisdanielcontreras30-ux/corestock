@@ -7,6 +7,7 @@ import LanguageProvider from "../components/LanguageProvider";
 import AuthProvider from "../components/AuthProvider";
 import SuscripcionProvider from "../components/SuscripcionProvider";
 import ToastProvider from "../components/ToastProvider";
+import ConfirmProvider from "../components/ConfirmProvider";
 
 export const metadata: Metadata = {
   title: "CoreStock",
@@ -26,7 +27,9 @@ export default function RootLayout({
             <ThemeProvider>
               <LanguageProvider>
                 <ToastProvider>
-                  <AppShell>{children}</AppShell>
+                  <ConfirmProvider>
+                    <AppShell>{children}</AppShell>
+                  </ConfirmProvider>
                 </ToastProvider>
               </LanguageProvider>
             </ThemeProvider>

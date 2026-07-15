@@ -37,7 +37,7 @@ export default function NuevaVentaModal({ onClose }: Props) {
       })
       .catch((error) => {
         console.error(error);
-        alert(t("comun.msg_error_cargar_datos"));
+        mostrarToast(t("comun.msg_error_cargar_datos"), "error");
         onClose();
       })
       .finally(() => setLoading(false));
@@ -75,17 +75,17 @@ export default function NuevaVentaModal({ onClose }: Props) {
     if (guardando) return;
 
     if (!producto) {
-      alert(t("ventas.msg_selecciona_producto"));
+      mostrarToast(t("ventas.msg_selecciona_producto"), "error");
       return;
     }
 
     if (cantidad <= 0) {
-      alert(t("ventas.msg_cantidad_mayor"));
+      mostrarToast(t("ventas.msg_cantidad_mayor"), "error");
       return;
     }
 
     if (cantidad > producto.stock) {
-      alert(t("ventas.msg_sin_stock"));
+      mostrarToast(t("ventas.msg_sin_stock"), "error");
       return;
     }
 
@@ -97,7 +97,7 @@ export default function NuevaVentaModal({ onClose }: Props) {
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
-      alert(detalle || t("ventas.msg_error_registrar"));
+      mostrarToast(detalle || t("ventas.msg_error_registrar"), "error");
     } finally {
       setGuardando(false);
     }

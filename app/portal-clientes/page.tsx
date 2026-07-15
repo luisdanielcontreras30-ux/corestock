@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { UserCircle, Link2, Check, ExternalLink } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
@@ -23,6 +24,7 @@ function PortalClientesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<ClienteConResumen[]>([]);
@@ -36,7 +38,7 @@ function PortalClientesContenido() {
       setClientes(clientesCargados);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ function PortalClientesContenido() {
 
   async function copiarLink(cliente: ClienteConResumen) {
     if (!cliente.token) {
-      alert(t("clientes.token_pendiente"));
+      mostrarToast(t("clientes.token_pendiente"), "error");
       return;
     }
 
@@ -63,7 +65,7 @@ function PortalClientesContenido() {
     const exito = await copiarAlPortapapeles(enlace);
 
     if (!exito) {
-      alert(t("comun.msg_error_copiar"));
+      mostrarToast(t("comun.msg_error_copiar"), "error");
       return;
     }
 

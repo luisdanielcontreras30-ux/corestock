@@ -5,6 +5,8 @@ import { ShoppingCart, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { Producto, Proveedor, Compra } from "./types";
@@ -23,6 +25,8 @@ function ComprasContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -47,7 +51,7 @@ function ComprasContenido() {
       setCompras(datos.compras);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -100,17 +104,17 @@ function ComprasContenido() {
     if (guardando) return;
 
     if (!producto) {
-      alert(t("compras.msg_selecciona_producto"));
+      mostrarToast(t("compras.msg_selecciona_producto"), "error");
       return;
     }
 
     if (!Number.isFinite(cantidad) || cantidad <= 0) {
-      alert(t("compras.msg_cantidad_mayor"));
+      mostrarToast(t("compras.msg_cantidad_mayor"), "error");
       return;
     }
 
     if (!Number.isFinite(costoNum) || costoNum < 0) {
-      alert(t("compras.msg_costo_invalido"));
+      mostrarToast(t("compras.msg_costo_invalido"), "error");
       return;
     }
 
@@ -130,21 +134,21 @@ function ComprasContenido() {
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
-      alert(detalle || t("compras.msg_error_registrar"));
+      mostrarToast(detalle || t("compras.msg_error_registrar"), "error");
     } finally {
       setGuardando(false);
     }
   }
 
   async function borrar(id: number) {
-    if (!confirm(t("compras.confirmar_eliminar"))) return;
+    if (!(await confirmar(t("compras.confirmar_eliminar"), { peligroso: true }))) return;
 
     try {
       await eliminarCompra(id);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("compras.msg_error_eliminar"));
+      mostrarToast(t("compras.msg_error_eliminar"), "error");
     }
   }
 

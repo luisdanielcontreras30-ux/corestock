@@ -6,6 +6,7 @@ import { Crown } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { useSuscripcion } from "./SuscripcionProvider";
 import { useIdioma } from "./LanguageProvider";
+import { useToast } from "./ToastProvider";
 import { iniciarCheckoutPlus } from "../lib/suscripcionAcciones";
 
 // Envuelve el contenido de un módulo exclusivo de CoreStock Plus+. Si
@@ -15,6 +16,7 @@ export default function RequierePlus({ children }: { children: ReactNode }) {
   const { user, cargando: cargandoAuth } = useAuth();
   const { esPlus, cargando } = useSuscripcion();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
   const [procesando, setProcesando] = useState(false);
 
   async function alContratar() {
@@ -27,7 +29,7 @@ export default function RequierePlus({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
-      alert(detalle || t("plus.msg_error_checkout"));
+      mostrarToast(detalle || t("plus.msg_error_checkout"), "error");
       setProcesando(false);
     }
   }

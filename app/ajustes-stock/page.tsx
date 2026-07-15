@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { Producto, AjusteStock } from "./types";
 import { cargarDatos, registrarAjuste, eliminarAjuste } from "./acciones";
@@ -15,6 +17,8 @@ export default function AjustesStockPage() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -34,7 +38,7 @@ export default function AjustesStockPage() {
       setAjustes(datos.ajustes);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -65,19 +69,19 @@ export default function AjustesStockPage() {
     if (guardando) return;
 
     if (!producto) {
-      alert(t("ajustes_stock.msg_selecciona_producto"));
+      mostrarToast(t("ajustes_stock.msg_selecciona_producto"), "error");
       return;
     }
 
     if (!Number.isFinite(cantidadNum) || cantidadNum <= 0) {
-      alert(t("ajustes_stock.msg_cantidad_mayor"));
+      mostrarToast(t("ajustes_stock.msg_cantidad_mayor"), "error");
       return;
     }
 
     const delta = tipo === "agregar" ? cantidadNum : -cantidadNum;
 
     if (tipo === "quitar" && cantidadNum > producto.stock) {
-      alert(t("ajustes_stock.msg_sin_stock"));
+      mostrarToast(t("ajustes_stock.msg_sin_stock"), "error");
       return;
     }
 
@@ -90,21 +94,21 @@ export default function AjustesStockPage() {
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
-      alert(detalle || t("ajustes_stock.msg_error_guardar"));
+      mostrarToast(detalle || t("ajustes_stock.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }
   }
 
   async function borrar(id: number) {
-    if (!confirm(t("ajustes_stock.confirmar_eliminar"))) return;
+    if (!(await confirmar(t("ajustes_stock.confirmar_eliminar"), { peligroso: true }))) return;
 
     try {
       await eliminarAjuste(id);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("ajustes_stock.msg_error_eliminar"));
+      mostrarToast(t("ajustes_stock.msg_error_eliminar"), "error");
     }
   }
 

@@ -18,9 +18,13 @@ import {
   cambiarMiContrasena,
 } from "../acciones";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { useToast } from "../../../components/ToastProvider";
+import { useConfirm } from "../../../components/ConfirmProvider";
 
 export default function UsuariosTab() {
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [cargando, setCargando] = useState(true);
   const [editando, setEditando] = useState<Miembro | null>(null);
@@ -46,7 +50,7 @@ export default function UsuariosTab() {
       setMiembros(datos);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setCargando(false);
     }
@@ -89,7 +93,7 @@ export default function UsuariosTab() {
     if (guardando) return;
 
     if (!nombre.trim()) {
-      alert(t("usuarios.msg_falta_nombre"));
+      mostrarToast(t("usuarios.msg_falta_nombre"), "error");
       return;
     }
 
@@ -111,21 +115,21 @@ export default function UsuariosTab() {
       await refrescar();
     } catch (error) {
       console.error(error);
-      alert(t("usuarios.msg_error_guardar_miembro"));
+      mostrarToast(t("usuarios.msg_error_guardar_miembro"), "error");
     } finally {
       setGuardando(false);
     }
   }
 
   async function alEliminar(m: Miembro) {
-    if (!confirm(t("usuarios.confirmar_eliminar").replace("{nombre}", m.nombre))) return;
+    if (!(await confirmar(t("usuarios.confirmar_eliminar").replace("{nombre}", m.nombre), { peligroso: true }))) return;
 
     try {
       await eliminarMiembro(m.id);
       await refrescar();
     } catch (error) {
       console.error(error);
-      alert(t("usuarios.msg_error_eliminar"));
+      mostrarToast(t("usuarios.msg_error_eliminar"), "error");
     }
   }
 
@@ -135,7 +139,7 @@ export default function UsuariosTab() {
       await refrescar();
     } catch (error) {
       console.error(error);
-      alert(t("usuarios.msg_error_guardar_miembro"));
+      mostrarToast(t("usuarios.msg_error_guardar_miembro"), "error");
     }
   }
 

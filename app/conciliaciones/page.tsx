@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Landmark, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import ContadorAnimado from "../../components/ContadorAnimado";
@@ -23,6 +25,8 @@ function ConciliacionesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [movimientos, setMovimientos] = useState<MovimientoConciliacion[]>([]);
@@ -39,7 +43,7 @@ function ConciliacionesContenido() {
       setMovimientos(datos);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -75,13 +79,13 @@ function ConciliacionesContenido() {
     if (guardando) return;
 
     if (!descripcion.trim()) {
-      alert(t("conciliaciones.msg_falta_descripcion"));
+      mostrarToast(t("conciliaciones.msg_falta_descripcion"), "error");
       return;
     }
 
     const montoNum = Number(monto);
     if (!Number.isFinite(montoNum) || montoNum <= 0) {
-      alert(t("conciliaciones.msg_monto_invalido"));
+      mostrarToast(t("conciliaciones.msg_monto_invalido"), "error");
       return;
     }
 
@@ -94,7 +98,7 @@ function ConciliacionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("conciliaciones.msg_error_guardar"));
+      mostrarToast(t("conciliaciones.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }
@@ -106,19 +110,19 @@ function ConciliacionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("conciliaciones.msg_error_estado"));
+      mostrarToast(t("conciliaciones.msg_error_estado"), "error");
     }
   }
 
   async function borrar(id: number) {
-    if (!confirm(t("conciliaciones.confirmar_eliminar"))) return;
+    if (!(await confirmar(t("conciliaciones.confirmar_eliminar"), { peligroso: true }))) return;
 
     try {
       await eliminarMovimiento(id);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("conciliaciones.msg_error_eliminar"));
+      mostrarToast(t("conciliaciones.msg_error_eliminar"), "error");
     }
   }
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Inbox, ArrowDownCircle, ArrowUpCircle, Lock, Unlock } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoCaja } from "./types";
@@ -54,6 +55,7 @@ export default function CajaPage() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [movimientos, setMovimientos] = useState<MovimientoCaja[]>([]);
@@ -72,7 +74,7 @@ export default function CajaPage() {
       setMovimientos(datos);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -97,7 +99,7 @@ export default function CajaPage() {
 
     const monto = Number(montoApertura);
     if (!Number.isFinite(monto) || monto < 0) {
-      alert(t("caja.msg_monto_invalido"));
+      mostrarToast(t("caja.msg_monto_invalido"), "error");
       return;
     }
 
@@ -108,7 +110,7 @@ export default function CajaPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("caja.msg_error_movimiento"));
+      mostrarToast(t("caja.msg_error_movimiento"), "error");
     } finally {
       setProcesando(false);
     }
@@ -119,12 +121,12 @@ export default function CajaPage() {
 
     const monto = Number(montoMovimiento);
     if (!Number.isFinite(monto) || monto <= 0) {
-      alert(t("caja.msg_monto_invalido"));
+      mostrarToast(t("caja.msg_monto_invalido"), "error");
       return;
     }
 
     if (tipo === "salida" && monto > saldo) {
-      alert(t("caja.msg_sin_saldo"));
+      mostrarToast(t("caja.msg_sin_saldo"), "error");
       return;
     }
 
@@ -136,7 +138,7 @@ export default function CajaPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("caja.msg_error_movimiento"));
+      mostrarToast(t("caja.msg_error_movimiento"), "error");
     } finally {
       setProcesando(false);
     }
@@ -147,7 +149,7 @@ export default function CajaPage() {
 
     const contado = Number(montoContado);
     if (!Number.isFinite(contado) || contado < 0) {
-      alert(t("caja.msg_monto_invalido"));
+      mostrarToast(t("caja.msg_monto_invalido"), "error");
       return;
     }
 
@@ -164,7 +166,7 @@ export default function CajaPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("caja.msg_error_movimiento"));
+      mostrarToast(t("caja.msg_error_movimiento"), "error");
     } finally {
       setProcesando(false);
     }

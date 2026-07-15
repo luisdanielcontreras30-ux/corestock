@@ -620,6 +620,64 @@ textarea:focus {
 }
 
 /* ==========================================================================
+   DIÁLOGO DE CONFIRMACIÓN (reemplaza confirm() nativo)
+   ========================================================================== */
+
+.confirm-dialog {
+  max-width: 400px;
+  padding: 26px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.confirm-dialog-icono {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--primary-soft);
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.confirm-dialog-icono-peligro {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.confirm-dialog h3 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.confirm-dialog p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.confirm-dialog-botones {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.confirm-dialog-botones button {
+  flex: 1;
+}
+
+.confirm-dialog-botones .confirm-dialog-btn-peligro {
+  background: var(--danger);
+}
+
+.confirm-dialog-botones .confirm-dialog-btn-peligro:hover {
+  background: #dc2626;
+}
+
+/* ==========================================================================
    RESPONSIVE LAYOUT
    ========================================================================== */
 @media (max-width: 1200px) {

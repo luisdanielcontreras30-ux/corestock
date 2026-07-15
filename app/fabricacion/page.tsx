@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Factory, Trash2, PackagePlus } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "./types";
@@ -29,6 +31,8 @@ function FabricacionContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -64,7 +68,7 @@ function FabricacionContenido() {
       setProducciones(datos.producciones);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -85,7 +89,7 @@ function FabricacionContenido() {
     if (guardandoMP) return;
 
     if (!nombreMP.trim()) {
-      alert(t("fabricacion.msg_falta_nombre_mp"));
+      mostrarToast(t("fabricacion.msg_falta_nombre_mp"), "error");
       return;
     }
 
@@ -96,7 +100,7 @@ function FabricacionContenido() {
       !Number.isFinite(stockNum) || stockNum < 0 ||
       !Number.isFinite(costoNum) || costoNum < 0
     ) {
-      alert(t("fabricacion.msg_datos_invalidos_mp"));
+      mostrarToast(t("fabricacion.msg_datos_invalidos_mp"), "error");
       return;
     }
 
@@ -110,21 +114,21 @@ function FabricacionContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("fabricacion.msg_error_mp"));
+      mostrarToast(t("fabricacion.msg_error_mp"), "error");
     } finally {
       setGuardandoMP(false);
     }
   }
 
   async function borrarMateriaPrima(id: number) {
-    if (!confirm(t("fabricacion.confirmar_eliminar_mp"))) return;
+    if (!(await confirmar(t("fabricacion.confirmar_eliminar_mp"), { peligroso: true }))) return;
 
     try {
       await eliminarMateriaPrima(id);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("fabricacion.msg_error_eliminar_mp"));
+      mostrarToast(t("fabricacion.msg_error_eliminar_mp"), "error");
     }
   }
 
@@ -145,12 +149,12 @@ function FabricacionContenido() {
     const cantidad = Number(cantidadPorUnidad);
 
     if (!producto || !materiaPrima) {
-      alert(t("fabricacion.msg_falta_seleccion"));
+      mostrarToast(t("fabricacion.msg_falta_seleccion"), "error");
       return;
     }
 
     if (!Number.isFinite(cantidad) || cantidad <= 0) {
-      alert(t("fabricacion.msg_cantidad_invalida"));
+      mostrarToast(t("fabricacion.msg_cantidad_invalida"), "error");
       return;
     }
 
@@ -162,7 +166,7 @@ function FabricacionContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("fabricacion.msg_error_receta"));
+      mostrarToast(t("fabricacion.msg_error_receta"), "error");
     } finally {
       setGuardandoIngrediente(false);
     }
@@ -174,7 +178,7 @@ function FabricacionContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("fabricacion.msg_error_eliminar_receta"));
+      mostrarToast(t("fabricacion.msg_error_eliminar_receta"), "error");
     }
   }
 
@@ -199,12 +203,12 @@ function FabricacionContenido() {
     const producto = productos.find((p) => p.id === Number(productoProducirId));
 
     if (!producto) {
-      alert(t("fabricacion.msg_selecciona_producto"));
+      mostrarToast(t("fabricacion.msg_selecciona_producto"), "error");
       return;
     }
 
     if (!Number.isFinite(cantidadProducirNum) || cantidadProducirNum <= 0) {
-      alert(t("fabricacion.msg_cantidad_invalida"));
+      mostrarToast(t("fabricacion.msg_cantidad_invalida"), "error");
       return;
     }
 
@@ -217,7 +221,7 @@ function FabricacionContenido() {
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
-      alert(detalle || t("fabricacion.msg_error_producir"));
+      mostrarToast(detalle || t("fabricacion.msg_error_producir"), "error");
     } finally {
       setProduciendo(false);
     }

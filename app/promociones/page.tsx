@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Percent, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { Producto, Promocion, TipoDescuento } from "./types";
@@ -27,6 +29,8 @@ function PromocionesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -48,7 +52,7 @@ function PromocionesContenido() {
       setPromociones(datos.promociones);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -80,17 +84,17 @@ function PromocionesContenido() {
     if (guardando) return;
 
     if (!nombre.trim()) {
-      alert(t("promociones.msg_falta_nombre"));
+      mostrarToast(t("promociones.msg_falta_nombre"), "error");
       return;
     }
 
     if (!Number.isFinite(valorNum) || valorNum <= 0) {
-      alert(t("promociones.msg_valor_invalido"));
+      mostrarToast(t("promociones.msg_valor_invalido"), "error");
       return;
     }
 
     if (tipo === "porcentaje" && valorNum > 100) {
-      alert(t("promociones.msg_porcentaje_invalido"));
+      mostrarToast(t("promociones.msg_porcentaje_invalido"), "error");
       return;
     }
 
@@ -106,7 +110,7 @@ function PromocionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("promociones.msg_error_guardar"));
+      mostrarToast(t("promociones.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }
@@ -118,19 +122,19 @@ function PromocionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("promociones.msg_error_estado"));
+      mostrarToast(t("promociones.msg_error_estado"), "error");
     }
   }
 
   async function borrar(id: number) {
-    if (!confirm(t("promociones.confirmar_eliminar"))) return;
+    if (!(await confirmar(t("promociones.confirmar_eliminar"), { peligroso: true }))) return;
 
     try {
       await eliminarPromocion(id);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("promociones.msg_error_eliminar"));
+      mostrarToast(t("promociones.msg_error_eliminar"), "error");
     }
   }
 

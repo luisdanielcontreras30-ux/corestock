@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BookOpen, Copy, ExternalLink } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { ProductoCatalogo } from "./types";
 import { cargarEstadoCatalogo, actualizarCatalogoActivo } from "./acciones";
@@ -14,6 +15,7 @@ export default function CatalogoLineaPage() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [activo, setActivo] = useState(false);
@@ -33,7 +35,7 @@ export default function CatalogoLineaPage() {
       setUserId(datos.userId);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export default function CatalogoLineaPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(error instanceof Error ? error.message : t("catalogo_linea.msg_error_guardar"));
+      mostrarToast(error instanceof Error ? error.message : t("catalogo_linea.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }
@@ -71,7 +73,7 @@ export default function CatalogoLineaPage() {
     const exito = await copiarAlPortapapeles(enlacePublico);
 
     if (!exito) {
-      alert(t("comun.msg_error_copiar"));
+      mostrarToast(t("comun.msg_error_copiar"), "error");
       return;
     }
 

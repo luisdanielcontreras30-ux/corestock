@@ -22,11 +22,13 @@ import {
   MetodoPago,
 } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import { useToast } from "../../components/ToastProvider";
 import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../lib/promociones";
 
 export default function VentasPage() {
   const { t } = useIdioma();
+  const { confirmar } = useConfirm();
   const { mostrarToast } = useToast();
   const [loading, setLoading] = useState(true);
 
@@ -54,7 +56,7 @@ export default function VentasPage() {
       setPromociones(datos.promociones);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -95,17 +97,17 @@ export default function VentasPage() {
     if (guardando) return;
 
     if (!producto) {
-      alert(t("ventas.msg_selecciona_producto"));
+      mostrarToast(t("ventas.msg_selecciona_producto"), "error");
       return;
     }
 
     if (cantidad <= 0) {
-      alert(t("ventas.msg_cantidad_mayor"));
+      mostrarToast(t("ventas.msg_cantidad_mayor"), "error");
       return;
     }
 
     if (cantidad > producto.stock) {
-      alert(t("ventas.msg_sin_stock"));
+      mostrarToast(t("ventas.msg_sin_stock"), "error");
       return;
     }
 
@@ -125,14 +127,14 @@ export default function VentasPage() {
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
-      alert(detalle || t("ventas.msg_error_registrar"));
+      mostrarToast(detalle || t("ventas.msg_error_registrar"), "error");
     } finally {
       setGuardando(false);
     }
   }
 
   async function borrarVenta(id: number) {
-    if (!confirm(t("ventas.confirmar_eliminar"))) {
+    if (!(await confirmar(t("ventas.confirmar_eliminar"), { peligroso: true }))) {
       return;
     }
 
@@ -142,7 +144,7 @@ export default function VentasPage() {
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
-      alert(`${t("ventas.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`);
+      mostrarToast(`${t("ventas.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`, "error");
     }
   }
 

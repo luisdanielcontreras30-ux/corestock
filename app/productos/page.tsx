@@ -7,6 +7,8 @@ import { subirImagenSegura } from "../../lib/uploads";
 import * as XLSX from "xlsx";
 import { ImagePlus, Package } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import { useAuth } from "../../components/AuthProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 
@@ -31,6 +33,8 @@ export default function Productos() {
 
 function ProductosInterno() {
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -75,7 +79,7 @@ function ProductosInterno() {
 
     if (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
       return;
     }
 
@@ -86,7 +90,7 @@ function ProductosInterno() {
     if (!user || guardando) return;
 
     if (!nombre.trim()) {
-      alert(t("productos.msg_falta_nombre"));
+      mostrarToast(t("productos.msg_falta_nombre"), "error");
       return;
     }
 
@@ -101,7 +105,7 @@ function ProductosInterno() {
       !Number.isFinite(stockNum) || stockNum < 0 ||
       !Number.isFinite(stockMinimoNum) || stockMinimoNum < 0
     ) {
-      alert(t("productos.msg_valores_invalidos"));
+      mostrarToast(t("productos.msg_valores_invalidos"), "error");
       return;
     }
 
@@ -114,12 +118,12 @@ function ProductosInterno() {
         const { url, error } = await subirImagenSegura("productos", imagen);
 
         if (error === "tipo_invalido") {
-          alert(t("productos.msg_imagen_tipo_invalido"));
+          mostrarToast(t("productos.msg_imagen_tipo_invalido"), "error");
           setGuardando(false);
           return;
         }
         if (error === "muy_grande") {
-          alert(t("productos.msg_imagen_muy_grande"));
+          mostrarToast(t("productos.msg_imagen_muy_grande"), "error");
           setGuardando(false);
           return;
         }
@@ -153,7 +157,7 @@ function ProductosInterno() {
       await cargar();
     } catch (error) {
       console.error(error);
-      alert(t("productos.msg_error_guardar"));
+      mostrarToast(t("productos.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }
@@ -174,7 +178,7 @@ function ProductosInterno() {
 
   async function eliminar(id: number) {
     if (!user) return;
-    if (!confirm(t("productos.confirmar_eliminar"))) return;
+    if (!(await confirmar(t("productos.confirmar_eliminar"), { peligroso: true }))) return;
 
     try {
       const { error } = await supabase
@@ -185,9 +189,9 @@ function ProductosInterno() {
 
       if (error) {
         if (error.message.includes("foreign key") || error.code === "23503") {
-          alert(t("productos.msg_error_eliminar_fk"));
+          mostrarToast(t("productos.msg_error_eliminar_fk"), "error");
         } else {
-          alert(`${t("productos.msg_error_eliminar")}: ${error.message}`);
+          mostrarToast(`${t("productos.msg_error_eliminar")}: ${error.message}`, "error");
         }
         return;
       }
@@ -195,7 +199,7 @@ function ProductosInterno() {
       await cargar();
     } catch (error) {
       console.error(error);
-      alert(t("productos.msg_error_eliminar"));
+      mostrarToast(t("productos.msg_error_eliminar"), "error");
     }
   }
 
@@ -410,10 +414,11 @@ function ProductosInterno() {
             if (excelInputRef.current) excelInputRef.current.value = "";
 
             await cargar();
-            alert(
+            mostrarToast(
               t("productos.msg_importacion_resultado")
                 .replace("{importados}", String(importados))
-                .replace("{omitidos}", String(omitidos))
+                .replace("{omitidos}", String(omitidos)),
+              "exito"
             );
           }}
         />

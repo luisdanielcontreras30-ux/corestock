@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Files, Trash2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { FacturaGlobal } from "./types";
@@ -30,6 +32,8 @@ function FacturasGlobalesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [globales, setGlobales] = useState<FacturaGlobal[]>([]);
@@ -46,7 +50,7 @@ function FacturasGlobalesContenido() {
       setGlobales(datos);
     } catch (error) {
       console.error(error);
-      alert(t("comun.msg_error_cargar_datos"));
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
@@ -67,12 +71,12 @@ function FacturasGlobalesContenido() {
     if (generando) return;
 
     if (!fechaInicio || !fechaFin) {
-      alert(t("facturas_globales.msg_faltan_fechas"));
+      mostrarToast(t("facturas_globales.msg_faltan_fechas"), "error");
       return;
     }
 
     if (fechaInicio > fechaFin) {
-      alert(t("facturas_globales.msg_rango_invalido"));
+      mostrarToast(t("facturas_globales.msg_rango_invalido"), "error");
       return;
     }
 
@@ -88,10 +92,10 @@ function FacturasGlobalesContenido() {
       console.error(error);
 
       if (error instanceof Error && error.message === "SIN_VENTAS_EN_RANGO") {
-        alert(t("facturas_globales.msg_sin_ventas_rango"));
+        mostrarToast(t("facturas_globales.msg_sin_ventas_rango"), "error");
       } else {
         const detalle = error instanceof Error ? error.message : "";
-        alert(detalle || t("facturas_globales.msg_error_generar"));
+        mostrarToast(detalle || t("facturas_globales.msg_error_generar"), "error");
       }
     } finally {
       setGenerando(false);
@@ -99,14 +103,14 @@ function FacturasGlobalesContenido() {
   }
 
   async function borrar(id: number) {
-    if (!confirm(t("facturas_globales.confirmar_eliminar"))) return;
+    if (!(await confirmar(t("facturas_globales.confirmar_eliminar"), { peligroso: true }))) return;
 
     try {
       await eliminarFacturaGlobal(id);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("facturas_globales.msg_error_eliminar"));
+      mostrarToast(t("facturas_globales.msg_error_eliminar"), "error");
     }
   }
 
