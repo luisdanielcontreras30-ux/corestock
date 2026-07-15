@@ -24,12 +24,15 @@ import {
 import { useIdioma } from "../../components/LanguageProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import { useToast } from "../../components/ToastProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import SinPermiso from "../../components/SinPermiso";
 import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../lib/promociones";
 
 export default function VentasPage() {
   const { t } = useIdioma();
   const { confirmar } = useConfirm();
   const { mostrarToast } = useToast();
+  const { puede } = useMiembroActivo();
   const [loading, setLoading] = useState(true);
 
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -148,6 +151,23 @@ export default function VentasPage() {
     }
   }
 
+  if (!puede("ver_ventas")) {
+    return (
+      <main
+        className="fade-up"
+        style={{ display: "flex", flexDirection: "column", gap: 24 }}
+      >
+        <EncabezadoModulo
+          Icono={DollarSign}
+          color="#10b981"
+          titulo={t("ventas.titulo")}
+          subtitulo={t("ventas.subtitulo")}
+        />
+        <SinPermiso />
+      </main>
+    );
+  }
+
   return (
     <main
       className="fade-up"
@@ -164,34 +184,36 @@ export default function VentasPage() {
         subtitulo={t("ventas.subtitulo")}
       />
 
-      <div className="ventas-form-desktop">
-        <VentaForm
-          productos={productos}
-          clientes={clientes}
-          producto={producto}
-          productoId={productoId}
-          setProductoId={setProductoId}
-          clienteNombre={clienteNombre}
-          setClienteNombre={alCambiarClienteNombre}
-          cantidad={cantidad}
-          setCantidad={setCantidad}
-          metodoPago={metodoPago}
-          setMetodoPago={setMetodoPago}
-          total={total}
-          precioUnitario={precioUnitario}
-          promocion={promoAplicable}
-          guardando={guardando}
-          onGuardar={guardarVenta}
-        />
-      </div>
+      {puede("registrar_ventas") && (
+        <div className="ventas-form-desktop">
+          <VentaForm
+            productos={productos}
+            clientes={clientes}
+            producto={producto}
+            productoId={productoId}
+            setProductoId={setProductoId}
+            clienteNombre={clienteNombre}
+            setClienteNombre={alCambiarClienteNombre}
+            cantidad={cantidad}
+            setCantidad={setCantidad}
+            metodoPago={metodoPago}
+            setMetodoPago={setMetodoPago}
+            total={total}
+            precioUnitario={precioUnitario}
+            promocion={promoAplicable}
+            guardando={guardando}
+            onGuardar={guardarVenta}
+          />
+        </div>
+      )}
 
       {loading ? (
         <div className="card">{t("header.cargando")}</div>
       ) : (
         <Historial
           ventas={ventas}
-          eliminarVenta={borrarVenta}
-          exportarExcel={() => exportarExcel(ventas)}
+          eliminarVenta={puede("eliminar_ventas") ? borrarVenta : undefined}
+          exportarExcel={puede("exportar_datos") ? () => exportarExcel(ventas) : undefined}
         />
       )}
     </main>

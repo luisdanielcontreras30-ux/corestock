@@ -108,6 +108,32 @@ export async function actualizarMiembro(
   }
 }
 
+// Se usa en el login: valida el nombre que escribió quien inició
+// sesión contra los miembros del equipo activos de esa cuenta. No usa
+// obtenerUsuarioActual() porque se llama justo después de un
+// signInWithPassword exitoso, con el id de usuario ya disponible.
+export async function buscarMiembroPorNombre(
+  userId: string,
+  nombre: string
+): Promise<Miembro | null> {
+  const { data, error } = await supabase
+    .from("miembros_equipo")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("activo", true);
+
+  if (error) {
+    throw error;
+  }
+
+  const buscado = nombre.trim().toLowerCase();
+  const encontrado = ((data ?? []) as Miembro[]).find(
+    (m) => m.nombre.trim().toLowerCase() === buscado
+  );
+
+  return encontrado ?? null;
+}
+
 export async function eliminarMiembro(id: string): Promise<void> {
   const user = await obtenerUsuarioActual();
 

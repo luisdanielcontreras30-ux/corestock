@@ -13,19 +13,23 @@ import {
   X,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
+import { useMiembroActivo } from "./MiembroActivoProvider";
 import NuevaVentaModal from "../app/ventas/components/NuevaVentaModal";
 
 export default function MobileTabBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useIdioma();
+  const { puede } = useMiembroActivo();
   const [fabAbierto, setFabAbierto] = useState(false);
   const [ventaModalAbierto, setVentaModalAbierto] = useState(false);
 
   const tabs = [
     { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard", color: "#6366f1" },
     { href: "/productos", Icono: Package, clave: "sidebar.productos", color: "#22c55e" },
-    { href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas", color: "#10b981" },
+    ...(puede("ver_ventas")
+      ? [{ href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas", color: "#10b981" }]
+      : []),
   ];
 
   function abrirNuevaVenta() {
@@ -58,19 +62,23 @@ export default function MobileTabBar() {
             </button>
           </div>
 
-          <button className="mobile-fab-opcion" onClick={abrirNuevaVenta}>
-            <span className="mobile-fab-opcion-icono" style={{ background: "#10b981" }}>
-              <DollarSign size={26} color="#fff" />
-            </span>
-            {t("mobile.nueva_venta")}
-          </button>
+          {puede("registrar_ventas") && (
+            <button className="mobile-fab-opcion" onClick={abrirNuevaVenta}>
+              <span className="mobile-fab-opcion-icono" style={{ background: "#10b981" }}>
+                <DollarSign size={26} color="#fff" />
+              </span>
+              {t("mobile.nueva_venta")}
+            </button>
+          )}
 
-          <button className="mobile-fab-opcion" onClick={irANuevoProducto}>
-            <span className="mobile-fab-opcion-icono" style={{ background: "var(--primary)" }}>
-              <Camera size={26} color="#fff" />
-            </span>
-            {t("mobile.nuevo_producto")}
-          </button>
+          {puede("gestionar_inventario") && (
+            <button className="mobile-fab-opcion" onClick={irANuevoProducto}>
+              <span className="mobile-fab-opcion-icono" style={{ background: "var(--primary)" }}>
+                <Camera size={26} color="#fff" />
+              </span>
+              {t("mobile.nuevo_producto")}
+            </button>
+          )}
         </div>
       )}
 

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useIdioma } from "./LanguageProvider";
 import { SECCIONES_NAV } from "../lib/navegacion";
 import { esRutaPlus } from "../lib/suscripcion";
+import { useMiembroActivo } from "./MiembroActivoProvider";
 
 export default function Sidebar({
   isOpen,
@@ -16,6 +17,7 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const { t } = useIdioma();
+  const { puede } = useMiembroActivo();
 
   return (
     <>
@@ -35,6 +37,10 @@ export default function Sidebar({
               <p className="sidebar-section-title">{t(seccion.claveTitulo)}</p>
 
               {seccion.items.map((item) => {
+                // Un miembro del equipo sin permiso "ver_ventas" no ve
+                // ese acceso en el menú (la página también lo bloquea).
+                if (item.href === "/ventas" && !puede("ver_ventas")) return null;
+
                 const isActive = pathname === item.href;
                 const Icono = item.Icono;
 

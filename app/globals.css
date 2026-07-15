@@ -1319,6 +1319,11 @@ textarea:focus {
   margin-top: 12px;
 }
 
+.login-label-opcional {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
 .login-card input {
   margin-bottom: 4px;
 }

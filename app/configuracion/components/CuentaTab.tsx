@@ -5,10 +5,12 @@ import { LogOut } from "lucide-react";
 import { supabase } from "../../../lib/supabase";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useAuth } from "../../../components/AuthProvider";
+import { useMiembroActivo } from "../../../components/MiembroActivoProvider";
 
 export default function CuentaTab() {
   const { t } = useIdioma();
   const { user, cargando } = useAuth();
+  const { miembroActivo, limpiarMiembroActivo } = useMiembroActivo();
   const [cerrando, setCerrando] = useState(false);
 
   const correo = user?.email || "Sin correo";
@@ -28,6 +30,7 @@ export default function CuentaTab() {
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     } finally {
+      limpiarMiembroActivo();
       window.location.href = "/login";
     }
   }
@@ -101,6 +104,23 @@ export default function CuentaTab() {
           )}
         </div>
       </div>
+
+      {miembroActivo && (
+        <div
+          className="card"
+          style={{
+            borderColor: "var(--primary)",
+            background: "var(--primary-soft)",
+            marginBottom: 20,
+            padding: 14,
+          }}
+        >
+          <p style={{ margin: 0, fontSize: 13 }}>
+            {t("cuenta.entraste_como")} <strong>{miembroActivo.nombre}</strong>.{" "}
+            {t("cuenta.entraste_como_desc")}
+          </p>
+        </div>
+      )}
 
       <button
         className="logout-real-btn"

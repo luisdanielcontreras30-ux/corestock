@@ -11,8 +11,8 @@ import { useIdioma } from "../../components/LanguageProvider";
 
 interface Props {
   ventas: Venta[];
-  eliminarVenta: (id: number) => void;
-  exportarExcel: () => void;
+  eliminarVenta?: (id: number) => void;
+  exportarExcel?: () => void;
 }
 
 export default function Historial({
@@ -22,6 +22,7 @@ export default function Historial({
 }: Props) {
   const { t } = useIdioma();
   const [busqueda, setBusqueda] = useState("");
+  const mostrarAcciones = !!eliminarVenta;
 
   const ventasFiltradas = ventas.filter((venta) => {
     const termino = busqueda.toLowerCase().trim();
@@ -65,12 +66,14 @@ export default function Historial({
           </p>
         </div>
 
-        <button
-          className="btn-primary"
-          onClick={exportarExcel}
-        >
-          {t("ventas.exportar_excel")}
-        </button>
+        {exportarExcel && (
+          <button
+            className="btn-primary"
+            onClick={exportarExcel}
+          >
+            {t("ventas.exportar_excel")}
+          </button>
+        )}
       </div>
 
       <input
@@ -91,7 +94,7 @@ export default function Historial({
               <th>{t("productos.precio")}</th>
               <th>{t("tabla.total")}</th>
               <th>{t("ventas.metodo_pago")}</th>
-              <th>{t("usuarios.col_acciones")}</th>
+              {mostrarAcciones && <th>{t("usuarios.col_acciones")}</th>}
             </tr>
           </thead>
 
@@ -99,7 +102,7 @@ export default function Historial({
             {ventasFiltradas.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={mostrarAcciones ? 8 : 7}
                   style={{
                     textAlign: "center",
                     padding: 30,
@@ -145,18 +148,20 @@ export default function Historial({
 
                   <td>{t(CLAVE_METODO_PAGO[venta.metodo_pago] ?? CLAVE_METODO_PAGO.efectivo)}</td>
 
-                  <td>
-                    <button
-                      className="btn-delete"
-                      onClick={() =>
-                        eliminarVenta(
-                          venta.id
-                        )
-                      }
-                    >
-                      {t("ventas.eliminar")}
-                    </button>
-                  </td>
+                  {mostrarAcciones && (
+                    <td>
+                      <button
+                        className="btn-delete"
+                        onClick={() =>
+                          eliminarVenta!(
+                            venta.id
+                          )
+                        }
+                      >
+                        {t("ventas.eliminar")}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

@@ -4,6 +4,8 @@ import { Suspense, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Package, BarChart3, Zap } from "lucide-react";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import { buscarMiembroPorNombre } from "../configuracion/acciones";
 
 export default function Login() {
   return (
@@ -21,11 +23,13 @@ function LoginInterno() {
 
   const [modo, setModo] = useState<"login" | "registro">(modoInicial);
   const [correo, setCorreo] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [confirmarPassword, setConfirmarPassword] = useState("");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const { establecerMiembroActivo, limpiarMiembroActivo } = useMiembroActivo();
 
   async function iniciarSesion() {
     setError("");
@@ -38,7 +42,7 @@ function LoginInterno() {
 
     setCargando(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: correo,
       password,
     });
@@ -49,7 +53,37 @@ function LoginInterno() {
       return;
     }
 
-    router.push("/");
+    const nombreUsuario = usuario.trim();
+
+    // Sin nombre de usuario, entra como el dueño de la cuenta (sin
+    // restricciones) — así sigue funcionando igual que antes de este
+    // campo existir. Con un nombre, debe coincidir con un miembro del
+    // equipo activo o se rechaza el acceso aunque el correo y la
+    // contraseña sean correctos.
+    if (!nombreUsuario) {
+      limpiarMiembroActivo();
+      router.push("/");
+      return;
+    }
+
+    try {
+      const miembro = await buscarMiembroPorNombre(data.user!.id, nombreUsuario);
+
+      if (!miembro) {
+        await supabase.auth.signOut();
+        setError("Este usuario no existe.");
+        setCargando(false);
+        return;
+      }
+
+      establecerMiembroActivo(miembro, data.user!.id);
+      router.push("/");
+    } catch (err) {
+      console.error(err);
+      await supabase.auth.signOut();
+      setError("No se pudo verificar el usuario. Intenta de nuevo.");
+      setCargando(false);
+    }
   }
 
   async function registrarse() {
@@ -163,6 +197,20 @@ function LoginInterno() {
             value={correo}
             onChange={(e) => setCorreo(e.target.value)}
           />
+
+          {modo === "login" && (
+            <>
+              <label className="login-label">
+                Usuario <span className="login-label-opcional">(opcional, solo para tu equipo)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Tu nombre, si el dueño te agregó al equipo"
+                value={usuario}
+                onChange={(e) => setUsuario(e.target.value)}
+              />
+            </>
+          )}
 
           <label className="login-label">Contraseña</label>
           <input

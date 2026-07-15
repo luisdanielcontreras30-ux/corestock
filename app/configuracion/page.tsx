@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Settings } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import SinPermiso from "../../components/SinPermiso";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import ConfigTabs from "./components/ConfigTabs";
 import ApariciarenciaTab from "./components/ApariciarenciaTab";
@@ -18,6 +20,7 @@ export default function ConfiguracionPage() {
   const { t } = useIdioma();
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
 
   useEffect(() => {
     if (cargandoAuth) return;
@@ -47,8 +50,8 @@ export default function ConfiguracionPage() {
       <ConfigTabs activa={tab} onCambiar={setTab} />
 
       {tab === "apariencia" && <ApariciarenciaTab />}
-      {tab === "empresa" && <EmpresaTab />}
-      {tab === "usuarios" && <UsuariosTab />}
+      {tab === "empresa" && (puede("configuracion") ? <EmpresaTab /> : <SinPermiso />)}
+      {tab === "usuarios" && (puede("configuracion") ? <UsuariosTab /> : <SinPermiso />)}
       {tab === "cuenta" && <CuentaTab />}
       {tab === "idioma" && <IdiomaTab />}
     </main>

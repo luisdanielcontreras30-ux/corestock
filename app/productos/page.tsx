@@ -10,6 +10,7 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 
 interface Producto {
@@ -36,6 +37,7 @@ function ProductosInterno() {
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
   const { user } = useAuth();
+  const { puede } = useMiembroActivo();
   const searchParams = useSearchParams();
   const [productos, setProductos] = useState<Producto[]>([]);
 
@@ -258,6 +260,7 @@ function ProductosInterno() {
         />
       </div>
 
+      {puede("gestionar_inventario") && (
       <div className="card productos-form">
         <h2>{editando !== null ? t("productos.editar_producto") : t("productos.anadir_producto")}</h2>
 
@@ -265,7 +268,9 @@ function ProductosInterno() {
           <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={t("productos.nombre")} />
           <input value={categoria} onChange={(e) => setCategoria(e.target.value)} placeholder={t("productos.categoria")} />
           <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
-          <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
+          {puede("ver_ganancias") && (
+            <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
+          )}
           <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" min="0" step="1" />
           <input value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} placeholder={t("productos.stock_minimo")} type="number" min="0" step="1" />
         </div>
@@ -423,6 +428,7 @@ function ProductosInterno() {
           }}
         />
       </div>
+      )}
 
       <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
         <input
@@ -456,9 +462,9 @@ function ProductosInterno() {
               <th>{t("productos.col_producto")}</th>
               <th>{t("productos.categoria")}</th>
               <th>{t("productos.precio")}</th>
-              <th>{t("productos.costo")}</th>
+              {puede("ver_ganancias") && <th>{t("productos.costo")}</th>}
               <th>{t("productos.stock")}</th>
-              <th>{t("productos.col_acciones")}</th>
+              {puede("gestionar_inventario") && <th>{t("productos.col_acciones")}</th>}
             </tr>
           </thead>
 
@@ -474,20 +480,22 @@ function ProductosInterno() {
                 <td>{p.nombre}</td>
                 <td>{p.categoria}</td>
                 <td>${p.precio_venta}</td>
-                <td>${p.costo ?? 0}</td>
+                {puede("ver_ganancias") && <td>${p.costo ?? 0}</td>}
                 <td>{p.stock}</td>
 
-                <td>
-                  <div className="productos-actions">
-                    <button onClick={() => editar(p)} className="btn-edit">
-                      {t("productos.editar")}
-                    </button>
+                {puede("gestionar_inventario") && (
+                  <td>
+                    <div className="productos-actions">
+                      <button onClick={() => editar(p)} className="btn-edit">
+                        {t("productos.editar")}
+                      </button>
 
-                    <button onClick={() => eliminar(p.id)} className="btn-delete">
-                      {t("productos.eliminar")}
-                    </button>
-                  </div>
-                </td>
+                      <button onClick={() => eliminar(p.id)} className="btn-delete">
+                        {t("productos.eliminar")}
+                      </button>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
