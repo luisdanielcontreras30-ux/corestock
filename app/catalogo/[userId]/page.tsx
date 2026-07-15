@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
-import { Store, PackageX, ChevronDown, MessageCircle, FileText, X } from "lucide-react";
+import { Fragment, use, useEffect, useMemo, useState } from "react";
+import { Store, PackageX, MessageCircle, FileText, X } from "lucide-react";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { obtenerCatalogoPublico, ProductoPublico } from "./acciones";
 
@@ -34,7 +34,7 @@ export default function CatalogoPublicoPage({ params }: Props) {
   const [colorPrincipal, setColorPrincipal] = useState("#5945e4");
   const [telefono, setTelefono] = useState<string | null>(null);
   const [productos, setProductos] = useState<ProductoPublico[]>([]);
-  const [productoSeleccionado, setProductoSeleccionado] = useState<ProductoPublico | null>(null);
+  const [productoSeleccionadoId, setProductoSeleccionadoId] = useState<number | null>(null);
 
   useEffect(() => {
     obtenerCatalogoPublico(userId)
@@ -122,7 +122,7 @@ export default function CatalogoPublicoPage({ params }: Props) {
           {t("catalogo_publico.sin_productos")}
         </p>
       ) : (
-        categorias.map((cat, i) => (
+        categorias.map((cat) => (
           <section key={cat.nombre} className="catalogo-publico-categoria">
             <div className="catalogo-publico-categoria-titulo">
               <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{cat.nombre}</h2>
@@ -132,92 +132,86 @@ export default function CatalogoPublicoPage({ params }: Props) {
             </div>
 
             <div className="catalogo-publico-productos-fila">
-              {cat.productos.map((p) => (
-                <div
-                  key={p.id}
-                  className="card catalogo-publico-producto"
-                  onClick={() => setProductoSeleccionado(p)}
-                >
-                  <div className="catalogo-publico-producto-imagen">
-                    {p.imagen ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.imagen} alt={p.nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    ) : (
-                      <Store size={28} color="var(--text-muted)" />
-                    )}
-                  </div>
-                  <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{p.nombre}</p>
-                  <p style={{ fontSize: 15, color: colorPrincipal, fontWeight: 700, margin: "6px 0 0 0" }}>
-                    ${Number(p.precio).toFixed(2)}
-                  </p>
-                </div>
-              ))}
-            </div>
+              {cat.productos.map((p) => {
+                const seleccionado = productoSeleccionadoId === p.id;
+                return (
+                  <Fragment key={p.id}>
+                    <div
+                      className="card catalogo-publico-producto"
+                      onClick={() => setProductoSeleccionadoId(seleccionado ? null : p.id)}
+                    >
+                      <div className="catalogo-publico-producto-imagen">
+                        {p.imagen ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.imagen} alt={p.nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <Store size={28} color="var(--text-muted)" />
+                        )}
+                      </div>
+                      <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{p.nombre}</p>
+                      <p style={{ fontSize: 15, color: colorPrincipal, fontWeight: 700, margin: "6px 0 0 0" }}>
+                        ${Number(p.precio).toFixed(2)}
+                      </p>
+                    </div>
 
-            {i < categorias.length - 1 && (
-              <div className="catalogo-publico-siguiente">
-                <ChevronDown size={18} />
-                <span>{t("catalogo_publico.desliza_categorias")}</span>
-              </div>
-            )}
+                    <div className={`catalogo-publico-panel-inline${seleccionado ? " abierto" : ""}`}>
+                      {seleccionado && (
+                        <div className="catalogo-publico-panel-contenido">
+                          <div className="catalogo-publico-panel-header">
+                            <p>{p.nombre}</p>
+                            <button onClick={() => setProductoSeleccionadoId(null)} aria-label={t("factura.cerrar")}>
+                              <X size={13} />
+                            </button>
+                          </div>
+
+                          {telefono ? (
+                            <>
+                              <a
+                                className="catalogo-publico-panel-opcion"
+                                href={enlaceWhatsApp(
+                                  telefono,
+                                  t("catalogo_publico.msg_cotizar")
+                                    .replace("{producto}", p.nombre)
+                                    .replace("{precio}", Number(p.precio).toFixed(2))
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <span className="catalogo-publico-panel-opcion-icono" style={{ background: colorPrincipal }}>
+                                  <FileText size={14} color="#fff" />
+                                </span>
+                                {t("catalogo_publico.realizar_cotizacion")}
+                              </a>
+
+                              <a
+                                className="catalogo-publico-panel-opcion"
+                                href={enlaceWhatsApp(
+                                  telefono,
+                                  t("catalogo_publico.msg_contactar").replace("{producto}", p.nombre)
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <span className="catalogo-publico-panel-opcion-icono" style={{ background: "#25d366" }}>
+                                  <MessageCircle size={14} color="#fff" />
+                                </span>
+                                {t("catalogo_publico.comunicarme_whatsapp")}
+                              </a>
+                            </>
+                          ) : (
+                            <p style={{ color: "var(--text-secondary)", fontSize: 11.5, margin: 0 }}>
+                              {t("catalogo_publico.sin_contacto")}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </Fragment>
+                );
+              })}
+            </div>
           </section>
         ))
-      )}
-
-      {productoSeleccionado && (
-        <div
-          className="catalogo-publico-overlay"
-          onClick={() => setProductoSeleccionado(null)}
-        >
-          <div className="catalogo-publico-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="catalogo-publico-sheet-header">
-              <p>{productoSeleccionado.nombre}</p>
-              <button onClick={() => setProductoSeleccionado(null)} aria-label={t("factura.cerrar")}>
-                <X size={16} />
-              </button>
-            </div>
-
-            {telefono ? (
-              <>
-                <a
-                  className="catalogo-publico-sheet-opcion"
-                  href={enlaceWhatsApp(
-                    telefono,
-                    t("catalogo_publico.msg_cotizar")
-                      .replace("{producto}", productoSeleccionado.nombre)
-                      .replace("{precio}", Number(productoSeleccionado.precio).toFixed(2))
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span className="catalogo-publico-sheet-opcion-icono" style={{ background: colorPrincipal }}>
-                    <FileText size={20} color="#fff" />
-                  </span>
-                  {t("catalogo_publico.realizar_cotizacion")}
-                </a>
-
-                <a
-                  className="catalogo-publico-sheet-opcion"
-                  href={enlaceWhatsApp(
-                    telefono,
-                    t("catalogo_publico.msg_contactar").replace("{producto}", productoSeleccionado.nombre)
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span className="catalogo-publico-sheet-opcion-icono" style={{ background: "#25d366" }}>
-                    <MessageCircle size={20} color="#fff" />
-                  </span>
-                  {t("catalogo_publico.comunicarme_whatsapp")}
-                </a>
-              </>
-            ) : (
-              <p style={{ color: "var(--text-secondary)", fontSize: 13.5, padding: "8px 0" }}>
-                {t("catalogo_publico.sin_contacto")}
-              </p>
-            )}
-          </div>
-        </div>
       )}
     </div>
   );
