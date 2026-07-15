@@ -43,7 +43,7 @@ export default function MasPage() {
                       <span className="mas-card-badge">{t("proximamente.badge")}</span>
                     )}
                     {!item.proximamente && esRutaPlus(item.href) && (
-                      <span className="mas-card-badge-plus">Plus+</span>
+                      <span className="mas-card-badge-plus" title={t("plus.badge_tooltip")}>Plus+</span>
                     )}
                   </Link>
                 );

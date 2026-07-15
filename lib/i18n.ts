@@ -127,6 +127,10 @@ export const TRADUCCIONES: Diccionario = {
   "dashboard.sin_transacciones": { es: "No hay transacciones recientes en el historial.", en: "No recent transactions in the history.", pt: "Não há transações recentes no histórico.", fr: "Aucune transaction récente dans l'historique.", de: "Keine letzten Transaktionen im Verlauf.", zh: "历史记录中没有最近的交易。" },
   "dashboard.alertas_stock_bajo": { es: "Alertas de stock bajo", en: "Low stock alerts", pt: "Alertas de estoque baixo", fr: "Alertes de stock bas", de: "Warnungen bei niedrigem Bestand", zh: "低库存警报" },
   "dashboard.mejores_clientes": { es: "Mejores clientes", en: "Best customers", pt: "Melhores clientes", fr: "Meilleurs clients", de: "Beste Kunden", zh: "最佳客户" },
+  "dashboard.periodo_hoy": { es: "Hoy", en: "Today", pt: "Hoje", fr: "Aujourd'hui", de: "Heute", zh: "今天" },
+  "dashboard.periodo_semana": { es: "Últimos 7 días", en: "Last 7 days", pt: "Últimos 7 dias", fr: "7 derniers jours", de: "Letzte 7 Tage", zh: "最近7天" },
+  "dashboard.periodo_mes": { es: "Este mes", en: "This month", pt: "Este mês", fr: "Ce mois-ci", de: "Diesen Monat", zh: "本月" },
+  "dashboard.periodo_todo": { es: "Todo", en: "All time", pt: "Tudo", fr: "Tout", de: "Gesamt", zh: "全部" },
   "dashboard.mejores_clientes_desc": { es: "Los que más te han comprado, por total histórico.", en: "The ones who've bought the most from you, by historical total.", pt: "Os que mais compraram de você, pelo total histórico.", fr: "Ceux qui vous ont le plus acheté, par total historique.", de: "Diejenigen, die am meisten bei dir gekauft haben, nach Gesamtsumme.", zh: "历史累计购买最多的客户。" },
   "dashboard.cliente_eliminado": { es: "Cliente eliminado", en: "Deleted customer", pt: "Cliente excluído", fr: "Client supprimé", de: "Gelöschter Kunde", zh: "已删除的客户" },
   "dashboard.articulos_criticos": { es: "Artículos por debajo de su stock mínimo", en: "Items below their minimum stock", pt: "Itens abaixo do estoque mínimo", fr: "Articles sous leur stock minimum", de: "Artikel unter ihrem Mindestbestand", zh: "低于最低库存的商品" },
@@ -657,6 +661,11 @@ export const TRADUCCIONES: Diccionario = {
   "clientes.historial_sin_compras": { es: "Este cliente aún no tiene compras.", en: "This customer has no purchases yet.", pt: "Este cliente ainda não tem compras.", fr: "Ce client n'a pas encore d'achats.", de: "Dieser Kunde hat noch keine Käufe.", zh: "该客户尚无购买记录。" },
   "clientes.compras_totales": { es: "Compras totales", en: "Total purchases", pt: "Compras totais", fr: "Achats totaux", de: "Gesamtkäufe", zh: "总购买次数" },
   "clientes.total_gastado": { es: "Total gastado", en: "Total spent", pt: "Total gasto", fr: "Total dépensé", de: "Gesamtausgaben", zh: "消费总额" },
+  "proveedores.ver_historial": { es: "Historial", en: "History", pt: "Histórico", fr: "Historique", de: "Verlauf", zh: "历史记录" },
+  "proveedores.historial_titulo": { es: "Historial de Compras", en: "Purchase History", pt: "Histórico de Compras", fr: "Historique des achats", de: "Kaufverlauf", zh: "购买历史" },
+  "proveedores.historial_sin_compras": { es: "Aún no le has comprado nada a este proveedor.", en: "You haven't bought anything from this supplier yet.", pt: "Você ainda não comprou nada deste fornecedor.", fr: "Vous n'avez encore rien acheté à ce fournisseur.", de: "Bei diesem Lieferanten wurde noch nichts gekauft.", zh: "您尚未从该供应商处购买任何商品。" },
+  "proveedores.compras_totales": { es: "Compras totales", en: "Total purchases", pt: "Compras totais", fr: "Achats totaux", de: "Gesamtkäufe", zh: "总购买次数" },
+  "proveedores.total_gastado": { es: "Total gastado", en: "Total spent", pt: "Total gasto", fr: "Total dépensé", de: "Gesamtausgaben", zh: "消费总额" },
 
   // Factura
   "factura.cerrar": { es: "Cerrar", en: "Close", pt: "Fechar", fr: "Fermer", de: "Schließen", zh: "关闭" },
@@ -874,6 +883,7 @@ export const TRADUCCIONES: Diccionario = {
 
   // CoreStock Plus+ (suscripción)
   "plus.titulo": { es: "Esto es exclusivo de CoreStock Plus+", en: "This is exclusive to CoreStock Plus+", pt: "Isso é exclusivo do CoreStock Plus+", fr: "Ceci est exclusif à CoreStock Plus+", de: "Dies ist exklusiv für CoreStock Plus+", zh: "此功能仅限 CoreStock Plus+ 使用" },
+  "plus.badge_tooltip": { es: "Función de CoreStock Plus+ — haz clic para ver los planes", en: "CoreStock Plus+ feature — click to see the plans", pt: "Função do CoreStock Plus+ — clique para ver os planos", fr: "Fonctionnalité CoreStock Plus+ — cliquez pour voir les plans", de: "CoreStock Plus+ Funktion — klicke, um die Pläne zu sehen", zh: "CoreStock Plus+ 功能 — 点击查看套餐" },
   "plus.mensaje": { es: "Esta función es exclusiva de CoreStock Plus+. ¿Deseas contratar el plan mensual para desbloquearla junto con todo lo demás que incluye Plus+?", en: "This feature is exclusive to CoreStock Plus+. Do you want to subscribe to the monthly plan to unlock it along with everything else included in Plus+?", pt: "Este recurso é exclusivo do CoreStock Plus+. Deseja contratar o plano mensal para desbloqueá-lo junto com tudo mais incluído no Plus+?", fr: "Cette fonctionnalité est exclusive à CoreStock Plus+. Voulez-vous souscrire au plan mensuel pour la débloquer avec tout le reste inclus dans Plus+ ?", de: "Diese Funktion ist exklusiv für CoreStock Plus+. Möchtest du den Monatsplan abschließen, um sie zusammen mit allem anderen in Plus+ freizuschalten?", zh: "此功能仅限 CoreStock Plus+ 使用。是否要订阅月度套餐以解锁此功能以及 Plus+ 包含的所有其他内容？" },
   "plus.boton_ver_planes": { es: "Ver comparación de planes", en: "View plan comparison", pt: "Ver comparação de planos", fr: "Voir la comparaison des plans", de: "Planvergleich ansehen", zh: "查看套餐对比" },
   "plus.boton_contratar": { es: "Sí, contratar plan mensual", en: "Yes, subscribe monthly", pt: "Sim, contratar plano mensal", fr: "Oui, souscrire au plan mensuel", de: "Ja, Monatsplan abschließen", zh: "是的，订阅月度套餐" },

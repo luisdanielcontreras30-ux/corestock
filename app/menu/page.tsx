@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 import {
@@ -59,6 +59,39 @@ interface DataGraficoPie {
   value: number;
 }
 
+type PeriodoRanking = "hoy" | "semana" | "mes" | "todo";
+
+const PERIODOS_RANKING: { valor: PeriodoRanking; clave: string }[] = [
+  { valor: "hoy", clave: "dashboard.periodo_hoy" },
+  { valor: "semana", clave: "dashboard.periodo_semana" },
+  { valor: "mes", clave: "dashboard.periodo_mes" },
+  { valor: "todo", clave: "dashboard.periodo_todo" },
+];
+
+function dentroDePeriodo(fechaStr: string, periodo: PeriodoRanking): boolean {
+  if (periodo === "todo") return true;
+
+  const fecha = new Date(fechaStr);
+  const ahora = new Date();
+
+  if (periodo === "hoy") {
+    return (
+      fecha.getDate() === ahora.getDate() &&
+      fecha.getMonth() === ahora.getMonth() &&
+      fecha.getFullYear() === ahora.getFullYear()
+    );
+  }
+
+  if (periodo === "semana") {
+    const hace7dias = new Date(ahora);
+    hace7dias.setDate(ahora.getDate() - 7);
+    return fecha >= hace7dias && fecha <= ahora;
+  }
+
+  // mes
+  return fecha.getMonth() === ahora.getMonth() && fecha.getFullYear() === ahora.getFullYear();
+}
+
 export default function DashboardPremium() {
   const router = useRouter();
   const { tema } = useTheme();
@@ -75,12 +108,17 @@ export default function DashboardPremium() {
   // Listas de datos dinámicos
   const [ventasRecientes, setVentasRecientes] = useState<VentaReciente[]>([]);
   const [productosAlerta, setProductosAlerta] = useState<ProductoStockBajo[]>([]);
-  const [mejoresClientes, setMejoresClientes] = useState<ClienteTop[]>([]);
-  
+
+  // Todas las ventas (crudas) y el mapa de nombres de clientes, para
+  // poder recalcular "Top artículos" y "Mejores clientes" según el
+  // período elegido sin volver a consultar la base de datos.
+  const [ventasTodas, setVentasTodas] = useState<VentaReciente[]>([]);
+  const [nombresClientes, setNombresClientes] = useState<Map<number, string>>(new Map());
+  const [periodoRanking, setPeriodoRanking] = useState<PeriodoRanking>("todo");
+
   // Estados para las gráficas reales
   const [dataLinea, setDataLinea] = useState<DataGraficoLinea[]>([]);
-  const [dataPie, setDataPie] = useState<DataGraficoPie[]>([]);
-  
+
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -93,6 +131,44 @@ export default function DashboardPremium() {
 
     cargarDatosDashboard(user.id);
   }, [cargandoAuth, user]);
+
+  const ventasEnPeriodo = useMemo(
+    () => ventasTodas.filter((v) => dentroDePeriodo(v.fecha, periodoRanking)),
+    [ventasTodas, periodoRanking]
+  );
+
+  const dataPie = useMemo<DataGraficoPie[]>(() => {
+    const mapaProductos: { [key: string]: number } = {};
+
+    ventasEnPeriodo.forEach((v) => {
+      if (v.producto) {
+        mapaProductos[v.producto] = (mapaProductos[v.producto] || 0) + Number(v.total);
+      }
+    });
+
+    return Object.keys(mapaProductos)
+      .map((key) => ({ name: key, value: mapaProductos[key] }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  }, [ventasEnPeriodo]);
+
+  const mejoresClientes = useMemo<ClienteTop[]>(() => {
+    const conCliente = ventasEnPeriodo.filter((v) => v.cliente_id != null);
+    const mapaClientes = new Map<number, number>();
+
+    conCliente.forEach((v) => {
+      const id = v.cliente_id as number;
+      mapaClientes.set(id, (mapaClientes.get(id) ?? 0) + Number(v.total));
+    });
+
+    return Array.from(mapaClientes.entries())
+      .map(([id, total]) => ({
+        nombre: nombresClientes.get(id) ?? t("dashboard.cliente_eliminado"),
+        total,
+      }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+  }, [ventasEnPeriodo, nombresClientes, t]);
 
   async function cargarDatosDashboard(userId: string) {
     try {
@@ -163,56 +239,19 @@ export default function DashboardPremium() {
         }));
         setDataLinea(formateadaLinea);
 
-        // ==========================================
-        // PROCESAMIENTO DE GRÁFICA DE PIE (Top 5 Productos)
-        // ==========================================
-        const mapaProductos: { [key: string]: number } = {};
-        ventasTipadas.forEach((v) => {
-          if (v.producto) {
-            mapaProductos[v.producto] = (mapaProductos[v.producto] || 0) + Number(v.total);
-          }
-        });
+        // Se guardan crudas para poder recalcular "Top artículos" y
+        // "Mejores clientes" cuando el usuario cambie el período,
+        // sin volver a consultar la base de datos.
+        setVentasTodas(ventasTipadas);
 
-        const formateadaPie = Object.keys(mapaProductos).map(key => ({
-          name: key,
-          value: mapaProductos[key]
-        })).sort((a, b) => b.value - a.value).slice(0, 5);
+        const { data: clientes } = await supabase
+          .from("clientes")
+          .select("id, nombre")
+          .eq("user_id", userId);
 
-        setDataPie(formateadaPie);
-
-        // ==========================================
-        // MEJORES CLIENTES (top 5 por total comprado)
-        // ==========================================
-        const conCliente = ventasTipadas.filter((v) => v.cliente_id != null);
-
-        if (conCliente.length > 0) {
-          const { data: clientes } = await supabase
-            .from("clientes")
-            .select("id, nombre")
-            .eq("user_id", userId);
-
-          const nombrePorId = new Map(
-            (clientes ?? []).map((c) => [c.id as number, c.nombre as string])
-          );
-
-          const mapaClientes = new Map<number, number>();
-          conCliente.forEach((v) => {
-            const id = v.cliente_id as number;
-            mapaClientes.set(id, (mapaClientes.get(id) ?? 0) + Number(v.total));
-          });
-
-          const rankingClientes = Array.from(mapaClientes.entries())
-            .map(([id, total]) => ({
-              nombre: nombrePorId.get(id) ?? t("dashboard.cliente_eliminado"),
-              total,
-            }))
-            .sort((a, b) => b.total - a.total)
-            .slice(0, 5);
-
-          setMejoresClientes(rankingClientes);
-        } else {
-          setMejoresClientes([]);
-        }
+        setNombresClientes(
+          new Map((clientes ?? []).map((c) => [c.id as number, c.nombre as string]))
+        );
       }
 
     } catch (error) {
@@ -440,7 +479,20 @@ export default function DashboardPremium() {
 
         {/* GRÁFICO B: DISTRIBUCIÓN DE PARTICIPACIÓN */}
         <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px", display: "flex", flexDirection: "column" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 10px 0" }}>{t("dashboard.top_articulos")}</h3>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0 }}>{t("dashboard.top_articulos")}</h3>
+            <select
+              value={periodoRanking}
+              onChange={(e) => setPeriodoRanking(e.target.value as PeriodoRanking)}
+              style={{ width: "auto", fontSize: 12, padding: "6px 10px" }}
+            >
+              {PERIODOS_RANKING.map((p) => (
+                <option key={p.valor} value={p.valor}>
+                  {t(p.clave)}
+                </option>
+              ))}
+            </select>
+          </div>
           <div style={{ width: "100%", height: "220px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {dataPie.length === 0 ? (
               <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{t("dashboard.sin_datos")}</p>
@@ -547,12 +599,29 @@ export default function DashboardPremium() {
       </section>
 
       {/* MEJORES CLIENTES */}
-      {mejoresClientes.length > 0 && (
-        <section style={{ marginTop: "24px" }}>
-          <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 4px 0" }}>{t("dashboard.mejores_clientes")}</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "12px", margin: "0 0 20px 0" }}>{t("dashboard.mejores_clientes_desc")}</p>
+      <section style={{ marginTop: "24px" }}>
+        <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
+            <div>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 4px 0" }}>{t("dashboard.mejores_clientes")}</h3>
+              <p style={{ color: "var(--text-secondary)", fontSize: "12px", margin: "0 0 20px 0" }}>{t("dashboard.mejores_clientes_desc")}</p>
+            </div>
+            <select
+              value={periodoRanking}
+              onChange={(e) => setPeriodoRanking(e.target.value as PeriodoRanking)}
+              style={{ width: "auto", fontSize: 12, padding: "6px 10px" }}
+            >
+              {PERIODOS_RANKING.map((p) => (
+                <option key={p.valor} value={p.valor}>
+                  {t(p.clave)}
+                </option>
+              ))}
+            </select>
+          </div>
 
+          {mejoresClientes.length === 0 ? (
+            <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{t("dashboard.sin_datos")}</p>
+          ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px" }}>
               {mejoresClientes.map((cliente, i) => (
                 <div
@@ -603,9 +672,9 @@ export default function DashboardPremium() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      )}
+          )}
+        </div>
+      </section>
 
     </div>
   );

@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Phone, Mail, Plus, Truck } from "lucide-react";
+import { Phone, Mail, Plus, Truck, History } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
-import { Proveedor } from "./types";
+import HistorialModal from "./components/HistorialModal";
+import { ProveedorConResumen, CompraProveedor } from "./types";
 import {
   cargarProveedores,
   crearProveedor,
   actualizarProveedor,
   eliminarProveedor,
+  cargarHistorialCompras,
 } from "./acciones";
 
 export default function ProveedoresPage() {
@@ -26,11 +28,15 @@ function ProveedoresContenido() {
   const { user } = useAuth();
   const { t } = useIdioma();
 
-  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
+  const [proveedores, setProveedores] = useState<ProveedorConResumen[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
-  const [editando, setEditando] = useState<Proveedor | null>(null);
+  const [editando, setEditando] = useState<ProveedorConResumen | null>(null);
   const [guardando, setGuardando] = useState(false);
+
+  const [proveedorHistorial, setProveedorHistorial] = useState<ProveedorConResumen | null>(null);
+  const [comprasHistorial, setComprasHistorial] = useState<CompraProveedor[]>([]);
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
 
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -65,13 +71,31 @@ function ProveedoresContenido() {
     setMostrarForm(true);
   }
 
-  function abrirEditar(p: Proveedor) {
+  function abrirEditar(p: ProveedorConResumen) {
     setEditando(p);
     setNombre(p.nombre);
     setTelefono(p.telefono ?? "");
     setCorreo(p.correo ?? "");
     setNotas(p.notas ?? "");
     setMostrarForm(true);
+  }
+
+  async function verHistorial(p: ProveedorConResumen) {
+    if (!user) return;
+
+    setProveedorHistorial(p);
+    setCargandoHistorial(true);
+
+    try {
+      const datos = await cargarHistorialCompras(user.id, p.id);
+      setComprasHistorial(datos);
+    } catch (error) {
+      console.error(error);
+      setComprasHistorial([]);
+      alert(t("comun.msg_error_cargar_datos"));
+    } finally {
+      setCargandoHistorial(false);
+    }
   }
 
   async function guardar() {
@@ -106,7 +130,7 @@ function ProveedoresContenido() {
     }
   }
 
-  async function alEliminar(p: Proveedor) {
+  async function alEliminar(p: ProveedorConResumen) {
     if (!user) return;
 
     if (!confirm(t("proveedores.confirmar_eliminar").replace("{nombre}", p.nombre))) {
@@ -199,7 +223,15 @@ function ProveedoresContenido() {
                 )}
               </div>
 
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <p style={{ color: "var(--text-secondary)", fontSize: 12.5, marginBottom: 4 }}>
+                {t("proveedores.compras_totales")}: {p.compras} · {t("proveedores.total_gastado")}: $
+                {p.totalGastado.toFixed(2)}
+              </p>
+
+              <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                <button className="btn-secondary" onClick={() => verHistorial(p)} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <History size={14} /> {t("proveedores.ver_historial")}
+                </button>
                 <button className="btn-edit" onClick={() => abrirEditar(p)}>
                   {t("proveedores.editar")}
                 </button>
@@ -282,6 +314,15 @@ function ProveedoresContenido() {
             </div>
           </div>
         </div>
+      )}
+
+      {proveedorHistorial && (
+        <HistorialModal
+          proveedor={proveedorHistorial}
+          compras={comprasHistorial}
+          cargando={cargandoHistorial}
+          onClose={() => setProveedorHistorial(null)}
+        />
       )}
     </main>
   );

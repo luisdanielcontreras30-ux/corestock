@@ -1,16 +1,65 @@
 import { supabase } from "../../lib/supabase";
-import { Proveedor } from "./types";
+import { Proveedor, ProveedorConResumen, CompraProveedor } from "./types";
 
-export async function cargarProveedores(userId: string): Promise<Proveedor[]> {
+export async function cargarProveedores(userId: string): Promise<ProveedorConResumen[]> {
+  // Las 2 consultas son independientes — se piden en paralelo en vez de
+  // una tras otra para no sumar sus tiempos de ida y vuelta.
+  const [
+    { data: proveedores, error: errorProveedores },
+    { data: compras, error: errorCompras },
+  ] = await Promise.all([
+    supabase
+      .from("proveedores")
+      .select("*")
+      .eq("user_id", userId)
+      .order("creado_en", { ascending: false }),
+    supabase
+      .from("compras")
+      .select("proveedor_id, total")
+      .eq("user_id", userId)
+      .not("proveedor_id", "is", null),
+  ]);
+
+  if (errorProveedores) throw errorProveedores;
+  if (errorCompras) throw errorCompras;
+
+  const resumenPorProveedor = new Map<string, { compras: number; totalGastado: number }>();
+
+  for (const compra of compras ?? []) {
+    if (compra.proveedor_id == null) continue;
+
+    const actual = resumenPorProveedor.get(compra.proveedor_id) ?? {
+      compras: 0,
+      totalGastado: 0,
+    };
+
+    actual.compras += 1;
+    actual.totalGastado += compra.total;
+
+    resumenPorProveedor.set(compra.proveedor_id, actual);
+  }
+
+  return ((proveedores ?? []) as Proveedor[]).map((proveedor) => ({
+    ...proveedor,
+    compras: resumenPorProveedor.get(proveedor.id)?.compras ?? 0,
+    totalGastado: resumenPorProveedor.get(proveedor.id)?.totalGastado ?? 0,
+  }));
+}
+
+export async function cargarHistorialCompras(
+  userId: string,
+  proveedorId: string
+): Promise<CompraProveedor[]> {
   const { data, error } = await supabase
-    .from("proveedores")
-    .select("*")
+    .from("compras")
+    .select("id, fecha, producto, cantidad, costo_unitario, total")
     .eq("user_id", userId)
-    .order("creado_en", { ascending: false });
+    .eq("proveedor_id", proveedorId)
+    .order("fecha", { ascending: false });
 
   if (error) throw error;
 
-  return (data ?? []) as Proveedor[];
+  return (data ?? []) as CompraProveedor[];
 }
 
 export async function crearProveedor(

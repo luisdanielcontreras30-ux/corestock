@@ -4,6 +4,7 @@ import { Printer, MessageCircle, Mail, Camera } from "lucide-react";
 import { Cotizacion } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
+import { useEmpresa } from "../../../lib/useEmpresa";
 
 interface Props {
   cotizacion: Cotizacion;
@@ -13,12 +14,14 @@ interface Props {
 export default function CotizacionCompartirModal({ cotizacion, onClose }: Props) {
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
+  const empresa = useEmpresa();
+  const nombreNegocio = empresa?.nombre_negocio?.trim() || "CoreStock";
   const folio = `COT-${String(cotizacion.id).padStart(6, "0")}`;
   const nombreCliente = cotizacion.cliente_nombre || t("ventas.cliente_general");
   const fecha = new Date(cotizacion.fecha).toLocaleDateString();
 
   const mensaje =
-    `🧾 *CoreStock — ${t("cotizaciones.hoja_subtitulo")} ${folio}*\n\n` +
+    `🧾 *${nombreNegocio} — ${t("cotizaciones.hoja_subtitulo")} ${folio}*\n\n` +
     `${t("factura.facturado_a")}: ${nombreCliente}\n` +
     `${fecha}\n\n` +
     `${cotizacion.producto} x${cotizacion.cantidad}\n` +
@@ -95,9 +98,21 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
 
         <div className="factura-hoja">
           <div className="factura-header">
-            <div>
-              <h1>CoreStock</h1>
-              <p>{t("cotizaciones.hoja_subtitulo")}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {empresa?.logo_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={empresa.logo_url}
+                  alt={nombreNegocio}
+                  style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }}
+                />
+              )}
+              <div>
+                <h1>{nombreNegocio}</h1>
+                <p>{t("cotizaciones.hoja_subtitulo")}</p>
+                {empresa?.rfc && <p>{empresa.rfc}</p>}
+                {empresa?.direccion && <p>{empresa.direccion}</p>}
+              </div>
             </div>
 
             <div className="factura-folio">

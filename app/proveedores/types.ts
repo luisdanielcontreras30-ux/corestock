@@ -7,6 +7,20 @@ export interface Proveedor {
   activo: boolean;
 }
 
+export interface ProveedorConResumen extends Proveedor {
+  compras: number;
+  totalGastado: number;
+}
+
+export interface CompraProveedor {
+  id: number;
+  fecha: string;
+  producto: string;
+  cantidad: number;
+  costo_unitario: number;
+  total: number;
+}
+
 export const PROVEEDOR_VACIO = {
   nombre: "",
   telefono: "",

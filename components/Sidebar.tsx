@@ -57,7 +57,7 @@ export default function Sidebar({
                       <span className="sidebar-link-badge">{t("proximamente.badge")}</span>
                     )}
                     {!item.proximamente && esRutaPlus(item.href) && (
-                      <span className="sidebar-link-badge-plus">Plus+</span>
+                      <span className="sidebar-link-badge-plus" title={t("plus.badge_tooltip")}>Plus+</span>
                     )}
                   </Link>
                 );

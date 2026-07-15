@@ -4,6 +4,7 @@ import { Printer, MessageCircle } from "lucide-react";
 import { Venta } from "../types";
 import { formatoFecha, formatoMoneda, CLAVE_METODO_PAGO } from "../utils";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { useEmpresa } from "../../../lib/useEmpresa";
 
 interface Props {
   venta: Venta;
@@ -12,13 +13,15 @@ interface Props {
 
 export default function FacturaModal({ venta, onClose }: Props) {
   const { t } = useIdioma();
+  const empresa = useEmpresa();
+  const nombreNegocio = empresa?.nombre_negocio?.trim() || "CoreStock";
   const folio = `F-${String(venta.id).padStart(6, "0")}`;
 
   function compartirPorWhatsApp() {
     const cliente = venta.clientes?.nombre ?? t("ventas.cliente_general");
 
     const mensaje =
-      `🧾 *CoreStock — ${t("factura.numero")} ${folio}*\n\n` +
+      `🧾 *${nombreNegocio} — ${t("factura.numero")} ${folio}*\n\n` +
       `${t("factura.facturado_a")}: ${cliente}\n` +
       `${formatoFecha(venta.fecha)}\n\n` +
       `${venta.producto} x${venta.cantidad}\n` +
@@ -60,9 +63,21 @@ export default function FacturaModal({ venta, onClose }: Props) {
 
         <div className="factura-hoja">
           <div className="factura-header">
-            <div>
-              <h1>CoreStock</h1>
-              <p>{t("factura.subtitulo")}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {empresa?.logo_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={empresa.logo_url}
+                  alt={nombreNegocio}
+                  style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }}
+                />
+              )}
+              <div>
+                <h1>{nombreNegocio}</h1>
+                <p>{t("factura.subtitulo")}</p>
+                {empresa?.rfc && <p>{empresa.rfc}</p>}
+                {empresa?.direccion && <p>{empresa.direccion}</p>}
+              </div>
             </div>
 
             <div className="factura-folio">
