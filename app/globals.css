@@ -3071,7 +3071,7 @@ textarea:focus {
   max-width: 960px;
   width: calc(100% - 32px);
   box-sizing: border-box;
-  margin: 16px auto;
+  margin: 16px;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
