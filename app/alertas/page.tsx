@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { Package, CheckCircle2, XCircle, AlertTriangle, Bell } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -18,6 +19,7 @@ interface ProductoAlerta {
 
 export default function Alertas() {
   const { t } = useIdioma();
+  const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const [alertas, setAlertas] = useState<ProductoAlerta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,7 @@ export default function Alertas() {
     if (cargandoAuth) return;
 
     if (!user) {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
 

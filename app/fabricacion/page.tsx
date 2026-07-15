@@ -89,8 +89,16 @@ function FabricacionContenido() {
       return;
     }
 
-    const stockNum = Number(stockMP) || 0;
-    const costoNum = Number(costoMP) || 0;
+    const stockNum = stockMP === "" ? 0 : Number(stockMP);
+    const costoNum = costoMP === "" ? 0 : Number(costoMP);
+
+    if (
+      !Number.isFinite(stockNum) || stockNum < 0 ||
+      !Number.isFinite(costoNum) || costoNum < 0
+    ) {
+      alert(t("fabricacion.msg_datos_invalidos_mp"));
+      return;
+    }
 
     try {
       setGuardandoMP(true);

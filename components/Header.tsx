@@ -43,11 +43,16 @@ export default function Header({
   async function cargarAlertas() {
     if (!user) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("productos")
       .select("id, nombre, stock, stock_minimo")
       .eq("user_id", user.id)
       .order("stock");
+
+    if (error) {
+      console.error(error);
+      return;
+    }
 
     if (data) {
       const bajos = (data as ProductoAlerta[]).filter(

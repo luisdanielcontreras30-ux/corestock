@@ -135,6 +135,7 @@ export default function ClientesPage() {
     } catch (error) {
       console.error(error);
       setCompras([]);
+      alert(t("comun.msg_error_cargar_datos"));
     } finally {
       setCargandoHistorial(false);
     }

@@ -472,7 +472,9 @@ export default function DashboardPremium() {
             {dataPie.map((item, idx) => (
               <div key={item.name} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: COLORES_PIE[idx % COLORES_PIE.length] }}></div>
-                <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{item.name.substring(0, 10)}...</span>
+                <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>
+                  {item.name.length > 10 ? `${item.name.substring(0, 10)}...` : item.name}
+                </span>
               </div>
             ))}
           </div>

@@ -29,12 +29,19 @@ export default function NuevaVentaModal({ onClose }: Props) {
   const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
-    cargarDatos().then((datos) => {
-      setProductos(datos.productos);
-      setClientes(datos.clientes);
-      setPromociones(datos.promociones);
-      setLoading(false);
-    });
+    cargarDatos()
+      .then((datos) => {
+        setProductos(datos.productos);
+        setClientes(datos.clientes);
+        setPromociones(datos.promociones);
+      })
+      .catch((error) => {
+        console.error(error);
+        alert(t("comun.msg_error_cargar_datos"));
+        onClose();
+      })
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const producto = productos.find(

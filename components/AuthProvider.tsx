@@ -33,10 +33,21 @@ export default function AuthProvider({
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ?? null);
-      setCargando(false);
-    });
+    supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        setUser(data.user ?? null);
+      })
+      .catch((error) => {
+        // Falla de red al verificar la sesión: no dejamos la app
+        // colgada en el spinner de carga para siempre — se trata como
+        // "sin sesión" y cada página protegida redirige a /login.
+        console.error(error);
+        setUser(null);
+      })
+      .finally(() => {
+        setCargando(false);
+      });
 
     // Mantiene el usuario sincronizado si la sesión cambia
     // (por ejemplo, si se cierra sesión en otra pestaña).
