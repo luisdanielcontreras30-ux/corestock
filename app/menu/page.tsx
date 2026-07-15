@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 import {
@@ -9,6 +10,12 @@ import {
   Package,
   AlertTriangle,
   CheckCircle2,
+  Factory,
+  FileText,
+  BookOpen,
+  UserCircle,
+  Sparkles,
+  Landmark,
 } from "lucide-react";
 import { useTheme } from "../../components/ThemeProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -98,7 +105,19 @@ export default function DashboardPremium() {
   const { t, idioma } = useIdioma();
   const { user, cargando: cargandoAuth } = useAuth();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
-  
+
+  // Funciones que la competencia típicamente no ofrece: se destacan
+  // arriba del dashboard (sobre todo en celular) para reforzar la
+  // identidad de CoreStock en vez de quedar escondidas en el menú.
+  const funcionesExclusivas = [
+    { href: "/fabricacion", Icono: Factory, color: "#ea580c", plus: true, titulo: t("dashboard.exclusivo_fabricacion_titulo"), texto: t("dashboard.exclusivo_fabricacion_texto") },
+    { href: "/cotizaciones", Icono: FileText, color: "#3b82f6", plus: true, titulo: t("dashboard.exclusivo_cotizaciones_titulo"), texto: t("dashboard.exclusivo_cotizaciones_texto") },
+    { href: "/catalogo-linea", Icono: BookOpen, color: "#7c3aed", plus: false, titulo: t("dashboard.exclusivo_catalogo_titulo"), texto: t("dashboard.exclusivo_catalogo_texto") },
+    { href: "/portal-clientes", Icono: UserCircle, color: "#db2777", plus: true, titulo: t("dashboard.exclusivo_portal_titulo"), texto: t("dashboard.exclusivo_portal_texto") },
+    { href: "/asistente", Icono: Sparkles, color: "#a855f7", plus: true, titulo: t("dashboard.exclusivo_asistente_titulo"), texto: t("dashboard.exclusivo_asistente_texto") },
+    { href: "/conciliaciones", Icono: Landmark, color: "#0d9488", plus: true, titulo: t("dashboard.exclusivo_conciliaciones_titulo"), texto: t("dashboard.exclusivo_conciliaciones_texto") },
+  ];
+
   // Estados analíticos de tarjetas
   const [ventasHoy, setVentasHoy] = useState<number>(0);
   const [ventasMes, setVentasMes] = useState<number>(0);
@@ -328,6 +347,29 @@ export default function DashboardPremium() {
           </p>
         </div>
       </header>
+
+      {/* FUNCIONES EXCLUSIVAS: identidad propia frente a la competencia */}
+      <section style={{ marginBottom: "28px" }}>
+        <h3 style={{ fontSize: "15px", fontWeight: "700", margin: "0 0 2px 0" }}>
+          {t("dashboard.exclusivos_titulo")}
+        </h3>
+        <p style={{ color: "var(--text-secondary)", fontSize: "12.5px", margin: "0 0 12px 0" }}>
+          {t("dashboard.exclusivos_subtitulo")}
+        </p>
+
+        <div className="dashboard-exclusivos-fila">
+          {funcionesExclusivas.map((f) => (
+            <Link key={f.href} href={f.href} className="dashboard-exclusivo-card">
+              {f.plus && <span className="dashboard-exclusivo-badge-plus">Plus+</span>}
+              <div className="dashboard-exclusivo-icono" style={{ background: f.color }}>
+                <f.Icono size={19} color="#fff" />
+              </div>
+              <h4>{f.titulo}</h4>
+              <p>{f.texto}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* METRIC CARDS: GRID ASIMÉTRICO */}
       <section className="dashboard-hero-grid" style={{ marginBottom: "28px" }}>
