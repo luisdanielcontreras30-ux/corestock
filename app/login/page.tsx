@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Package, BarChart3, Zap } from "lucide-react";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
-import { verificarLoginMiembro } from "../configuracion/acciones";
+import { entrarComoMiembro, RazonLoginMiembro } from "../configuracion/acciones";
 
 export default function Login() {
   return (
@@ -24,7 +24,6 @@ function LoginInterno() {
   const [modo, setModo] = useState<"login" | "registro">(modoInicial);
   const [correo, setCorreo] = useState("");
   const [usuario, setUsuario] = useState("");
-  const [passwordMiembro, setPasswordMiembro] = useState("");
   const [password, setPassword] = useState("");
   const [confirmarPassword, setConfirmarPassword] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -43,59 +42,66 @@ function LoginInterno() {
 
     const nombreUsuario = usuario.trim();
 
-    if (nombreUsuario && !passwordMiembro) {
-      setError("Escribe tu contraseña de usuario.");
-      return;
-    }
-
     setCargando(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: correo,
-      password,
-    });
-
-    if (error) {
-      setError(traducirError(error.message));
-      setCargando(false);
-      return;
-    }
-
     // Sin nombre de usuario, entra como el dueño de la cuenta (sin
-    // restricciones) — así sigue funcionando igual que antes de este
-    // campo existir. Con un nombre, debe coincidir con un miembro del
-    // equipo activo y su propia contraseña, o se rechaza el acceso
-    // aunque el correo y la contraseña de la cuenta sean correctos.
+    // restricciones) con su correo y contraseña, como siempre.
     if (!nombreUsuario) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: correo,
+        password,
+      });
+
+      if (error) {
+        setError(traducirError(error.message));
+        setCargando(false);
+        return;
+      }
+
       limpiarMiembroActivo();
       router.push("/");
       return;
     }
 
+    // Con un nombre de usuario, la contraseña escrita es la del
+    // miembro (no la de la cuenta) — nunca necesita la contraseña
+    // principal. Se valida en el servidor y, si coincide, se abre
+    // sesión con el token que devuelve en vez de un signInWithPassword.
     try {
-      const resultado = await verificarLoginMiembro(nombreUsuario, passwordMiembro);
+      const resultado = await entrarComoMiembro(correo, nombreUsuario, password);
 
       if (!resultado.ok) {
-        await supabase.auth.signOut();
         setError(traducirRazonLoginMiembro(resultado.razon));
         setCargando(false);
         return;
       }
 
-      establecerMiembroActivo(resultado.miembro, data.user!.id);
+      const { error: errorOtp } = await supabase.auth.verifyOtp({
+        token_hash: resultado.tokenHash,
+        type: "magiclink",
+      });
+
+      if (errorOtp) {
+        console.error(errorOtp);
+        setError("No se pudo iniciar sesión. Intenta de nuevo.");
+        setCargando(false);
+        return;
+      }
+
+      establecerMiembroActivo(resultado.miembro, resultado.userId);
       router.push("/");
     } catch (err) {
       console.error(err);
-      await supabase.auth.signOut();
-      setError("No se pudo verificar el usuario. Intenta de nuevo.");
+      setError("No se pudo iniciar sesión. Intenta de nuevo.");
       setCargando(false);
     }
   }
 
-  function traducirRazonLoginMiembro(razon: "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta"): string {
+  function traducirRazonLoginMiembro(razon: RazonLoginMiembro): string {
+    if (razon === "cuenta_no_encontrada") return "No encontramos una cuenta con ese correo.";
     if (razon === "no_encontrado") return "Este usuario no existe.";
     if (razon === "sin_contrasena") return "Este usuario todavía no tiene contraseña. Pide al dueño que te asigne una en Miembros del equipo.";
-    return "Contraseña de usuario incorrecta.";
+    return "Usuario o contraseña incorrectos.";
   }
 
   async function registrarse() {
@@ -224,21 +230,7 @@ function LoginInterno() {
             </>
           )}
 
-          {modo === "login" && usuario.trim() && (
-            <>
-              <label className="login-label">Tu contraseña</label>
-              <input
-                type="password"
-                placeholder="La tuya, no la de la cuenta"
-                value={passwordMiembro}
-                onChange={(e) => setPasswordMiembro(e.target.value)}
-              />
-            </>
-          )}
-
-          <label className="login-label">
-            {modo === "login" && usuario.trim() ? "Contraseña de la cuenta" : "Contraseña"}
-          </label>
+          <label className="login-label">Contraseña</label>
           <input
             type="password"
             placeholder="••••••••"
@@ -278,7 +270,6 @@ function LoginInterno() {
               setMensaje("");
               setConfirmarPassword("");
               setUsuario("");
-              setPasswordMiembro("");
             }}
           >
             {modo === "login"

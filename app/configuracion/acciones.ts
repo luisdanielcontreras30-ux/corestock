@@ -129,32 +129,37 @@ async function obtenerAccessToken(): Promise<string> {
   return session.access_token;
 }
 
-export type RazonLoginMiembro = "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta";
+export type RazonLoginMiembro =
+  | "cuenta_no_encontrada"
+  | "no_encontrado"
+  | "sin_contrasena"
+  | "contrasena_incorrecta";
 
 export type ResultadoLoginMiembro =
-  | { ok: true; miembro: Miembro }
+  | { ok: true; userId: string; tokenHash: string; miembro: Miembro }
   | { ok: false; razon: RazonLoginMiembro };
 
-// Se llama en el login, justo después de un signInWithPassword
-// exitoso: confirma en el servidor (nunca en el navegador) que el
-// nombre y la contraseña que escribió la persona coinciden con un
-// miembro del equipo activo de esa cuenta.
-export async function verificarLoginMiembro(
+// Se llama en el login cuando se escribió un nombre de usuario: deja
+// entrar a un miembro del equipo con SOLO su propio nombre y su propia
+// contraseña — nunca necesita la contraseña de la cuenta principal.
+// El servidor confirma nombre+contraseña contra miembros_equipo y
+// devuelve un token para abrir sesión (ver supabase.auth.verifyOtp en
+// login/page.tsx).
+export async function entrarComoMiembro(
+  correo: string,
   nombre: string,
   password: string
 ): Promise<ResultadoLoginMiembro> {
-  const token = await obtenerAccessToken();
-
-  const respuesta = await fetch("/api/miembros/verificar-login", {
+  const respuesta = await fetch("/api/miembros/entrar-como-miembro", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ nombre, password }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ correo, nombre, password }),
   });
 
   const datos = await respuesta.json();
 
   if (!respuesta.ok) {
-    throw new Error(datos.error || "No se pudo verificar el usuario.");
+    throw new Error(datos.error || "No se pudo iniciar sesión.");
   }
 
   return datos as ResultadoLoginMiembro;

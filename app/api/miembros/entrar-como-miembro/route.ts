@@ -1,35 +1,40 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { obtenerSupabaseAdmin } from "../../../../lib/supabaseAdmin";
-import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 
-type Razon = "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta";
+type Razon = "cuenta_no_encontrada" | "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta";
 
-// Se llama justo después de iniciar sesión con el correo y la
-// contraseña de la cuenta (ver /login): recibe el nombre que escribió
-// la persona y SU contraseña, y confirma contra el hash guardado en
-// miembros_equipo — nunca se envía el hash al navegador, la
-// comparación ocurre acá, en el servidor.
+// Deja entrar a un miembro del equipo con SOLO su propio nombre y su
+// propia contraseña — nunca necesita la contraseña de la cuenta
+// principal. En vez de eso, una vez que se confirma el nombre y la
+// contraseña contra miembros_equipo, se genera un magic link con la
+// Admin API (sin enviar ningún correo) y se le devuelve al navegador
+// el token para que abra la sesión con verifyOtp.
 export async function POST(request: Request) {
-  const user = await verificarUsuarioApi(request);
+  const { correo, nombre, password } = await request.json();
 
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
-  }
-
-  const { nombre, password } = await request.json();
-
-  if (typeof nombre !== "string" || typeof password !== "string" || !nombre.trim()) {
+  if (!correo || typeof nombre !== "string" || typeof password !== "string" || !nombre.trim()) {
     return NextResponse.json({ error: "Faltan datos." }, { status: 400 });
   }
 
   try {
     const admin = obtenerSupabaseAdmin();
 
+    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+      type: "magiclink",
+      email: correo,
+    });
+
+    if (linkError || !linkData?.user) {
+      return NextResponse.json({ ok: false, razon: "cuenta_no_encontrada" as Razon });
+    }
+
+    const userId = linkData.user.id as string;
+
     const { data, error } = await admin
       .from("miembros_equipo")
       .select("id, nombre, correo, rol, permisos, activo, password_hash")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("activo", true);
 
     if (error) throw error;
@@ -55,6 +60,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
+      userId,
+      tokenHash: linkData.properties.hashed_token,
       miembro: {
         id: miembro.id,
         nombre: miembro.nombre,
@@ -69,7 +76,7 @@ export async function POST(request: Request) {
     console.error(error);
     const detalle = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: `No se pudo verificar el usuario: ${detalle}` },
+      { error: `No se pudo iniciar sesión: ${detalle}` },
       { status: 500 }
     );
   }
