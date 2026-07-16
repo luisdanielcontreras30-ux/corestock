@@ -33,6 +33,7 @@ import { VentaCruda } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useTheme } from "../../components/ThemeProvider";
 import { useAuth } from "../../components/AuthProvider";
+import { useToast } from "../../components/ToastProvider";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import ContadorAnimado from "../../components/ContadorAnimado";
 
@@ -47,6 +48,7 @@ export default function GraficasPage() {
   const { tema, tipoTendencia } = useTheme();
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { mostrarToast } = useToast();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
   const [loading, setLoading] = useState(true);
   const [ventasCrudas, setVentasCrudas] = useState<VentaCruda[]>([]);
@@ -70,6 +72,7 @@ export default function GraficasPage() {
       setVentasCrudas(datos);
     } catch (error) {
       console.error(error);
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, ShoppingCart, Plus, Minus, Trash2, X, Zap } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
@@ -106,38 +107,46 @@ export default function VentasRapidasPage() {
   );
 
   function agregarAlCarrito(producto: Producto) {
-    const enCarrito = carrito.get(producto.id) ?? 0;
+    // Forma funcional: si el usuario toca la tarjeta varias veces
+    // rápido, cada actualización parte del carrito más reciente en vez
+    // de una copia ya obsoleta capturada por el cierre del render
+    // anterior — sin esto, dos taps casi simultáneos podían pisarse
+    // entre sí y perder un artículo del carrito.
+    setCarrito((prev) => {
+      const enCarrito = prev.get(producto.id) ?? 0;
 
-    if (enCarrito >= producto.stock) {
-      mostrarToast(t("ventas_rapidas.msg_sin_stock"), "error");
-      return;
-    }
+      if (enCarrito >= producto.stock) {
+        mostrarToast(t("ventas_rapidas.msg_sin_stock"), "error");
+        return prev;
+      }
 
-    const nuevo = new Map(carrito);
-    nuevo.set(producto.id, enCarrito + 1);
-    setCarrito(nuevo);
+      const nuevo = new Map(prev);
+      nuevo.set(producto.id, enCarrito + 1);
+      return nuevo;
+    });
   }
 
   function cambiarCantidad(productoId: number, delta: number) {
-    const producto = productos.find((p) => p.id === productoId);
-    const actual = carrito.get(productoId) ?? 0;
-    const nuevaCantidad = actual + delta;
+    setCarrito((prev) => {
+      const producto = productos.find((p) => p.id === productoId);
+      const actual = prev.get(productoId) ?? 0;
+      const nuevaCantidad = actual + delta;
 
-    if (nuevaCantidad <= 0) {
-      const nuevo = new Map(carrito);
-      nuevo.delete(productoId);
-      setCarrito(nuevo);
-      return;
-    }
+      if (nuevaCantidad <= 0) {
+        const nuevo = new Map(prev);
+        nuevo.delete(productoId);
+        return nuevo;
+      }
 
-    if (producto && nuevaCantidad > producto.stock) {
-      mostrarToast(t("ventas_rapidas.msg_sin_stock"), "error");
-      return;
-    }
+      if (producto && nuevaCantidad > producto.stock) {
+        mostrarToast(t("ventas_rapidas.msg_sin_stock"), "error");
+        return prev;
+      }
 
-    const nuevo = new Map(carrito);
-    nuevo.set(productoId, nuevaCantidad);
-    setCarrito(nuevo);
+      const nuevo = new Map(prev);
+      nuevo.set(productoId, nuevaCantidad);
+      return nuevo;
+    });
   }
 
   async function vaciarCarrito() {
@@ -225,15 +234,24 @@ export default function VentasRapidasPage() {
             </div>
 
             {productosFiltrados.length === 0 ? (
-              <p
+              <div
                 style={{
                   color: "var(--text-secondary)",
                   marginTop: 24,
                   textAlign: "center",
                 }}
               >
-                {t("ventas_rapidas.sin_productos")}
-              </p>
+                <p>
+                  {productos.length === 0
+                    ? t("ventas_rapidas.sin_productos_catalogo")
+                    : t("ventas_rapidas.sin_productos")}
+                </p>
+                {productos.length === 0 && (
+                  <Link href="/productos" className="btn-primary" style={{ display: "inline-block", marginTop: 8 }}>
+                    {t("ventas_rapidas.ir_a_productos")}
+                  </Link>
+                )}
+              </div>
             ) : (
               <div className="venta-rapida-grid">
                 {productosFiltrados.map((producto) => {
