@@ -114,6 +114,11 @@ export default function VentasPage() {
       return;
     }
 
+    if (metodoPago === "prestamo" && clienteNombre.trim() === "") {
+      mostrarToast(t("ventas_rapidas.msg_cliente_obligatorio"), "error");
+      return;
+    }
+
     try {
       setGuardando(true);
 

@@ -68,6 +68,14 @@ export async function crearCotizacion(
     throw new Error("Usuario no autenticado");
   }
 
+  if (cantidad <= 0) {
+    throw new Error("La cantidad debe ser mayor a 0.");
+  }
+
+  if (precioUnitario < 0) {
+    throw new Error("El precio no puede ser negativo.");
+  }
+
   const total = cantidad * precioUnitario;
 
   const { error } = await supabase.from("cotizaciones").insert({
@@ -135,6 +143,10 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
 
   if (!cotizacion.producto_id) {
     throw new Error("El producto de esta cotización ya no existe.");
+  }
+
+  if (cotizacion.cantidad <= 0) {
+    throw new Error("Esta cotización tiene una cantidad inválida.");
   }
 
   let clienteId = cotizacion.cliente_id;

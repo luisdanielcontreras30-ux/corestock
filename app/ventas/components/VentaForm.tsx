@@ -111,6 +111,7 @@ export default function VentaForm({
             <option value="efectivo">{t("ventas.metodo_efectivo")}</option>
             <option value="tarjeta">{t("ventas.metodo_tarjeta")}</option>
             <option value="transferencia">{t("ventas.metodo_transferencia")}</option>
+            <option value="prestamo">{t("ventas.metodo_prestamo")}</option>
             <option value="otro">{t("ventas.metodo_otro")}</option>
           </select>
         </div>

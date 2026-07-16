@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { ajustarStockConCas } from "../../lib/stockCas";
 import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "./types";
 
 export async function cargarDatos() {
@@ -154,6 +155,10 @@ export async function producir(
 
   if (!user) throw new Error("Usuario no autenticado");
 
+  if (cantidadAProducir <= 0) {
+    throw new Error("La cantidad a producir debe ser mayor a 0.");
+  }
+
   if (ingredientes.length === 0) {
     throw new Error("Este producto no tiene receta definida.");
   }
@@ -183,7 +188,7 @@ export async function producir(
     }
   }
 
-  const aplicados: { id: number; stockPrevio: number }[] = [];
+  const aplicados: { id: number; necesario: number }[] = [];
 
   try {
     for (const ing of ingredientes) {
@@ -207,7 +212,7 @@ export async function producir(
         );
       }
 
-      aplicados.push({ id: ing.materia_prima_id, stockPrevio: stockActual });
+      aplicados.push({ id: ing.materia_prima_id, necesario });
     }
 
     const { data: productoActual, error: errorProductoActual } = await supabase
@@ -248,13 +253,14 @@ export async function producir(
     if (errorLog) throw errorLog;
   } catch (error) {
     // Revertimos las materias primas que ya se habían descontado antes
-    // de que fallara el paso siguiente.
+    // de que fallara el paso siguiente. Se suma de vuelta con CAS (en
+    // vez de pisar con el stock previo guardado) para no perder algún
+    // otro movimiento concurrente sobre esa misma materia prima mientras
+    // esta producción estaba en curso.
     for (const a of aplicados) {
-      await supabase
-        .from("materias_primas")
-        .update({ stock: a.stockPrevio })
-        .eq("id", a.id)
-        .eq("user_id", user.id);
+      await ajustarStockConCas(a.id, user.id, a.necesario, {
+        tabla: "materias_primas",
+      });
     }
     throw error;
   }

@@ -86,6 +86,15 @@ export async function registrarVenta(
     throw new Error("Usuario no autenticado");
   }
 
+  // La UI (Ventas y Venta Rápida) ya bloquea el botón de confirmar si
+  // falta el nombre, pero se revalida aquí también: registrarVenta() es
+  // una función cliente común llamable directamente, así que la regla
+  // de "préstamo siempre necesita saber a quién se le fía" no puede
+  // depender solo de que el formulario la respete.
+  if (metodoPago === "prestamo" && nombreCliente.trim() === "") {
+    throw new Error("Para vender a préstamo debes indicar el nombre del cliente.");
+  }
+
   let clienteId = cliente?.id ?? null;
 
   if (!clienteId && nombreCliente.trim() !== "") {

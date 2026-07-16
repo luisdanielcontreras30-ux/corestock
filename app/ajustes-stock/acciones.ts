@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { ajustarStockConCas } from "../../lib/stockCas";
 import { Producto, AjusteStock } from "./types";
 
 export async function cargarDatos() {
@@ -137,28 +138,12 @@ export async function eliminarAjuste(id: number) {
   }
 
   if (ajuste.producto_id) {
-    const { data: producto, error: errorProducto } = await supabase
-      .from("productos")
-      .select("stock")
-      .eq("id", ajuste.producto_id)
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    // Si el producto ya no existe, no hay stock que revertir — seguimos
-    // adelante y borramos el ajuste igual, en vez de bloquear el borrado.
-    if (!errorProducto && producto) {
-      const stockRevertido = Math.max(0, producto.stock - ajuste.cantidad_ajuste);
-
-      const { error: errorStock } = await supabase
-        .from("productos")
-        .update({ stock: stockRevertido })
-        .eq("id", ajuste.producto_id)
-        .eq("user_id", user.id);
-
-      if (errorStock) {
-        throw errorStock;
-      }
-    }
+    // CAS con reintentos (igual que Ventas/Compras/registrarAjuste) en vez
+    // de leer-y-escribir sin candado: si el producto no existe ya no hay
+    // stock que revertir y se sigue adelante con el borrado igual.
+    await ajustarStockConCas(ajuste.producto_id, user.id, -ajuste.cantidad_ajuste, {
+      minimoCero: true,
+    });
   }
 
   const { error: errorEliminar } = await supabase

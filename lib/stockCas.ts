@@ -12,11 +12,13 @@ export async function ajustarStockConCas(
   productoId: number,
   userId: string,
   delta: number,
-  opciones: { minimoCero?: boolean } = {}
+  opciones: { minimoCero?: boolean; tabla?: "productos" | "materias_primas" } = {}
 ): Promise<boolean> {
+  const tabla = opciones.tabla ?? "productos";
+
   for (let intento = 0; intento < MAX_INTENTOS; intento++) {
-    const { data: producto, error: errorLectura } = await supabase
-      .from("productos")
+    const { data: fila, error: errorLectura } = await supabase
+      .from(tabla)
       .select("stock")
       .eq("id", productoId)
       .eq("user_id", userId)
@@ -24,19 +26,19 @@ export async function ajustarStockConCas(
 
     if (errorLectura) throw errorLectura;
 
-    // El producto ya no existe (se borró aparte) — no hay stock que
+    // La fila ya no existe (se borró aparte) — no hay stock que
     // ajustar, se considera resuelto.
-    if (!producto) return true;
+    if (!fila) return true;
 
-    let nuevoStock = producto.stock + delta;
+    let nuevoStock = fila.stock + delta;
     if (opciones.minimoCero) nuevoStock = Math.max(0, nuevoStock);
 
     const { data: actualizado, error: errorStock } = await supabase
-      .from("productos")
+      .from(tabla)
       .update({ stock: nuevoStock })
       .eq("id", productoId)
       .eq("user_id", userId)
-      .eq("stock", producto.stock)
+      .eq("stock", fila.stock)
       .select("id");
 
     if (errorStock) throw errorStock;

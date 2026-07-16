@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { ajustarStockConCas } from "../../lib/stockCas";
 import { Producto, Ubicacion, StockUbicacion, Traspaso } from "./types";
 
 export async function cargarDatos() {
@@ -192,8 +193,6 @@ export async function realizarTraspaso(
   }
 
   // Paso 1: descontar del origen.
-  let stockTiendaPrevio: number | null = null;
-
   if (origenId === null) {
     const { data: productoActual, error } = await supabase
       .from("productos")
@@ -207,8 +206,6 @@ export async function realizarTraspaso(
     if (productoActual.stock < cantidad) {
       throw new Error("No hay suficiente stock en la Tienda.");
     }
-
-    stockTiendaPrevio = productoActual.stock;
 
     const { data: actualizado, error: errorUpdate } = await supabase
       .from("productos")
@@ -271,14 +268,13 @@ export async function realizarTraspaso(
 
     if (errorTraspaso) throw errorTraspaso;
   } catch (error) {
-    // Revertir el paso 1 (mejor esfuerzo) si algo falló después.
-    if (origenId === null && stockTiendaPrevio !== null) {
-      await supabase
-        .from("productos")
-        .update({ stock: stockTiendaPrevio })
-        .eq("id", producto.id)
-        .eq("user_id", user.id);
-    } else if (origenId !== null) {
+    // Revertir el paso 1 (mejor esfuerzo) si algo falló después. Con CAS
+    // (sumar de vuelta) en vez de pisar con el stock previo guardado, para
+    // no perder algún otro movimiento concurrente sobre ese mismo producto
+    // mientras este traspaso estaba en curso.
+    if (origenId === null) {
+      await ajustarStockConCas(producto.id, user.id, cantidad).catch(() => {});
+    } else {
       await ajustarStockUbicacion(user.id, producto.id, origenId, cantidad).catch(() => {});
     }
 
