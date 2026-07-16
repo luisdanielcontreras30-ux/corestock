@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Inbox,
   LogOut,
+  Zap,
 } from "lucide-react";
 import { useTheme } from "../../components/ThemeProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -388,7 +389,7 @@ export default function DashboardPremium() {
     <div style={{ padding: "12px 24px 24px 24px", color: "var(--text-primary)", fontFamily: "sans-serif", backgroundColor: "var(--bg-primary)", minHeight: "100vh", width: "100%" }}>
 
       {/* SECCIÓN SUPERIOR: ENCABEZADO */}
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", gap: 16, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "24px", fontWeight: "700", margin: 0, letterSpacing: "-0.02em" }}>
             {t("dashboard.saludo")}
@@ -405,6 +406,14 @@ export default function DashboardPremium() {
             })}
           </p>
         </div>
+
+        <Link
+          href="/ventas-rapidas"
+          className="btn-primary"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}
+        >
+          <Zap size={16} /> {t("ventas_rapidas.titulo")}
+        </Link>
       </header>
 
       {/* METRIC CARDS: GRID ASIMÉTRICO */}
