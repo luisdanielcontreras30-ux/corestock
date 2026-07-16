@@ -138,8 +138,11 @@ export async function registrarVenta(
     throw new Error("No hay suficiente stock para esta venta.");
   }
 
-  if (!Number.isFinite(precioUnitario) || precioUnitario <= 0) {
-    throw new Error("El precio de venta debe ser mayor a 0.");
+  // >= 0, no > 0: una promoción de 100% de descuento (ver
+  // lib/promociones.ts, sí se permite valor: 100) hace un producto
+  // gratis a propósito — precio 0 es un caso válido, no un error.
+  if (!Number.isFinite(precioUnitario) || precioUnitario < 0) {
+    throw new Error("El precio de venta no puede ser negativo.");
   }
 
   const total =
