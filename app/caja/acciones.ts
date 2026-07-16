@@ -47,6 +47,16 @@ export async function cargarCierres() {
   return (data ?? []) as MovimientoCaja[];
 }
 
+function calcularSaldo(movimientos: MovimientoCaja[]): number {
+  let saldo = 0;
+  for (const m of movimientos) {
+    if (m.tipo === "apertura") saldo = Number(m.monto);
+    else if (m.tipo === "entrada") saldo += Number(m.monto);
+    else if (m.tipo === "salida") saldo -= Number(m.monto);
+  }
+  return saldo;
+}
+
 // Bitácora de solo inserción — no hay función para editar/borrar
 // movimientos, a propósito: una caja real no se "corrige" retroactivo.
 //
@@ -77,10 +87,48 @@ export async function registrarMovimiento(
     p_diferencia: extra?.diferencia ?? null,
   });
 
-  if (error) {
-    if (error.message?.includes("SALDO_INSUFICIENTE")) {
+  if (!error) return;
+
+  if (error.message?.includes("SALDO_INSUFICIENTE")) {
+    throw new Error("SALDO_INSUFICIENTE");
+  }
+
+  // La función registrar_movimiento_caja (supabase_caja_atomico.sql)
+  // todavía no existe en este proyecto de Supabase — se usa el
+  // registro directo como respaldo para que Caja no se quede sin
+  // funcionar mientras se corre esa migración. Sin la función, el
+  // chequeo de saldo en "salida" deja de ser atómico (mismo
+  // comportamiento que había antes de agregar esa protección).
+  const funcionInexistente =
+    error.code === "PGRST202" ||
+    error.message?.toLowerCase().includes("could not find the function");
+
+  if (!funcionInexistente) {
+    throw error;
+  }
+
+  console.warn(
+    "registrar_movimiento_caja no existe todavía en Supabase — usando registro directo. Corre supabase_caja_atomico.sql en el SQL Editor para activar la protección atómica."
+  );
+
+  if (tipo === "salida") {
+    const movimientos = await cargarMovimientos();
+    if (monto > calcularSaldo(movimientos)) {
       throw new Error("SALDO_INSUFICIENTE");
     }
-    throw error;
+  }
+
+  const { error: errorInsertar } = await supabase.from("caja_movimientos").insert({
+    fecha: new Date().toISOString(),
+    tipo,
+    monto,
+    motivo: motivo.trim() || null,
+    monto_esperado: extra?.montoEsperado ?? null,
+    diferencia: extra?.diferencia ?? null,
+    user_id: user.id,
+  });
+
+  if (errorInsertar) {
+    throw errorInsertar;
   }
 }
