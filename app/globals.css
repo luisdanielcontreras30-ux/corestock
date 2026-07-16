@@ -3679,6 +3679,24 @@ textarea:focus {
   gap: 18px;
 }
 
+/* auto-fill calcula cuántas columnas "deberían" caber según el ancho
+   del contenedor, pero en varios celulares ese cálculo se pasa por
+   una fracción de columna — la tarjeta de más a la derecha queda
+   recortada en vez de que la cuadrícula baje a menos columnas. Con un
+   número fijo de columnas por tamaño de pantalla (el mismo patrón que
+   ya usan los métodos de pago más abajo) no hay margen de error. */
+@media (max-width: 900px) {
+  .venta-rapida-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 380px) {
+  .venta-rapida-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .venta-rapida-card {
   position: relative;
   text-align: left;
