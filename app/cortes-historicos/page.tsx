@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarClock } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import ContadorAnimado from "../../components/ContadorAnimado";
@@ -29,6 +30,7 @@ function CortesHistoricosContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [cierres, setCierres] = useState<MovimientoCaja[]>([]);
@@ -45,7 +47,10 @@ function CortesHistoricosContenido() {
 
     cargarCierres()
       .then(setCierres)
-      .catch((error) => console.error(error))
+      .catch((error) => {
+        console.error(error);
+        mostrarToast(t("comun.msg_error_cargar_datos"), "error");
+      })
       .finally(() => setLoading(false));
   }, [cargandoAuth, user]);
 

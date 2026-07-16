@@ -241,7 +241,7 @@ export default function EmpresaTab() {
           <input
             value={empresa.rfc}
             onChange={(e) => actualizarCampo("rfc", e.target.value)}
-            placeholder="Según tu país"
+            placeholder={t("empresa.rfc_placeholder")}
           />
         </div>
 

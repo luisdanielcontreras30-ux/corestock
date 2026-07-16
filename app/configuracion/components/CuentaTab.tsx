@@ -6,17 +6,18 @@ import { supabase } from "../../../lib/supabase";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useAuth } from "../../../components/AuthProvider";
 import { useMiembroActivo } from "../../../components/MiembroActivoProvider";
+import { LOCALES } from "../../../lib/i18n";
 
 export default function CuentaTab() {
-  const { t } = useIdioma();
+  const { t, idioma } = useIdioma();
   const { user, cargando } = useAuth();
   const { miembroActivo, limpiarMiembroActivo } = useMiembroActivo();
   const [cerrando, setCerrando] = useState(false);
 
-  const correo = user?.email || "Sin correo";
+  const correo = user?.email || t("cuenta.sin_correo");
 
   const creadoEn = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString("es-MX", {
+    ? new Date(user.created_at).toLocaleDateString(LOCALES[idioma], {
         day: "numeric",
         month: "long",
         year: "numeric",

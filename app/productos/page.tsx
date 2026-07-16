@@ -238,7 +238,7 @@ function ProductosInterno() {
       nombre: p.nombre,
       categoria: p.categoria,
       precio_venta: p.precio_venta,
-      costo: p.costo ?? 0,
+      ...(puede("ver_ganancias") ? { costo: p.costo ?? 0 } : {}),
       stock: p.stock,
       stock_minimo: p.stock_minimo ?? 5,
     }));
@@ -323,9 +323,11 @@ function ProductosInterno() {
               : t("productos.guardar")}
           </button>
 
-          <button onClick={exportarExcel} className="btn-secondary">
-            {t("productos.exportar_excel")}
-          </button>
+          {puede("exportar_datos") && (
+            <button onClick={exportarExcel} className="btn-secondary">
+              {t("productos.exportar_excel")}
+            </button>
+          )}
 
           <button onClick={() => excelInputRef.current?.click()} className="btn-secondary">
             {t("productos.importar_excel")}

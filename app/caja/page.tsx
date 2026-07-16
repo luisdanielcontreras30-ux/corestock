@@ -24,11 +24,11 @@ function calcularEstado(movimientos: MovimientoCaja[]) {
   for (const m of movimientos) {
     if (m.tipo === "apertura") {
       abierta = true;
-      saldo = m.monto;
+      saldo = Number(m.monto);
     } else if (m.tipo === "entrada") {
-      saldo += m.monto;
+      saldo += Number(m.monto);
     } else if (m.tipo === "salida") {
-      saldo -= m.monto;
+      saldo -= Number(m.monto);
     } else if (m.tipo === "cierre") {
       abierta = false;
     }

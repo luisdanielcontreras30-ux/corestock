@@ -23,8 +23,9 @@ export default function Header({
 }) {
   const { t } = useIdioma();
   const { user } = useAuth();
-  const { miembroActivo } = useMiembroActivo();
+  const { miembroActivo, puede } = useMiembroActivo();
   const correo = user?.email ?? "";
+  const puedeVerAlertas = !miembroActivo || puede("gestionar_inventario");
 
   const [notisAbiertas, setNotisAbiertas] = useState(false);
   const [alertas, setAlertas] = useState<ProductoAlerta[]>([]);
@@ -39,11 +40,11 @@ export default function Header({
   }, []);
 
   useEffect(() => {
-    if (user) cargarAlertas();
-  }, [user]);
+    if (user && puedeVerAlertas) cargarAlertas();
+  }, [user, puedeVerAlertas]);
 
   async function cargarAlertas() {
-    if (!user) return;
+    if (!user || !puedeVerAlertas) return;
 
     const { data, error } = await supabase
       .from("productos")

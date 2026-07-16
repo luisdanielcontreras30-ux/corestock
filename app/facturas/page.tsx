@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Receipt } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { cargarDatos } from "../ventas/acciones";
@@ -28,6 +29,7 @@ function FacturasContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [ventas, setVentas] = useState<Venta[]>([]);
@@ -44,7 +46,10 @@ function FacturasContenido() {
 
     cargarDatos()
       .then((datos) => setVentas(datos.ventas))
-      .catch((error) => console.error(error))
+      .catch((error) => {
+        console.error(error);
+        mostrarToast(t("comun.msg_error_cargar_datos"), "error");
+      })
       .finally(() => setLoading(false));
   }, [cargandoAuth, user]);
 
