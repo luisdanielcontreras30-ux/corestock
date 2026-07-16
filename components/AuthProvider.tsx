@@ -33,15 +33,18 @@ export default function AuthProvider({
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
+    // getSession() lee la sesión guardada localmente (localStorage),
+    // sin red — a diferencia de getUser(), que siempre hace una
+    // petición al servidor de Auth para revalidar. Con getUser() aquí,
+    // abrir la app sin conexión (recarga en frío) hacía que CUALQUIER
+    // falla de red se tratara como "sin sesión" y mandara a /login,
+    // dejando inalcanzable todo lo que se guardó para operar offline.
     supabase.auth
-      .getUser()
+      .getSession()
       .then(({ data }) => {
-        setUser(data.user ?? null);
+        setUser(data.session?.user ?? null);
       })
       .catch((error) => {
-        // Falla de red al verificar la sesión: no dejamos la app
-        // colgada en el spinner de carga para siempre — se trata como
-        // "sin sesión" y cada página protegida redirige a /login.
         console.error(error);
         setUser(null);
       })
