@@ -37,7 +37,7 @@ export function exportarExcel(ventas: Venta[]) {
 export function formatoMoneda(
   valor: number
 ) {
-  return `$${valor.toFixed(2)}`;
+  return `$${valor.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatoFecha(

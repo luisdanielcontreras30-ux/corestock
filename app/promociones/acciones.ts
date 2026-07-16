@@ -65,7 +65,7 @@ export async function crearPromocion(
     producto: producto?.nombre ?? null,
     tipo,
     valor,
-    fecha_inicio: fechaInicio ? new Date(fechaInicio).toISOString() : null,
+    fecha_inicio: fechaInicio ? new Date(`${fechaInicio}T00:00:00`).toISOString() : null,
     fecha_fin: fechaFin ? new Date(`${fechaFin}T23:59:59`).toISOString() : null,
     activa: true,
     user_id: user.id,

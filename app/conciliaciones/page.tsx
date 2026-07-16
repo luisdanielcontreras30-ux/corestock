@@ -12,6 +12,7 @@ import RequierePlus from "../../components/RequierePlus";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoConciliacion, TipoMovimientoConciliacion } from "./types";
 import { cargarMovimientos, crearMovimiento, alternarConciliado, eliminarMovimiento } from "./acciones";
+import { formatoMoneda } from "../ventas/utils";
 
 export default function ConciliacionesPage() {
   return (
@@ -247,7 +248,7 @@ function ConciliacionesContenido() {
                       {t(m.tipo === "abono" ? "conciliaciones.tipo_abono" : "conciliaciones.tipo_cargo")}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 700 }}>${Number(m.monto).toFixed(2)}</td>
+                  <td style={{ fontWeight: 700 }}>{formatoMoneda(Number(m.monto))}</td>
                   <td>
                     <button
                       onClick={() => alternar(m)}

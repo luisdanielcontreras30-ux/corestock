@@ -15,6 +15,7 @@ import {
   cargarProductosVentaRapida,
   registrarVentaRapida,
   ItemCarrito,
+  ErrorCobroParcial,
 } from "./acciones";
 import { Producto, Promocion, MetodoPago } from "../ventas/types";
 import { CLAVE_METODO_PAGO, formatoMoneda } from "../ventas/utils";
@@ -193,9 +194,20 @@ export default function VentasRapidasPage() {
         `${t("ventas_rapidas.msg_error_cobro")}${detalle ? ": " + detalle : ""}`,
         "error"
       );
+
       // El carrito pudo haberse cobrado a medias (algunos artículos ya
-      // se registraron antes de que uno fallara) — se refresca el
-      // stock para reflejar lo que sí se alcanzó a vender.
+      // se registraron antes de que uno fallara). Esos productos se
+      // quitan del carrito ahora mismo — si no, un reintento del
+      // cajero los volvería a vender por segunda vez.
+      if (error instanceof ErrorCobroParcial && error.productosVendidos.length > 0) {
+        const vendidos = error.productosVendidos;
+        setCarrito((prev) => {
+          const nuevo = new Map(prev);
+          for (const id of vendidos) nuevo.delete(id);
+          return nuevo;
+        });
+      }
+
       await obtenerDatos(false);
     } finally {
       setCobrando(false);

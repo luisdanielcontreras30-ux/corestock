@@ -10,6 +10,7 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoCaja } from "./types";
 import { cargarMovimientos, registrarMovimiento } from "./acciones";
+import { formatoMoneda } from "../ventas/utils";
 
 // Evita que errores de redondeo de punto flotante (ej. 0.1 + 0.2) marquen
 // como "no cuadrado" un cierre de caja que en realidad sí cuadra.
@@ -308,7 +309,7 @@ export default function CajaPage() {
                 <p style={{ fontSize: 12.5, marginTop: 10, color: "var(--text-secondary)" }}>
                   {t("caja.diferencia")}:{" "}
                   <strong style={{ color: esDiferenciaCero(Number(montoContado) - saldo) ? "#10b981" : "#ef4444" }}>
-                    ${(Number(montoContado) - saldo).toFixed(2)}
+                    {formatoMoneda(Number(montoContado) - saldo)}
                   </strong>
                 </p>
               )}
@@ -363,12 +364,12 @@ export default function CajaPage() {
                       {t(ETIQUETA_TIPO[m.tipo])}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 700 }}>${Number(m.monto).toFixed(2)}</td>
+                  <td style={{ fontWeight: 700 }}>{formatoMoneda(Number(m.monto))}</td>
                   <td>{m.motivo || "—"}</td>
                   <td>
                     {m.diferencia != null ? (
                       <span style={{ color: esDiferenciaCero(m.diferencia) ? "#10b981" : "#ef4444", fontWeight: 700 }}>
-                        ${Number(m.diferencia).toFixed(2)}
+                        {formatoMoneda(Number(m.diferencia))}
                       </span>
                     ) : (
                       "—"

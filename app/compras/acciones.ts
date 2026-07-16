@@ -69,6 +69,14 @@ export async function registrarCompra(
     throw new Error("Usuario no autenticado");
   }
 
+  if (!Number.isFinite(cantidad) || cantidad <= 0) {
+    throw new Error("La cantidad debe ser mayor a 0.");
+  }
+
+  if (!Number.isFinite(costoUnitario) || costoUnitario < 0) {
+    throw new Error("El costo no puede ser negativo.");
+  }
+
   // Releemos el stock justo antes de comprar, igual que en Ventas, para
   // no partir de un valor desactualizado.
   const { data: productoActual, error: errorProductoActual } = await supabase

@@ -48,6 +48,21 @@ export interface ItemCarrito {
   precioUnitario: number;
 }
 
+// Si el cobro falla a medio carrito, los productos anteriores ya
+// quedaron vendidos de verdad (venta insertada + stock descontado).
+// Este error lleva la lista de qué productos ya se cobraron para que
+// la pantalla los quite del carrito — si no, un reintento del cajero
+// los volvería a vender por segunda vez.
+export class ErrorCobroParcial extends Error {
+  productosVendidos: number[];
+
+  constructor(message: string, productosVendidos: number[]) {
+    super(message);
+    this.name = "ErrorCobroParcial";
+    this.productosVendidos = productosVendidos;
+  }
+}
+
 // Cobra el carrito completo: una llamada a registrarVenta() por cada
 // producto distinto (la tabla ventas guarda una fila por línea, igual
 // que el registro manual desde Ventas) — así se hereda gratis la
@@ -58,14 +73,22 @@ export async function registrarVentaRapida(
   items: ItemCarrito[],
   metodoPago: MetodoPago
 ) {
+  const vendidos: number[] = [];
+
   for (const item of items) {
-    await registrarVenta(
-      item.producto,
-      null,
-      item.cantidad,
-      "",
-      item.precioUnitario,
-      metodoPago
-    );
+    try {
+      await registrarVenta(
+        item.producto,
+        null,
+        item.cantidad,
+        "",
+        item.precioUnitario,
+        metodoPago
+      );
+      vendidos.push(item.producto.id);
+    } catch (error) {
+      const mensaje = error instanceof Error ? error.message : String(error);
+      throw new ErrorCobroParcial(mensaje, vendidos);
+    }
   }
 }

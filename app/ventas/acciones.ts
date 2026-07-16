@@ -134,6 +134,10 @@ export async function registrarVenta(
     throw errorProductoActual;
   }
 
+  if (!Number.isFinite(cantidad) || cantidad <= 0) {
+    throw new Error("La cantidad debe ser mayor a 0.");
+  }
+
   if (productoActual.stock < cantidad) {
     throw new Error("No hay suficiente stock para esta venta.");
   }

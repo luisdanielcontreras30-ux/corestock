@@ -11,6 +11,7 @@ import RequierePlus from "../../components/RequierePlus";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoCaja } from "../caja/types";
 import { cargarCierres } from "../caja/acciones";
+import { formatoMoneda } from "../ventas/utils";
 
 // Evita que errores de redondeo de punto flotante (ej. 0.1 + 0.2) marquen
 // como "no cuadrado" un cierre de caja que en realidad sí cuadra.
@@ -56,7 +57,7 @@ function CortesHistoricosContenido() {
 
   const filtrados = cierres.filter((c) => {
     const fecha = new Date(c.fecha);
-    if (desde && fecha < new Date(desde)) return false;
+    if (desde && fecha < new Date(`${desde}T00:00:00`)) return false;
     if (hasta && fecha > new Date(`${hasta}T23:59:59`)) return false;
     return true;
   });
@@ -157,11 +158,11 @@ function CortesHistoricosContenido() {
               filtrados.map((c) => (
                 <tr key={c.id}>
                   <td>{new Date(c.fecha).toLocaleString()}</td>
-                  <td style={{ fontWeight: 700 }}>${Number(c.monto).toFixed(2)}</td>
-                  <td>${Number(c.monto_esperado ?? 0).toFixed(2)}</td>
+                  <td style={{ fontWeight: 700 }}>{formatoMoneda(Number(c.monto))}</td>
+                  <td>{formatoMoneda(Number(c.monto_esperado ?? 0))}</td>
                   <td>
                     <span style={{ color: esDiferenciaCero(c.diferencia ?? 0) ? "#10b981" : "#ef4444", fontWeight: 700 }}>
-                      ${Number(c.diferencia ?? 0).toFixed(2)}
+                      {formatoMoneda(Number(c.diferencia ?? 0))}
                     </span>
                   </td>
                   <td>{c.motivo || "—"}</td>
