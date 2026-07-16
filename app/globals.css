@@ -82,8 +82,12 @@ html[data-theme="dark"] {
   --primary-hover: #4b39c4;
   --primary-soft: rgba(89, 69, 228, 0.15);
   --text-primary: #ffffff;
-  --text-secondary: #61667a;
-  --text-muted: #474b5e;
+  /* Igual que en los temas claros: los tonos originales de secondary
+     (~3.2:1) y muted (~2.1:1) quedaban por debajo del mínimo de
+     4.5:1 de WCAG AA sobre el fondo de tarjeta — se aclaran a ~5.5:1
+     y ~5:1 respectivamente. */
+  --text-secondary: #898d9b;
+  --text-muted: #838692;
   --glass-bg: rgba(255, 255, 255, 0.02);
   --glass-border: rgba(255, 255, 255, 0.05);
   --input-bg: rgba(9, 10, 20, 0.6);
@@ -101,8 +105,10 @@ html[data-theme="green"] {
   --primary-hover: #0e9e6f;
   --primary-soft: rgba(16, 185, 129, 0.15);
   --text-primary: #ffffff;
-  --text-secondary: #6b8f81;
-  --text-muted: #446358;
+  /* muted original ~2.5:1 sobre la tarjeta, por debajo del mínimo AA;
+     secondary se sube también para dar más margen. */
+  --text-secondary: #7d9c90;
+  --text-muted: #7d938b;
   --glass-bg: rgba(16, 185, 129, 0.03);
   --glass-border: rgba(16, 185, 129, 0.08);
   --input-bg: rgba(4, 10, 8, 0.6);
@@ -120,8 +126,10 @@ html[data-theme="blue"] {
   --primary-hover: #2f6fd6;
   --primary-soft: rgba(59, 130, 246, 0.15);
   --text-primary: #ffffff;
-  --text-secondary: #647ba0;
-  --text-muted: #435975;
+  /* muted original ~2.4:1 sobre la tarjeta, por debajo del mínimo AA;
+     secondary se sube también para dar más margen. */
+  --text-secondary: #8092b1;
+  --text-muted: #7c8b9f;
   --glass-bg: rgba(59, 130, 246, 0.03);
   --glass-border: rgba(59, 130, 246, 0.08);
   --input-bg: rgba(4, 8, 16, 0.6);
@@ -188,8 +196,9 @@ html[data-theme="purple"] {
   --primary-hover: #9333ea;
   --primary-soft: rgba(168, 85, 247, 0.16);
   --text-primary: #ffffff;
-  --text-secondary: #9d84b5;
-  --text-muted: #6b5580;
+  /* muted original ~2.8:1 sobre la tarjeta, por debajo del mínimo AA. */
+  --text-secondary: #9d85b5;
+  --text-muted: #9181a0;
   --glass-bg: rgba(168, 85, 247, 0.04);
   --glass-border: rgba(168, 85, 247, 0.1);
   --input-bg: rgba(6, 3, 10, 0.6);
@@ -208,7 +217,8 @@ html[data-theme="amber"] {
   --primary-soft: rgba(245, 158, 11, 0.16);
   --text-primary: #ffffff;
   --text-secondary: #b39a76;
-  --text-muted: #7d6a4e;
+  /* muted original ~3.25:1 sobre la tarjeta, por debajo del mínimo AA. */
+  --text-muted: #988a73;
   --glass-bg: rgba(245, 158, 11, 0.04);
   --glass-border: rgba(245, 158, 11, 0.1);
   --input-bg: rgba(10, 7, 3, 0.6);
@@ -226,8 +236,9 @@ html[data-theme="slate"] {
   --primary-hover: #526075;
   --primary-soft: rgba(100, 116, 139, 0.18);
   --text-primary: #ffffff;
-  --text-secondary: #838d9a;
-  --text-muted: #545c67;
+  /* muted original ~2.6:1 sobre la tarjeta, por debajo del mínimo AA. */
+  --text-secondary: #89939f;
+  --text-muted: #858b92;
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.07);
   --input-bg: rgba(4, 5, 7, 0.6);
@@ -246,7 +257,8 @@ html[data-theme="cyan"] {
   --primary-soft: rgba(6, 182, 212, 0.16);
   --text-primary: #ffffff;
   --text-secondary: #7ba7ad;
-  --text-muted: #4e7378;
+  /* muted original ~3:1 sobre la tarjeta, por debajo del mínimo AA. */
+  --text-muted: #7a9699;
   --glass-bg: rgba(6, 182, 212, 0.04);
   --glass-border: rgba(6, 182, 212, 0.1);
   --input-bg: rgba(3, 9, 11, 0.6);
@@ -264,8 +276,9 @@ html[data-theme="wine"] {
   --primary-hover: #be123c;
   --primary-soft: rgba(225, 29, 72, 0.16);
   --text-primary: #ffffff;
-  --text-secondary: #b17d85;
-  --text-muted: #7d5158;
+  /* muted original ~2.7:1 sobre la tarjeta, por debajo del mínimo AA. */
+  --text-secondary: #b48189;
+  --text-muted: #a07f84;
   --glass-bg: rgba(225, 29, 72, 0.04);
   --glass-border: rgba(225, 29, 72, 0.1);
   --input-bg: rgba(10, 3, 4, 0.6);
@@ -311,7 +324,8 @@ html[data-theme="sunset"] {
   --primary-soft: rgba(249, 115, 22, 0.16);
   --text-primary: #ffffff;
   --text-secondary: #c99a72;
-  --text-muted: #8f6a4a;
+  /* muted original ~3.6:1 sobre la tarjeta, por debajo del mínimo AA. */
+  --text-muted: #a3846a;
   --glass-bg: rgba(249, 115, 22, 0.04);
   --glass-border: rgba(249, 115, 22, 0.1);
   --input-bg: rgba(10, 5, 2, 0.6);
