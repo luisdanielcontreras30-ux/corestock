@@ -44,8 +44,13 @@ export default function VentasRapidasPage() {
   const [recibido, setRecibido] = useState("");
   const [cobrando, setCobrando] = useState(false);
 
-  async function obtenerDatos() {
-    setLoading(true);
+  // mostrarCarga solo se apaga cuando se refresca en segundo plano
+  // (después de cobrar) — si reusara el mismo "loading" de la carga
+  // inicial, toda la página (buscador, cuadrícula y carrito) parpadeaba
+  // a la pantalla de carga completa justo después de cada venta, algo
+  // muy notorio en una herramienta pensada para ir rápido entre clientes.
+  async function obtenerDatos(mostrarCarga = true) {
+    if (mostrarCarga) setLoading(true);
     try {
       const datos = await cargarProductosVentaRapida();
       setProductos(datos.productos);
@@ -54,7 +59,7 @@ export default function VentasRapidasPage() {
       console.error(error);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
-      setLoading(false);
+      if (mostrarCarga) setLoading(false);
     }
   }
 
@@ -180,7 +185,7 @@ export default function VentasRapidasPage() {
       mostrarToast(t("ventas_rapidas.msg_cobro_exitoso"), "exito");
       setCarrito(new Map());
       setPanelAbierto(false);
-      await obtenerDatos();
+      await obtenerDatos(false);
     } catch (error) {
       console.error(error);
       const detalle = error instanceof Error ? error.message : "";
@@ -191,7 +196,7 @@ export default function VentasRapidasPage() {
       // El carrito pudo haberse cobrado a medias (algunos artículos ya
       // se registraron antes de que uno fallara) — se refresca el
       // stock para reflejar lo que sí se alcanzó a vender.
-      await obtenerDatos();
+      await obtenerDatos(false);
     } finally {
       setCobrando(false);
     }
