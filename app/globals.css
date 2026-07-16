@@ -3417,3 +3417,367 @@ textarea:focus {
   place-items: center;
   flex-shrink: 0;
 }
+
+/* ========================= */
+/* VENTA RÁPIDA */
+/* ========================= */
+
+.venta-rapida-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  margin-top: 24px;
+  align-items: start;
+}
+
+.venta-rapida-buscador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0 14px;
+  margin-bottom: 18px;
+}
+
+.venta-rapida-buscador input {
+  border: none;
+  background: transparent;
+  flex: 1;
+  padding: 12px 0;
+}
+
+.venta-rapida-buscador input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.venta-rapida-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+}
+
+.venta-rapida-card {
+  position: relative;
+  text-align: left;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.venta-rapida-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: var(--primary);
+}
+
+.venta-rapida-card:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.venta-rapida-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.venta-rapida-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.venta-rapida-card-imagen {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--bg-secondary);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.venta-rapida-card-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.venta-rapida-card-sinstock {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.venta-rapida-card-info {
+  padding: 10px 12px 12px;
+}
+
+.venta-rapida-card-nombre {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 34px;
+}
+
+.venta-rapida-card-precio {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.venta-rapida-card-precio-original {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 11.5px;
+  text-decoration: line-through;
+}
+
+.venta-rapida-carrito {
+  position: sticky;
+  top: 20px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.venta-rapida-carrito-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.venta-rapida-carrito-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  margin: 0;
+}
+
+.venta-rapida-vaciar {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.venta-rapida-carrito-lista {
+  max-height: 340px;
+  overflow-y: auto;
+  margin: 6px 0;
+}
+
+.venta-rapida-carrito-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.venta-rapida-carrito-item:last-child {
+  border-bottom: none;
+}
+
+.venta-rapida-carrito-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.venta-rapida-carrito-item-info p {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.venta-rapida-carrito-item-info span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.venta-rapida-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.venta-rapida-stepper button {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.venta-rapida-stepper span {
+  min-width: 18px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.venta-rapida-quitar {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.venta-rapida-quitar:hover {
+  color: var(--danger);
+}
+
+.venta-rapida-carrito-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.venta-rapida-carrito-total strong {
+  color: var(--primary);
+  font-size: 20px;
+}
+
+.venta-rapida-cobrar-btn {
+  width: 100%;
+  font-size: 15px;
+}
+
+.venta-rapida-panel {
+  max-width: 420px;
+}
+
+.venta-rapida-monto-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.venta-rapida-monto-box span {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  margin-bottom: 6px;
+}
+
+.venta-rapida-monto-box strong {
+  font-size: 32px;
+  color: var(--primary);
+}
+
+.venta-rapida-metodos {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.venta-rapida-metodos button {
+  flex: 1;
+  font-size: 12.5px;
+  padding: 12px 8px;
+}
+
+.venta-rapida-efectivo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.venta-rapida-cambio-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--primary-soft);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.venta-rapida-cambio-box span {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.venta-rapida-cambio-box strong {
+  color: #10b981;
+  font-size: 17px;
+}
+
+.venta-rapida-cambio-negativo strong {
+  color: var(--danger);
+}
+
+.venta-rapida-panel-botones {
+  display: flex;
+  gap: 10px;
+}
+
+.venta-rapida-panel-botones button {
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .venta-rapida-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .venta-rapida-carrito {
+    position: static;
+  }
+}

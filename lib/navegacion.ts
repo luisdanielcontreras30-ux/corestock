@@ -25,6 +25,7 @@ import {
   Landmark,
   PlayCircle,
   Crown,
+  Zap,
   LucideIcon,
 } from "lucide-react";
 
@@ -73,6 +74,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
     claveTitulo: "sidebar.operaciones",
     items: [
       { claveNombre: "sidebar.ventas", href: "/ventas", Icono: DollarSign, colorMovil: "#10b981" },
+      { claveNombre: "sidebar.ventas_rapidas", href: "/ventas-rapidas", Icono: Zap, colorMovil: "#10b981" },
       { claveNombre: "sidebar.clientes", href: "/clientes", Icono: Users, colorMovil: "#ec4899" },
       { claveNombre: "sidebar.compras", href: "/compras", Icono: ShoppingCart, colorMovil: "#14b8a6" },
       { claveNombre: "sidebar.cotizaciones", href: "/cotizaciones", Icono: FileText, colorMovil: "#3b82f6" },
@@ -111,4 +113,4 @@ export const RUTAS_EN_TABBAR_MOVIL = ["/menu", "/ventas", "/productos"];
 // rutas — Dashboard, Caja, Ventas y Productos. Se usa tanto para
 // ocultar el resto de la navegación (Sidebar, MobileTabBar) como para
 // bloquear el acceso directo por URL (AppShell).
-export const RUTAS_PERMITIDAS_MIEMBRO = ["/menu", "/caja", "/ventas", "/productos"];
+export const RUTAS_PERMITIDAS_MIEMBRO = ["/menu", "/caja", "/ventas", "/ventas-rapidas", "/productos"];

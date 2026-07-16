@@ -38,6 +38,7 @@ export default function Sidebar({
               // Un miembro del equipo sin permiso "ver_ventas" no ve
               // ese acceso en el menú (la página también lo bloquea).
               if (item.href === "/ventas" && !puede("ver_ventas")) return false;
+              if (item.href === "/ventas-rapidas" && !puede("registrar_ventas")) return false;
               return true;
             });
 

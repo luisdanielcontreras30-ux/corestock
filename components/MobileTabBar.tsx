@@ -10,6 +10,7 @@ import {
   Plus,
   Menu as MenuIcon,
   Camera,
+  Zap,
   X,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
@@ -37,6 +38,11 @@ export default function MobileTabBar() {
     setVentaModalAbierto(true);
   }
 
+  function irAVentaRapida() {
+    setFabAbierto(false);
+    router.push("/ventas-rapidas");
+  }
+
   function irANuevoProducto() {
     setFabAbierto(false);
     // El parámetro le dice a la página de Productos que abra
@@ -61,6 +67,15 @@ export default function MobileTabBar() {
               <X size={16} />
             </button>
           </div>
+
+          {puede("registrar_ventas") && (
+            <button className="mobile-fab-opcion" onClick={irAVentaRapida}>
+              <span className="mobile-fab-opcion-icono" style={{ background: "#10b981" }}>
+                <Zap size={26} color="#fff" />
+              </span>
+              {t("mobile.venta_rapida")}
+            </button>
+          )}
 
           {puede("registrar_ventas") && (
             <button className="mobile-fab-opcion" onClick={abrirNuevaVenta}>
