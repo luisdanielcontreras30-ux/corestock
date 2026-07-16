@@ -583,6 +583,11 @@ textarea:focus {
   flex-shrink: 0;
 }
 
+.toast-info .toast-icono {
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
 .toast-mensaje {
   font-size: 13.5px;
   font-weight: 600;
@@ -621,6 +626,10 @@ textarea:focus {
 
 .toast-error .toast-barra {
   background: var(--danger);
+}
+
+.toast-info .toast-barra {
+  background: #3b82f6;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -873,6 +882,72 @@ textarea:focus {
 
 .topbar-spacer {
   flex: 1;
+}
+
+/* ==========================================================================
+   INDICADOR DE CONEXIÓN / SINCRONIZACIÓN (offline first)
+   ========================================================================== */
+
+.sync-indicador {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.sync-indicador:hover {
+  background: var(--card-hover);
+}
+
+@media (max-width: 640px) {
+  .sync-indicador-texto {
+    display: none;
+  }
+}
+
+.sync-indicador-verde {
+  color: #10b981;
+}
+
+.sync-indicador-rojo {
+  color: var(--danger);
+}
+
+.sync-indicador-azul {
+  color: #3b82f6;
+}
+
+.sync-indicador-girando svg {
+  animation: girar 1.1s linear infinite;
+}
+
+@keyframes girar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.sync-indicador-badge {
+  background: var(--primary);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  min-width: 16px;
+  text-align: center;
+}
+
+.sync-indicador-badge-error {
+  background: var(--danger);
 }
 
 .hamburger-btn {

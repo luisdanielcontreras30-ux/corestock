@@ -76,7 +76,13 @@ export async function registrarVenta(
   cantidad: number,
   nombreCliente: string,
   precioUnitario: number = producto.precio_venta,
-  metodoPago: MetodoPago = "efectivo"
+  metodoPago: MetodoPago = "efectivo",
+  // Presente solo cuando la venta viene de la cola offline (ver
+  // lib/sync.ts) — es la llave de idempotencia: si esta misma venta ya
+  // se sincronizó antes (por ejemplo, la conexión se cortó justo
+  // después del insert, antes de que la respuesta llegara), se detecta
+  // aquí y no se vuelve a insertar ni a descontar stock una segunda vez.
+  uuid?: string
 ) {
   const {
     data: { user },
@@ -84,6 +90,21 @@ export async function registrarVenta(
 
   if (!user) {
     throw new Error("Usuario no autenticado");
+  }
+
+  if (uuid) {
+    const { data: ventaExistente, error: errorExistente } = await supabase
+      .from("ventas")
+      .select("id")
+      .eq("uuid", uuid)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (errorExistente) throw errorExistente;
+
+    // Ya se aplicó en un intento de sincronización anterior: no-op,
+    // no se vuelve a vender ni a tocar el stock.
+    if (ventaExistente) return;
   }
 
   // La UI (Ventas y Venta Rápida) ya bloquea el botón de confirmar si
@@ -173,6 +194,7 @@ export async function registrarVenta(
         precio: precioUnitario,
         total,
         metodo_pago: metodoPago,
+        uuid: uuid ?? null,
         user_id: user.id,
       })
       .select("id")

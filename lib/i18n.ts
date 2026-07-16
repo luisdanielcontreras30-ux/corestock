@@ -1050,6 +1050,16 @@ export const TRADUCCIONES: Diccionario = {
   "menu_easy.tickets_hoy": { es: "Tickets de hoy", en: "Today's tickets", pt: "Vendas de hoje (nº)", fr: "Tickets du jour", de: "Belege heute", zh: "今日订单数" },
   "menu_easy.caja_actual": { es: "Caja actual", en: "Current cash", pt: "Caixa atual", fr: "Caisse actuelle", de: "Aktuelle Kasse", zh: "当前现金" },
   "menu_easy.productos_bajos": { es: "Productos bajos", en: "Low stock", pt: "Produtos em baixa", fr: "Stock bas", de: "Niedriger Bestand", zh: "库存不足" },
+
+  "sync.conectado": { es: "Conectado", en: "Online", pt: "Conectado", fr: "Connecté", de: "Verbunden", zh: "已连接" },
+  "sync.sin_conexion": { es: "Sin conexión", en: "Offline", pt: "Sem conexão", fr: "Hors ligne", de: "Keine Verbindung", zh: "离线" },
+  "sync.sincronizando": { es: "Sincronizando", en: "Syncing", pt: "Sincronizando", fr: "Synchronisation", de: "Synchronisiere", zh: "同步中" },
+  "sync.todo_sincronizado": { es: "Todo sincronizado", en: "All synced", pt: "Tudo sincronizado", fr: "Tout est synchronisé", de: "Alles synchronisiert", zh: "全部已同步" },
+  "sync.hay_errores": { es: "Algunas operaciones no se pudieron sincronizar — toca para reintentar", en: "Some operations couldn't sync — tap to retry", pt: "Algumas operações não puderam ser sincronizadas — toque para tentar novamente", fr: "Certaines opérations n'ont pas pu être synchronisées — touchez pour réessayer", de: "Einige Vorgänge konnten nicht synchronisiert werden — zum Wiederholen tippen", zh: "部分操作未能同步——点击重试" },
+
+  "ventas_rapidas.msg_catalogo_local": { es: "Sin conexión — mostrando el catálogo guardado en este dispositivo", en: "Offline — showing the catalog saved on this device", pt: "Sem conexão — mostrando o catálogo salvo neste dispositivo", fr: "Hors ligne — affichage du catalogue enregistré sur cet appareil", de: "Keine Verbindung — zeigt den auf diesem Gerät gespeicherten Katalog", zh: "离线——显示本设备保存的目录" },
+  "ventas_rapidas.msg_cobro_offline": { es: "Venta guardada sin conexión — se sincronizará cuando vuelva Internet", en: "Sale saved offline — it will sync once you're back online", pt: "Venda salva sem conexão — será sincronizada quando a internet voltar", fr: "Vente enregistrée hors ligne — sera synchronisée dès le retour d'Internet", de: "Verkauf offline gespeichert — wird synchronisiert, sobald wieder Internet verfügbar ist", zh: "销售已离线保存——网络恢复后将自动同步" },
+  "caja.msg_movimiento_offline": { es: "Movimiento guardado sin conexión — se sincronizará cuando vuelva Internet", en: "Movement saved offline — it will sync once you're back online", pt: "Movimento salvo sem conexão — será sincronizado quando a internet voltar", fr: "Mouvement enregistré hors ligne — sera synchronisé dès le retour d'Internet", de: "Bewegung offline gespeichert — wird synchronisiert, sobald wieder Internet verfügbar ist", zh: "现金记录已离线保存——网络恢复后将自动同步" },
 };
 
 export const LOCALES: Record<Idioma, string> = {

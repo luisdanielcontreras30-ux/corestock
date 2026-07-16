@@ -8,9 +8,9 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import { CheckCircle2, XCircle, X } from "lucide-react";
+import { CheckCircle2, XCircle, Info, X } from "lucide-react";
 
-type TipoToast = "exito" | "error";
+type TipoToast = "exito" | "error" | "info";
 
 interface Toast {
   id: number;
@@ -58,6 +58,8 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
           <div key={toast.id} className={`toast toast-${toast.tipo} fade-up`}>
             {toast.tipo === "exito" ? (
               <CheckCircle2 size={19} className="toast-icono" />
+            ) : toast.tipo === "info" ? (
+              <Info size={19} className="toast-icono" />
             ) : (
               <XCircle size={19} className="toast-icono" />
             )}

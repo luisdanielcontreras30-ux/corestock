@@ -8,6 +8,7 @@ import { Bell, CheckCircle2 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
 import { useAuth } from "./AuthProvider";
 import { useMiembroActivo } from "./MiembroActivoProvider";
+import IndicadorSincronizacion from "./IndicadorSincronizacion";
 
 interface ProductoAlerta {
   id: number;
@@ -163,6 +164,8 @@ export default function Header({
       </button>
 
       <div className="topbar-spacer" />
+
+      <IndicadorSincronizacion />
 
       {/* NOTIFICACIONES */}
       <div className="user-menu">

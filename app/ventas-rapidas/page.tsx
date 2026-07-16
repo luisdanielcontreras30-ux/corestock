@@ -81,11 +81,15 @@ export default function VentasRapidasPage() {
   // a la pantalla de carga completa justo después de cada venta, algo
   // muy notorio en una herramienta pensada para ir rápido entre clientes.
   async function obtenerDatos(mostrarCarga = true) {
+    if (!user) return;
     if (mostrarCarga) setLoading(true);
     try {
-      const datos = await cargarProductosVentaRapida();
+      const datos = await cargarProductosVentaRapida(user.id);
       setProductos(datos.productos);
       setPromociones(datos.promociones);
+      if (datos.desdeCache) {
+        mostrarToast(t("ventas_rapidas.msg_catalogo_local"), "info");
+      }
     } catch (error) {
       console.error(error);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
@@ -217,14 +221,22 @@ export default function VentasRapidasPage() {
       return;
     }
 
+    if (!user) return;
+
     try {
       setCobrando(true);
-      await registrarVentaRapida(
+      const { encoladoOffline } = await registrarVentaRapida(
         itemsCarrito,
         metodoPago,
+        user.id,
         metodoPago === "prestamo" ? nombreClientePrestamo.trim() : ""
       );
-      mostrarToast(t("ventas_rapidas.msg_cobro_exitoso"), "exito");
+      mostrarToast(
+        encoladoOffline
+          ? t("ventas_rapidas.msg_cobro_offline")
+          : t("ventas_rapidas.msg_cobro_exitoso"),
+        encoladoOffline ? "info" : "exito"
+      );
       setCarrito(new Map());
       setPanelAbierto(false);
       await obtenerDatos(false);

@@ -9,7 +9,7 @@ import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoCaja } from "./types";
-import { cargarMovimientos, registrarMovimiento } from "./acciones";
+import { cargarMovimientos, registrarMovimientoOffline } from "./acciones";
 import { formatoMoneda } from "../ventas/utils";
 
 // Evita que errores de redondeo de punto flotante (ej. 0.1 + 0.2) marquen
@@ -96,7 +96,7 @@ export default function CajaPage() {
   const historialReciente = [...movimientos].reverse();
 
   async function abrirCaja() {
-    if (procesando) return;
+    if (procesando || !user) return;
 
     const monto = Number(montoApertura);
     if (!Number.isFinite(monto) || monto < 0) {
@@ -106,9 +106,18 @@ export default function CajaPage() {
 
     try {
       setProcesando(true);
-      await registrarMovimiento("apertura", monto, t("caja.tipo_apertura"));
+      const { encoladoOffline } = await registrarMovimientoOffline(
+        "apertura",
+        monto,
+        t("caja.tipo_apertura"),
+        user.id
+      );
       setMontoApertura("");
-      await obtenerDatos();
+      if (encoladoOffline) {
+        mostrarToast(t("caja.msg_movimiento_offline"), "info");
+      } else {
+        await obtenerDatos();
+      }
     } catch (error) {
       console.error(error);
       mostrarToast(t("caja.msg_error_movimiento"), "error");
@@ -118,7 +127,7 @@ export default function CajaPage() {
   }
 
   async function registrarEntradaSalida(tipo: "entrada" | "salida") {
-    if (procesando) return;
+    if (procesando || !user) return;
 
     const monto = Number(montoMovimiento);
     if (!Number.isFinite(monto) || monto <= 0) {
@@ -126,6 +135,9 @@ export default function CajaPage() {
       return;
     }
 
+    // Este chequeo contra el saldo ya cargado sigue sirviendo de aviso
+    // rápido incluso sin conexión (usa el último saldo que se alcanzó
+    // a cargar) — la validación real y atómica sucede al sincronizar.
     if (tipo === "salida" && monto > saldo) {
       mostrarToast(t("caja.msg_sin_saldo"), "error");
       return;
@@ -133,10 +145,19 @@ export default function CajaPage() {
 
     try {
       setProcesando(true);
-      await registrarMovimiento(tipo, monto, motivoMovimiento);
+      const { encoladoOffline } = await registrarMovimientoOffline(
+        tipo,
+        monto,
+        motivoMovimiento,
+        user.id
+      );
       setMontoMovimiento("");
       setMotivoMovimiento("");
-      await obtenerDatos();
+      if (encoladoOffline) {
+        mostrarToast(t("caja.msg_movimiento_offline"), "info");
+      } else {
+        await obtenerDatos();
+      }
     } catch (error) {
       console.error(error);
       const sinSaldo = error instanceof Error && error.message === "SALDO_INSUFICIENTE";
@@ -147,7 +168,7 @@ export default function CajaPage() {
   }
 
   async function cerrarCaja() {
-    if (procesando) return;
+    if (procesando || !user) return;
 
     const contado = Number(montoContado);
     if (!Number.isFinite(contado) || contado < 0) {
@@ -159,13 +180,20 @@ export default function CajaPage() {
 
     try {
       setProcesando(true);
-      await registrarMovimiento("cierre", contado, notaCierre, {
-        montoEsperado: saldo,
-        diferencia,
-      });
+      const { encoladoOffline } = await registrarMovimientoOffline(
+        "cierre",
+        contado,
+        notaCierre,
+        user.id,
+        { montoEsperado: saldo, diferencia }
+      );
       setMontoContado("");
       setNotaCierre("");
-      await obtenerDatos();
+      if (encoladoOffline) {
+        mostrarToast(t("caja.msg_movimiento_offline"), "info");
+      } else {
+        await obtenerDatos();
+      }
     } catch (error) {
       console.error(error);
       mostrarToast(t("caja.msg_error_movimiento"), "error");
