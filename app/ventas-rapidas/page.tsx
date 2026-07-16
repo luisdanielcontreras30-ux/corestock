@@ -1,9 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, ShoppingCart, Plus, Minus, Trash2, X, Zap } from "lucide-react";
+import {
+  Search,
+  ShoppingCart,
+  Plus,
+  Minus,
+  Trash2,
+  Zap,
+  ArrowLeft,
+  Banknote,
+  CreditCard,
+  ArrowLeftRight,
+  HandCoins,
+  Wallet,
+} from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -26,6 +40,14 @@ import {
 
 const METODOS: MetodoPago[] = ["efectivo", "tarjeta", "transferencia", "prestamo"];
 
+const ICONO_METODO: Record<MetodoPago, typeof Banknote> = {
+  efectivo: Banknote,
+  tarjeta: CreditCard,
+  transferencia: ArrowLeftRight,
+  prestamo: HandCoins,
+  otro: Wallet,
+};
+
 export default function VentasRapidasPage() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
@@ -45,6 +67,13 @@ export default function VentasRapidasPage() {
   const [recibido, setRecibido] = useState("");
   const [nombreClientePrestamo, setNombreClientePrestamo] = useState("");
   const [cobrando, setCobrando] = useState(false);
+
+  // El panel de cobro se monta con un portal a document.body: así queda
+  // realmente fijo a la pantalla completa incluso dentro de <main
+  // className="fade-up">, cuyo transform de animación crea un nuevo
+  // "containing block" para position:fixed y recortaba el panel.
+  const [montado, setMontado] = useState(false);
+  useEffect(() => setMontado(true), []);
 
   // mostrarCarga solo se apaga cuando se refresca en segundo plano
   // (después de cobrar) — si reusara el mismo "loading" de la carga
@@ -418,100 +447,102 @@ export default function VentasRapidasPage() {
         </div>
       )}
 
-      {panelAbierto && (
-        <div
-          className="factura-overlay"
-          onClick={() => !cobrando && setPanelAbierto(false)}
-        >
-          <div
-            className="factura-modal fade-up venta-rapida-panel"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="factura-modal-toolbar">
-              <h3 style={{ margin: 0 }}>{t("ventas_rapidas.panel_titulo")}</h3>
-              <button
-                className="btn-secondary"
-                onClick={() => setPanelAbierto(false)}
-                disabled={cobrando}
-                aria-label={t("ventas_rapidas.cancelar")}
-              >
-                <X size={22} />
-              </button>
-            </div>
-
-            <div style={{ padding: 20 }}>
-              <div className="venta-rapida-monto-box">
-                <span>{t("ventas_rapidas.monto_a_pagar")}</span>
-                <strong>{formatoMoneda(totalCarrito)}</strong>
+      {panelAbierto &&
+        montado &&
+        createPortal(
+          <div className="venta-rapida-panel-overlay">
+            <div className="venta-rapida-panel-full fade-up">
+              <div className="venta-rapida-panel-header">
+                <button
+                  className="venta-rapida-panel-cerrar"
+                  onClick={() => setPanelAbierto(false)}
+                  disabled={cobrando}
+                  aria-label={t("ventas_rapidas.cancelar")}
+                >
+                  <ArrowLeft size={22} />
+                </button>
+                <h3>{t("ventas_rapidas.panel_titulo")}</h3>
+                <span style={{ width: 44 }} />
               </div>
 
-              <div className="venta-rapida-metodos">
-                {METODOS.map((metodo) => (
-                  <button
-                    key={metodo}
-                    type="button"
-                    className={
-                      metodoPago === metodo ? "btn-primary" : "btn-secondary"
-                    }
-                    onClick={() => setMetodoPago(metodo)}
-                  >
-                    {t(CLAVE_METODO_PAGO[metodo])}
-                  </button>
-                ))}
+              <div className="venta-rapida-panel-body">
+                <div className="venta-rapida-monto-box">
+                  <span>{t("ventas_rapidas.monto_a_pagar")}</span>
+                  <strong>{formatoMoneda(totalCarrito)}</strong>
+                </div>
+
+                <div className="venta-rapida-metodos">
+                  {METODOS.map((metodo) => {
+                    const Icono = ICONO_METODO[metodo];
+                    return (
+                      <button
+                        key={metodo}
+                        type="button"
+                        className={
+                          metodoPago === metodo ? "btn-primary" : "btn-secondary"
+                        }
+                        onClick={() => setMetodoPago(metodo)}
+                      >
+                        <Icono size={26} />
+                        {t(CLAVE_METODO_PAGO[metodo])}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {metodoPago === "efectivo" && (
+                  <div className="venta-rapida-efectivo">
+                    <div>
+                      <label>{t("ventas_rapidas.recibido")}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={recibido}
+                        onChange={(e) => setRecibido(e.target.value)}
+                        placeholder={formatoMoneda(totalCarrito)}
+                        autoFocus
+                      />
+                    </div>
+
+                    <div
+                      className={`venta-rapida-cambio-box ${
+                        cambio < 0 ? "venta-rapida-cambio-negativo" : ""
+                      }`}
+                    >
+                      <span>
+                        {cambio < 0
+                          ? t("ventas_rapidas.falta")
+                          : t("ventas_rapidas.cambio")}
+                      </span>
+                      <strong>{formatoMoneda(Math.abs(cambio))}</strong>
+                    </div>
+                  </div>
+                )}
+
+                {metodoPago === "prestamo" && (
+                  <div className="venta-rapida-efectivo">
+                    <div>
+                      <label>
+                        {t("ventas_rapidas.nombre_cliente")}{" "}
+                        <span className="venta-rapida-obligatorio">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={nombreClientePrestamo}
+                        onChange={(e) => setNombreClientePrestamo(e.target.value)}
+                        placeholder={t("ventas_rapidas.nombre_cliente_placeholder")}
+                        autoFocus
+                      />
+                    </div>
+                    <p className="venta-rapida-nota-prestamo">
+                      {t("ventas_rapidas.nota_prestamo")}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {metodoPago === "efectivo" && (
-                <div className="venta-rapida-efectivo">
-                  <div>
-                    <label>{t("ventas_rapidas.recibido")}</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={recibido}
-                      onChange={(e) => setRecibido(e.target.value)}
-                      placeholder={formatoMoneda(totalCarrito)}
-                      autoFocus
-                    />
-                  </div>
-
-                  <div
-                    className={`venta-rapida-cambio-box ${
-                      cambio < 0 ? "venta-rapida-cambio-negativo" : ""
-                    }`}
-                  >
-                    <span>
-                      {cambio < 0
-                        ? t("ventas_rapidas.falta")
-                        : t("ventas_rapidas.cambio")}
-                    </span>
-                    <strong>{formatoMoneda(Math.abs(cambio))}</strong>
-                  </div>
-                </div>
-              )}
-
-              {metodoPago === "prestamo" && (
-                <div className="venta-rapida-efectivo">
-                  <div>
-                    <label>
-                      {t("ventas_rapidas.nombre_cliente")}{" "}
-                      <span className="venta-rapida-obligatorio">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={nombreClientePrestamo}
-                      onChange={(e) => setNombreClientePrestamo(e.target.value)}
-                      placeholder={t("ventas_rapidas.nombre_cliente_placeholder")}
-                      autoFocus
-                    />
-                  </div>
-                  <p className="venta-rapida-nota-prestamo">
-                    {t("ventas_rapidas.nota_prestamo")}
-                  </p>
-                </div>
-              )}
-
-              <div className="venta-rapida-panel-botones">
+              <div className="venta-rapida-panel-footer">
                 <button
                   className="btn-delete"
                   onClick={() => setPanelAbierto(false)}
@@ -530,9 +561,9 @@ export default function VentasRapidasPage() {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </main>
   );
 }

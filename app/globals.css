@@ -3719,61 +3719,133 @@ textarea:focus {
   font-weight: 700;
 }
 
-.venta-rapida-panel {
-  max-width: 480px;
+.venta-rapida-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-primary);
+  /* Por encima de la barra de navegación inferior móvil y de cualquier
+     otro overlay (factura-overlay usa 600) — el panel de cobro ocupa
+     toda la pantalla, así que debe quedar por encima de todo. */
+  z-index: 700;
+  display: flex;
+  flex-direction: column;
+  animation: overlayFade 0.2s ease;
+}
+
+.venta-rapida-panel-full {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.venta-rapida-panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.venta-rapida-panel-header h3 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.venta-rapida-panel-cerrar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.venta-rapida-panel-cerrar:hover:not(:disabled) {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.venta-rapida-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px 20px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .venta-rapida-monto-box {
-  background: var(--bg-secondary);
+  background: var(--primary-soft);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 26px;
+  padding: 30px 26px;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .venta-rapida-monto-box span {
   display: block;
   color: var(--text-secondary);
-  font-size: 15px;
-  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
 }
 
 .venta-rapida-monto-box strong {
-  font-size: 42px;
+  font-size: 46px;
   color: var(--primary);
 }
 
 .venta-rapida-metodos {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
 .venta-rapida-metodos button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   font-size: 16px;
-  padding: 16px 10px;
-  min-height: 54px;
+  padding: 20px 10px;
+  min-height: 100px;
 }
 
 .venta-rapida-efectivo {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .venta-rapida-efectivo label {
   display: block;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   margin-bottom: 8px;
 }
 
 .venta-rapida-efectivo input {
-  font-size: 18px;
-  padding: 14px 16px;
+  font-size: 20px;
+  padding: 16px 18px;
 }
 
 .venta-rapida-obligatorio {
@@ -3782,7 +3854,7 @@ textarea:focus {
 
 .venta-rapida-nota-prestamo {
   color: var(--text-secondary);
-  font-size: 13.5px;
+  font-size: 14.5px;
   line-height: 1.5;
   margin: 0;
 }
@@ -3791,34 +3863,42 @@ textarea:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--primary-soft);
-  border-radius: 10px;
-  padding: 16px 18px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
 }
 
 .venta-rapida-cambio-box span {
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--text-secondary);
 }
 
 .venta-rapida-cambio-box strong {
   color: #10b981;
-  font-size: 24px;
+  font-size: 26px;
 }
 
 .venta-rapida-cambio-negativo strong {
   color: var(--danger);
 }
 
-.venta-rapida-panel-botones {
+.venta-rapida-panel-footer {
+  position: sticky;
+  bottom: 0;
   display: flex;
-  gap: 12px;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
 }
 
-.venta-rapida-panel-botones button {
+.venta-rapida-panel-footer button {
   flex: 1;
-  font-size: 17px;
-  min-height: 56px;
+  font-size: 18px;
+  min-height: 58px;
+  font-weight: 700;
 }
 
 @media (max-width: 900px) {
@@ -3831,7 +3911,7 @@ textarea:focus {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 360px) {
   .venta-rapida-metodos {
     grid-template-columns: 1fr;
   }
