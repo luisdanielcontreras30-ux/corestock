@@ -5,6 +5,7 @@ import AppShell from "../components/AppShell";
 import ThemeProvider from "../components/ThemeProvider";
 import LanguageProvider from "../components/LanguageProvider";
 import AuthProvider from "../components/AuthProvider";
+import DemoSeedProvider from "../components/DemoSeedProvider";
 import SuscripcionProvider from "../components/SuscripcionProvider";
 import ToastProvider from "../components/ToastProvider";
 import ConfirmProvider from "../components/ConfirmProvider";
@@ -24,19 +25,21 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <AuthProvider>
-          <MiembroActivoProvider>
-            <SuscripcionProvider>
-              <ThemeProvider>
-                <LanguageProvider>
-                  <ToastProvider>
-                    <ConfirmProvider>
-                      <AppShell>{children}</AppShell>
-                    </ConfirmProvider>
-                  </ToastProvider>
-                </LanguageProvider>
-              </ThemeProvider>
-            </SuscripcionProvider>
-          </MiembroActivoProvider>
+          <DemoSeedProvider>
+            <MiembroActivoProvider>
+              <SuscripcionProvider>
+                <ThemeProvider>
+                  <LanguageProvider>
+                    <ToastProvider>
+                      <ConfirmProvider>
+                        <AppShell>{children}</AppShell>
+                      </ConfirmProvider>
+                    </ToastProvider>
+                  </LanguageProvider>
+                </ThemeProvider>
+              </SuscripcionProvider>
+            </MiembroActivoProvider>
+          </DemoSeedProvider>
         </AuthProvider>
       </body>
     </html>
