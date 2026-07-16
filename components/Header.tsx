@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabase";
 import { Bell, CheckCircle2 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
 import { useAuth } from "./AuthProvider";
+import { useMiembroActivo } from "./MiembroActivoProvider";
 
 interface ProductoAlerta {
   id: number;
@@ -22,6 +23,7 @@ export default function Header({
 }) {
   const { t } = useIdioma();
   const { user } = useAuth();
+  const { miembroActivo } = useMiembroActivo();
   const correo = user?.email ?? "";
 
   const [notisAbiertas, setNotisAbiertas] = useState(false);
@@ -134,14 +136,16 @@ export default function Header({
         </div>
       )}
 
-      <Link
-        href="/alertas"
-        className="user-dropdown-item"
-        onClick={() => setNotisAbiertas(false)}
-        style={{ textAlign: "center", justifyContent: "center" }}
-      >
-        {t("header.ver_todas_alertas")}
-      </Link>
+      {!miembroActivo && (
+        <Link
+          href="/alertas"
+          className="user-dropdown-item"
+          onClick={() => setNotisAbiertas(false)}
+          style={{ textAlign: "center", justifyContent: "center" }}
+        >
+          {t("header.ver_todas_alertas")}
+        </Link>
+      )}
     </div>
   );
 

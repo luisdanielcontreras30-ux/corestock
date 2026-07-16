@@ -20,6 +20,7 @@ import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
+import { useToast } from "../../components/ToastProvider";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -104,6 +105,7 @@ export default function DashboardPremium() {
   const router = useRouter();
   const { tema, tipoTendencia, tipoDistribucion } = useTheme();
   const { t, idioma } = useIdioma();
+  const { mostrarToast } = useToast();
   const { user, cargando: cargandoAuth } = useAuth();
   const { miembroActivo, puede, limpiarMiembroActivo } = useMiembroActivo();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
@@ -274,6 +276,7 @@ export default function DashboardPremium() {
 
     } catch (error) {
       console.error("Error al poblar el Dashboard Premium:", error);
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }

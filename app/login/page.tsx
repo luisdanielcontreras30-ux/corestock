@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Package, BarChart3, Zap } from "lucide-react";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { entrarComoMiembro, RazonLoginMiembro } from "../configuracion/acciones";
+import { useIdioma } from "../../components/LanguageProvider";
 
 export default function Login() {
   return (
@@ -30,13 +31,14 @@ function LoginInterno() {
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
   const { establecerMiembroActivo, limpiarMiembroActivo } = useMiembroActivo();
+  const { t } = useIdioma();
 
   async function iniciarSesion() {
     setError("");
     setMensaje("");
 
     if (!correo || !password) {
-      setError("Ingresa tu correo y contraseña.");
+      setError(t("login.msg_faltan_campos"));
       return;
     }
 
@@ -83,7 +85,7 @@ function LoginInterno() {
 
       if (errorOtp) {
         console.error(errorOtp);
-        setError("No se pudo iniciar sesión. Intenta de nuevo.");
+        setError(t("login.error_generico"));
         setCargando(false);
         return;
       }
@@ -92,16 +94,16 @@ function LoginInterno() {
       router.push("/");
     } catch (err) {
       console.error(err);
-      setError("No se pudo iniciar sesión. Intenta de nuevo.");
+      setError(t("login.error_generico"));
       setCargando(false);
     }
   }
 
   function traducirRazonLoginMiembro(razon: RazonLoginMiembro): string {
-    if (razon === "cuenta_no_encontrada") return "No encontramos una cuenta con ese correo.";
-    if (razon === "no_encontrado") return "Este usuario no existe.";
-    if (razon === "sin_contrasena") return "Este usuario todavía no tiene contraseña. Pide al dueño que te asigne una en Miembros del equipo.";
-    return "Usuario o contraseña incorrectos.";
+    if (razon === "cuenta_no_encontrada") return t("login.razon_cuenta_no_encontrada");
+    if (razon === "no_encontrado") return t("login.razon_no_encontrado");
+    if (razon === "sin_contrasena") return t("login.razon_sin_contrasena");
+    return t("login.razon_incorrecto");
   }
 
   async function registrarse() {
@@ -109,17 +111,17 @@ function LoginInterno() {
     setMensaje("");
 
     if (!correo || !password) {
-      setError("Ingresa tu correo y contraseña.");
+      setError(t("login.msg_faltan_campos"));
       return;
     }
 
     if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
+      setError(t("login.msg_password_corta"));
       return;
     }
 
     if (password !== confirmarPassword) {
-      setError("Las contraseñas no coinciden.");
+      setError(t("login.msg_passwords_no_coinciden"));
       return;
     }
 
@@ -143,16 +145,16 @@ function LoginInterno() {
       return;
     }
 
-    setMensaje("Cuenta creada. Revisa tu correo para confirmarla.");
+    setMensaje(t("login.msg_cuenta_creada"));
     setCargando(false);
   }
 
   function traducirError(msg: string): string {
     if (msg.includes("Invalid login credentials")) {
-      return "Correo o contraseña incorrectos.";
+      return t("login.error_credenciales");
     }
     if (msg.includes("already registered")) {
-      return "Ese correo ya está registrado.";
+      return t("login.error_ya_registrado");
     }
     return msg;
   }
@@ -177,14 +179,13 @@ function LoginInterno() {
           <div className="login-brand-logo">⬢</div>
           <h1>CoreStock</h1>
           <p>
-            Controla tu inventario, tus ventas y tu crecimiento
-            desde un solo lugar, con estadísticas en tiempo real.
+            {t("login.brand_desc")}
           </p>
 
           <ul className="login-brand-list">
-            <li><Package size={15} /> Inventario con imágenes por producto</li>
-            <li><BarChart3 size={15} /> Gráficas de ventas Semanal / Mensual / Anual</li>
-            <li><Zap size={15} /> Importa y exporta tu catálogo en Excel</li>
+            <li><Package size={15} /> {t("login.brand_item1")}</li>
+            <li><BarChart3 size={15} /> {t("login.brand_item2")}</li>
+            <li><Zap size={15} /> {t("login.brand_item3")}</li>
           </ul>
         </div>
       </div>
@@ -195,12 +196,12 @@ function LoginInterno() {
           className="login-card fade-up"
           onSubmit={alEnviar}
         >
-          <h1>{modo === "login" ? "Bienvenido de vuelta" : "Crea tu cuenta"}</h1>
+          <h1>{modo === "login" ? t("login.titulo_login") : t("login.titulo_registro")}</h1>
 
           <p>
             {modo === "login"
-              ? "Inicia sesión para continuar"
-              : "Empieza a organizar tu inventario"}
+              ? t("login.subtitulo_login")
+              : t("login.subtitulo_registro")}
           </p>
 
           {error && <div className="login-alert login-alert-error">{error}</div>}
@@ -208,7 +209,7 @@ function LoginInterno() {
             <div className="login-alert login-alert-success">{mensaje}</div>
           )}
 
-          <label className="login-label">Correo electrónico</label>
+          <label className="login-label">{t("login.label_correo")}</label>
           <input
             type="email"
             placeholder="tucorreo@ejemplo.com"
@@ -219,18 +220,18 @@ function LoginInterno() {
           {modo === "login" && (
             <>
               <label className="login-label">
-                Usuario <span className="login-label-opcional">(opcional, solo para tu equipo)</span>
+                {t("login.label_usuario")} <span className="login-label-opcional">{t("login.label_usuario_opcional")}</span>
               </label>
               <input
                 type="text"
-                placeholder="Tu nombre, si el dueño te agregó al equipo"
+                placeholder={t("login.placeholder_usuario")}
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
               />
             </>
           )}
 
-          <label className="login-label">Contraseña</label>
+          <label className="login-label">{t("login.label_password")}</label>
           <input
             type="password"
             placeholder="••••••••"
@@ -240,7 +241,7 @@ function LoginInterno() {
 
           {modo === "registro" && (
             <>
-              <label className="login-label">Confirmar contraseña</label>
+              <label className="login-label">{t("login.label_confirmar_password")}</label>
               <input
                 type="password"
                 placeholder="••••••••"
@@ -254,9 +255,9 @@ function LoginInterno() {
             {cargando ? (
               <span className="login-spinner" />
             ) : modo === "login" ? (
-              "Iniciar sesión"
+              t("login.btn_iniciar_sesion")
             ) : (
-              "Registrarse"
+              t("login.btn_registrarse")
             )}
           </button>
 
@@ -273,8 +274,8 @@ function LoginInterno() {
             }}
           >
             {modo === "login"
-              ? "¿No tienes cuenta? Regístrate"
-              : "¿Ya tienes cuenta? Inicia sesión"}
+              ? t("login.btn_ir_registro")
+              : t("login.btn_ir_login")}
           </button>
         </form>
       </div>
