@@ -138,7 +138,8 @@ export default function CajaPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("caja.msg_error_movimiento"), "error");
+      const sinSaldo = error instanceof Error && error.message === "SALDO_INSUFICIENTE";
+      mostrarToast(sinSaldo ? t("caja.msg_sin_saldo") : t("caja.msg_error_movimiento"), "error");
     } finally {
       setProcesando(false);
     }

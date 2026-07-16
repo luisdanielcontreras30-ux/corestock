@@ -49,6 +49,12 @@ export async function cargarCierres() {
 
 // Bitácora de solo inserción — no hay función para editar/borrar
 // movimientos, a propósito: una caja real no se "corrige" retroactivo.
+//
+// El chequeo de "no sacar más de lo que hay en caja" y la inserción se
+// hacen juntos, atómicamente, dentro de la función de Postgres
+// registrar_movimiento_caja (ver supabase_caja_atomico.sql) — así dos
+// salidas registradas al mismo tiempo no pueden ambas leer el mismo
+// saldo "viejo" antes de que ninguna termine de escribir.
 export async function registrarMovimiento(
   tipo: TipoMovimientoCaja,
   monto: number,
@@ -63,17 +69,18 @@ export async function registrarMovimiento(
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase.from("caja_movimientos").insert({
-    fecha: new Date().toISOString(),
-    tipo,
-    monto,
-    motivo: motivo.trim() || null,
-    monto_esperado: extra?.montoEsperado ?? null,
-    diferencia: extra?.diferencia ?? null,
-    user_id: user.id,
+  const { error } = await supabase.rpc("registrar_movimiento_caja", {
+    p_tipo: tipo,
+    p_monto: monto,
+    p_motivo: motivo.trim() || null,
+    p_monto_esperado: extra?.montoEsperado ?? null,
+    p_diferencia: extra?.diferencia ?? null,
   });
 
   if (error) {
+    if (error.message?.includes("SALDO_INSUFICIENTE")) {
+      throw new Error("SALDO_INSUFICIENTE");
+    }
     throw error;
   }
 }

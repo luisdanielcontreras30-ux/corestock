@@ -130,7 +130,6 @@ async function obtenerAccessToken(): Promise<string> {
 }
 
 export type RazonLoginMiembro =
-  | "cuenta_no_encontrada"
   | "no_encontrado"
   | "sin_contrasena"
   | "contrasena_incorrecta";

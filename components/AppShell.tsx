@@ -12,7 +12,7 @@ import { RUTAS_PERMITIDAS_MIEMBRO } from "../lib/navegacion";
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { miembroActivo } = useMiembroActivo();
+  const { miembroActivo, cargando: cargandoMiembro } = useMiembroActivo();
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
 
   // La pantalla de login/registro, la de bienvenida, el catálogo
@@ -32,11 +32,17 @@ export default function AppShell({ children }: { children: ReactNode }) {
     esPantallaPublica ||
     RUTAS_PERMITIDAS_MIEMBRO.some((r) => pathname === r || pathname.startsWith(`${r}/`));
 
+  // Mientras todavía no se sabe si esta sesión tiene un miembro activo
+  // (justo después de recargar la página, por ejemplo), no se monta el
+  // contenido: si no se esperara, una ruta prohibida podría alcanzar a
+  // renderizar brevemente antes de que este efecto la redirija.
+  const mostrarContenido = !cargandoMiembro && rutaPermitida;
+
   useEffect(() => {
-    if (!rutaPermitida) {
+    if (!cargandoMiembro && !rutaPermitida) {
       router.replace("/menu");
     }
-  }, [rutaPermitida, router]);
+  }, [cargandoMiembro, rutaPermitida, router]);
 
   if (esPantallaPublica) {
     return <>{children}</>;
@@ -55,7 +61,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         />
 
         <div className="page-content fade-up" key={pathname}>
-          {rutaPermitida ? children : null}
+          {mostrarContenido ? children : null}
         </div>
       </div>
 

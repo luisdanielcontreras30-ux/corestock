@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { obtenerSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 
-type Razon = "cuenta_no_encontrada" | "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta";
+type Razon = "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta";
 
 // Deja entrar a un miembro del equipo con SOLO su propio nombre y su
 // propia contraseña — nunca necesita la contraseña de la cuenta
@@ -25,8 +25,13 @@ export async function POST(request: Request) {
       email: correo,
     });
 
+    // Se devuelve el mismo "no_encontrado" tanto si el correo no tiene
+    // cuenta como si el nombre no coincide con ningún miembro — una
+    // respuesta distinta para cada caso permitiría a cualquiera (sin
+    // haber iniciado sesión) comprobar si un correo tiene cuenta en
+    // CoreStock probando aquí.
     if (linkError || !linkData?.user) {
-      return NextResponse.json({ ok: false, razon: "cuenta_no_encontrada" as Razon });
+      return NextResponse.json({ ok: false, razon: "no_encontrado" as Razon });
     }
 
     const userId = linkData.user.id as string;

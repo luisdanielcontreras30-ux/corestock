@@ -148,7 +148,8 @@ function ComprasContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("compras.msg_error_eliminar"), "error");
+      const detalle = error instanceof Error ? error.message : "";
+      mostrarToast(`${t("compras.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`, "error");
     }
   }
 

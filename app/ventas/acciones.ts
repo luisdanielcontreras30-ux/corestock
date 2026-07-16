@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { ajustarStockConCas } from "../../lib/stockCas";
 import { Producto, Cliente, Venta, Promocion, MetodoPago } from "./types";
 
 export async function cargarDatos() {
@@ -137,6 +138,10 @@ export async function registrarVenta(
     throw new Error("No hay suficiente stock para esta venta.");
   }
 
+  if (!Number.isFinite(precioUnitario) || precioUnitario <= 0) {
+    throw new Error("El precio de venta debe ser mayor a 0.");
+  }
+
   const total =
     precioUnitario * cantidad;
 
@@ -219,34 +224,19 @@ export async function eliminarVenta(
   }
 
   if (venta.producto_id) {
-    const {
-      data: producto,
-      error: errorProducto,
-    } = await supabase
-      .from("productos")
-      .select("stock")
-      .eq("id", venta.producto_id)
-      .eq("user_id", user.id)
-      .maybeSingle();
+    // Compare-and-swap, igual que al registrar: si otra venta/compra
+    // concurrente sobre el mismo producto cambia el stock justo en este
+    // instante, reintenta desde el valor fresco en vez de pisarlo.
+    const exito = await ajustarStockConCas(
+      venta.producto_id,
+      user.id,
+      venta.cantidad
+    );
 
-    // Si el producto ya no existe (fue borrado por separado), no hay
-    // stock que restaurar — seguimos adelante y borramos la venta igual,
-    // en vez de bloquear todo el borrado por esto.
-    if (!errorProducto && producto) {
-      const { error: errorStock } =
-        await supabase
-          .from("productos")
-          .update({
-            stock:
-              producto.stock +
-              venta.cantidad,
-          })
-          .eq("id", venta.producto_id)
-          .eq("user_id", user.id);
-
-      if (errorStock) {
-        throw errorStock;
-      }
+    if (!exito) {
+      throw new Error(
+        "El stock de este producto cambió mientras se procesaba el borrado. Intenta de nuevo."
+      );
     }
   }
 
