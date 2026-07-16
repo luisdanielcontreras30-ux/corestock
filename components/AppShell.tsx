@@ -6,13 +6,16 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import MobileTabBar from "./MobileTabBar";
 import TutorialInicioModal from "./TutorialInicioModal";
+import ModoInicialModal from "./ModoInicialModal";
 import { useMiembroActivo } from "./MiembroActivoProvider";
+import { useModoInterfaz } from "./ModoInterfazProvider";
 import { RUTAS_PERMITIDAS_MIEMBRO } from "../lib/navegacion";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { miembroActivo, cargando: cargandoMiembro } = useMiembroActivo();
+  const { modoInterfaz, cargando: cargandoModo } = useModoInterfaz();
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
 
   // La pantalla de login/registro, la de bienvenida, el catálogo
@@ -66,7 +69,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <MobileTabBar />
-      <TutorialInicioModal />
+      {/* El tutorial general solo se evalúa una vez que ya se sabe el
+          modo de interfaz — si no, alguien que todavía no eligió podría
+          ver el tutorial completo (o incluso las dos pantallas a la
+          vez) antes de responder "¿Cómo quieres usar CoreStock?". */}
+      {!cargandoModo && modoInterfaz !== null && <TutorialInicioModal />}
+      <ModoInicialModal />
     </div>
   );
 }

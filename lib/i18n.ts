@@ -1019,6 +1019,37 @@ export const TRADUCCIONES: Diccionario = {
   "ventas_rapidas.nombre_cliente_placeholder": { es: "Escribe el nombre completo", en: "Enter the full name", pt: "Digite o nome completo", fr: "Saisissez le nom complet", de: "Vollständigen Namen eingeben", zh: "请输入姓名" },
   "ventas_rapidas.nota_prestamo": { es: "Si el cliente ya está registrado se usará su cuenta; si no, se creará uno nuevo con este nombre.", en: "If the customer is already registered, their account will be used; otherwise a new one will be created with this name.", pt: "Se o cliente já estiver registrado, sua conta será usada; caso contrário, será criado um novo com esse nome.", fr: "Si le client est déjà enregistré, son compte sera utilisé ; sinon, un nouveau sera créé avec ce nom.", de: "Falls der Kunde bereits registriert ist, wird sein Konto verwendet; andernfalls wird ein neues mit diesem Namen erstellt.", zh: "如果该客户已注册，将使用其账户；否则将以此姓名创建新客户。" },
   "ventas_rapidas.msg_cliente_obligatorio": { es: "Escribe el nombre del cliente para registrar el préstamo", en: "Enter the customer's name to register the credit sale", pt: "Digite o nome do cliente para registrar o fiado", fr: "Saisissez le nom du client pour enregistrer le crédit", de: "Gib den Namen des Kunden ein, um den Kredit zu erfassen", zh: "请输入客户姓名以登记赊账" },
+
+  "modo_interfaz.titulo": { es: "¿Cómo quieres usar CoreStock?", en: "How do you want to use CoreStock?", pt: "Como você quer usar o CoreStock?", fr: "Comment voulez-vous utiliser CoreStock ?", de: "Wie möchtest du CoreStock nutzen?", zh: "你想如何使用 CoreStock？" },
+  "modo_interfaz.nota": { es: "Podrás cambiar esta opción más adelante desde Configuración.", en: "You can change this later from Settings.", pt: "Você poderá mudar essa opção mais tarde em Configurações.", fr: "Vous pourrez changer cette option plus tard dans Paramètres.", de: "Du kannst diese Option später in den Einstellungen ändern.", zh: "你可以稍后在设置中更改此选项。" },
+  "modo_interfaz.elegir": { es: "Elegir", en: "Choose", pt: "Escolher", fr: "Choisir", de: "Auswählen", zh: "选择" },
+  "modo_interfaz.guardando": { es: "Guardando...", en: "Saving...", pt: "Salvando...", fr: "Enregistrement...", de: "Speichern...", zh: "保存中..." },
+  "modo_interfaz.msg_error": { es: "No se pudo guardar tu elección. Intenta de nuevo.", en: "Couldn't save your choice. Please try again.", pt: "Não foi possível salvar sua escolha. Tente novamente.", fr: "Impossible d'enregistrer votre choix. Réessayez.", de: "Deine Auswahl konnte nicht gespeichert werden. Bitte versuche es erneut.", zh: "无法保存您的选择，请重试。" },
+  "modo_interfaz.msg_guardado": { es: "Listo, ya puedes seguir usando CoreStock", en: "Done — you're all set", pt: "Pronto, já pode continuar usando o CoreStock", fr: "C'est fait, vous pouvez continuer", de: "Fertig, du kannst weitermachen", zh: "完成，您可以继续使用了" },
+
+  "modo_interfaz.easy_nombre": { es: "CoreStock Easy", en: "CoreStock Easy", pt: "CoreStock Easy", fr: "CoreStock Easy", de: "CoreStock Easy", zh: "CoreStock Easy" },
+  "modo_interfaz.easy_desc": { es: "Ideal para negocios que buscan solo lo esencial.", en: "Ideal for businesses that just want the essentials.", pt: "Ideal para negócios que buscam só o essencial.", fr: "Idéal pour les commerces qui veulent l'essentiel.", de: "Ideal für Geschäfte, die nur das Wesentliche brauchen.", zh: "适合只需要基本功能的商户。" },
+  "modo_interfaz.easy_b1": { es: "Botones más grandes", en: "Bigger buttons", pt: "Botões maiores", fr: "Boutons plus grands", de: "Größere Schaltflächen", zh: "更大的按钮" },
+  "modo_interfaz.easy_b2": { es: "Menos opciones en pantalla", en: "Fewer options on screen", pt: "Menos opções na tela", fr: "Moins d'options à l'écran", de: "Weniger Optionen auf dem Bildschirm", zh: "更少的屏幕选项" },
+  "modo_interfaz.easy_b3": { es: "Sin gráficas complejas, solo números claros", en: "No complex charts — just clear numbers", pt: "Sem gráficos complexos, só números claros", fr: "Sans graphiques complexes, juste des chiffres clairs", de: "Keine komplexen Diagramme, nur klare Zahlen", zh: "没有复杂图表，只有清晰的数字" },
+  "modo_interfaz.easy_b4": { es: "Enfocado en ventas rápidas", en: "Focused on quick sales", pt: "Focado em vendas rápidas", fr: "Axé sur les ventes rapides", de: "Fokus auf schnellen Verkauf", zh: "专注于快速销售" },
+
+  "modo_interfaz.completo_nombre": { es: "CoreStock Completo", en: "CoreStock Complete", pt: "CoreStock Completo", fr: "CoreStock Complet", de: "CoreStock Vollständig", zh: "CoreStock 完整版" },
+  "modo_interfaz.completo_desc": { es: "La experiencia completa para administrar tu negocio.", en: "The full experience for managing your business.", pt: "A experiência completa para administrar seu negócio.", fr: "L'expérience complète pour gérer votre commerce.", de: "Die vollständige Erfahrung zur Verwaltung deines Geschäfts.", zh: "全面管理您业务的完整体验。" },
+  "modo_interfaz.completo_b1": { es: "Todas las herramientas disponibles", en: "All tools available", pt: "Todas as ferramentas disponíveis", fr: "Tous les outils disponibles", de: "Alle Werkzeuge verfügbar", zh: "所有工具均可使用" },
+  "modo_interfaz.completo_b2": { es: "Dashboard completo con gráficas", en: "Full dashboard with charts", pt: "Painel completo com gráficos", fr: "Tableau de bord complet avec graphiques", de: "Vollständiges Dashboard mit Diagrammen", zh: "带图表的完整仪表盘" },
+  "modo_interfaz.completo_b3": { es: "Reportes avanzados", en: "Advanced reports", pt: "Relatórios avançados", fr: "Rapports avancés", de: "Erweiterte Berichte", zh: "高级报表" },
+  "modo_interfaz.completo_b4": { es: "Configuración avanzada", en: "Advanced settings", pt: "Configurações avançadas", fr: "Paramètres avancés", de: "Erweiterte Einstellungen", zh: "高级设置" },
+
+  "configuracion.modo_interfaz_titulo": { es: "Modo de interfaz", en: "Interface mode", pt: "Modo de interface", fr: "Mode d'interface", de: "Oberflächenmodus", zh: "界面模式" },
+  "configuracion.modo_interfaz_subtitulo": { es: "Cambia cuándo quieras entre lo esencial y todas las herramientas.", en: "Switch anytime between just the essentials and every tool.", pt: "Alterne quando quiser entre o essencial e todas as ferramentas.", fr: "Basculez à tout moment entre l'essentiel et tous les outils.", de: "Wechsle jederzeit zwischen dem Wesentlichen und allen Werkzeugen.", zh: "随时在基础模式和完整工具之间切换。" },
+
+  "menu_easy.saludo": { es: "Hola", en: "Hi", pt: "Olá", fr: "Bonjour", de: "Hallo", zh: "你好" },
+  "menu_easy.vender": { es: "Vender", en: "Sell", pt: "Vender", fr: "Vendre", de: "Verkaufen", zh: "销售" },
+  "menu_easy.ventas_hoy": { es: "Ventas de hoy", en: "Today's sales", pt: "Vendas de hoje", fr: "Ventes du jour", de: "Heutige Verkäufe", zh: "今日销售额" },
+  "menu_easy.tickets_hoy": { es: "Tickets de hoy", en: "Today's tickets", pt: "Vendas de hoje (nº)", fr: "Tickets du jour", de: "Belege heute", zh: "今日订单数" },
+  "menu_easy.caja_actual": { es: "Caja actual", en: "Current cash", pt: "Caixa atual", fr: "Caisse actuelle", de: "Aktuelle Kasse", zh: "当前现金" },
+  "menu_easy.productos_bajos": { es: "Productos bajos", en: "Low stock", pt: "Produtos em baixa", fr: "Stock bas", de: "Niedriger Bestand", zh: "库存不足" },
 };
 
 export const LOCALES: Record<Idioma, string> = {

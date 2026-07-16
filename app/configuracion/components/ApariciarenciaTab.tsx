@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useTheme, Tema } from "../../../components/ThemeProvider";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { useToast } from "../../../components/ToastProvider";
+import { useModoInterfaz, ModoInterfaz } from "../../../components/ModoInterfazProvider";
+import SelectorModoInterfaz from "../../../components/SelectorModoInterfaz";
 
 interface OpcionTema {
   valor: Tema;
@@ -47,9 +51,46 @@ export default function ApariciarenciaTab() {
     cambiarTipoDistribucion,
   } = useTheme();
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { modoInterfaz, cambiarModo } = useModoInterfaz();
+  const [guardandoModo, setGuardandoModo] = useState<ModoInterfaz | null>(null);
+
+  async function elegirModo(modo: ModoInterfaz) {
+    if (guardandoModo || modo === modoInterfaz) return;
+    setGuardandoModo(modo);
+
+    try {
+      await cambiarModo(modo);
+      mostrarToast(t("modo_interfaz.msg_guardado"), "exito");
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("modo_interfaz.msg_error"), "error");
+    } finally {
+      setGuardandoModo(null);
+    }
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="card">
+      <h2 style={{ marginBottom: 6 }}>{t("configuracion.modo_interfaz_titulo")}</h2>
+      <p
+        style={{
+          color: "var(--text-secondary)",
+          marginBottom: 20,
+          fontSize: 13,
+        }}
+      >
+        {t("configuracion.modo_interfaz_subtitulo")}
+      </p>
+
+      <SelectorModoInterfaz
+        valorActual={modoInterfaz}
+        guardando={guardandoModo}
+        onElegir={elegirModo}
+      />
+    </div>
+
     <div className="card">
       <h2 style={{ marginBottom: 6 }}>{t("tema.titulo")}</h2>
       <p

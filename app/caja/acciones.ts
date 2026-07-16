@@ -47,7 +47,7 @@ export async function cargarCierres() {
   return (data ?? []) as MovimientoCaja[];
 }
 
-function calcularSaldo(movimientos: MovimientoCaja[]): number {
+export function calcularSaldo(movimientos: MovimientoCaja[]): number {
   let saldo = 0;
   for (const m of movimientos) {
     if (m.tipo === "apertura") saldo = Number(m.monto);

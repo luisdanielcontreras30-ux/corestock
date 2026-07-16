@@ -12,21 +12,29 @@ import {
   Camera,
   Zap,
   X,
+  Inbox,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
 import { useMiembroActivo } from "./MiembroActivoProvider";
+import { useModoInterfaz } from "./ModoInterfazProvider";
 
 export default function MobileTabBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useIdioma();
   const { miembroActivo, puede } = useMiembroActivo();
+  const { esEasy } = useModoInterfaz();
   const [fabAbierto, setFabAbierto] = useState(false);
 
+  // En modo Easy, "Caja" reemplaza a "Ventas" en la barra — vender de
+  // verdad ya vive en el botón central (+), y Caja es uno de los
+  // cuatro destinos principales de este modo.
   const tabs = [
     { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard", color: "#6366f1" },
     { href: "/productos", Icono: Package, clave: "sidebar.productos", color: "#22c55e" },
-    ...(puede("ver_ventas")
+    ...(esEasy
+      ? [{ href: "/caja", Icono: Inbox, clave: "sidebar.caja", color: "#84cc16" }]
+      : puede("ver_ventas")
       ? [{ href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas", color: "#10b981" }]
       : []),
   ];

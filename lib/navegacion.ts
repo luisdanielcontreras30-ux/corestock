@@ -109,6 +109,13 @@ export const SECCIONES_NAV: SeccionNav[] = [
 // así que no hace falta repetirlas en la página "Más".
 export const RUTAS_EN_TABBAR_MOVIL = ["/menu", "/ventas", "/productos"];
 
+// CoreStock Easy: navegación reducida a lo esencial para vender y
+// controlar el negocio del día a día. El sidebar de escritorio y la
+// barra móvil colapsan a estas rutas (sin secciones) cuando el modo es
+// "easy" — todo lo demás sigue existiendo, solo deja de competir por
+// atención en la navegación principal (ver /mas).
+export const RUTAS_EASY = ["/menu", "/ventas-rapidas", "/productos", "/caja", "/configuracion"];
+
 // Un miembro del equipo (no el dueño) solo puede navegar a estas
 // rutas — Dashboard, Caja, Ventas y Productos. Se usa tanto para
 // ocultar el resto de la navegación (Sidebar, MobileTabBar) como para

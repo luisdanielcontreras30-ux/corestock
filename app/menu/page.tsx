@@ -19,9 +19,12 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { LOCALES } from "../../lib/i18n";
 import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import { useModoInterfaz } from "../../components/ModoInterfazProvider";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import { useToast } from "../../components/ToastProvider";
+import { cargarMovimientos, calcularSaldo } from "../caja/acciones";
+import DashboardEasy from "./DashboardEasy";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -109,13 +112,16 @@ export default function DashboardPremium() {
   const { mostrarToast } = useToast();
   const { user, cargando: cargandoAuth } = useAuth();
   const { miembroActivo, puede, limpiarMiembroActivo } = useMiembroActivo();
+  const { esEasy } = useModoInterfaz();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
-  
+
   // Estados analíticos de tarjetas
   const [ventasHoy, setVentasHoy] = useState<number>(0);
+  const [ticketsHoy, setTicketsHoy] = useState<number>(0);
   const [ventasMes, setVentasMes] = useState<number>(0);
   const [totalProductos, setTotalProductos] = useState<number>(0);
   const [alertasStockCount, setAlertasStockCount] = useState<number>(0);
+  const [cajaActual, setCajaActual] = useState<number>(0);
   
   // Listas de datos dinámicos
   const [ventasRecientes, setVentasRecientes] = useState<VentaReciente[]>([]);
@@ -229,6 +235,7 @@ export default function DashboardPremium() {
         });
 
         setVentasHoy(hoyFiltradas.reduce((sum, v) => sum + Number(v.total), 0));
+        setTicketsHoy(hoyFiltradas.length);
         setVentasMes(mesFiltradas.reduce((sum, v) => sum + Number(v.total), 0));
 
         // Historial reciente ordenado cronológicamente
@@ -275,6 +282,15 @@ export default function DashboardPremium() {
         );
       }
 
+      // Aparte y tolerante a fallos: si Caja todavía no tiene su
+      // migración corrida en este proyecto, el resto del dashboard no
+      // debe dejar de mostrarse por eso.
+      try {
+        const movimientos = await cargarMovimientos();
+        setCajaActual(calcularSaldo(movimientos));
+      } catch (errorCaja) {
+        console.error(errorCaja);
+      }
     } catch (error) {
       console.error("Error al poblar el Dashboard Premium:", error);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
@@ -382,6 +398,17 @@ export default function DashboardPremium() {
           <LogOut size={14} /> {t("header.cerrar_sesion")}
         </button>
       </div>
+    );
+  }
+
+  if (esEasy) {
+    return (
+      <DashboardEasy
+        ventasHoy={ventasHoy}
+        ticketsHoy={ticketsHoy}
+        cajaActual={cajaActual}
+        productosBajos={alertasStockCount}
+      />
     );
   }
 
