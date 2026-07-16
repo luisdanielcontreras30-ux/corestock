@@ -37,6 +37,23 @@ export function useModoInterfaz() {
   return useContext(Contexto);
 }
 
+// La migración supabase_modo_interfaz.sql agrega la columna
+// modo_interfaz — si todavía no se corrió en el proyecto de Supabase
+// del usuario, Postgrest devuelve "column does not exist" (lectura) o
+// "could not find column in schema cache" (escritura) en vez de un
+// error genérico. Se detecta específicamente para no dejar a alguien
+// atrapado para siempre en la pantalla de elección sin poder entrar a
+// la app solo porque falta correr un script SQL.
+function esColumnaFaltante(error: unknown): boolean {
+  const codigo = (error as { code?: string } | null)?.code;
+  const mensaje = (error as { message?: string } | null)?.message ?? "";
+  return (
+    codigo === "42703" ||
+    codigo === "PGRST204" ||
+    mensaje.toLowerCase().includes("modo_interfaz")
+  );
+}
+
 export default function ModoInterfazProvider({
   children,
 }: {
@@ -66,9 +83,21 @@ export default function ModoInterfazProvider({
       .maybeSingle();
 
     if (error) {
-      // Falla transitoria: no forzamos "sin elegir" (mostraría la
-      // pantalla de bienvenida de nuevo) por un error de red pasajero.
-      console.error(error);
+      if (esColumnaFaltante(error)) {
+        // Sin la columna todavía no hay forma de recordar la elección
+        // entre cargas de página — se deja en null a propósito (se
+        // vuelve a mostrar la pantalla de elección) en vez de fingir
+        // un valor; cambiarModo() sí deja usar la app en lo que tanto
+        // se corre la migración.
+        console.warn(
+          "empresa_config.modo_interfaz todavía no existe — corre supabase_modo_interfaz.sql para que la elección se recuerde entre sesiones.",
+          error
+        );
+      } else {
+        // Falla transitoria: no forzamos "sin elegir" (mostraría la
+        // pantalla de bienvenida de nuevo) por un error de red pasajero.
+        console.error(error);
+      }
     } else {
       const valor = data?.modo_interfaz;
       setModoInterfaz(valor === "easy" || valor === "completo" ? valor : null);
@@ -98,12 +127,34 @@ export default function ModoInterfazProvider({
       .eq("user_id", user.id)
       .select("user_id");
 
+    if (errorUpdate && esColumnaFaltante(errorUpdate)) {
+      // La migración todavía no corrió: no hay forma de guardar la
+      // elección, pero tampoco se debe atrapar a nadie en la pantalla
+      // de bienvenida para siempre por eso — se aplica solo en esta
+      // sesión (se perderá al recargar la página hasta correr el SQL).
+      console.warn(
+        "empresa_config.modo_interfaz todavía no existe — corre supabase_modo_interfaz.sql. La elección se aplica solo en esta sesión mientras tanto.",
+        errorUpdate
+      );
+      setModoInterfaz(modo);
+      return;
+    }
+
     if (errorUpdate) throw errorUpdate;
 
     if (!actualizado || actualizado.length === 0) {
       const { error: errorInsert } = await supabase
         .from("empresa_config")
         .insert({ ...EMPRESA_VACIA, modo_interfaz: modo, user_id: user.id });
+
+      if (errorInsert && esColumnaFaltante(errorInsert)) {
+        console.warn(
+          "empresa_config.modo_interfaz todavía no existe — corre supabase_modo_interfaz.sql. La elección se aplica solo en esta sesión mientras tanto.",
+          errorInsert
+        );
+        setModoInterfaz(modo);
+        return;
+      }
 
       if (errorInsert) throw errorInsert;
     }
