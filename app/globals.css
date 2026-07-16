@@ -3425,6 +3425,18 @@ textarea:focus {
 /* VENTA RÁPIDA */
 /* ========================= */
 
+/* Botón del dashboard: solo en escritorio — en celular ya está la
+   misma acción dentro del "+" de la barra inferior (MobileTabBar). */
+.dashboard-venta-rapida-btn {
+  display: inline-flex;
+}
+
+@media (max-width: 768px) {
+  .dashboard-venta-rapida-btn {
+    display: none;
+  }
+}
+
 .venta-rapida-layout {
   display: grid;
   grid-template-columns: 1fr 320px;

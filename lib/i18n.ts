@@ -20,7 +20,6 @@ export const TRADUCCIONES: Diccionario = {
   "sidebar.mas": { es: "Más", en: "More", pt: "Mais", fr: "Plus", de: "Mehr", zh: "更多" },
   "sidebar.mas_opciones": { es: "Más opciones", en: "More options", pt: "Mais opções", fr: "Plus d'options", de: "Weitere Optionen", zh: "更多选项" },
   "mobile.acciones_rapidas": { es: "Acciones rápidas", en: "Quick actions", pt: "Ações rápidas", fr: "Actions rapides", de: "Schnellaktionen", zh: "快捷操作" },
-  "mobile.nueva_venta": { es: "Nueva venta", en: "New sale", pt: "Nova venda", fr: "Nouvelle vente", de: "Neuer Verkauf", zh: "新销售" },
   "mobile.nuevo_producto": { es: "Nuevo producto", en: "New product", pt: "Novo produto", fr: "Nouveau produit", de: "Neues Produkt", zh: "新产品" },
   "mobile.venta_rapida": { es: "Venta rápida", en: "Quick sale", pt: "Venda rápida", fr: "Vente rapide", de: "Schnellverkauf", zh: "快速销售" },
   "mobile.cerrar": { es: "Cerrar", en: "Close", pt: "Fechar", fr: "Fermer", de: "Schließen", zh: "关闭" },

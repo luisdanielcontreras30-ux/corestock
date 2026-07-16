@@ -409,8 +409,8 @@ export default function DashboardPremium() {
 
         <Link
           href="/ventas-rapidas"
-          className="btn-primary"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}
+          className="btn-primary dashboard-venta-rapida-btn"
+          style={{ alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}
         >
           <Zap size={16} /> {t("ventas_rapidas.titulo")}
         </Link>

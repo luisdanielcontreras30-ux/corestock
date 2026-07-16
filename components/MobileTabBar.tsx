@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
 import { useMiembroActivo } from "./MiembroActivoProvider";
-import NuevaVentaModal from "../app/ventas/components/NuevaVentaModal";
 
 export default function MobileTabBar() {
   const pathname = usePathname();
@@ -23,7 +22,6 @@ export default function MobileTabBar() {
   const { t } = useIdioma();
   const { miembroActivo, puede } = useMiembroActivo();
   const [fabAbierto, setFabAbierto] = useState(false);
-  const [ventaModalAbierto, setVentaModalAbierto] = useState(false);
 
   const tabs = [
     { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard", color: "#6366f1" },
@@ -32,11 +30,6 @@ export default function MobileTabBar() {
       ? [{ href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas", color: "#10b981" }]
       : []),
   ];
-
-  function abrirNuevaVenta() {
-    setFabAbierto(false);
-    setVentaModalAbierto(true);
-  }
 
   function irAVentaRapida() {
     setFabAbierto(false);
@@ -77,15 +70,6 @@ export default function MobileTabBar() {
             </button>
           )}
 
-          {puede("registrar_ventas") && (
-            <button className="mobile-fab-opcion" onClick={abrirNuevaVenta}>
-              <span className="mobile-fab-opcion-icono" style={{ background: "#10b981" }}>
-                <DollarSign size={26} color="#fff" />
-              </span>
-              {t("mobile.nueva_venta")}
-            </button>
-          )}
-
           {puede("gestionar_inventario") && (
             <button className="mobile-fab-opcion" onClick={irANuevoProducto}>
               <span className="mobile-fab-opcion-icono" style={{ background: "var(--primary)" }}>
@@ -95,10 +79,6 @@ export default function MobileTabBar() {
             </button>
           )}
         </div>
-      )}
-
-      {ventaModalAbierto && (
-        <NuevaVentaModal onClose={() => setVentaModalAbierto(false)} />
       )}
 
       <nav className="mobile-tabbar">
