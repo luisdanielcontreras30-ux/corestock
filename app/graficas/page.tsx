@@ -10,6 +10,11 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
@@ -39,7 +44,7 @@ const PERIODOS: { valor: Periodo; clave: string }[] = [
 
 export default function GraficasPage() {
   const { t } = useIdioma();
-  const { tema } = useTheme();
+  const { tema, tipoTendencia } = useTheme();
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
@@ -282,34 +287,78 @@ export default function GraficasPage() {
 
           <div style={{ width: "100%", height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={puntosGrafica}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="ventas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+              {tipoTendencia === "barras" ? (
+                <BarChart data={puntosGrafica} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  />
+                  <Bar dataKey="ventas" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              ) : tipoTendencia === "linea" ? (
+                <LineChart data={puntosGrafica} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  />
+                  <Line type="monotone" dataKey="ventas" stroke="var(--primary)" strokeWidth={2.5} dot={false} />
+                </LineChart>
+              ) : tipoTendencia === "velas" ? (
+                <BarChart data={puntosGrafica} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  />
+                  <Bar dataKey="ventas" radius={[3, 3, 3, 3]}>
+                    {puntosGrafica.map((punto, index) => {
+                      const anterior = index > 0 ? puntosGrafica[index - 1].ventas : punto.ventas;
+                      const sube = punto.ventas >= anterior;
+                      return <Cell key={`vela-${index}`} fill={sube ? "#10b981" : "#ef4444"} />;
+                    })}
+                  </Bar>
+                </BarChart>
+              ) : (
+                <AreaChart
+                  data={puntosGrafica}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="ventas" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
 
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
-                <YAxis stroke="var(--text-secondary)" />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
-                  labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
-                  itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  />
 
-                <Area
-                  type="monotone"
-                  dataKey="ventas"
-                  stroke="var(--primary)"
-                  strokeWidth={3}
-                  fill="url(#ventas)"
-                />
-              </AreaChart>
+                  <Area
+                    type="monotone"
+                    dataKey="ventas"
+                    stroke="var(--primary)"
+                    strokeWidth={3}
+                    fill="url(#ventas)"
+                  />
+                </AreaChart>
+              )}
             </ResponsiveContainer>
           </div>
 
