@@ -5,6 +5,7 @@ export const CLAVE_METODO_PAGO: Record<MetodoPago, string> = {
   efectivo: "ventas.metodo_efectivo",
   tarjeta: "ventas.metodo_tarjeta",
   transferencia: "ventas.metodo_transferencia",
+  prestamo: "ventas.metodo_prestamo",
   otro: "ventas.metodo_otro",
 };
 

@@ -24,7 +24,7 @@ import {
   calcularPrecioConDescuento,
 } from "../../lib/promociones";
 
-const METODOS: MetodoPago[] = ["efectivo", "tarjeta", "transferencia"];
+const METODOS: MetodoPago[] = ["efectivo", "tarjeta", "transferencia", "prestamo"];
 
 export default function VentasRapidasPage() {
   const router = useRouter();
@@ -43,6 +43,7 @@ export default function VentasRapidasPage() {
   const [panelAbierto, setPanelAbierto] = useState(false);
   const [metodoPago, setMetodoPago] = useState<MetodoPago>("efectivo");
   const [recibido, setRecibido] = useState("");
+  const [nombreClientePrestamo, setNombreClientePrestamo] = useState("");
   const [cobrando, setCobrando] = useState(false);
 
   // mostrarCarga solo se apaga cuando se refresca en segundo plano
@@ -165,12 +166,14 @@ export default function VentasRapidasPage() {
     if (itemsCarrito.length === 0) return;
     setMetodoPago("efectivo");
     setRecibido("");
+    setNombreClientePrestamo("");
     setPanelAbierto(true);
   }
 
   const recibidoNum = Number(recibido) || 0;
   const cambio = recibidoNum - totalCarrito;
   const faltaRecibido = metodoPago === "efectivo" && recibidoNum < totalCarrito;
+  const faltaCliente = metodoPago === "prestamo" && nombreClientePrestamo.trim() === "";
 
   async function confirmarCobro() {
     if (cobrando) return;
@@ -180,9 +183,18 @@ export default function VentasRapidasPage() {
       return;
     }
 
+    if (faltaCliente) {
+      mostrarToast(t("ventas_rapidas.msg_cliente_obligatorio"), "error");
+      return;
+    }
+
     try {
       setCobrando(true);
-      await registrarVentaRapida(itemsCarrito, metodoPago);
+      await registrarVentaRapida(
+        itemsCarrito,
+        metodoPago,
+        metodoPago === "prestamo" ? nombreClientePrestamo.trim() : ""
+      );
       mostrarToast(t("ventas_rapidas.msg_cobro_exitoso"), "exito");
       setCarrito(new Map());
       setPanelAbierto(false);
@@ -241,7 +253,7 @@ export default function VentasRapidasPage() {
         <div className="venta-rapida-layout">
           <div>
             <div className="venta-rapida-buscador">
-              <Search size={16} color="var(--text-secondary)" />
+              <Search size={22} color="var(--text-secondary)" />
               <input
                 type="text"
                 placeholder={t("ventas_rapidas.buscar_placeholder")}
@@ -256,6 +268,7 @@ export default function VentasRapidasPage() {
                   color: "var(--text-secondary)",
                   marginTop: 24,
                   textAlign: "center",
+                  fontSize: 17,
                 }}
               >
                 <p>
@@ -264,7 +277,7 @@ export default function VentasRapidasPage() {
                     : t("ventas_rapidas.sin_productos")}
                 </p>
                 {productos.length === 0 && (
-                  <Link href="/productos" className="btn-primary" style={{ display: "inline-block", marginTop: 8 }}>
+                  <Link href="/productos" className="btn-primary" style={{ display: "inline-block", marginTop: 12 }}>
                     {t("ventas_rapidas.ir_a_productos")}
                   </Link>
                 )}
@@ -294,7 +307,7 @@ export default function VentasRapidasPage() {
                         {producto.imagen ? (
                           <img src={producto.imagen} alt={producto.nombre} />
                         ) : (
-                          <ShoppingCart size={26} color="var(--text-muted)" />
+                          <ShoppingCart size={34} color="var(--text-muted)" />
                         )}
                         {sinStock && (
                           <span className="venta-rapida-card-sinstock">
@@ -326,7 +339,7 @@ export default function VentasRapidasPage() {
           <div className="venta-rapida-carrito card">
             <div className="venta-rapida-carrito-header">
               <h3>
-                <ShoppingCart size={17} /> {t("ventas_rapidas.carrito_titulo")}
+                <ShoppingCart size={24} /> {t("ventas_rapidas.carrito_titulo")}
               </h3>
               {itemsCarrito.length > 0 && (
                 <button className="venta-rapida-vaciar" onClick={vaciarCarrito}>
@@ -339,7 +352,7 @@ export default function VentasRapidasPage() {
               <p
                 style={{
                   color: "var(--text-secondary)",
-                  fontSize: 13,
+                  fontSize: 16,
                   padding: "20px 0",
                   textAlign: "center",
                 }}
@@ -361,7 +374,7 @@ export default function VentasRapidasPage() {
                         onClick={() => cambiarCantidad(item.producto.id, -1)}
                         aria-label="-"
                       >
-                        <Minus size={13} />
+                        <Minus size={20} />
                       </button>
                       <span>{item.cantidad}</span>
                       <button
@@ -369,7 +382,7 @@ export default function VentasRapidasPage() {
                         onClick={() => cambiarCantidad(item.producto.id, 1)}
                         aria-label="+"
                       >
-                        <Plus size={13} />
+                        <Plus size={20} />
                       </button>
                     </div>
 
@@ -381,7 +394,7 @@ export default function VentasRapidasPage() {
                       }
                       aria-label={t("ventas_rapidas.quitar")}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={22} />
                     </button>
                   </div>
                 ))}
@@ -422,7 +435,7 @@ export default function VentasRapidasPage() {
                 disabled={cobrando}
                 aria-label={t("ventas_rapidas.cancelar")}
               >
-                <X size={16} />
+                <X size={22} />
               </button>
             </div>
 
@@ -477,6 +490,27 @@ export default function VentasRapidasPage() {
                 </div>
               )}
 
+              {metodoPago === "prestamo" && (
+                <div className="venta-rapida-efectivo">
+                  <div>
+                    <label>
+                      {t("ventas_rapidas.nombre_cliente")}{" "}
+                      <span className="venta-rapida-obligatorio">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={nombreClientePrestamo}
+                      onChange={(e) => setNombreClientePrestamo(e.target.value)}
+                      placeholder={t("ventas_rapidas.nombre_cliente_placeholder")}
+                      autoFocus
+                    />
+                  </div>
+                  <p className="venta-rapida-nota-prestamo">
+                    {t("ventas_rapidas.nota_prestamo")}
+                  </p>
+                </div>
+              )}
+
               <div className="venta-rapida-panel-botones">
                 <button
                   className="btn-delete"
@@ -488,7 +522,7 @@ export default function VentasRapidasPage() {
                 <button
                   className="btn-primary"
                   onClick={confirmarCobro}
-                  disabled={cobrando || faltaRecibido}
+                  disabled={cobrando || faltaRecibido || faltaCliente}
                 >
                   {cobrando
                     ? t("ventas_rapidas.cobrando")

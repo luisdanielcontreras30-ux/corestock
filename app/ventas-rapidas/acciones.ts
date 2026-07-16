@@ -71,7 +71,8 @@ export class ErrorCobroParcial extends Error {
 // en el primer error sin perder de vista cuál artículo falló.
 export async function registrarVentaRapida(
   items: ItemCarrito[],
-  metodoPago: MetodoPago
+  metodoPago: MetodoPago,
+  nombreCliente: string = ""
 ) {
   const vendidos: number[] = [];
 
@@ -81,7 +82,7 @@ export async function registrarVentaRapida(
         item.producto,
         null,
         item.cantidad,
-        "",
+        nombreCliente,
         item.precioUnitario,
         metodoPago
       );

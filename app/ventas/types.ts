@@ -22,7 +22,7 @@ export interface Promocion {
   fecha_fin: string | null;
 }
 
-export type MetodoPago = "efectivo" | "tarjeta" | "transferencia" | "otro";
+export type MetodoPago = "efectivo" | "tarjeta" | "transferencia" | "prestamo" | "otro";
 
 export interface Venta {
   id: number;

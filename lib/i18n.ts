@@ -648,6 +648,7 @@ export const TRADUCCIONES: Diccionario = {
   "ventas.metodo_efectivo": { es: "Efectivo", en: "Cash", pt: "Dinheiro", fr: "Espèces", de: "Bargeld", zh: "现金" },
   "ventas.metodo_tarjeta": { es: "Tarjeta", en: "Card", pt: "Cartão", fr: "Carte", de: "Karte", zh: "刷卡" },
   "ventas.metodo_transferencia": { es: "Transferencia", en: "Bank transfer", pt: "Transferência", fr: "Virement", de: "Überweisung", zh: "转账" },
+  "ventas.metodo_prestamo": { es: "Préstamo", en: "Credit / IOU", pt: "Fiado", fr: "Crédit client", de: "Kredit", zh: "赊账" },
   "ventas.metodo_otro": { es: "Otro", en: "Other", pt: "Outro", fr: "Autre", de: "Sonstiges", zh: "其他" },
 
   // Clientes
@@ -1014,6 +1015,10 @@ export const TRADUCCIONES: Diccionario = {
   "ventas_rapidas.msg_cobro_exitoso": { es: "Venta registrada", en: "Sale registered", pt: "Venda registrada", fr: "Vente enregistrée", de: "Verkauf erfasst", zh: "销售已登记" },
   "ventas_rapidas.msg_error_cobro": { es: "No se pudo completar el cobro", en: "Couldn't complete the checkout", pt: "Não foi possível concluir a cobrança", fr: "Impossible de finaliser l'encaissement", de: "Zahlung konnte nicht abgeschlossen werden", zh: "无法完成结账" },
   "ventas_rapidas.msg_recibido_insuficiente": { es: "El monto recibido es menor al total", en: "The amount received is less than the total", pt: "O valor recebido é menor que o total", fr: "Le montant reçu est inférieur au total", de: "Der erhaltene Betrag ist geringer als die Summe", zh: "收到的金额小于总额" },
+  "ventas_rapidas.nombre_cliente": { es: "Nombre del cliente", en: "Customer name", pt: "Nome do cliente", fr: "Nom du client", de: "Kundenname", zh: "客户姓名" },
+  "ventas_rapidas.nombre_cliente_placeholder": { es: "Escribe el nombre completo", en: "Enter the full name", pt: "Digite o nome completo", fr: "Saisissez le nom complet", de: "Vollständigen Namen eingeben", zh: "请输入姓名" },
+  "ventas_rapidas.nota_prestamo": { es: "Si el cliente ya está registrado se usará su cuenta; si no, se creará uno nuevo con este nombre.", en: "If the customer is already registered, their account will be used; otherwise a new one will be created with this name.", pt: "Se o cliente já estiver registrado, sua conta será usada; caso contrário, será criado um novo com esse nome.", fr: "Si le client est déjà enregistré, son compte sera utilisé ; sinon, un nouveau sera créé avec ce nom.", de: "Falls der Kunde bereits registriert ist, wird sein Konto verwendet; andernfalls wird ein neues mit diesem Namen erstellt.", zh: "如果该客户已注册，将使用其账户；否则将以此姓名创建新客户。" },
+  "ventas_rapidas.msg_cliente_obligatorio": { es: "Escribe el nombre del cliente para registrar el préstamo", en: "Enter the customer's name to register the credit sale", pt: "Digite o nome do cliente para registrar o fiado", fr: "Saisissez le nom du client pour enregistrer le crédit", de: "Gib den Namen des Kunden ein, um den Kredit zu erfassen", zh: "请输入客户姓名以登记赊账" },
 };
 
 export const LOCALES: Record<Idioma, string> = {
