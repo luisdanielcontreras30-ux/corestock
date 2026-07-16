@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { PRODUCTOS_DEMO, CLIENTES_DEMO, PROVEEDORES_DEMO } from "./datosDemo";
+import { PRODUCTOS_DEMO, CLIENTES_DEMO, PROVEEDORES_DEMO, urlFotoDemo } from "./datosDemo";
 import { MetodoPago } from "../app/ventas/types";
 
 // Cuenta demo: cuando este correo entra por primera vez (catálogo
@@ -40,9 +40,12 @@ export async function sembrarDatosDemoSiAplica(userId: string, correo: string | 
   if (errorConteo) throw errorConteo;
   if (count && count > 0) return;
 
-  // 1) PRODUCTOS — ~10 por categoría.
+  // 1) PRODUCTOS — ~10 por categoría, cada uno con foto de un banco de
+  // imágenes según su palabra clave (no es la foto exacta del
+  // producto, pero sí se ve como uno real de esa categoría).
+  let semillaFoto = 0;
   const filasProductos = Object.entries(PRODUCTOS_DEMO).flatMap(([categoria, items]) =>
-    items.map(([nombre, costo, precio]) => ({
+    items.map(([nombre, costo, precio, palabraClave]) => ({
       user_id: userId,
       nombre,
       categoria,
@@ -51,6 +54,7 @@ export async function sembrarDatosDemoSiAplica(userId: string, correo: string | 
       stock: aleatorioEntre(15, 120),
       stock_minimo: aleatorioEntre(5, 15),
       activo: true,
+      imagen: urlFotoDemo(palabraClave, semillaFoto++),
     }))
   );
 
