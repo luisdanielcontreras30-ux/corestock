@@ -1539,7 +1539,10 @@ textarea:focus {
   justify-content: center;
   padding: 40px 20px;
   overflow-y: auto;
-  z-index: 200;
+  /* Por encima de la barra de navegación inferior móvil (z-index 300)
+     y del menú "Más" (310/320) — si no, en celular esos elementos
+     fijos tapaban la parte baja de cualquier modal/formulario. */
+  z-index: 600;
   animation: overlayFade 0.2s ease;
 }
 

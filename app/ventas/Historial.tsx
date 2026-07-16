@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Venta } from "./types";
 import {
   formatoFecha,
@@ -24,16 +24,21 @@ export default function Historial({
   const [busqueda, setBusqueda] = useState("");
   const mostrarAcciones = !!eliminarVenta;
 
-  const ventasFiltradas = ventas.filter((venta) => {
+  // Sin useMemo, esta lista completa se recalculaba en cada render
+  // (incluida cada tecla escrita en el formulario de nueva venta, que
+  // vive en el mismo padre y no tiene nada que ver con este filtro).
+  const ventasFiltradas = useMemo(() => {
     const termino = busqueda.toLowerCase().trim();
-    if (!termino) return true;
+    if (!termino) return ventas;
 
-    const nombreCliente = (venta.clientes?.nombre ?? t("ventas.cliente_general")).toLowerCase();
-    return (
-      nombreCliente.includes(termino) ||
-      venta.producto.toLowerCase().includes(termino)
-    );
-  });
+    return ventas.filter((venta) => {
+      const nombreCliente = (venta.clientes?.nombre ?? t("ventas.cliente_general")).toLowerCase();
+      return (
+        nombreCliente.includes(termino) ||
+        venta.producto.toLowerCase().includes(termino)
+      );
+    });
+  }, [ventas, busqueda, t]);
 
   return (
     <div className="card fade-up">

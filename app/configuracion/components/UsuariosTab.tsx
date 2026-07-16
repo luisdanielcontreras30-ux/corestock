@@ -389,7 +389,7 @@ export default function UsuariosTab() {
             justifyContent: "center",
             padding: "40px 20px",
             overflowY: "auto",
-            zIndex: 200,
+            zIndex: 600,
           }}
           onClick={() => setMostrarForm(false)}
         >

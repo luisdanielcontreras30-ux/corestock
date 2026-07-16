@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { subirImagenSegura } from "../../lib/uploads";
@@ -219,14 +219,26 @@ function ProductosInterno() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  const categorias = Array.from(
-    new Set(productos.map((p) => p.categoria).filter((c): c is string => !!c?.trim()))
-  ).sort((a, b) => a.localeCompare(b));
+  // Sin useMemo, estas dos listas se recalculaban en cada render —
+  // incluida cada tecla escrita en el formulario de alta/edición de
+  // producto (nombre, precio, etc.), que no tiene nada que ver con
+  // la búsqueda ni el filtro de categoría.
+  const categorias = useMemo(
+    () =>
+      Array.from(
+        new Set(productos.map((p) => p.categoria).filter((c): c is string => !!c?.trim()))
+      ).sort((a, b) => a.localeCompare(b)),
+    [productos]
+  );
 
-  const filtrados = productos.filter(
-    (p) =>
-      (p.nombre ?? "").toLowerCase().includes(busqueda.toLowerCase()) &&
-      (filtroCategoria === "" || p.categoria === filtroCategoria)
+  const filtrados = useMemo(
+    () =>
+      productos.filter(
+        (p) =>
+          (p.nombre ?? "").toLowerCase().includes(busqueda.toLowerCase()) &&
+          (filtroCategoria === "" || p.categoria === filtroCategoria)
+      ),
+    [productos, busqueda, filtroCategoria]
   );
 
   function exportarExcel() {
