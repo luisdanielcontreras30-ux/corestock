@@ -62,11 +62,6 @@ export default function VentasRapidasPage() {
   const [busqueda, setBusqueda] = useState("");
   const [carrito, setCarrito] = useState<Map<number, number>>(new Map());
 
-  // En celular el carrito ya no está siempre visible ocupando espacio
-  // abajo — se abre como una hoja al tocar el botón flotante, para
-  // dejar ver más catálogo sin scroll. En escritorio no aplica (el
-  // carrito sigue fijo al lado de la cuadrícula, ver globals.css).
-  const [carritoMovilAbierto, setCarritoMovilAbierto] = useState(false);
   const [panelAbierto, setPanelAbierto] = useState(false);
   const [metodoPago, setMetodoPago] = useState<MetodoPago>("efectivo");
   const [recibido, setRecibido] = useState("");
@@ -244,7 +239,6 @@ export default function VentasRapidasPage() {
       );
       setCarrito(new Map());
       setPanelAbierto(false);
-      setCarritoMovilAbierto(false);
       await obtenerDatos(false);
     } catch (error) {
       console.error(error);
@@ -385,48 +379,11 @@ export default function VentasRapidasPage() {
             )}
           </div>
 
-          {/* Botón flotante + fondo: solo se ven en celular (ver
-              globals.css) — reemplazan al panel del carrito, que ahí
-              deja de estar siempre visible y se abre bajo demanda para
-              dejar ver más catálogo sin scroll. */}
-          <button
-            type="button"
-            className="venta-rapida-flotante-carrito"
-            onClick={() => setCarritoMovilAbierto(true)}
-            aria-label={t("ventas_rapidas.carrito_titulo")}
-          >
-            <ShoppingCart size={22} />
-            {totalArticulos > 0 && (
-              <span className="venta-rapida-flotante-badge">{totalArticulos}</span>
-            )}
-          </button>
-
-          {carritoMovilAbierto && (
-            <div
-              className="venta-rapida-carrito-backdrop"
-              onClick={() => setCarritoMovilAbierto(false)}
-            />
-          )}
-
-          <div
-            className={`venta-rapida-carrito card${
-              carritoMovilAbierto ? " venta-rapida-carrito-abierto" : ""
-            }`}
-          >
+          <div className="venta-rapida-carrito card">
             <div className="venta-rapida-carrito-header">
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button
-                  type="button"
-                  className="venta-rapida-carrito-cerrar"
-                  onClick={() => setCarritoMovilAbierto(false)}
-                  aria-label={t("ventas_rapidas.cancelar")}
-                >
-                  <ArrowLeft size={20} />
-                </button>
-                <h3>
-                  <ShoppingCart size={24} /> {t("ventas_rapidas.carrito_titulo")}
-                </h3>
-              </div>
+              <h3>
+                <ShoppingCart size={24} /> {t("ventas_rapidas.carrito_titulo")}
+              </h3>
               {itemsCarrito.length > 0 && (
                 <button className="venta-rapida-vaciar" onClick={vaciarCarrito}>
                   {t("ventas_rapidas.vaciar_carrito")}
