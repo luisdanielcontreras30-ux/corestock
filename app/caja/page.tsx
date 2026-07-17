@@ -95,6 +95,32 @@ export default function CajaPage() {
   const { abierta, saldo } = useMemo(() => calcularEstado(movimientos), [movimientos]);
   const historialReciente = [...movimientos].reverse();
 
+  // Cuando un movimiento se encola sin conexión, obtenerDatos() (que
+  // recarga de Supabase) no aplica — no habría nada nuevo que traer
+  // todavía. Sin esto, saldo/movimientos se quedarían con el valor de
+  // antes del movimiento offline, y una segunda salida offline en la
+  // misma sesión podría pasar el chequeo "no sacar más de lo que hay"
+  // con un saldo que ya no es real.
+  function agregarMovimientoOptimista(
+    tipo: MovimientoCaja["tipo"],
+    monto: number,
+    motivo: string,
+    extra?: { montoEsperado?: number; diferencia?: number }
+  ) {
+    setMovimientos((prev) => [
+      ...prev,
+      {
+        id: -Date.now(),
+        fecha: new Date().toISOString(),
+        tipo,
+        monto,
+        motivo: motivo.trim() || null,
+        monto_esperado: extra?.montoEsperado ?? null,
+        diferencia: extra?.diferencia ?? null,
+      },
+    ]);
+  }
+
   async function abrirCaja() {
     if (procesando || !user) return;
 
@@ -114,6 +140,7 @@ export default function CajaPage() {
       );
       setMontoApertura("");
       if (encoladoOffline) {
+        agregarMovimientoOptimista("apertura", monto, t("caja.tipo_apertura"));
         mostrarToast(t("caja.msg_movimiento_offline"), "info");
       } else {
         await obtenerDatos();

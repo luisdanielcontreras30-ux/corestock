@@ -76,3 +76,30 @@ export const db = new CoreStockDB();
 export function generarUuid(): string {
   return crypto.randomUUID();
 }
+
+// Heurística compartida (Venta Rápida y Caja) para decidir si un error
+// vino de un problema de red — y por lo tanto la operación debe
+// encolarse para sincronizar después — en vez de ser un rechazo real
+// del servidor (stock insuficiente, saldo insuficiente, validación,
+// etc.), que sí debe mostrarse como error y NUNCA encolarse.
+//
+// navigator.onLine no es suficiente por sí solo: puede seguir en
+// "true" con una red cautiva o una conexión que ya no llega a
+// Internet, así que también se revisa el mensaje del error. Cubre los
+// mensajes nativos de fetch tanto en Chrome/Chromium ("Failed to
+// fetch") como en Safari/WebKit ("Load failed", muy común en iPhone/
+// iPad, un dispositivo típico para cobrar en un negocio pequeño), más
+// timeouts/abortos ("aborted"/"AbortError").
+export function esFalloDeRed(error: unknown): boolean {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return true;
+  if (!(error instanceof Error)) return false;
+
+  const mensaje = error.message.toLowerCase();
+  return (
+    mensaje === "sin_conexion" ||
+    mensaje.includes("failed to fetch") ||
+    mensaje.includes("load failed") ||
+    mensaje.includes("network") ||
+    mensaje.includes("abort")
+  );
+}

@@ -1,6 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { MovimientoCaja, TipoMovimientoCaja } from "./types";
-import { db, generarUuid } from "../../lib/db";
+import { db, generarUuid, esFalloDeRed } from "../../lib/db";
 
 export async function cargarMovimientos() {
   const {
@@ -167,13 +167,29 @@ export async function registrarMovimientoOffline(
   userId: string,
   extra?: { montoEsperado?: number; diferencia?: number }
 ): Promise<{ encoladoOffline: boolean }> {
+  // El uuid se genera antes de intentar, con o sin conexión: si el
+  // intento en línea falla por red después de que el insert ya se
+  // haya alcanzado a hacer del lado del servidor (la respuesta nunca
+  // llegó al navegador), el mismo uuid hace que el reintento desde la
+  // cola offline (lib/sync.ts) no duplique el movimiento.
+  const uuid = generarUuid();
+
   if (navigator.onLine) {
-    await registrarMovimiento(tipo, monto, motivo, extra);
-    return { encoladoOffline: false };
+    try {
+      await registrarMovimiento(tipo, monto, motivo, extra, uuid);
+      return { encoladoOffline: false };
+    } catch (error) {
+      // Solo se encola si de verdad fue un problema de red — un
+      // rechazo real del servidor (ej. SALDO_INSUFICIENTE) debe seguir
+      // mostrándose como error, nunca perderse en la cola offline.
+      if (!esFalloDeRed(error)) {
+        throw error;
+      }
+    }
   }
 
   await db.caja_pendientes.add({
-    uuid: generarUuid(),
+    uuid,
     tipo,
     monto,
     motivo: motivo.trim() || null,

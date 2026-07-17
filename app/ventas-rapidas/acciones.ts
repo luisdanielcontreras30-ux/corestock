@@ -1,7 +1,7 @@
 import { supabase } from "../../lib/supabase";
 import { registrarVenta } from "../ventas/acciones";
 import { Producto, Promocion, MetodoPago } from "../ventas/types";
-import { db, generarUuid } from "../../lib/db";
+import { db, generarUuid, esFalloDeRed } from "../../lib/db";
 
 // Intenta traer productos y promociones de Supabase; si falla (sin
 // conexión, o con conexión pero sin poder alcanzar el servidor — por
@@ -135,14 +135,7 @@ export async function registrarVentaRapida(
       // un problema de red (no por stock insuficiente ni otra
       // validación real), se encola para sincronizar después en vez de
       // perder la venta.
-      const esFalloDeRed =
-        !navigator.onLine ||
-        (error instanceof Error &&
-          (error.message === "SIN_CONEXION" ||
-            error.message.toLowerCase().includes("failed to fetch") ||
-            error.message.toLowerCase().includes("network")));
-
-      if (!esFalloDeRed) {
+      if (!esFalloDeRed(error)) {
         const mensaje = error instanceof Error ? error.message : String(error);
         throw new ErrorCobroParcial(mensaje, vendidos);
       }

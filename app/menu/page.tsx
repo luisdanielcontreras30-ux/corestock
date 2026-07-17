@@ -200,10 +200,12 @@ export default function DashboardPremium() {
   async function cargarDatosDashboard(userId: string) {
     try {
       // 1. OBTENER PRODUCTOS (Select corregido para TypeScript)
-      const { data: productos } = await supabase
+      const { data: productos, error: errorProductos } = await supabase
         .from("productos")
         .select("id, nombre, stock, stock_minimo")
         .eq("user_id", userId);
+
+      if (errorProductos) throw errorProductos;
 
       if (productos) {
         setTotalProductos(productos.length);
@@ -214,10 +216,12 @@ export default function DashboardPremium() {
       }
 
       // 2. OBTENER VENTAS (Con tipado explícito)
-      const { data: ventas } = await supabase
+      const { data: ventas, error: errorVentas } = await supabase
         .from("ventas")
         .select("*")
         .eq("user_id", userId);
+
+      if (errorVentas) throw errorVentas;
 
       if (ventas) {
         const ventasTipadas = ventas as VentaReciente[];
@@ -272,10 +276,12 @@ export default function DashboardPremium() {
         // sin volver a consultar la base de datos.
         setVentasTodas(ventasTipadas);
 
-        const { data: clientes } = await supabase
+        const { data: clientes, error: errorClientes } = await supabase
           .from("clientes")
           .select("id, nombre")
           .eq("user_id", userId);
+
+        if (errorClientes) throw errorClientes;
 
         setNombresClientes(
           new Map((clientes ?? []).map((c) => [c.id as number, c.nombre as string]))
