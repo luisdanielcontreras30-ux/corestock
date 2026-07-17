@@ -98,6 +98,11 @@ function PromocionesContenido() {
       return;
     }
 
+    if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
+      mostrarToast(t("promociones.msg_rango_invalido"), "error");
+      return;
+    }
+
     const producto = productoId
       ? productos.find((p) => p.id === Number(productoId)) ?? null
       : null;

@@ -44,9 +44,15 @@ export function calcularPrecioConDescuento(
 ): number {
   if (!promo) return precio;
 
+  // Por si el valor guardado quedó fuera de rango (ej. una fila
+  // anterior a validar esto en el servidor, ver crearPromocion): un
+  // valor negativo o un porcentaje mayor a 100 nunca debe convertir
+  // una "promoción" en un precio más caro que el de lista.
   if (promo.tipo === "porcentaje") {
-    return Math.max(0, precio * (1 - promo.valor / 100));
+    const porcentaje = Math.min(100, Math.max(0, promo.valor));
+    return Math.max(0, precio * (1 - porcentaje / 100));
   }
 
-  return Math.max(0, precio - promo.valor);
+  const monto = Math.max(0, promo.valor);
+  return Math.max(0, precio - monto);
 }

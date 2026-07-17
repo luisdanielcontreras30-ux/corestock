@@ -59,6 +59,23 @@ export async function crearPromocion(
     throw new Error("Usuario no autenticado");
   }
 
+  // Repite del lado del servidor las mismas validaciones que ya hace
+  // el formulario (app/promociones/page.tsx) — esta acción es
+  // exportada y podría llamarse directamente sin pasar por ese
+  // formulario, y un valor fuera de rango aquí produciría un precio
+  // más caro en vez de un descuento (ver calcularPrecioConDescuento).
+  if (!Number.isFinite(valor) || valor <= 0) {
+    throw new Error("Valor de descuento inválido");
+  }
+
+  if (tipo === "porcentaje" && valor > 100) {
+    throw new Error("El porcentaje de descuento no puede ser mayor a 100");
+  }
+
+  if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
+    throw new Error("La fecha de fin no puede ser anterior a la fecha de inicio");
+  }
+
   const { error } = await supabase.from("promociones").insert({
     nombre: nombre.trim(),
     producto_id: producto?.id ?? null,
