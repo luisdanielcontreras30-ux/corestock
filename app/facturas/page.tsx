@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Receipt } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -106,7 +107,10 @@ function FacturasContenido() {
             {filtradas.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
-                  {t("facturas.sin_facturas")}
+                  <p style={{ margin: "0 0 12px 0" }}>{t("facturas.sin_facturas")}</p>
+                  <Link href="/ventas-rapidas" className="btn-primary" style={{ display: "inline-block" }}>
+                    {t("facturas.ir_a_vender")}
+                  </Link>
                 </td>
               </tr>
             ) : (

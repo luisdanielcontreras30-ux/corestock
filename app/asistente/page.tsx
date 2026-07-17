@@ -355,6 +355,7 @@ function AsistenteContenido() {
           className="btn-primary"
           onClick={alEnviarLibre}
           disabled={pensando}
+          aria-label={t("asistente.enviar")}
           style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
         >
           <Send size={15} />

@@ -173,6 +173,8 @@ function FabricacionContenido() {
   }
 
   async function borrarIngrediente(id: number) {
+    if (!(await confirmar(t("fabricacion.confirmar_eliminar_ingrediente"), { peligroso: true }))) return;
+
     try {
       await eliminarIngrediente(id);
       await obtenerDatos();
