@@ -3002,13 +3002,21 @@ textarea:focus {
   body {
     height: auto;
     min-height: 100dvh;
-    overflow: visible;
+    overflow-y: visible;
+    /* Sin esto, cualquier elemento que por error quede un poco más
+       ancho que la pantalla (algo fácil de que pase en algún rincón
+       del sitio) hace que toda la página se pueda arrastrar hacia la
+       derecha, dejando ver un margen vacío — se siente roto, muy
+       distinto de una app instalada de verdad. overflow-x:hidden no
+       "arregla" ese ancho de más, pero evita que sea alcanzable. */
+    overflow-x: hidden;
   }
 
   .app-layout {
     height: auto;
     min-height: 100dvh;
-    overflow: visible;
+    overflow-y: visible;
+    overflow-x: hidden;
   }
 
   .hamburger-btn {

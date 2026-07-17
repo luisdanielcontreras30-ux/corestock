@@ -44,6 +44,15 @@ export const viewport: Viewport = {
   themeColor: "#5945e4",
   width: "device-width",
   initialScale: 1,
+  // Sin esto, la app instalada (PWA) se sentía como una página web
+  // cualquiera: se podía hacer pinch-zoom para achicarla/agrandarla y,
+  // ya con zoom, arrastrarla hacia los lados — nada de eso pasa en una
+  // app nativa de verdad. maximumScale 1 + userScalable false bloquea
+  // el pellizco para agrandar/achicar, que es justo lo que hace que
+  // una PWA en "standalone" (ver manifest.json) se sienta como una
+  // app y no como una pestaña de navegador.
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
