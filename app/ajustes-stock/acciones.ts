@@ -141,9 +141,15 @@ export async function eliminarAjuste(id: number) {
     // CAS con reintentos (igual que Ventas/Compras/registrarAjuste) en vez
     // de leer-y-escribir sin candado: si el producto no existe ya no hay
     // stock que revertir y se sigue adelante con el borrado igual.
-    await ajustarStockConCas(ajuste.producto_id, user.id, -ajuste.cantidad_ajuste, {
+    const exito = await ajustarStockConCas(ajuste.producto_id, user.id, -ajuste.cantidad_ajuste, {
       minimoCero: true,
     });
+
+    if (!exito) {
+      throw new Error(
+        "El stock de este producto cambió mientras se procesaba el borrado. Intenta de nuevo."
+      );
+    }
   }
 
   const { error: errorEliminar } = await supabase

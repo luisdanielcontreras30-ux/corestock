@@ -152,12 +152,14 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
   let clienteId = cotizacion.cliente_id;
 
   if (!clienteId && cotizacion.cliente_nombre) {
-    const { data: clienteExistente } = await supabase
+    const { data: clienteExistente, error: errorBusquedaCliente } = await supabase
       .from("clientes")
       .select("id")
       .eq("user_id", user.id)
       .ilike("nombre", cotizacion.cliente_nombre)
       .maybeSingle();
+
+    if (errorBusquedaCliente) throw errorBusquedaCliente;
 
     if (clienteExistente) {
       clienteId = clienteExistente.id;
