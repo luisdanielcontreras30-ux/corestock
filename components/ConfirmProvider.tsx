@@ -36,6 +36,13 @@ export default function ConfirmProvider({ children }: { children: ReactNode }) {
   const resolverRef = useRef<((valor: boolean) => void) | null>(null);
 
   const confirmar = useCallback((mensaje: string, opciones: OpcionesConfirmar = {}) => {
+    // Si ya había una confirmación pendiente (dos llamadas a confirmar()
+    // antes de que la primera se resuelva — ej. dos clics rápidos en
+    // botones distintos), se resuelve esa primera como cancelada en vez
+    // de simplemente pisarla: sin esto, la promesa de esa primera
+    // llamada se quedaba colgada para siempre, sin resolver nunca.
+    resolverRef.current?.(false);
+
     return new Promise<boolean>((resolve) => {
       resolverRef.current = resolve;
       setPeticion({ mensaje, ...opciones });

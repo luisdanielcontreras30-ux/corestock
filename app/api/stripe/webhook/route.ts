@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         const activa = ["active", "trialing"].includes(subscription.status);
         const periodoFin = subscription.items.data[0]?.current_period_end;
 
-        await admin
+        const { data: actualizados, error: errorUpdate } = await admin
           .from("empresa_config")
           .update({
             plan: activa ? "plus" : "free",
@@ -88,7 +88,22 @@ export async function POST(request: Request) {
               ? new Date(periodoFin * 1000).toISOString()
               : null,
           })
-          .eq("stripe_customer_id", customerId);
+          .eq("stripe_customer_id", customerId)
+          .select("user_id");
+
+        // Stripe no garantiza el orden de entrega — si este evento llega
+        // antes que checkout.session.completed (que es el que primero
+        // guarda stripe_customer_id), el update de arriba no encuentra
+        // ninguna fila y el estado de la suscripción se pierde en
+        // silencio para este evento. No hay nada seguro que "arreglar"
+        // aquí sin la fila todavía, pero al menos queda registrado en
+        // vez de fallar callado — el siguiente evento de Stripe (ej. la
+        // renovación) sí lo persiste.
+        if (!errorUpdate && actualizados?.length === 0) {
+          console.error(
+            `Webhook Stripe ${evento.type}: no se encontró empresa_config con stripe_customer_id=${customerId} (¿llegó antes que checkout.session.completed?)`
+          );
+        }
 
         break;
       }
@@ -100,13 +115,20 @@ export async function POST(request: Request) {
             ? subscription.customer
             : subscription.customer.id;
 
-        await admin
+        const { data: actualizados, error: errorUpdate } = await admin
           .from("empresa_config")
           .update({
             plan: "free",
             suscripcion_estado: "canceled",
           })
-          .eq("stripe_customer_id", customerId);
+          .eq("stripe_customer_id", customerId)
+          .select("user_id");
+
+        if (!errorUpdate && actualizados?.length === 0) {
+          console.error(
+            `Webhook Stripe ${evento.type}: no se encontró empresa_config con stripe_customer_id=${customerId}`
+          );
+        }
 
         break;
       }

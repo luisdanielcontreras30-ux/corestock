@@ -42,32 +42,36 @@ export default function IndicadorSincronizacion() {
 
   return (
     <>
-      <button
-        type="button"
-        className={`sync-indicador ${config.clase}`}
-        onClick={() => sincronizarAhora()}
-        title={conError > 0 ? t("sync.hay_errores") : undefined}
-      >
-        <Icono size={15} />
-        <span className="sync-indicador-texto">{config.texto}</span>
-        {pendientes > 0 && <span className="sync-indicador-badge">{pendientes}</span>}
+      <div className="sync-indicador-grupo">
+        <button
+          type="button"
+          className={`sync-indicador ${config.clase}`}
+          onClick={() => sincronizarAhora()}
+          title={conError > 0 ? t("sync.hay_errores") : undefined}
+        >
+          <Icono size={15} />
+          <span className="sync-indicador-texto">{config.texto}</span>
+          {pendientes > 0 && <span className="sync-indicador-badge">{pendientes}</span>}
+        </button>
+
         {conError > 0 && (
-          // stopPropagation: tocar el badge de errores abre el panel para
-          // revisarlos, en vez de disparar sincronizarAhora() como el
-          // resto del botón (que de todas formas nunca los tocaría, ya
-          // que solo reintenta filas en estado "pendiente").
-          <span
+          // Botón propio (no un <span> anidado dentro del botón de
+          // arriba, que además de ser HTML inválido no se podía
+          // alcanzar con teclado/lector de pantalla) — abre el panel de
+          // errores en vez de disparar sincronizarAhora() como el botón
+          // de al lado (que de todas formas nunca tocaría estas filas,
+          // ya que solo reintenta las que siguen en "pendiente").
+          <button
+            type="button"
             className="sync-indicador-badge sync-indicador-badge-error"
-            onClick={(e) => {
-              e.stopPropagation();
-              setPanelAbierto(true);
-            }}
+            onClick={() => setPanelAbierto(true)}
+            aria-label={t("sync.ver_errores")}
             title={t("sync.ver_errores")}
           >
             {conError}
-          </span>
+          </button>
         )}
-      </button>
+      </div>
 
       <PanelErroresSync abierto={panelAbierto} onCerrar={() => setPanelAbierto(false)} />
     </>

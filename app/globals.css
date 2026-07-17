@@ -888,6 +888,13 @@ textarea:focus {
    INDICADOR DE CONEXIÓN / SINCRONIZACIÓN (offline first)
    ========================================================================== */
 
+.sync-indicador-grupo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .sync-indicador {
   position: relative;
   display: flex;
@@ -948,9 +955,12 @@ textarea:focus {
 
 .sync-indicador-badge-error {
   background: var(--danger);
-  /* A diferencia del resto del botón (que dispara sincronizarAhora),
-     este badge abre el panel de errores — el cursor/hover marcan que
-     es su propio botón dentro del botón. */
+  border: none;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  /* Botón propio junto al de sincronizar (no anidado dentro), que abre
+     el panel de errores. */
   cursor: pointer;
 }
 
