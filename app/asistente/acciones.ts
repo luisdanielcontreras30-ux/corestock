@@ -26,11 +26,23 @@ interface ClienteRaw {
 }
 
 async function obtenerDatos(userId: string) {
-  const [{ data: productos }, { data: ventas }, { data: clientes }] = await Promise.all([
+  const [
+    { data: productos, error: errorProductos },
+    { data: ventas, error: errorVentas },
+    { data: clientes, error: errorClientes },
+  ] = await Promise.all([
     supabase.from("productos").select("*").eq("user_id", userId),
     supabase.from("ventas").select("*").eq("user_id", userId),
     supabase.from("clientes").select("id, nombre").eq("user_id", userId),
   ]);
+
+  // Sin este chequeo, una consulta fallida (RLS, red, sesión vencida)
+  // se veía igual que "no tienes productos/ventas/clientes" — el
+  // Asistente respondía con total confianza algo como "no tienes
+  // productos agotados" cuando en realidad la consulta nunca corrió.
+  if (errorProductos) throw errorProductos;
+  if (errorVentas) throw errorVentas;
+  if (errorClientes) throw errorClientes;
 
   return {
     productos: (productos ?? []) as ProductoRaw[],

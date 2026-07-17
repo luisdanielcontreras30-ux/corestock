@@ -104,18 +104,27 @@ function AsistenteContenido() {
     setEntrada("");
     setPensando(true);
 
-    // Pequeña pausa artificial: hace tangible que "está pensando",
-    // aunque el cálculo real ya se está haciendo detrás.
-    const [respuesta] = await Promise.all([
-      calcular(user.id, idioma),
-      new Promise((r) => setTimeout(r, 450)),
-    ]);
+    try {
+      // Pequeña pausa artificial: hace tangible que "está pensando",
+      // aunque el cálculo real ya se está haciendo detrás.
+      const [respuesta] = await Promise.all([
+        calcular(user.id, idioma),
+        new Promise((r) => setTimeout(r, 450)),
+      ]);
 
-    setMensajes((prev) => [
-      ...prev,
-      { id: idUsuario + 1, autor: "asistente", texto: respuesta },
-    ]);
-    setPensando(false);
+      setMensajes((prev) => [
+        ...prev,
+        { id: idUsuario + 1, autor: "asistente", texto: respuesta },
+      ]);
+    } catch (error) {
+      console.error(error);
+      setMensajes((prev) => [
+        ...prev,
+        { id: idUsuario + 1, autor: "asistente", texto: t("asistente.msg_error") },
+      ]);
+    } finally {
+      setPensando(false);
+    }
   }
 
   function detectarFuncion(texto: string) {
