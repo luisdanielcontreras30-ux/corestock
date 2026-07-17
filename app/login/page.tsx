@@ -22,7 +22,7 @@ function LoginInterno() {
   const modoInicial =
     searchParams.get("modo") === "registro" ? "registro" : "login";
 
-  const [modo, setModo] = useState<"login" | "registro">(modoInicial);
+  const [modo, setModo] = useState<"login" | "registro" | "recuperar">(modoInicial);
   const [correo, setCorreo] = useState("");
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
@@ -148,6 +148,35 @@ function LoginInterno() {
     setCargando(false);
   }
 
+  async function enviarRecuperacion() {
+    setError("");
+    setMensaje("");
+
+    if (!correo) {
+      setError(t("login.msg_faltan_campos"));
+      return;
+    }
+
+    setCargando(true);
+
+    // No se distingue si el correo existe o no en la respuesta (ni en
+    // el mensaje que se muestra) — así nadie puede usar este formulario
+    // para averiguar qué correos están registrados en CoreStock.
+    const { error } = await supabase.auth.resetPasswordForEmail(correo, {
+      redirectTo: `${window.location.origin}/restablecer-contrasena`,
+    });
+
+    if (error) {
+      console.error(error);
+      setError(t("login.error_generico"));
+      setCargando(false);
+      return;
+    }
+
+    setMensaje(t("login.msg_recuperacion_enviada"));
+    setCargando(false);
+  }
+
   function traducirError(msg: string): string {
     if (msg.includes("Invalid login credentials")) {
       return t("login.error_credenciales");
@@ -162,6 +191,8 @@ function LoginInterno() {
     e.preventDefault();
     if (modo === "login") {
       iniciarSesion();
+    } else if (modo === "recuperar") {
+      enviarRecuperacion();
     } else {
       registrarse();
     }
@@ -195,11 +226,19 @@ function LoginInterno() {
           className="login-card fade-up"
           onSubmit={alEnviar}
         >
-          <h1>{modo === "login" ? t("login.titulo_login") : t("login.titulo_registro")}</h1>
+          <h1>
+            {modo === "login"
+              ? t("login.titulo_login")
+              : modo === "recuperar"
+              ? t("login.titulo_recuperar")
+              : t("login.titulo_registro")}
+          </h1>
 
           <p>
             {modo === "login"
               ? t("login.subtitulo_login")
+              : modo === "recuperar"
+              ? t("login.subtitulo_recuperar")
               : t("login.subtitulo_registro")}
           </p>
 
@@ -208,8 +247,9 @@ function LoginInterno() {
             <div className="login-alert login-alert-success">{mensaje}</div>
           )}
 
-          <label className="login-label">{t("login.label_correo")}</label>
+          <label className="login-label" htmlFor="login-correo">{t("login.label_correo")}</label>
           <input
+            id="login-correo"
             type="email"
             placeholder="tucorreo@ejemplo.com"
             value={correo}
@@ -218,10 +258,11 @@ function LoginInterno() {
 
           {modo === "login" && (
             <>
-              <label className="login-label">
+              <label className="login-label" htmlFor="login-usuario">
                 {t("login.label_usuario")} <span className="login-label-opcional">{t("login.label_usuario_opcional")}</span>
               </label>
               <input
+                id="login-usuario"
                 type="text"
                 placeholder={t("login.placeholder_usuario")}
                 value={usuario}
@@ -230,18 +271,39 @@ function LoginInterno() {
             </>
           )}
 
-          <label className="login-label">{t("login.label_password")}</label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          {modo !== "recuperar" && (
+            <>
+              <label className="login-label" htmlFor="login-password">{t("login.label_password")}</label>
+              <input
+                id="login-password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </>
+          )}
+
+          {modo === "login" && (
+            <button
+              type="button"
+              className="login-link-recuperar"
+              disabled={cargando}
+              onClick={() => {
+                setModo("recuperar");
+                setError("");
+                setMensaje("");
+              }}
+            >
+              {t("login.link_olvidaste_password")}
+            </button>
+          )}
 
           {modo === "registro" && (
             <>
-              <label className="login-label">{t("login.label_confirmar_password")}</label>
+              <label className="login-label" htmlFor="login-confirmar-password">{t("login.label_confirmar_password")}</label>
               <input
+                id="login-confirmar-password"
                 type="password"
                 placeholder="••••••••"
                 value={confirmarPassword}
@@ -255,27 +317,44 @@ function LoginInterno() {
               <span className="login-spinner" />
             ) : modo === "login" ? (
               t("login.btn_iniciar_sesion")
+            ) : modo === "recuperar" ? (
+              t("login.btn_enviar_recuperacion")
             ) : (
               t("login.btn_registrarse")
             )}
           </button>
 
-          <button
-            className="btn-register"
-            type="button"
-            disabled={cargando}
-            onClick={() => {
-              setModo(modo === "login" ? "registro" : "login");
-              setError("");
-              setMensaje("");
-              setConfirmarPassword("");
-              setUsuario("");
-            }}
-          >
-            {modo === "login"
-              ? t("login.btn_ir_registro")
-              : t("login.btn_ir_login")}
-          </button>
+          {modo === "recuperar" ? (
+            <button
+              className="btn-register"
+              type="button"
+              disabled={cargando}
+              onClick={() => {
+                setModo("login");
+                setError("");
+                setMensaje("");
+              }}
+            >
+              {t("login.btn_ir_login")}
+            </button>
+          ) : (
+            <button
+              className="btn-register"
+              type="button"
+              disabled={cargando}
+              onClick={() => {
+                setModo(modo === "login" ? "registro" : "login");
+                setError("");
+                setMensaje("");
+                setConfirmarPassword("");
+                setUsuario("");
+              }}
+            >
+              {modo === "login"
+                ? t("login.btn_ir_registro")
+                : t("login.btn_ir_login")}
+            </button>
+          )}
         </form>
       </div>
     </main>

@@ -1507,6 +1507,22 @@ textarea:focus {
   margin-bottom: 4px;
 }
 
+.login-link-recuperar {
+  align-self: flex-end;
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin: -6px 0 6px 0;
+}
+
+.login-link-recuperar:hover {
+  text-decoration: underline;
+}
+
 .login-alert {
   font-size: 12.5px;
   padding: 10px 12px;
