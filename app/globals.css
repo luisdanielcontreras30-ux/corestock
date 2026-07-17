@@ -3695,8 +3695,13 @@ textarea:focus {
    número fijo de columnas por tamaño de pantalla (el mismo patrón que
    ya usan los métodos de pago más abajo) no hay margen de error. */
 @media (max-width: 900px) {
+  /* Siempre 2 columnas en celular, sin excepción por lo angosta que
+     sea la pantalla — las tarjetas se achican en vez de apilarse en 1
+     sola columna (ver el tamaño reducido de .venta-rapida-card-* más
+     abajo, pensado justo para que quepan bien 2 columnas angostas). */
   .venta-rapida-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   /* En celular se ve solo un puñado de productos (aprox. 4, dos filas
@@ -3706,18 +3711,22 @@ textarea:focus {
      "Cobrar" (ver .venta-rapida-carrito más abajo, que además queda
      fijo en pantalla). */
   .venta-rapida-grid-scroll {
-    max-height: 58vh;
+    max-height: 52vh;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
     padding-right: 4px;
     margin-bottom: 4px;
   }
-}
 
-@media (max-width: 380px) {
-  .venta-rapida-grid {
-    grid-template-columns: 1fr;
+  .venta-rapida-grid-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .venta-rapida-grid-scroll::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
   }
 }
 
@@ -3827,6 +3836,39 @@ textarea:focus {
   font-weight: 500;
   font-size: 14px;
   text-decoration: line-through;
+}
+
+/* Tarjetas un poco más compactas en celular — sobre todo para que,
+   con 2 columnas fijas incluso en pantallas angostas, no queden
+   enormes ni obliguen a bajar tanto para ver el resto del catálogo. */
+@media (max-width: 900px) {
+  .venta-rapida-card-info {
+    padding: 10px 10px 12px;
+  }
+
+  .venta-rapida-card-nombre {
+    font-size: 14.5px;
+    min-height: 36px;
+    margin-bottom: 4px;
+  }
+
+  .venta-rapida-card-precio {
+    font-size: 17px;
+    gap: 6px;
+  }
+
+  .venta-rapida-card-precio-original {
+    font-size: 12.5px;
+  }
+
+  .venta-rapida-card-badge {
+    top: 8px;
+    right: 8px;
+    font-size: 14px;
+    min-width: 26px;
+    height: 26px;
+    border-radius: 13px;
+  }
 }
 
 .venta-rapida-carrito {
@@ -4159,6 +4201,11 @@ textarea:focus {
     position: sticky;
     bottom: 0;
     z-index: 20;
+    /* Solo las esquinas de arriba redondeadas — como una "hoja" que
+       sube pegada al borde inferior, no una tarjeta flotante suelta
+       (que con las 4 esquinas redondeadas dejaba ver, por las
+       esquinas, las tarjetas de producto detrás y se veía chueca). */
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.15);
   }
 }
