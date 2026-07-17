@@ -4264,7 +4264,7 @@ textarea:focus {
   font-weight: 700;
 }
 
-.venta-rapida-flotante-carrito {
+.venta-rapida-barra-carrito {
   display: none;
 }
 
@@ -4282,8 +4282,8 @@ textarea:focus {
   }
 
   /* El carrito deja de estar siempre visible en celular — se vuelve
-     una hoja que solo aparece al abrirla desde el botón flotante (ver
-     .venta-rapida-flotante-carrito), para dejar ver más catálogo sin
+     una hoja que solo aparece al abrirla desde la barra de abajo (ver
+     .venta-rapida-barra-carrito), para dejar ver más catálogo sin
      scroll. Antes quedaba "pegado" siempre al fondo de la pantalla. */
   .venta-rapida-carrito {
     display: none;
@@ -4327,56 +4327,55 @@ textarea:focus {
     margin-right: 4px;
   }
 
-  /* Botón flotante: reemplaza al carrito siempre visible. Muestra
-     cuántos artículos lleva el carrito (el total en dinero se ve
-     hasta abrirlo) y al tocarlo abre la hoja de arriba. */
-  .venta-rapida-flotante-carrito {
-    display: grid;
-    place-items: center;
+  /* Barra ancha con texto (no un ícono suelto sin etiqueta): reemplaza
+     al carrito siempre visible. "Carrito (5) — $1,250.00" se entiende
+     como botón de un vistazo, incluso para quien no está acostumbrado
+     a apps — un círculo flotante sin palabras no lo dejaba claro. */
+  .venta-rapida-barra-carrito {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
     position: fixed;
-    right: 18px;
+    left: 14px;
+    right: 14px;
     bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
     background: var(--primary);
     color: #fff;
     border: none;
-    cursor: pointer;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    border-radius: 999px;
+    padding: 16px 22px;
+    font-size: 17px;
+    font-weight: 700;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
     z-index: 250;
+    cursor: pointer;
   }
 
-  .venta-rapida-flotante-badge {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    background: var(--danger);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    min-width: 20px;
-    height: 20px;
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    padding: 0 4px;
-    border: 2px solid var(--bg-primary);
+  .venta-rapida-barra-carrito:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .venta-rapida-barra-carrito-texto {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 }
 
 /* En celular ya hay barra de navegación inferior fija (72px, ver
-   .mobile-tabbar) — sin este ajuste el botón flotante y la hoja del
-   carrito quedan por debajo de ella. Esta regla va después del bloque
-   de arriba a propósito: ambas cascadas son ciertas a la vez debajo
-   de 768px, y por orden en la hoja de estilos esta debe ganar. */
+   .mobile-tabbar) — sin este ajuste la barra del carrito y la hoja
+   quedan por debajo de ella. Esta regla va después del bloque de
+   arriba a propósito: ambas cascadas son ciertas a la vez debajo de
+   768px, y por orden en la hoja de estilos esta debe ganar. */
 @media (max-width: 768px) {
   .venta-rapida-carrito.venta-rapida-carrito-abierto {
     bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 
-  .venta-rapida-flotante-carrito {
-    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  .venta-rapida-barra-carrito {
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   }
 }
 
