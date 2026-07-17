@@ -21,11 +21,19 @@ import {
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
 import { useConfirm } from "../../../components/ConfirmProvider";
+import { useMiembroActivo } from "../../../components/MiembroActivoProvider";
 
 export default function UsuariosTab() {
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
+  // Un miembro del equipo entra con la misma sesión de Supabase Auth
+  // del dueño (no tiene una identidad propia — ver entrar-como-miembro),
+  // así que "Cambiar mi contraseña" en realidad sobrescribiría la
+  // contraseña real de la cuenta dueña, no una contraseña propia del
+  // miembro. Ese widget solo debe verlo el dueño (miembroActivo null);
+  // la contraseña de un miembro se gestiona desde "Editar miembro".
+  const { miembroActivo } = useMiembroActivo();
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [cargando, setCargando] = useState(true);
   const [editando, setEditando] = useState<Miembro | null>(null);
@@ -98,6 +106,21 @@ export default function UsuariosTab() {
 
     if (!nombre.trim()) {
       mostrarToast(t("usuarios.msg_falta_nombre"), "error");
+      return;
+    }
+
+    // El login de un miembro (entrar-como-miembro) busca por nombre
+    // exacto (sin distinguir mayúsculas) y se queda con la primera
+    // coincidencia — sin este chequeo, un segundo miembro con el mismo
+    // nombre nunca podría entrar: la búsqueda siempre resolvería en el
+    // primero, sin importar que la contraseña del segundo sí fuera
+    // correcta.
+    const nombreNormalizado = nombre.trim().toLowerCase();
+    const nombreDuplicado = miembros.some(
+      (m) => m.nombre.trim().toLowerCase() === nombreNormalizado && m.id !== editando?.id
+    );
+    if (nombreDuplicado) {
+      mostrarToast(t("usuarios.msg_nombre_duplicado"), "error");
       return;
     }
 
@@ -207,65 +230,76 @@ export default function UsuariosTab() {
         </p>
       </div>
 
-      {/* CAMBIAR MI CONTRASEÑA */}
-      <div className="card">
-        <h2 style={{ marginBottom: 6 }}>{t("usuarios.cambiar_contrasena")}</h2>
-        <p
-          style={{
-            color: "var(--text-secondary)",
-            marginBottom: 16,
-            fontSize: 13,
-          }}
-        >
-          {t("usuarios.cambiar_contrasena_desc")}
-        </p>
-
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <input
-            type="password"
-            placeholder={t("usuarios.nueva_contrasena")}
-            value={nuevaContrasena}
-            onChange={(e) => setNuevaContrasena(e.target.value)}
-            style={{ maxWidth: 260 }}
-          />
-
-          <input
-            type="password"
-            placeholder={t("usuarios.confirmar_contrasena")}
-            value={confirmarContrasena}
-            onChange={(e) => setConfirmarContrasena(e.target.value)}
-            style={{ maxWidth: 260 }}
-          />
-
-          <button
-            className="btn-primary"
-            onClick={alCambiarContrasena}
-            disabled={guardandoPass}
-          >
-            {guardandoPass ? t("usuarios.guardando") : t("usuarios.actualizar_contrasena")}
-          </button>
+      {/* CAMBIAR MI CONTRASEÑA — solo el dueño de la cuenta, no un
+          miembro del equipo actuando con la sesión compartida (ver
+          comentario junto a useMiembroActivo más arriba). */}
+      {miembroActivo ? (
+        <div className="card">
+          <h2 style={{ marginBottom: 6 }}>{t("usuarios.cambiar_contrasena")}</h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
+            {t("usuarios.cambiar_contrasena_miembro_desc")}
+          </p>
         </div>
-
-        {mensajePass && (
+      ) : (
+        <div className="card">
+          <h2 style={{ marginBottom: 6 }}>{t("usuarios.cambiar_contrasena")}</h2>
           <p
             style={{
-              marginTop: 10,
+              color: "var(--text-secondary)",
+              marginBottom: 16,
               fontSize: 13,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              color: mensajePass.tipo === "ok" ? "#10b981" : "#ef4444",
             }}
           >
-            {mensajePass.tipo === "ok" ? (
-              <CheckCircle2 size={14} />
-            ) : (
-              <XCircle size={14} />
-            )}
-            {mensajePass.texto}
+            {t("usuarios.cambiar_contrasena_desc")}
           </p>
-        )}
-      </div>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <input
+              type="password"
+              placeholder={t("usuarios.nueva_contrasena")}
+              value={nuevaContrasena}
+              onChange={(e) => setNuevaContrasena(e.target.value)}
+              style={{ maxWidth: 260 }}
+            />
+
+            <input
+              type="password"
+              placeholder={t("usuarios.confirmar_contrasena")}
+              value={confirmarContrasena}
+              onChange={(e) => setConfirmarContrasena(e.target.value)}
+              style={{ maxWidth: 260 }}
+            />
+
+            <button
+              className="btn-primary"
+              onClick={alCambiarContrasena}
+              disabled={guardandoPass}
+            >
+              {guardandoPass ? t("usuarios.guardando") : t("usuarios.actualizar_contrasena")}
+            </button>
+          </div>
+
+          {mensajePass && (
+            <p
+              style={{
+                marginTop: 10,
+                fontSize: 13,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                color: mensajePass.tipo === "ok" ? "#10b981" : "#ef4444",
+              }}
+            >
+              {mensajePass.tipo === "ok" ? (
+                <CheckCircle2 size={14} />
+              ) : (
+                <XCircle size={14} />
+              )}
+              {mensajePass.texto}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* LISTA DE MIEMBROS */}
       <div className="card">
