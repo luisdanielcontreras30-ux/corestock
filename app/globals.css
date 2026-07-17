@@ -3589,7 +3589,13 @@ textarea:focus {
   max-width: 960px;
   width: calc(100% - 32px);
   box-sizing: border-box;
-  margin: 16px;
+  /* "margin: 16px auto" — antes era "16px" en las 4 esquinas, que en
+     una pantalla ancha (escritorio) no centra nada: la tarjeta se
+     queda pegada a la izquierda con todo el resto de la pantalla
+     vacío. Con "auto" a los lados se centra una vez que llega a su
+     ancho máximo (960px), en vez de dejar medio catálogo perdido en
+     un rincón. */
+  margin: 16px auto;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
