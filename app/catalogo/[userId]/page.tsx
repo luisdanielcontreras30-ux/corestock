@@ -126,7 +126,10 @@ export default function CatalogoPublicoPage({ params }: Props) {
           <section key={cat.nombre} className="catalogo-publico-categoria">
             <div className="catalogo-publico-categoria-titulo">
               <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{cat.nombre}</h2>
-              <p style={{ color: "var(--text-secondary)", fontSize: 12.5, margin: "4px 0 0 0" }}>
+              <p
+                className="catalogo-publico-desliza-texto"
+                style={{ color: "var(--text-secondary)", fontSize: 12.5, margin: "4px 0 0 0" }}
+              >
                 {t("catalogo_publico.desliza_productos")}
               </p>
             </div>

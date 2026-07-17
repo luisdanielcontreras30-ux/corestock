@@ -3586,15 +3586,9 @@ textarea:focus {
 }
 
 .catalogo-publico-categoria {
-  max-width: 960px;
+  max-width: 1100px;
   width: calc(100% - 32px);
   box-sizing: border-box;
-  /* "margin: 16px auto" — antes era "16px" en las 4 esquinas, que en
-     una pantalla ancha (escritorio) no centra nada: la tarjeta se
-     queda pegada a la izquierda con todo el resto de la pantalla
-     vacío. Con "auto" a los lados se centra una vez que llega a su
-     ancho máximo (960px), en vez de dejar medio catálogo perdido en
-     un rincón. */
   margin: 16px auto;
   background: var(--card-bg);
   border: 1px solid var(--border);
@@ -3609,17 +3603,21 @@ textarea:focus {
   width: 100%;
 }
 
+/* En pantallas anchas los productos se acomodan en varias columnas
+   (flex-wrap) usando el espacio disponible, sin necesitar deslizar. La
+   franja horizontal con scroll-snap queda solo para celular, más abajo. */
 .catalogo-publico-productos-fila {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
   padding: 4px 4px 12px 4px;
-  -webkit-overflow-scrolling: touch;
+}
+
+.catalogo-publico-desliza-texto {
+  display: none;
 }
 
 .catalogo-publico-producto {
-  scroll-snap-align: start;
   flex: 0 0 auto;
   width: 155px;
   padding: 10px;
@@ -3729,6 +3727,25 @@ textarea:focus {
   display: grid;
   place-items: center;
   flex-shrink: 0;
+}
+
+/* Celular: no cabe una cuadrícula cómoda, así que cada categoría vuelve
+   a deslizarse horizontalmente en una sola fila (como antes). */
+@media (max-width: 700px) {
+  .catalogo-publico-productos-fila {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .catalogo-publico-producto {
+    scroll-snap-align: start;
+  }
+
+  .catalogo-publico-desliza-texto {
+    display: block;
+  }
 }
 
 /* ========================= */
