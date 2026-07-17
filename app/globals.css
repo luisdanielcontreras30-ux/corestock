@@ -948,6 +948,76 @@ textarea:focus {
 
 .sync-indicador-badge-error {
   background: var(--danger);
+  /* A diferencia del resto del botón (que dispara sincronizarAhora),
+     este badge abre el panel de errores — el cursor/hover marcan que
+     es su propio botón dentro del botón. */
+  cursor: pointer;
+}
+
+.sync-indicador-badge-error:hover {
+  filter: brightness(1.15);
+}
+
+/* ==========================================================================
+   PANEL DE PENDIENTES CON ERROR (offline first)
+   ========================================================================== */
+
+.sync-errores-lista {
+  padding: 16px 20px 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sync-errores-vacio {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 24px 0;
+}
+
+.sync-errores-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.sync-errores-item-info {
+  min-width: 0;
+}
+
+.sync-errores-item-titulo {
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+
+.sync-errores-item-detalle {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  margin: 0 0 4px 0;
+}
+
+.sync-errores-item-error {
+  color: var(--danger);
+  font-size: 12.5px;
+  margin: 0;
+}
+
+.sync-errores-item-acciones {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sync-errores-item-acciones button {
+  padding: 8px;
+  min-width: 0;
 }
 
 .hamburger-btn {

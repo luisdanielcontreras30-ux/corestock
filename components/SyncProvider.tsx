@@ -19,6 +19,7 @@ interface SyncContexto {
   pendientes: number;
   conError: number;
   sincronizarAhora: () => Promise<void>;
+  actualizarContadores: () => Promise<void>;
 }
 
 const Contexto = createContext<SyncContexto>({
@@ -26,6 +27,7 @@ const Contexto = createContext<SyncContexto>({
   pendientes: 0,
   conError: 0,
   sincronizarAhora: async () => {},
+  actualizarContadores: async () => {},
 });
 
 export function useSync() {
@@ -129,7 +131,9 @@ export default function SyncProvider({ children }: { children: ReactNode }) {
   else estado = "todo_sincronizado";
 
   return (
-    <Contexto.Provider value={{ estado, pendientes, conError, sincronizarAhora }}>
+    <Contexto.Provider
+      value={{ estado, pendientes, conError, sincronizarAhora, actualizarContadores: refrescarContadores }}
+    >
       {children}
     </Contexto.Provider>
   );

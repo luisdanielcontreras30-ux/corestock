@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { db, VentaPendiente, CajaPendiente } from "./db";
 import { registrarVenta } from "../app/ventas/acciones";
 import { registrarMovimiento } from "../app/caja/acciones";
 import { Producto } from "../app/ventas/types";
@@ -149,4 +149,56 @@ export async function contarConError(userId: string): Promise<number> {
   ]);
 
   return ventas + caja;
+}
+
+// Para el panel de "Pendientes con error" (ver components/PanelErroresSync.tsx):
+// una venta o movimiento de caja offline que falló al sincronizar (no
+// por un problema de red, sino por un rechazo real del servidor —
+// sin stock, sin saldo, etc.) se queda marcado "error" para siempre
+// si nadie lo revisa. Esto expone esas filas para que la persona
+// decida: reintentar (por si ya se resolvió, ej. se repuso stock) o
+// descartar (dar de baja esa venta/movimiento, ya no se va a cobrar).
+export async function listarConError(
+  userId: string
+): Promise<{ ventas: VentaPendiente[]; caja: CajaPendiente[] }> {
+  const [ventas, caja] = await Promise.all([
+    db.ventas_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((v) => v.estado === "error")
+      .sortBy("creado_en"),
+    db.caja_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((c) => c.estado === "error")
+      .sortBy("creado_en"),
+  ]);
+
+  return { ventas, caja };
+}
+
+// Vuelve a poner la fila en "pendiente" para que la próxima
+// sincronización (automática o manual, con sincronizarAhora()) la
+// vuelva a intentar — no la sincroniza de inmediato aquí, para no
+// duplicar la lógica de reintento ya centralizada en
+// sincronizarPendientes().
+export async function reintentarVenta(uuid: string): Promise<void> {
+  await db.ventas_pendientes.update(uuid, { estado: "pendiente", error: null });
+}
+
+export async function reintentarCaja(uuid: string): Promise<void> {
+  await db.caja_pendientes.update(uuid, { estado: "pendiente", error: null });
+}
+
+// Descarta definitivamente una venta o movimiento que falló y que la
+// persona decidió no reintentar (ej. ya no hay stock del producto y
+// no va a reponerse). Solo borra la fila local en IndexedDB — nunca
+// se llegó a insertar nada en Supabase para esta fila, así que no hay
+// nada más que revertir.
+export async function descartarVenta(uuid: string): Promise<void> {
+  await db.ventas_pendientes.delete(uuid);
+}
+
+export async function descartarCaja(uuid: string): Promise<void> {
+  await db.caja_pendientes.delete(uuid);
 }
