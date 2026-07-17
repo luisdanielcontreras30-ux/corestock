@@ -4286,6 +4286,16 @@ textarea:focus {
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.15);
   }
+
+  /* Con varios artículos en el carrito, la lista completa (hasta
+     380px en escritorio) hacía que todo el panel creciera tanto que
+     tapaba buena parte del catálogo de arriba. En celular se acota
+     más — se ve menos de la lista a la vez, con su propio scroll
+     interno para el resto — para que el carrito no "se coma" la
+     pantalla ni estorbe para ver los productos. */
+  .venta-rapida-carrito-lista {
+    max-height: 160px;
+  }
 }
 
 /* En celular ya hay barra de navegación inferior fija (72px, ver
