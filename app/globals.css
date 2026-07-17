@@ -2059,7 +2059,15 @@ textarea:focus {
 
 .landing {
   position: relative;
-  min-height: 100vh;
+  /* "height" (no "min-height") a propósito: html/body tienen
+     overflow:hidden para que solo el panel derecho de la app haga
+     scroll (ver la regla de html/body arriba). Con min-height, este
+     contenedor simplemente crecía para caber todo su contenido y
+     nunca llegaba a desbordarse a sí mismo — su propio overflow-y:auto
+     nunca se activaba y el body (con overflow:hidden) recortaba todo
+     lo que pasaba de un alto de pantalla, dejando la mayoría de la
+     página de bienvenida imposible de alcanzar con scroll. */
+  height: 100vh;
   width: 100vw;
   overflow-x: hidden;
   overflow-y: auto;
