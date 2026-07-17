@@ -388,6 +388,8 @@ export const TRADUCCIONES: Diccionario = {
   "productos.col_imagen": { es: "Imagen", en: "Image", pt: "Imagem", fr: "Image", de: "Bild", zh: "图片" },
   "productos.col_producto": { es: "Producto", en: "Product", pt: "Produto", fr: "Produit", de: "Produkt", zh: "产品" },
   "productos.col_acciones": { es: "Acciones", en: "Actions", pt: "Ações", fr: "Actions", de: "Aktionen", zh: "操作" },
+  "productos.sin_productos": { es: "No hay productos registrados todavía.", en: "No products registered yet.", pt: "Nenhum produto registrado ainda.", fr: "Aucun produit enregistré pour le moment.", de: "Noch keine Produkte erfasst.", zh: "尚未登记任何产品。" },
+  "productos.sin_resultados_busqueda": { es: "Ningún producto coincide con tu búsqueda.", en: "No products match your search.", pt: "Nenhum produto corresponde à sua busca.", fr: "Aucun produit ne correspond à votre recherche.", de: "Kein Produkt entspricht deiner Suche.", zh: "没有符合搜索条件的产品。" },
   "productos.editar": { es: "Editar", en: "Edit", pt: "Editar", fr: "Modifier", de: "Bearbeiten", zh: "编辑" },
   "productos.eliminar": { es: "Eliminar", en: "Delete", pt: "Excluir", fr: "Supprimer", de: "Löschen", zh: "删除" },
   "productos.guardando": { es: "Guardando...", en: "Saving...", pt: "Salvando...", fr: "Enregistrement...", de: "Wird gespeichert...", zh: "正在保存..." },

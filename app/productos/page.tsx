@@ -40,6 +40,7 @@ function ProductosInterno() {
   const { puede } = useMiembroActivo();
   const searchParams = useSearchParams();
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [cargando, setCargando] = useState(true);
 
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState("");
@@ -73,6 +74,7 @@ function ProductosInterno() {
   async function cargar() {
     if (!user) return;
 
+    setCargando(true);
     const { data, error } = await supabase
       .from("productos")
       .select("*")
@@ -82,10 +84,12 @@ function ProductosInterno() {
     if (error) {
       console.error(error);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
+      setCargando(false);
       return;
     }
 
     if (data) setProductos(data);
+    setCargando(false);
   }
 
   async function guardar() {
@@ -468,53 +472,72 @@ function ProductosInterno() {
         )}
       </div>
 
-      <div className="tabla" style={{ marginTop: 24 }}>
-        <table>
-          <thead>
-            <tr>
-              <th>{t("productos.col_imagen")}</th>
-              <th>{t("productos.col_producto")}</th>
-              <th>{t("productos.categoria")}</th>
-              <th>{t("productos.precio")}</th>
-              {puede("ver_ganancias") && <th>{t("productos.costo")}</th>}
-              <th>{t("productos.stock")}</th>
-              {puede("gestionar_inventario") && <th>{t("productos.col_acciones")}</th>}
-            </tr>
-          </thead>
-
-          <tbody>
-            {filtrados.map((p) => (
-              <tr key={p.id}>
-                <td>
-                  {p.imagen ? (
-                    <img src={p.imagen} alt={p.nombre} className="product-image" />
-                  ) : "—"}
-                </td>
-
-                <td>{p.nombre}</td>
-                <td>{p.categoria}</td>
-                <td>${p.precio_venta}</td>
-                {puede("ver_ganancias") && <td>${p.costo ?? 0}</td>}
-                <td>{p.stock}</td>
-
-                {puede("gestionar_inventario") && (
-                  <td>
-                    <div className="productos-actions">
-                      <button onClick={() => editar(p)} className="btn-edit">
-                        {t("productos.editar")}
-                      </button>
-
-                      <button onClick={() => eliminar(p.id)} className="btn-delete">
-                        {t("productos.eliminar")}
-                      </button>
-                    </div>
-                  </td>
-                )}
+      {cargando ? (
+        <div className="card" style={{ marginTop: 24 }}>{t("header.cargando")}</div>
+      ) : (
+        <div className="tabla" style={{ marginTop: 24 }}>
+          <table>
+            <thead>
+              <tr>
+                <th>{t("productos.col_imagen")}</th>
+                <th>{t("productos.col_producto")}</th>
+                <th>{t("productos.categoria")}</th>
+                <th>{t("productos.precio")}</th>
+                {puede("ver_ganancias") && <th>{t("productos.costo")}</th>}
+                <th>{t("productos.stock")}</th>
+                {puede("gestionar_inventario") && <th>{t("productos.col_acciones")}</th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+
+            <tbody>
+              {filtrados.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={
+                      3 + (puede("ver_ganancias") ? 1 : 0) + 1 + (puede("gestionar_inventario") ? 1 : 0) + 1
+                    }
+                    style={{ textAlign: "center", padding: 30 }}
+                  >
+                    {productos.length > 0
+                      ? t("productos.sin_resultados_busqueda")
+                      : t("productos.sin_productos")}
+                  </td>
+                </tr>
+              ) : (
+                filtrados.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      {p.imagen ? (
+                        <img src={p.imagen} alt={p.nombre} className="product-image" />
+                      ) : "—"}
+                    </td>
+
+                    <td>{p.nombre}</td>
+                    <td>{p.categoria}</td>
+                    <td>${p.precio_venta.toFixed(2)}</td>
+                    {puede("ver_ganancias") && <td>${(p.costo ?? 0).toFixed(2)}</td>}
+                    <td>{p.stock}</td>
+
+                    {puede("gestionar_inventario") && (
+                      <td>
+                        <div className="productos-actions">
+                          <button onClick={() => editar(p)} className="btn-edit">
+                            {t("productos.editar")}
+                          </button>
+
+                          <button onClick={() => eliminar(p.id)} className="btn-delete">
+                            {t("productos.eliminar")}
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </>
   );
 }

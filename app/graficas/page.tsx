@@ -390,7 +390,7 @@ export default function GraficasPage() {
               >
                 {mejorPeorPunto.mejor ? mejorPeorPunto.mejor.nombre : "—"}
               </p>
-              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0 }}>
+              <p style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600, margin: 0 }}>
                 {mejorPeorPunto.mejor
                   ? `$${mejorPeorPunto.mejor.ventas.toFixed(2)}`
                   : t("graficas.sin_datos")}
@@ -411,7 +411,7 @@ export default function GraficasPage() {
               >
                 {mejorPeorPunto.peor ? mejorPeorPunto.peor.nombre : "—"}
               </p>
-              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0 }}>
+              <p style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600, margin: 0 }}>
                 {mejorPeorPunto.peor
                   ? `$${mejorPeorPunto.peor.ventas.toFixed(2)}`
                   : t("graficas.sin_datos")}
