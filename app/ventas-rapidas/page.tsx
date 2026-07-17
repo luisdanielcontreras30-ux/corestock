@@ -385,25 +385,20 @@ export default function VentasRapidasPage() {
             )}
           </div>
 
-          {/* Barra + fondo: solo se ven en celular (ver globals.css) —
-              reemplazan al panel del carrito, que ahí deja de estar
-              siempre visible y se abre bajo demanda para dejar ver más
-              catálogo sin scroll. Con texto en vez de solo un ícono
-              flotante — un círculo suelto no se entendía como botón
-              para quien no está acostumbrado a apps. */}
+          {/* Botón flotante + fondo: solo se ven en celular (ver
+              globals.css) — reemplazan al panel del carrito, que ahí
+              deja de estar siempre visible y se abre bajo demanda para
+              dejar ver más catálogo sin scroll. */}
           <button
             type="button"
-            className="venta-rapida-barra-carrito"
+            className="venta-rapida-flotante-carrito"
             onClick={() => setCarritoMovilAbierto(true)}
-            disabled={itemsCarrito.length === 0}
+            aria-label={t("ventas_rapidas.carrito_titulo")}
           >
-            <span className="venta-rapida-barra-carrito-texto">
-              <ShoppingCart size={22} />
-              {itemsCarrito.length === 0
-                ? t("ventas_rapidas.carrito_vacio")
-                : `${t("ventas_rapidas.carrito_titulo")} (${totalArticulos})`}
-            </span>
-            {itemsCarrito.length > 0 && <span>{formatoMoneda(totalCarrito)}</span>}
+            <ShoppingCart size={22} />
+            {totalArticulos > 0 && (
+              <span className="venta-rapida-flotante-badge">{totalArticulos}</span>
+            )}
           </button>
 
           {carritoMovilAbierto && (
