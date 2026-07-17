@@ -3649,6 +3649,15 @@ textarea:focus {
   align-items: start;
 }
 
+/* Los hijos directos de un grid no se encogen más allá del ancho
+   mínimo de su contenido a menos que se les quite ese "piso" — sin
+   esto, la columna de productos empujaba todo el layout más ancho que
+   la pantalla en vez de acomodarse a 2 columnas angostas. */
+.venta-rapida-columna,
+.venta-rapida-carrito {
+  min-width: 0;
+}
+
 .venta-rapida-buscador {
   display: flex;
   align-items: center;
@@ -3689,6 +3698,21 @@ textarea:focus {
   .venta-rapida-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  /* En celular se ve solo un puñado de productos (aprox. 4, dos filas
+     de dos columnas) con su propio scroll interno, en vez de que todo
+     el catálogo empuje al carrito/botón de cobrar hacia abajo — así no
+     hay que bajar hasta el final de decenas de productos para llegar a
+     "Cobrar" (ver .venta-rapida-carrito más abajo, que además queda
+     fijo en pantalla). */
+  .venta-rapida-grid-scroll {
+    max-height: 58vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 4px;
+    margin-bottom: 4px;
+  }
 }
 
 @media (max-width: 380px) {
@@ -3699,6 +3723,7 @@ textarea:focus {
 
 .venta-rapida-card {
   position: relative;
+  min-width: 0;
   text-align: left;
   padding: 0;
   border: 2px solid var(--border);
@@ -4124,8 +4149,28 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
+  /* Queda pegado a la parte de abajo de la pantalla en vez de "static"
+     (que obligaba a bajar hasta el final de todo el catálogo para
+     llegar al botón "Cobrar"). El tope del scroll del catálogo
+     (.venta-rapida-grid-scroll, arriba) es justamente lo que hace
+     posible esto: sin él, el carrito nunca alcanzaba a "engancharse"
+     abajo porque el catálogo entero era más alto que la pantalla. */
   .venta-rapida-carrito {
-    position: static;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* En celular ya hay barra de navegación inferior fija (72px, ver
+   .mobile-tabbar) — sin este ajuste queda por encima del carrito
+   pegajoso y tapa el botón "Cobrar". Esta regla va después del bloque
+   de arriba a propósito: ambas cascadas son ciertas a la vez debajo
+   de 768px, y por orden en la hoja de estilos esta debe ganar. */
+@media (max-width: 768px) {
+  .venta-rapida-carrito {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 }
 

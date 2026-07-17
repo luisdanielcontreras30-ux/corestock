@@ -292,7 +292,7 @@ export default function VentasRapidasPage() {
         </div>
       ) : (
         <div className="venta-rapida-layout">
-          <div>
+          <div className="venta-rapida-columna">
             <div className="venta-rapida-buscador">
               <Search size={22} color="var(--text-secondary)" />
               <input
@@ -324,55 +324,57 @@ export default function VentasRapidasPage() {
                 )}
               </div>
             ) : (
-              <div className="venta-rapida-grid">
-                {productosFiltrados.map((producto) => {
-                  const enCarrito = carrito.get(producto.id) ?? 0;
-                  const sinStock = producto.stock <= 0;
-                  const precio = precioDe(producto);
-                  const tieneDescuento = precio < producto.precio_venta;
+              <div className="venta-rapida-grid-scroll">
+                <div className="venta-rapida-grid">
+                  {productosFiltrados.map((producto) => {
+                    const enCarrito = carrito.get(producto.id) ?? 0;
+                    const sinStock = producto.stock <= 0;
+                    const precio = precioDe(producto);
+                    const tieneDescuento = precio < producto.precio_venta;
 
-                  return (
-                    <button
-                      key={producto.id}
-                      className="venta-rapida-card"
-                      onClick={() => agregarAlCarrito(producto)}
-                      disabled={sinStock}
-                    >
-                      {enCarrito > 0 && (
-                        <span className="venta-rapida-card-badge">
-                          {enCarrito}
-                        </span>
-                      )}
-
-                      <div className="venta-rapida-card-imagen">
-                        {producto.imagen ? (
-                          <img src={producto.imagen} alt={producto.nombre} />
-                        ) : (
-                          <ShoppingCart size={34} color="var(--text-muted)" />
-                        )}
-                        {sinStock && (
-                          <span className="venta-rapida-card-sinstock">
-                            {t("ventas_rapidas.sin_stock")}
+                    return (
+                      <button
+                        key={producto.id}
+                        className="venta-rapida-card"
+                        onClick={() => agregarAlCarrito(producto)}
+                        disabled={sinStock}
+                      >
+                        {enCarrito > 0 && (
+                          <span className="venta-rapida-card-badge">
+                            {enCarrito}
                           </span>
                         )}
-                      </div>
 
-                      <div className="venta-rapida-card-info">
-                        <p className="venta-rapida-card-nombre">
-                          {producto.nombre}
-                        </p>
-                        <p className="venta-rapida-card-precio">
-                          {formatoMoneda(precio)}
-                          {tieneDescuento && (
-                            <span className="venta-rapida-card-precio-original">
-                              {formatoMoneda(producto.precio_venta)}
+                        <div className="venta-rapida-card-imagen">
+                          {producto.imagen ? (
+                            <img src={producto.imagen} alt={producto.nombre} />
+                          ) : (
+                            <ShoppingCart size={34} color="var(--text-muted)" />
+                          )}
+                          {sinStock && (
+                            <span className="venta-rapida-card-sinstock">
+                              {t("ventas_rapidas.sin_stock")}
                             </span>
                           )}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
+                        </div>
+
+                        <div className="venta-rapida-card-info">
+                          <p className="venta-rapida-card-nombre">
+                            {producto.nombre}
+                          </p>
+                          <p className="venta-rapida-card-precio">
+                            {formatoMoneda(precio)}
+                            {tieneDescuento && (
+                              <span className="venta-rapida-card-precio-original">
+                                {formatoMoneda(producto.precio_venta)}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
