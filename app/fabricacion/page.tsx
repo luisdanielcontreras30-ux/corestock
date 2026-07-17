@@ -158,6 +158,16 @@ function FabricacionContenido() {
       return;
     }
 
+    // Dos filas de receta con la misma materia prima hacen que el
+    // chequeo de stock antes de producir compare cada una por
+    // separado contra el mismo stock disponible, en vez de contra la
+    // suma real que hace falta — puede reportar "alcanza" cuando en
+    // realidad no alcanza.
+    if (recetaSeleccionada.some((r) => r.materia_prima_id === materiaPrima.id)) {
+      mostrarToast(t("fabricacion.msg_ingrediente_duplicado"), "error");
+      return;
+    }
+
     try {
       setGuardandoIngrediente(true);
       await agregarIngrediente(producto, materiaPrima, cantidad);

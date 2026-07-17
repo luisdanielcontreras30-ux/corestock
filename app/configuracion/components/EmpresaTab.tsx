@@ -83,6 +83,16 @@ export default function EmpresaTab() {
   async function alGuardar() {
     if (guardando) return;
 
+    // El selector <input type="color"> de al lado siempre manda un hex
+    // válido, pero este campo de texto es libre — un valor inválido
+    // ahí se usa tal cual como color de fondo en el catálogo público
+    // (app/catalogo/[userId]/page.tsx), donde el navegador simplemente
+    // lo ignora sin avisar a nadie.
+    if (!/^#[0-9a-fA-F]{6}$/.test(empresa.color_principal)) {
+      setMensaje({ tipo: "error", texto: t("empresa.msg_color_invalido") });
+      return;
+    }
+
     setGuardando(true);
     setMensaje(null);
 
