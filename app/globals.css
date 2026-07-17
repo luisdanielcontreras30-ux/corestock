@@ -638,6 +638,22 @@ textarea:focus {
   }
 }
 
+/* Cubre TODAS las animaciones/transiciones de la app (spinner de
+   sincronización, blobs decorativos de bienvenida, aparición de
+   modales, hojas móviles, fadeUp, etc.) en un solo lugar, en vez de
+   listar cada selector — así ninguna animación nueva se cuela sin
+   respetar reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @media (max-width: 600px) {
   .toast-contenedor {
     top: auto;
@@ -945,7 +961,7 @@ textarea:focus {
 .sync-indicador-badge {
   background: var(--primary);
   color: #fff;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 999px;
@@ -957,7 +973,7 @@ textarea:focus {
   background: var(--danger);
   border: none;
   font: inherit;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   /* Botón propio junto al de sincronizar (no anidado dentro), que abre
      el panel de errores. */
@@ -1041,6 +1057,12 @@ textarea:focus {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.hamburger-btn:hover {
+  background: var(--card-hover);
+  border-color: var(--primary);
 }
 
 .hamburger-btn span {
@@ -1158,7 +1180,17 @@ textarea:focus {
 }
 
 .user-dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg);
+}
+
+.permiso-item {
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.permiso-item:hover {
+  background: var(--glass-bg);
 }
 
 .user-dropdown-danger {
@@ -1242,7 +1274,7 @@ textarea:focus {
 
 .sidebar-section-title {
   color: var(--text-muted);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1285,7 +1317,7 @@ textarea:focus {
   margin-left: auto;
   background: var(--glass-bg);
   color: var(--text-muted);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1298,7 +1330,7 @@ textarea:focus {
   margin-left: auto;
   background: rgba(245, 158, 11, 0.14);
   color: #f59e0b;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.02em;
   padding: 2px 7px;
@@ -1614,7 +1646,7 @@ textarea:focus {
 }
 
 .tabla tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.025);
+  background-color: var(--card-hover);
 }
 
 .btn-primary, .btn-secondary, .btn-edit, .btn-delete, .btn-clip {
@@ -2447,7 +2479,7 @@ textarea:focus {
 .notis-agotados-pill {
   background: rgba(239, 68, 68, 0.12);
   color: #ef4444;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 999px;
@@ -3230,12 +3262,18 @@ textarea:focus {
     background: var(--glass-bg);
     border: none;
     color: var(--text-secondary);
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     cursor: pointer;
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .mobile-mas-sheet-header button:active {
+    background: var(--glass-border);
+    transform: scale(0.92);
   }
 
   .mobile-mas-item {
@@ -3327,12 +3365,18 @@ textarea:focus {
     background: var(--glass-bg);
     border: none;
     color: var(--text-secondary);
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     cursor: pointer;
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .mobile-fab-sheet-header button:active {
+    background: var(--glass-border);
+    transform: scale(0.92);
   }
 
   .mobile-fab-opcion {
@@ -3424,7 +3468,7 @@ textarea:focus {
 .mas-card-badge {
   background: var(--glass-bg);
   color: var(--text-muted);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -3435,7 +3479,7 @@ textarea:focus {
 .mas-card-badge-plus {
   background: rgba(245, 158, 11, 0.14);
   color: #f59e0b;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.02em;
   padding: 2px 7px;
@@ -3699,13 +3743,19 @@ textarea:focus {
   background: var(--glass-bg);
   border: none;
   color: var(--text-secondary);
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   cursor: pointer;
   flex-shrink: 0;
+  transition: background-color var(--transition-fast);
+}
+
+.catalogo-publico-panel-header button:hover,
+.catalogo-publico-panel-header button:active {
+  background: var(--glass-border);
 }
 
 .catalogo-publico-panel-opcion {
@@ -3802,6 +3852,11 @@ textarea:focus {
   border-radius: 14px;
   padding: 0 18px;
   margin-bottom: 22px;
+  transition: border-color var(--transition-fast);
+}
+
+.venta-rapida-buscador:focus-within {
+  border-color: var(--primary);
 }
 
 .venta-rapida-buscador input {
@@ -3950,9 +4005,22 @@ textarea:focus {
   margin: 0 0 6px 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   min-height: 42px;
+  line-height: 1.3;
+}
+
+.catalogo-publico-producto-nombre {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   line-height: 1.3;
 }
 
@@ -4095,6 +4163,16 @@ textarea:focus {
   display: grid;
   place-items: center;
   padding: 0;
+  transition: transform var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.venta-rapida-stepper button:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.venta-rapida-stepper button:active {
+  transform: scale(0.92);
 }
 
 .venta-rapida-stepper span {
@@ -4111,6 +4189,10 @@ textarea:focus {
   cursor: pointer;
   padding: 8px;
   flex-shrink: 0;
+  min-width: 40px;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
 }
 
 .venta-rapida-quitar:hover {

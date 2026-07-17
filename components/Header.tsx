@@ -156,7 +156,7 @@ export default function Header({
       <button
         className="hamburger-btn"
         onClick={onToggleSidebar}
-        aria-label="Abrir menú"
+        aria-label={t("header.abrir_menu")}
       >
         <span />
         <span />

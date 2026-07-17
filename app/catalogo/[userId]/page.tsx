@@ -151,7 +151,7 @@ export default function CatalogoPublicoPage({ params }: Props) {
                           <Store size={28} color="var(--text-muted)" />
                         )}
                       </div>
-                      <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{p.nombre}</p>
+                      <p className="catalogo-publico-producto-nombre">{p.nombre}</p>
                       <p style={{ fontSize: 15, color: colorPrincipal, fontWeight: 700, margin: "6px 0 0 0" }}>
                         ${Number(p.precio).toFixed(2)}
                       </p>

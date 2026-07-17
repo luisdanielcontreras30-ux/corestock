@@ -501,6 +501,7 @@ export default function UsuariosTab() {
                   {PERMISOS.map((p) => (
                     <label
                       key={p.valor}
+                      className="permiso-item"
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -514,7 +515,7 @@ export default function UsuariosTab() {
                         type="checkbox"
                         checked={permisos.includes(p.valor)}
                         onChange={() => alternarPermiso(p.valor)}
-                        style={{ width: "auto" }}
+                        style={{ width: 18, height: 18 }}
                       />
                       {t(p.clave)}
                     </label>

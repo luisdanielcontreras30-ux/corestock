@@ -62,6 +62,7 @@ export const TRADUCCIONES: Diccionario = {
   "header.ver_cuenta": { es: "Ver cuenta", en: "View account", pt: "Ver conta", fr: "Voir le compte", de: "Konto ansehen", zh: "查看账户" },
   "header.cerrar_sesion": { es: "Cerrar sesión", en: "Log out", pt: "Sair", fr: "Déconnexion", de: "Abmelden", zh: "退出登录" },
   "header.notificaciones": { es: "Notificaciones", en: "Notifications", pt: "Notificações", fr: "Notifications", de: "Benachrichtigungen", zh: "通知" },
+  "header.abrir_menu": { es: "Abrir menú", en: "Open menu", pt: "Abrir menu", fr: "Ouvrir le menu", de: "Menü öffnen", zh: "打开菜单" },
   "header.sin_alertas": { es: "Sin alertas de stock.", en: "No stock alerts.", pt: "Sem alertas de estoque.", fr: "Aucune alerte de stock.", de: "Keine Bestandswarnungen.", zh: "没有库存警报。" },
   "header.ver_todas_alertas": { es: "Ver todas las alertas", en: "View all alerts", pt: "Ver todos os alertas", fr: "Voir toutes les alertes", de: "Alle Warnungen ansehen", zh: "查看所有警报" },
   "header.agotados": { es: "agotados", en: "out of stock", pt: "esgotados", fr: "en rupture", de: "ausverkauft", zh: "缺货" },
