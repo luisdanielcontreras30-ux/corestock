@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useRef,
   ReactNode,
 } from "react";
 import { useAuth } from "./AuthProvider";
@@ -66,6 +67,22 @@ export default function SyncProvider({ children }: { children: ReactNode }) {
     }
   }, [user, sincronizando, refrescarContadores]);
 
+  // sincronizarAhora cambia de identidad en cada render donde cambian
+  // user/sincronizando (useCallback), pero el efecto de abajo solo
+  // registra los listeners una vez (deps []). Sin este ref, alConectar
+  // quedaría con la versión de sincronizarAhora capturada en el primer
+  // render — y como SyncProvider está montado por encima de que
+  // AuthProvider resuelva la sesión (ver app/layout.tsx), en ese
+  // primer render "user" todavía es null, así que esa versión
+  // capturada siempre se cancelaba a sí misma (línea "if (!user) ...
+  // return") sin importar que luego sí hubiera sesión — el evento
+  // "online" del navegador nunca disparaba una sincronización real,
+  // solo la red de seguridad del setInterval de abajo.
+  const sincronizarAhoraRef = useRef(sincronizarAhora);
+  useEffect(() => {
+    sincronizarAhoraRef.current = sincronizarAhora;
+  }, [sincronizarAhora]);
+
   // Detecta conexión/desconexión y dispara una sincronización apenas
   // vuelve Internet — no se espera a que el usuario haga nada.
   useEffect(() => {
@@ -73,7 +90,7 @@ export default function SyncProvider({ children }: { children: ReactNode }) {
 
     function alConectar() {
       setOnline(true);
-      sincronizarAhora();
+      sincronizarAhoraRef.current();
     }
 
     function alDesconectar() {
@@ -87,9 +104,6 @@ export default function SyncProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("online", alConectar);
       window.removeEventListener("offline", alDesconectar);
     };
-    // sincronizarAhora se omite a propósito: solo se quiere registrar
-    // los listeners una vez, no reinstalarlos cada vez que cambia.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

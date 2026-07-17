@@ -181,6 +181,7 @@ export default function CajaPage() {
       setMontoMovimiento("");
       setMotivoMovimiento("");
       if (encoladoOffline) {
+        agregarMovimientoOptimista(tipo, monto, motivoMovimiento);
         mostrarToast(t("caja.msg_movimiento_offline"), "info");
       } else {
         await obtenerDatos();
@@ -217,6 +218,7 @@ export default function CajaPage() {
       setMontoContado("");
       setNotaCierre("");
       if (encoladoOffline) {
+        agregarMovimientoOptimista("cierre", contado, notaCierre, { montoEsperado: saldo, diferencia });
         mostrarToast(t("caja.msg_movimiento_offline"), "info");
       } else {
         await obtenerDatos();
