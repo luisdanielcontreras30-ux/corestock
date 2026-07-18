@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { IDIOMAS_DISPONIBLES, Idioma } from "../../lib/i18n";
+import BotonInstalarApp from "../../components/BotonInstalarApp";
 
 export default function BienvenidaPage() {
   const { t, idioma, cambiarIdioma } = useIdioma();
@@ -32,18 +33,22 @@ export default function BienvenidaPage() {
           <span className="landing-logo-icon">⬢</span> CoreStock
         </div>
 
-        <select
-          value={idioma}
-          onChange={(e) => cambiarIdioma(e.target.value as Idioma)}
-          aria-label={t("idioma.titulo")}
-          style={{ maxWidth: 150 }}
-        >
-          {IDIOMAS_DISPONIBLES.map((op) => (
-            <option key={op.valor} value={op.valor}>
-              {op.bandera} {op.nombre}
-            </option>
-          ))}
-        </select>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <BotonInstalarApp className="landing-nav-cta" />
+
+          <select
+            value={idioma}
+            onChange={(e) => cambiarIdioma(e.target.value as Idioma)}
+            aria-label={t("idioma.titulo")}
+            style={{ width: "auto", maxWidth: 150 }}
+          >
+            {IDIOMAS_DISPONIBLES.map((op) => (
+              <option key={op.valor} value={op.valor}>
+                {op.bandera} {op.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
       </nav>
 
       {/* HERO */}

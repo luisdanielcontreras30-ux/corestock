@@ -524,6 +524,19 @@ textarea:focus {
   box-shadow: 0 0 0 4px var(--primary-soft);
 }
 
+/* El <select> en sí usa --input-bg (semitransparente, se mezcla con
+   la tarjeta detrás). Pero la lista desplegable de <option> la pinta
+   el navegador en una capa nativa aparte que no compone ese fondo
+   semitransparente contra nada — en varios navegadores/Android eso
+   se resuelve a negro sólido sin importar el tema, con el texto
+   oscuro (temas claros) totalmente invisible encima. Los <option>
+   necesitan su propio fondo 100% opaco. */
+select option,
+select optgroup {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -2212,6 +2225,19 @@ textarea:focus {
 
 .landing-nav-cta:hover {
   background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 420px) {
+  /* Logo + botón "Descargar app" + selector de idioma no caben con
+     su texto completo en pantallas muy angostas — se deja solo el
+     ícono del botón de instalar. */
+  .landing-nav .boton-instalar-app-texto {
+    display: none;
+  }
+
+  .landing-nav-cta {
+    padding: 9px 12px;
+  }
 }
 
 .landing-hero {
