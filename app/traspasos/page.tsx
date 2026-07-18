@@ -173,7 +173,7 @@ function TraspasosContenido() {
     (s) => String(s.ubicacion_id) === ubicacionVistaActual
   );
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -190,6 +190,10 @@ function TraspasosContenido() {
         subtitulo={t("traspasos.subtitulo")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
+      <>
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("traspasos.ubicaciones")}</h2>
 
@@ -343,7 +347,7 @@ function TraspasosContenido() {
               <th>{t("tabla.producto")}</th>
               <th>{t("traspasos.col_origen")}</th>
               <th>{t("traspasos.col_destino")}</th>
-              <th>{t("tabla.total")}</th>
+              <th>{t("tabla.cantidad")}</th>
             </tr>
           </thead>
           <tbody>
@@ -367,6 +371,8 @@ function TraspasosContenido() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </main>
   );
 }

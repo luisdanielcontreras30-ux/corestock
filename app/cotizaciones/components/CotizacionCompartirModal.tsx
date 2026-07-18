@@ -6,6 +6,7 @@ import { Cotizacion } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
 import { useEmpresa } from "../../../lib/useEmpresa";
+import { formatoMoneda } from "../../ventas/utils";
 
 interface Props {
   cotizacion: Cotizacion;
@@ -27,7 +28,7 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
     `${t("factura.facturado_a")}: ${nombreCliente}\n` +
     `${fecha}\n\n` +
     `${cotizacion.producto} x${cotizacion.cantidad}\n` +
-    `${t("tabla.total")}: $${Number(cotizacion.total).toFixed(2)}\n\n` +
+    `${t("tabla.total")}: ${formatoMoneda(Number(cotizacion.total))}\n\n` +
     (cotizacion.nota ? `${cotizacion.nota}\n\n` : "") +
     `${t("factura.gracias")}`;
 
@@ -144,8 +145,8 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
               <tr>
                 <td>{cotizacion.producto}</td>
                 <td>{cotizacion.cantidad}</td>
-                <td>${Number(cotizacion.precio_unitario).toFixed(2)}</td>
-                <td>${Number(cotizacion.total).toFixed(2)}</td>
+                <td>{formatoMoneda(Number(cotizacion.precio_unitario))}</td>
+                <td>{formatoMoneda(Number(cotizacion.total))}</td>
               </tr>
             </tbody>
           </table>
@@ -159,7 +160,7 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
           <div className="factura-totales">
             <div className="factura-total-fila factura-total-final">
               <span>{t("tabla.total")}</span>
-              <span>${Number(cotizacion.total).toFixed(2)}</span>
+              <span>{formatoMoneda(Number(cotizacion.total))}</span>
             </div>
           </div>
 

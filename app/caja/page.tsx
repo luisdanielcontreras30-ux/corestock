@@ -231,7 +231,7 @@ export default function CajaPage() {
     }
   }
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -248,6 +248,10 @@ export default function CajaPage() {
         subtitulo={t("caja.subtitulo")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
+      <>
       {!abierta ? (
         <div className="card">
           <h2 style={{ marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
@@ -372,12 +376,12 @@ export default function CajaPage() {
               )}
 
               <button
-                className="btn-delete"
-                style={{ marginTop: 12, width: "100%" }}
+                className="btn-primary"
+                style={{ marginTop: 12, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
                 onClick={cerrarCaja}
                 disabled={procesando}
               >
-                {t("caja.cerrar_caja")}
+                <Lock size={14} /> {t("caja.cerrar_caja")}
               </button>
             </div>
           </div>
@@ -438,6 +442,8 @@ export default function CajaPage() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </main>
   );
 }

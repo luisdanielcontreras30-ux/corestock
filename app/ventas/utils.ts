@@ -38,7 +38,11 @@ export function exportarExcel(ventas: Venta[]) {
 export function formatoMoneda(
   valor: number
 ) {
-  return `$${valor.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  // toLocaleString pone el signo pegado a los dígitos ("-45.50"), así
+  // que armar el string directo daba "$-45.50" — el signo va antes del
+  // símbolo de moneda, no después.
+  const signo = valor < 0 ? "-" : "";
+  return `${signo}$${Math.abs(valor).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatoFecha(

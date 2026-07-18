@@ -4,6 +4,7 @@ import { Tag } from "lucide-react";
 import { Producto, Cliente, MetodoPago } from "../types";
 import { PromocionAplicable } from "../../../lib/promociones";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { formatoMoneda } from "../utils";
 
 interface Props {
   productos: Producto[];
@@ -98,7 +99,7 @@ export default function VentaForm({
         <div>
           <label>{t("tabla.total")}</label>
 
-          <input readOnly value={`$${total.toFixed(2)}`} />
+          <input readOnly value={formatoMoneda(total)} />
         </div>
 
         <div>
@@ -132,12 +133,12 @@ export default function VentaForm({
           {promocion ? (
             <>
               <span style={{ textDecoration: "line-through", color: "var(--text-secondary)" }}>
-                ${producto.precio_venta.toFixed(2)}
+                {formatoMoneda(producto.precio_venta)}
               </span>{" "}
-              <strong style={{ color: "#10b981" }}>${precioUnitario.toFixed(2)}</strong>
+              <strong style={{ color: "#10b981" }}>{formatoMoneda(precioUnitario)}</strong>
             </>
           ) : (
-            <>${precioUnitario.toFixed(2)}</>
+            <>{formatoMoneda(precioUnitario)}</>
           )}
 
           {promocion && (

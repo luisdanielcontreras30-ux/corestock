@@ -12,6 +12,7 @@ import RequierePlus from "../../components/RequierePlus";
 import { Producto, Proveedor, Compra } from "./types";
 import { cargarDatos, registrarCompra, eliminarCompra } from "./acciones";
 import { exportarExcel } from "./utils";
+import { formatoMoneda } from "../ventas/utils";
 
 export default function ComprasPage() {
   return (
@@ -162,7 +163,7 @@ function ComprasContenido() {
     );
   });
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -245,7 +246,7 @@ function ComprasContenido() {
           }}
         >
           <span style={{ fontSize: 15, fontWeight: 700 }}>
-            {t("tabla.total")}: ${total.toFixed(2)}
+            {t("tabla.total")}: {formatoMoneda(total)}
           </span>
 
           <button className="btn-primary" onClick={guardar} disabled={guardando}>
@@ -269,47 +270,51 @@ function ComprasContenido() {
         )}
       </div>
 
-      <div className="tabla">
-        <table>
-          <thead>
-            <tr>
-              <th>{t("tabla.fecha")}</th>
-              <th>{t("tabla.producto")}</th>
-              <th>{t("compras.col_proveedor")}</th>
-              <th>{t("tabla.cantidad")}</th>
-              <th>{t("compras.costo_unitario")}</th>
-              <th>{t("tabla.total")}</th>
-              <th>{t("productos.col_acciones")}</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {comprasFiltradas.length === 0 ? (
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
+        <div className="tabla">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
-                  {compras.length === 0 ? t("compras.sin_compras") : t("compras.sin_resultados_busqueda")}
-                </td>
+                <th>{t("tabla.fecha")}</th>
+                <th>{t("tabla.producto")}</th>
+                <th>{t("compras.col_proveedor")}</th>
+                <th>{t("tabla.cantidad")}</th>
+                <th>{t("compras.costo_unitario")}</th>
+                <th>{t("tabla.total")}</th>
+                <th>{t("productos.col_acciones")}</th>
               </tr>
-            ) : (
-              comprasFiltradas.map((c) => (
-                <tr key={c.id}>
-                  <td>{new Date(c.fecha).toLocaleDateString()}</td>
-                  <td>{c.producto}</td>
-                  <td>{c.proveedor_nombre || "—"}</td>
-                  <td>{c.cantidad}</td>
-                  <td>${Number(c.costo_unitario).toFixed(2)}</td>
-                  <td>${Number(c.total).toFixed(2)}</td>
-                  <td>
-                    <button className="btn-delete" onClick={() => borrar(c.id)} aria-label={t("productos.eliminar")}>
-                      <Trash2 size={14} />
-                    </button>
+            </thead>
+
+            <tbody>
+              {comprasFiltradas.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
+                    {compras.length === 0 ? t("compras.sin_compras") : t("compras.sin_resultados_busqueda")}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                comprasFiltradas.map((c) => (
+                  <tr key={c.id}>
+                    <td>{new Date(c.fecha).toLocaleDateString()}</td>
+                    <td>{c.producto}</td>
+                    <td>{c.proveedor_nombre || "—"}</td>
+                    <td>{c.cantidad}</td>
+                    <td>{formatoMoneda(Number(c.costo_unitario))}</td>
+                    <td>{formatoMoneda(Number(c.total))}</td>
+                    <td>
+                      <button className="btn-delete" onClick={() => borrar(c.id)} aria-label={t("productos.eliminar")}>
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </main>
   );
 }

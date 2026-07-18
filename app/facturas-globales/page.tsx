@@ -10,6 +10,7 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { FacturaGlobal } from "./types";
+import { formatoMoneda } from "../ventas/utils";
 import {
   cargarFacturasGlobales,
   generarFacturaGlobal,
@@ -114,7 +115,7 @@ function FacturasGlobalesContenido() {
     }
   }
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -172,6 +173,9 @@ function FacturasGlobalesContenido() {
         </div>
       </div>
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
       <div className="tabla">
         <table>
           <thead>
@@ -202,7 +206,7 @@ function FacturasGlobalesContenido() {
                   </td>
                   <td>{g.cantidad_ventas}</td>
                   <td style={{ fontWeight: 700, color: "var(--primary)" }}>
-                    ${Number(g.total).toFixed(2)}
+                    {formatoMoneda(Number(g.total))}
                   </td>
                   <td>{g.nota || "—"}</td>
                   <td>
@@ -220,6 +224,7 @@ function FacturasGlobalesContenido() {
           </tbody>
         </table>
       </div>
+      )}
     </main>
   );
 }

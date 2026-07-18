@@ -127,7 +127,7 @@ function ConciliacionesContenido() {
     }
   }
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -144,6 +144,10 @@ function ConciliacionesContenido() {
         subtitulo={t("conciliaciones.subtitulo")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
+      <>
       <div
         style={{
           display: "grid",
@@ -281,6 +285,8 @@ function ConciliacionesContenido() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </main>
   );
 }

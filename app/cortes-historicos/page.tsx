@@ -66,7 +66,7 @@ function CortesHistoricosContenido() {
   const diferenciaAcumulada = filtrados.reduce((sum, c) => sum + (c.diferencia ?? 0), 0);
   const cuadrados = filtrados.filter((c) => esDiferenciaCero(c.diferencia ?? 0)).length;
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -83,6 +83,10 @@ function CortesHistoricosContenido() {
         subtitulo={t("cortes_historicos.subtitulo")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
+      <>
       <div
         style={{
           display: "grid",
@@ -172,6 +176,8 @@ function CortesHistoricosContenido() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </main>
   );
 }

@@ -66,7 +66,7 @@ function FacturasContenido() {
     );
   });
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -89,6 +89,9 @@ function FacturasContenido() {
         placeholder={t("facturas.buscar_placeholder")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
       <div className="tabla">
         <table>
           <thead>
@@ -107,10 +110,16 @@ function FacturasContenido() {
             {filtradas.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
-                  <p style={{ margin: "0 0 12px 0" }}>{t("facturas.sin_facturas")}</p>
-                  <Link href="/ventas-rapidas" className="btn-primary" style={{ display: "inline-block" }}>
-                    {t("facturas.ir_a_vender")}
-                  </Link>
+                  {ventas.length === 0 ? (
+                    <>
+                      <p style={{ margin: "0 0 12px 0" }}>{t("facturas.sin_facturas")}</p>
+                      <Link href="/ventas-rapidas" className="btn-primary" style={{ display: "inline-block" }}>
+                        {t("facturas.ir_a_vender")}
+                      </Link>
+                    </>
+                  ) : (
+                    <p style={{ margin: 0 }}>{t("facturas.sin_resultados_busqueda")}</p>
+                  )}
                 </td>
               </tr>
             ) : (
@@ -139,6 +148,7 @@ function FacturasContenido() {
           </tbody>
         </table>
       </div>
+      )}
 
       {ventaFactura && (
         <FacturaModal venta={ventaFactura} onClose={() => setVentaFactura(null)} />

@@ -19,6 +19,7 @@ import {
   convertirEnVenta,
 } from "./acciones";
 import { exportarExcel } from "./utils";
+import { formatoMoneda } from "../ventas/utils";
 
 const COLOR_ESTADO: Record<EstadoCotizacion, string> = {
   pendiente: "#f59e0b",
@@ -157,6 +158,8 @@ function CotizacionesContenido() {
   }
 
   async function alCambiarEstado(id: number, estado: EstadoCotizacion) {
+    if (estado === "rechazada" && !(await confirmar(t("cotizaciones.confirmar_rechazar")))) return;
+
     try {
       await cambiarEstadoCotizacion(id, estado);
       await obtenerDatos();
@@ -205,7 +208,7 @@ function CotizacionesContenido() {
     return nombreCliente.includes(termino) || c.producto.toLowerCase().includes(termino);
   });
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -284,7 +287,7 @@ function CotizacionesContenido() {
           }}
         >
           <span style={{ fontSize: 15, fontWeight: 700 }}>
-            {t("tabla.total")}: ${total.toFixed(2)}
+            {t("tabla.total")}: {formatoMoneda(total)}
           </span>
 
           <button className="btn-primary" onClick={guardar} disabled={guardando}>
@@ -319,6 +322,9 @@ function CotizacionesContenido() {
         )}
       </div>
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
       <div className="tabla">
         <table>
           <thead>
@@ -347,7 +353,7 @@ function CotizacionesContenido() {
                   <td>{c.cliente_nombre || t("ventas.cliente_general")}</td>
                   <td>{c.producto}</td>
                   <td>{c.cantidad}</td>
-                  <td>${Number(c.total).toFixed(2)}</td>
+                  <td>{formatoMoneda(Number(c.total))}</td>
                   <td>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
                       <span
@@ -381,7 +387,7 @@ function CotizacionesContenido() {
                       {c.estado === "pendiente" && (
                         <>
                           <button
-                            className="btn-edit"
+                            className="btn-success"
                             aria-label={t("cotizaciones.estado_aceptada")}
                             onClick={() => alCambiarEstado(c.id, "aceptada")}
                           >
@@ -399,12 +405,12 @@ function CotizacionesContenido() {
                       {c.estado === "aceptada" && !c.venta_id && (
                         <button
                           className="btn-primary"
-                          style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 10px", fontSize: 12 }}
+                          style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px" }}
                           aria-label={t("cotizaciones.convertir_venta")}
                           onClick={() => alConvertirEnVenta(c)}
                           disabled={convirtiendoId === c.id}
                         >
-                          <ShoppingCart size={13} /> {t("cotizaciones.convertir_venta")}
+                          <ShoppingCart size={14} /> {t("cotizaciones.convertir_venta")}
                         </button>
                       )}
                       <button
@@ -422,6 +428,7 @@ function CotizacionesContenido() {
           </tbody>
         </table>
       </div>
+      )}
 
       {compartiendo && (
         <CotizacionCompartirModal

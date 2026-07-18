@@ -770,7 +770,7 @@ textarea:focus {
 
 .productos-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -861,6 +861,20 @@ textarea:focus {
 
 .btn-delete:hover {
   background: rgba(239,68,68,0.25);
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background: rgba(16,185,129,0.15);
+  color: #10b981;
+  border: 1px solid rgba(16,185,129,0.3);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-success:hover {
+  background: rgba(16,185,129,0.25);
   transform: translateY(-1px);
 }
 
