@@ -424,3 +424,76 @@ export async function analizarMejorCliente(userId: string, idioma: Idioma): Prom
 
   return `${f("asistente.clientes_header", idioma)}\n\n${lineas}`;
 }
+
+// ----------------- 10. VENTAS DEL MES -----------------
+
+export async function analizarVentasMes(userId: string, idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos(userId);
+
+  const hoy = new Date();
+  const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+
+  const mesActual = ventasEnRango(ventas, inicioMes, hoy);
+  const mesAnterior = ventasEnRango(ventas, inicioMesAnterior, inicioMes);
+
+  const totalActual = mesActual.reduce((sum, v) => sum + Number(v.total), 0);
+  const totalAnterior = mesAnterior.reduce((sum, v) => sum + Number(v.total), 0);
+
+  if (mesActual.length === 0) {
+    return f("asistente.mes_ninguna", idioma);
+  }
+
+  const unidades = mesActual.reduce((sum, v) => sum + Number(v.cantidad), 0);
+  const ticketPromedio = totalActual / mesActual.length;
+
+  const lineaCambio =
+    totalAnterior > 0
+      ? f("asistente.mes_comparacion", idioma, {
+          pct: (((totalActual - totalAnterior) / totalAnterior) * 100).toFixed(1),
+          signo: totalActual >= totalAnterior ? "+" : "",
+        })
+      : f("asistente.mes_sin_comparacion", idioma);
+
+  return f("asistente.mes_resumen", idioma, {
+    total: totalActual.toFixed(2),
+    n: mesActual.length,
+    unidades,
+    ticket: ticketPromedio.toFixed(2),
+    comparacion: lineaCambio,
+  });
+}
+
+// ----------------- 11. CATEGORÍA QUE MÁS VENDE -----------------
+
+export async function analizarCategoriaTop(userId: string, idioma: Idioma): Promise<string> {
+  const { productos, ventas } = await obtenerDatos(userId);
+
+  if (ventas.length === 0) {
+    return f("asistente.cat_ninguna", idioma);
+  }
+
+  const categoriaPorNombre = new Map(productos.map((p) => [p.nombre, p.categoria || f("asistente.cat_sin_categoria", idioma)]));
+
+  const porCategoria = new Map<string, { ingresos: number; unidades: number }>();
+  for (const v of ventas) {
+    const categoria = categoriaPorNombre.get(v.producto) ?? f("asistente.cat_sin_categoria", idioma);
+    const actual = porCategoria.get(categoria) ?? { ingresos: 0, unidades: 0 };
+    actual.ingresos += Number(v.total);
+    actual.unidades += Number(v.cantidad);
+    porCategoria.set(categoria, actual);
+  }
+
+  const ranking = Array.from(porCategoria.entries())
+    .map(([nombre, datos]) => ({ nombre, ...datos }))
+    .sort((a, b) => b.ingresos - a.ingresos);
+
+  const lineas = ranking
+    .slice(0, 5)
+    .map((c, i) =>
+      f("asistente.cat_linea", idioma, { i: i + 1, nombre: c.nombre, ingresos: c.ingresos.toFixed(2), unidades: c.unidades })
+    )
+    .join("\n");
+
+  return `${f("asistente.cat_header", idioma)}\n\n${lineas}`;
+}

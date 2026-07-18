@@ -17,6 +17,8 @@ import {
   analizarAgotados,
   analizarInventario,
   analizarMejorCliente,
+  analizarVentasMes,
+  analizarCategoriaTop,
 } from "./acciones";
 
 interface Mensaje {
@@ -83,7 +85,9 @@ function AsistenteContenido() {
     { texto: t("asistente.q_ganancias"), fn: analizarGanancias },
     { texto: t("asistente.q_bajaron"), fn: analizarBajaVentas },
     { texto: t("asistente.q_resumen"), fn: analizarResumenSemana },
+    { texto: t("asistente.q_mes"), fn: analizarVentasMes },
     { texto: t("asistente.q_topproducto"), fn: analizarProductoTop },
+    { texto: t("asistente.q_categoria"), fn: analizarCategoriaTop },
     { texto: t("asistente.q_agotados"), fn: analizarAgotados },
     { texto: t("asistente.q_inventario"), fn: analizarInventario },
     { texto: t("asistente.q_mejorcliente"), fn: analizarMejorCliente },
@@ -133,39 +137,63 @@ function AsistenteContenido() {
     // Las intenciones de negocio van primero: un mensaje como "hey,
     // ¿cuánto vendí hoy?" o "gracias, ¿cómo va mi inventario?" debe
     // resolver la pregunta real, no quedarse en el saludo/despedida.
+    const palabrasGanancia = ["ganan", "gané", "gane", "ganad", "ganand", "gano", "profit", "margen", "lucro", "utilidad"];
+    const mencionaGanancia = palabrasGanancia.some((s) => t.includes(s));
+
     if (
-      (t.includes("compr") || t.includes("buy") || t.includes("reabastec")) &&
-      !t.includes("gana")
+      (t.includes("compr") || t.includes("buy") || t.includes("reabastec") || t.includes("surtir") || t.includes("restock")) &&
+      !mencionaGanancia
     ) {
       return analizarQueComprar;
     }
-    if (t.includes("ganan") || t.includes("profit") || t.includes("margen") || t.includes("lucro")) {
+    if (mencionaGanancia) {
       return analizarGanancias;
     }
     if (
-      (t.includes("baj") || t.includes("cay") || t.includes("down") || t.includes("drop")) &&
+      (t.includes("baj") || t.includes("cay") || t.includes("caíd") || t.includes("caid") || t.includes("down") || t.includes("drop") || t.includes("menos vent")) &&
       (t.includes("venta") || t.includes("sale"))
     ) {
       return analizarBajaVentas;
     }
-    if (t.includes("resum") || t.includes("summary") || (t.includes("semana") && t.includes("venta")) || t.includes("week")) {
+    // El mes va antes que la semana/genérico: "resumen de ventas del
+    // mes" contiene "resum", así que si no se revisa "mes" primero
+    // siempre caería en el resumen semanal.
+    if ((t.includes("mes") || t.includes("month")) && (t.includes("vent") || t.includes("resum") || t.includes("sale") || t.includes("summary"))) {
+      return analizarVentasMes;
+    }
+    if (t.includes("resum") || t.includes("summary") || (t.includes("semana") && (t.includes("venta") || t.includes("vend"))) || t.includes("week")) {
       return analizarResumenSemana;
     }
     if ((t.includes("hoy") || t.includes("today")) && (t.includes("vend") || t.includes("sold") || t.includes("sale"))) {
       return analizarVentasHoy;
     }
     if (
-      (t.includes("más vendido") || t.includes("mas vendido") || t.includes("best sell") || t.includes("estrella") || t.includes("top product"))
+      t.includes("más vendido") ||
+      t.includes("mas vendido") ||
+      t.includes("vende más") ||
+      t.includes("vende mas") ||
+      t.includes("se vende más") ||
+      t.includes("se vende mas") ||
+      t.includes("best sell") ||
+      t.includes("estrella") ||
+      t.includes("top product")
     ) {
       return analizarProductoTop;
     }
-    if (t.includes("agotad") || t.includes("out of stock") || t.includes("sin stock")) {
+    if (
+      t.includes("categoría") ||
+      t.includes("categoria") ||
+      t.includes("category")
+    ) {
+      return analizarCategoriaTop;
+    }
+    if (t.includes("agotad") || t.includes("out of stock") || t.includes("sin stock") || t.includes("se acab")) {
       return analizarAgotados;
     }
-    if (t.includes("inventario") || t.includes("catálogo") || t.includes("catalogo") || t.includes("cuántos productos") || t.includes("cuantos productos")) {
+    if (t.includes("inventario") || t.includes("catálogo") || t.includes("catalogo") || t.includes("cuántos productos") || t.includes("cuantos productos") || t.includes("stock total") || t.includes("valor del inventario") || t.includes("valor de mi inventario")) {
       return analizarInventario;
     }
-    if (t.includes("mejor cliente") || t.includes("mejores clientes") || t.includes("best customer") || t.includes("top cliente") || t.includes("top client")) {
+    if (t.includes("mejor cliente") || t.includes("mejores clientes") || t.includes("best customer") || t.includes("top cliente") || t.includes("top client") || t.includes("quién más me compra") || t.includes("quien mas me compra") || t.includes("quién me compra más") || t.includes("quien me compra mas")) {
       return analizarMejorCliente;
     }
 
