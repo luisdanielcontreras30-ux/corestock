@@ -30,6 +30,12 @@ body {
 :root {
   /* --- Paleta por defecto: tema Claro (primer uso, antes de que
      ThemeProvider aplique el tema guardado/elegido) --- */
+  /* Sin esto, controles nativos del sistema operativo (el popup de
+     <select> en Android/Chrome, selectores de fecha, etc.) se pintan
+     con el tema oscuro del sistema por defecto, sin importar los
+     colores claros del resto de la app — quedaban con letra blanca
+     sobre fondo negro, ilegibles y fuera de lugar. */
+  color-scheme: light;
   --bg-primary: #f1eefc;
   --bg-secondary: #ffffff;
   --card-bg: #ffffff;
@@ -73,6 +79,7 @@ body {
    ========================================================================== */
 
 html[data-theme="dark"] {
+  color-scheme: dark;
   --bg-primary: #090a14;
   --bg-secondary: #0c0d16;
   --card-bg: #121424;
@@ -96,6 +103,7 @@ html[data-theme="dark"] {
 }
 
 html[data-theme="green"] {
+  color-scheme: dark;
   --bg-primary: #071310;
   --bg-secondary: #081a15;
   --card-bg: #0e231c;
@@ -117,6 +125,7 @@ html[data-theme="green"] {
 }
 
 html[data-theme="blue"] {
+  color-scheme: dark;
   --bg-primary: #060b16;
   --bg-secondary: #0a1220;
   --card-bg: #101a2e;
@@ -138,6 +147,7 @@ html[data-theme="blue"] {
 }
 
 html[data-theme="light"] {
+  color-scheme: light;
   --bg-primary: #f1eefc;
   --bg-secondary: #ffffff;
   --card-bg: #ffffff;
@@ -163,6 +173,7 @@ html[data-theme="light"] {
 }
 
 html[data-theme="pink"] {
+  color-scheme: light;
   --bg-primary: #f4a9cf;
   --bg-secondary: #fbd6e8;
   --card-bg: #fce3ee;
@@ -187,6 +198,7 @@ html[data-theme="pink"] {
 }
 
 html[data-theme="purple"] {
+  color-scheme: dark;
   --bg-primary: #0f0817;
   --bg-secondary: #150c1f;
   --card-bg: #1d1129;
@@ -207,6 +219,7 @@ html[data-theme="purple"] {
 }
 
 html[data-theme="amber"] {
+  color-scheme: dark;
   --bg-primary: #150f08;
   --bg-secondary: #1c140a;
   --card-bg: #251b0f;
@@ -227,6 +240,7 @@ html[data-theme="amber"] {
 }
 
 html[data-theme="slate"] {
+  color-scheme: dark;
   --bg-primary: #0b0d10;
   --bg-secondary: #101317;
   --card-bg: #171b20;
@@ -247,6 +261,7 @@ html[data-theme="slate"] {
 }
 
 html[data-theme="cyan"] {
+  color-scheme: dark;
   --bg-primary: #061417;
   --bg-secondary: #081b1f;
   --card-bg: #0d262b;
@@ -267,6 +282,7 @@ html[data-theme="cyan"] {
 }
 
 html[data-theme="wine"] {
+  color-scheme: dark;
   --bg-primary: #150609;
   --bg-secondary: #1c090d;
   --card-bg: #271015;
@@ -287,6 +303,7 @@ html[data-theme="wine"] {
 }
 
 html[data-theme="mint"] {
+  color-scheme: light;
   --bg-primary: #eafaf3;
   --bg-secondary: #ffffff;
   --card-bg: #ffffff;
@@ -314,6 +331,7 @@ html[data-theme="mint"] {
 }
 
 html[data-theme="sunset"] {
+  color-scheme: dark;
   --bg-primary: #170a05;
   --bg-secondary: #1f0f07;
   --card-bg: #2a150a;
@@ -2467,6 +2485,20 @@ textarea:focus {
   max-width: calc(100vw - 24px);
 }
 
+/* El "right" del panel se calcula en JS a partir de la posición de la
+   campanita (getBoundingClientRect) — en pantallas angostas ese cálculo
+   podía dejar el panel con el borde izquierdo fuera de la pantalla
+   (el título "Notificaciones" se veía cortado). En celular se ignora
+   ese cálculo y se fija a los dos lados con un margen parejo. */
+@media (max-width: 480px) {
+  .notis-dropdown-portal {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none;
+  }
+}
+
 .notis-header {
   display: flex;
   justify-content: space-between;
@@ -4578,4 +4610,32 @@ textarea:focus {
   color: var(--text-secondary);
   font-size: 13.5px;
   margin: 20px 0 0;
+}
+
+/* ==========================================================================
+   ASISTENTE DE NEGOCIO
+   ========================================================================== */
+
+.asistente-main {
+  height: calc(100vh - 64px);
+}
+
+@media (max-width: 768px) {
+  /* En escritorio .main-content tiene su propio scroll interno (ver
+     comentario junto a html/body arriba), así que calc(100vh - 64px)
+     tiene sentido. En celular la app usa scroll natural de la página
+     (.main-content: height:auto; overflow-y:visible) — forzar aquí una
+     altura fija basada en el 100vh completo ignoraba la barra de
+     navegación inferior y el padding-bottom que la despeja, dejando el
+     cuadro de texto tapado o cortado. Se usa una altura acotada para
+     el hilo de conversación en su lugar (ver .asistente-hilo).
+     */
+  .asistente-main {
+    height: auto;
+  }
+
+  .asistente-hilo {
+    flex: none !important;
+    height: 55vh;
+  }
 }

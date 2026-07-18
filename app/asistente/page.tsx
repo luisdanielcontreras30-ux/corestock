@@ -242,7 +242,7 @@ function AsistenteContenido() {
   }
 
   return (
-    <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 20, height: "calc(100vh - 64px)" }}>
+    <main className="fade-up asistente-main" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <EncabezadoModulo
         Icono={Sparkles}
         color="#a855f7"
@@ -267,7 +267,7 @@ function AsistenteContenido() {
 
       {/* HILO DE CONVERSACIÓN */}
       <div
-        className="card"
+        className="card asistente-hilo"
         style={{
           flex: 1,
           overflowY: "auto",
