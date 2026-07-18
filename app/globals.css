@@ -3638,7 +3638,7 @@ textarea:focus {
 }
 
 .catalogo-publico-categoria {
-  max-width: 1100px;
+  max-width: 1600px;
   width: calc(100% - 32px);
   box-sizing: border-box;
   margin: 16px auto;
