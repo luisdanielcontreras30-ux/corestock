@@ -610,6 +610,8 @@ textarea:focus {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text-primary);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .toast-cerrar {
@@ -4039,6 +4041,7 @@ textarea:focus {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
   min-height: 42px;
   line-height: 1.3;
 }
@@ -4052,6 +4055,7 @@ textarea:focus {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
   line-height: 1.3;
 }
 

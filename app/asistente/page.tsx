@@ -338,6 +338,8 @@ function AsistenteContenido() {
             <div
               style={{
                 maxWidth: "72%",
+                minWidth: 0,
+                overflowWrap: "anywhere",
                 background:
                   m.autor === "asistente" ? "var(--glass-bg)" : "var(--primary-soft)",
                 border: "1px solid var(--border)",
