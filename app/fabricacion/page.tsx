@@ -18,6 +18,7 @@ import {
   eliminarIngrediente,
   producir,
 } from "./acciones";
+import { formatoMoneda } from "../ventas/utils";
 
 export default function FabricacionPage() {
   return (
@@ -35,6 +36,7 @@ function FabricacionContenido() {
   const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [materiasPrimas, setMateriasPrimas] = useState<MateriaPrima[]>([]);
   const [recetas, setRecetas] = useState<IngredienteReceta[]>([]);
@@ -60,6 +62,7 @@ function FabricacionContenido() {
 
   async function obtenerDatos() {
     setLoading(true);
+    setError(false);
     try {
       const datos = await cargarDatos();
       setProductos(datos.productos);
@@ -68,6 +71,7 @@ function FabricacionContenido() {
       setProducciones(datos.producciones);
     } catch (error) {
       console.error(error);
+      setError(true);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
@@ -239,7 +243,7 @@ function FabricacionContenido() {
     }
   }
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -256,6 +260,17 @@ function FabricacionContenido() {
         subtitulo={t("fabricacion.subtitulo")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : error ? (
+        <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
+          <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("comun.msg_error_cargar_datos")}</p>
+          <button className="btn-primary" onClick={obtenerDatos}>
+            {t("empresa.reintentar")}
+          </button>
+        </div>
+      ) : (
+      <>
       {/* MATERIAS PRIMAS */}
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("fabricacion.materias_primas")}</h2>
@@ -295,25 +310,31 @@ function FabricacionContenido() {
           </button>
         </div>
 
-        {materiasPrimas.length > 0 && (
-          <div className="tabla" style={{ marginTop: 16 }}>
-            <table>
-              <thead>
+        <div className="tabla" style={{ marginTop: 16 }}>
+          <table>
+            <thead>
+              <tr>
+                <th>{t("promociones.col_nombre")}</th>
+                <th>{t("fabricacion.col_unidad")}</th>
+                <th>{t("dashboard.stock_actual")}</th>
+                <th>{t("compras.costo_unitario")}</th>
+                <th>{t("productos.col_acciones")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {materiasPrimas.length === 0 ? (
                 <tr>
-                  <th>{t("promociones.col_nombre")}</th>
-                  <th>{t("fabricacion.col_unidad")}</th>
-                  <th>{t("dashboard.stock_actual")}</th>
-                  <th>{t("compras.costo_unitario")}</th>
-                  <th>{t("productos.col_acciones")}</th>
+                  <td colSpan={5} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
+                    {t("fabricacion.sin_materias_primas")}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {materiasPrimas.map((m) => (
+              ) : (
+                materiasPrimas.map((m) => (
                   <tr key={m.id}>
                     <td>{m.nombre}</td>
                     <td>{m.unidad}</td>
                     <td>{m.stock}</td>
-                    <td>${Number(m.costo_unitario).toFixed(2)}</td>
+                    <td>{formatoMoneda(Number(m.costo_unitario))}</td>
                     <td>
                       <button
                         className="btn-delete"
@@ -324,11 +345,11 @@ function FabricacionContenido() {
                       </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* RECETAS */}
@@ -400,7 +421,7 @@ function FabricacionContenido() {
                     }}
                   >
                     <span>{t("fabricacion.costo_por_unidad")}</span>
-                    <span>${costoPorUnidadReceta.toFixed(2)}</span>
+                    <span>{formatoMoneda(costoPorUnidadReceta)}</span>
                   </div>
                   {recetaSeleccionada.map((r) => (
                   <div
@@ -409,13 +430,14 @@ function FabricacionContenido() {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
+                      gap: 8,
                       padding: "10px 14px",
                       background: "var(--bg-secondary)",
                       border: "1px solid var(--border)",
                       borderRadius: 10,
                     }}
                   >
-                    <span style={{ fontSize: 13.5 }}>
+                    <span style={{ fontSize: 13.5, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {r.cantidad_por_unidad} × {r.materia_prima_nombre}
                     </span>
                     <button
@@ -477,13 +499,16 @@ function FabricacionContenido() {
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
+                    gap: 8,
                     fontSize: 12.5,
                     color: alcanza ? "var(--text-secondary)" : "#ef4444",
                   }}
                 >
-                  <span>{ing.materia_prima_nombre}</span>
-                  <span>
-                    {necesario} / {disponible} {materiaPrima?.unidad}
+                  <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {ing.materia_prima_nombre}
+                  </span>
+                  <span style={{ flexShrink: 0 }}>
+                    {Math.round(necesario * 100) / 100} / {disponible} {materiaPrima?.unidad}
                   </span>
                 </div>
               );
@@ -504,7 +529,7 @@ function FabricacionContenido() {
               }}
             >
               <span>{t("fabricacion.costo_total_estimado")}</span>
-              <span>${costoTotalProduccion.toFixed(2)}</span>
+              <span>{formatoMoneda(costoTotalProduccion)}</span>
             </div>
           </div>
         )}
@@ -545,6 +570,8 @@ function FabricacionContenido() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </main>
   );
 }

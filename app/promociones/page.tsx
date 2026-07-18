@@ -16,6 +16,7 @@ import {
   alternarActivaPromocion,
   eliminarPromocion,
 } from "./acciones";
+import { formatoMoneda } from "../ventas/utils";
 
 export default function PromocionesPage() {
   return (
@@ -33,6 +34,7 @@ function PromocionesContenido() {
   const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [promociones, setPromociones] = useState<Promocion[]>([]);
 
@@ -46,12 +48,14 @@ function PromocionesContenido() {
 
   async function obtenerDatos() {
     setLoading(true);
+    setError(false);
     try {
       const datos = await cargarDatos();
       setProductos(datos.productos);
       setPromociones(datos.promociones);
     } catch (error) {
       console.error(error);
+      setError(true);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
@@ -146,7 +150,7 @@ function PromocionesContenido() {
   function formatoDescuento(promo: Promocion) {
     return promo.tipo === "porcentaje"
       ? `${promo.valor}%`
-      : `$${Number(promo.valor).toFixed(2)}`;
+      : formatoMoneda(Number(promo.valor));
   }
 
   function formatoVigencia(promo: Promocion) {
@@ -163,7 +167,7 @@ function PromocionesContenido() {
     return `${t("promociones.hasta")} ${fin}`;
   }
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -180,6 +184,17 @@ function PromocionesContenido() {
         subtitulo={t("promociones.subtitulo")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : error ? (
+        <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
+          <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("comun.msg_error_cargar_datos")}</p>
+          <button className="btn-primary" onClick={obtenerDatos}>
+            {t("empresa.reintentar")}
+          </button>
+        </div>
+      ) : (
+      <>
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("promociones.crear")}</h2>
 
@@ -306,6 +321,8 @@ function PromocionesContenido() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </main>
   );
 }

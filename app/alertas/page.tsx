@@ -25,6 +25,7 @@ export default function Alertas() {
   const [alertas, setAlertas] = useState<ProductoAlerta[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [imagenesRotas, setImagenesRotas] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (cargandoAuth) return;
@@ -152,10 +153,13 @@ export default function Alertas() {
           {alertas.map((producto) => (
             <div key={producto.id} className="card">
               <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-                {producto.imagen ? (
+                {producto.imagen && !imagenesRotas.has(producto.id) ? (
                   <img
                     src={producto.imagen}
                     alt={producto.nombre}
+                    onError={() =>
+                      setImagenesRotas((prev) => new Set(prev).add(producto.id))
+                    }
                     style={{
                       width: 52,
                       height: 52,

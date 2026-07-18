@@ -3,13 +3,14 @@
 import { History } from "lucide-react";
 import { ClienteConResumen } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { formatoMoneda } from "../../ventas/utils";
 
 interface Props {
   clientes: ClienteConResumen[];
   hayClientesRegistrados: boolean;
   onVerHistorial: (cliente: ClienteConResumen) => void;
   onEditar: (cliente: ClienteConResumen) => void;
-  onEliminar: (id: number) => void;
+  onEliminar: (id: number, nombre: string) => void;
 }
 
 export default function ClientesTabla({
@@ -51,13 +52,13 @@ export default function ClientesTabla({
                 <td>{cliente.compras}</td>
 
                 <td style={{ fontWeight: 700, color: "var(--primary)" }}>
-                  ${cliente.totalGastado.toFixed(2)}
+                  {formatoMoneda(cliente.totalGastado)}
                 </td>
 
                 <td>
                   <div className="productos-actions">
                     <button
-                      className="btn-edit"
+                      className="btn-secondary"
                       style={{ display: "flex", alignItems: "center", gap: 5 }}
                       onClick={() => onVerHistorial(cliente)}
                     >
@@ -65,7 +66,7 @@ export default function ClientesTabla({
                     </button>
 
                     <button
-                      className="btn-secondary"
+                      className="btn-edit"
                       onClick={() => onEditar(cliente)}
                     >
                       {t("clientes.editar")}
@@ -73,7 +74,7 @@ export default function ClientesTabla({
 
                     <button
                       className="btn-delete"
-                      onClick={() => onEliminar(cliente.id)}
+                      onClick={() => onEliminar(cliente.id, cliente.nombre)}
                     >
                       {t("clientes.eliminar")}
                     </button>

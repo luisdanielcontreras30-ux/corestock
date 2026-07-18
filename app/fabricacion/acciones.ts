@@ -182,8 +182,11 @@ export async function producir(
     const disponible = stockPorId.get(ing.materia_prima_id) ?? 0;
 
     if (necesario > disponible) {
+      // Redondeado a 2 decimales: sumar/multiplicar cantidades con
+      // decimales en JS puede dejar residuos de punto flotante (ej.
+      // 0.30000000000000004) que se verían mal en este mensaje.
       throw new Error(
-        `No hay suficiente "${ing.materia_prima_nombre}" — necesitas ${necesario}, tienes ${disponible}.`
+        `No hay suficiente "${ing.materia_prima_nombre}" — necesitas ${Math.round(necesario * 100) / 100}, tienes ${Math.round(disponible * 100) / 100}.`
       );
     }
   }

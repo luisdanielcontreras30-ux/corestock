@@ -17,6 +17,7 @@ import {
   eliminarProveedor,
   cargarHistorialCompras,
 } from "./acciones";
+import { formatoMoneda } from "../ventas/utils";
 
 export default function ProveedoresPage() {
   return (
@@ -34,6 +35,7 @@ function ProveedoresContenido() {
 
   const [proveedores, setProveedores] = useState<ProveedorConResumen[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState<ProveedorConResumen | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -55,11 +57,13 @@ function ProveedoresContenido() {
   async function refrescar() {
     if (!user) return;
     setCargando(true);
+    setError(false);
     try {
       const datos = await cargarProveedores(user.id);
       setProveedores(datos);
     } catch (error) {
       console.error(error);
+      setError(true);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setCargando(false);
@@ -144,9 +148,16 @@ function ProveedoresContenido() {
     try {
       await eliminarProveedor(user.id, p.id);
       await refrescar();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
-      mostrarToast(t("proveedores.msg_error_eliminar"), "error");
+
+      const codigo = error && typeof error === "object" && "code" in error ? error.code : null;
+
+      if (codigo === "23503") {
+        mostrarToast(t("proveedores.msg_error_fk"), "error");
+      } else {
+        mostrarToast(t("proveedores.msg_error_eliminar"), "error");
+      }
     }
   }
 
@@ -179,6 +190,13 @@ function ProveedoresContenido() {
 
       {cargando ? (
         <div className="card">{t("header.cargando")}</div>
+      ) : error ? (
+        <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
+          <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("comun.msg_error_cargar_datos")}</p>
+          <button className="btn-primary" onClick={refrescar}>
+            {t("empresa.reintentar")}
+          </button>
+        </div>
       ) : proveedores.length === 0 ? (
         <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
           <p style={{ color: "var(--text-secondary)" }}>{t("proveedores.sin_proveedores")}</p>
@@ -228,8 +246,7 @@ function ProveedoresContenido() {
               </div>
 
               <p style={{ color: "var(--text-secondary)", fontSize: 12.5, marginBottom: 4 }}>
-                {t("proveedores.compras_totales")}: {p.compras} · {t("proveedores.total_gastado")}: $
-                {p.totalGastado.toFixed(2)}
+                {t("proveedores.compras_totales")}: {p.compras} · {t("proveedores.total_gastado")}: {formatoMoneda(p.totalGastado)}
               </p>
 
               <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>

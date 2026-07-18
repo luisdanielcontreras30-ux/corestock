@@ -36,6 +36,7 @@ export default function ClientesPage() {
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [clientes, setClientes] = useState<ClienteConResumen[]>([]);
 
   const [datos, setDatos] = useState<DatosClienteForm>(DATOS_VACIOS);
@@ -50,12 +51,14 @@ export default function ClientesPage() {
 
   async function obtenerDatos() {
     setLoading(true);
+    setError(false);
 
     try {
       const { clientes: clientesCargados } = await cargarClientes();
       setClientes(clientesCargados);
     } catch (error) {
       console.error(error);
+      setError(true);
       mostrarToast(t("clientes.msg_error_cargar"), "error");
     } finally {
       setLoading(false);
@@ -108,8 +111,8 @@ export default function ClientesPage() {
     setDatos(DATOS_VACIOS);
   }
 
-  async function borrarCliente(id: number) {
-    if (!(await confirmar(t("clientes.confirmar_eliminar"), { peligroso: true }))) {
+  async function borrarCliente(id: number, nombre: string) {
+    if (!(await confirmar(t("clientes.confirmar_eliminar").replace("{nombre}", nombre), { peligroso: true }))) {
       return;
     }
 
@@ -178,6 +181,13 @@ export default function ClientesPage() {
 
       {loading ? (
         <div className="card">{t("header.cargando")}</div>
+      ) : error ? (
+        <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
+          <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("clientes.msg_error_cargar")}</p>
+          <button className="btn-primary" onClick={obtenerDatos}>
+            {t("empresa.reintentar")}
+          </button>
+        </div>
       ) : (
         <ClientesTabla
           clientes={clientesFiltrados}

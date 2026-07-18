@@ -21,6 +21,7 @@ export default function AjustesStockPage() {
   const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [ajustes, setAjustes] = useState<AjusteStock[]>([]);
 
@@ -32,12 +33,14 @@ export default function AjustesStockPage() {
 
   async function obtenerDatos() {
     setLoading(true);
+    setError(false);
     try {
       const datos = await cargarDatos();
       setProductos(datos.productos);
       setAjustes(datos.ajustes);
     } catch (error) {
       console.error(error);
+      setError(true);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
@@ -112,7 +115,7 @@ export default function AjustesStockPage() {
     }
   }
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -129,6 +132,17 @@ export default function AjustesStockPage() {
         subtitulo={t("ajustes_stock.subtitulo")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : error ? (
+        <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
+          <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("comun.msg_error_cargar_datos")}</p>
+          <button className="btn-primary" onClick={obtenerDatos}>
+            {t("empresa.reintentar")}
+          </button>
+        </div>
+      ) : (
+      <>
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("ajustes_stock.registrar")}</h2>
 
@@ -221,6 +235,8 @@ export default function AjustesStockPage() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </main>
   );
 }
