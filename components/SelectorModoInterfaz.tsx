@@ -40,11 +40,13 @@ export default function SelectorModoInterfaz({
         <button
           type="button"
           className="btn-primary modo-selector-boton modo-selector-boton-easy"
-          disabled={guardando !== null}
+          disabled={guardando !== null || valorActual === "easy"}
           onClick={() => onElegir("easy")}
         >
           {guardando === "easy"
             ? t("modo_interfaz.guardando")
+            : valorActual === "easy"
+            ? `✓ ${t("idioma.activo")}`
             : `${t("modo_interfaz.elegir")} ${t("modo_interfaz.easy_nombre")}`}
         </button>
       </div>
@@ -66,11 +68,13 @@ export default function SelectorModoInterfaz({
         <button
           type="button"
           className="btn-secondary modo-selector-boton"
-          disabled={guardando !== null}
+          disabled={guardando !== null || valorActual === "completo"}
           onClick={() => onElegir("completo")}
         >
           {guardando === "completo"
             ? t("modo_interfaz.guardando")
+            : valorActual === "completo"
+            ? `✓ ${t("idioma.activo")}`
             : `${t("modo_interfaz.elegir")} ${t("modo_interfaz.completo_nombre")}`}
         </button>
       </div>

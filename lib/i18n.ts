@@ -345,6 +345,7 @@ export const TRADUCCIONES: Diccionario = {
   "usuarios.col_estado": { es: "Estado", en: "Status", pt: "Status", fr: "Statut", de: "Status", zh: "状态" },
   "usuarios.col_acciones": { es: "Acciones", en: "Actions", pt: "Ações", fr: "Actions", de: "Aktionen", zh: "操作" },
   "usuarios.permisos_cantidad": { es: "permisos", en: "permissions", pt: "permissões", fr: "permissions", de: "Rechte", zh: "项权限" },
+  "usuarios.permiso_singular": { es: "permiso", en: "permission", pt: "permissão", fr: "permission", de: "Recht", zh: "项权限" },
   "usuarios.activo": { es: "Activo", en: "Active", pt: "Ativo", fr: "Actif", de: "Aktiv", zh: "已启用" },
   "usuarios.inactivo": { es: "Inactivo", en: "Inactive", pt: "Inativo", fr: "Inactif", de: "Inaktiv", zh: "已禁用" },
   "usuarios.editar": { es: "Editar", en: "Edit", pt: "Editar", fr: "Modifier", de: "Bearbeiten", zh: "编辑" },

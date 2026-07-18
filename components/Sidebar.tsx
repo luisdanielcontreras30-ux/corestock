@@ -46,7 +46,7 @@ export default function Sidebar({
           className="sidebar-link-icon"
           color={isActive ? "var(--primary)" : "var(--text-secondary)"}
         />
-        {t(item.claveNombre)}
+        <span className="sidebar-link-label">{t(item.claveNombre)}</span>
         {item.proximamente && (
           <span className="sidebar-link-badge">{t("proximamente.badge")}</span>
         )}

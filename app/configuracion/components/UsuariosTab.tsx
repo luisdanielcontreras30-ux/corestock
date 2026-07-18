@@ -354,7 +354,10 @@ export default function UsuariosTab() {
                     <td style={{ textTransform: "capitalize" }}>
                       {t(ROLES.find((r) => r.valor === m.rol)?.clave ?? m.rol)}
                     </td>
-                    <td>{m.permisos.length} {t("usuarios.permisos_cantidad")}</td>
+                    <td>
+                      {m.permisos.length}{" "}
+                      {t(m.permisos.length === 1 ? "usuarios.permiso_singular" : "usuarios.permisos_cantidad")}
+                    </td>
                     <td>
                       <span
                         style={{

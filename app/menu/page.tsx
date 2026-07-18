@@ -24,6 +24,7 @@ import ContadorAnimado from "../../components/ContadorAnimado";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import { useToast } from "../../components/ToastProvider";
 import { cargarMovimientos, calcularSaldo } from "../caja/acciones";
+import { formatoMoneda } from "../ventas/utils";
 import DashboardEasy from "./DashboardEasy";
 import {
   ResponsiveContainer,
@@ -103,6 +104,12 @@ function dentroDePeriodo(fechaStr: string, periodo: PeriodoRanking): boolean {
 
   // mes
   return fecha.getMonth() === ahora.getMonth() && fecha.getFullYear() === ahora.getFullYear();
+}
+
+// text-transform:capitalize pone en mayúscula CADA palabra ("Sábado, 18
+// De Julio"); aquí solo se capitaliza la primera letra de la frase.
+function capitalizarInicio(texto: string): string {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 export default function DashboardPremium() {
@@ -308,10 +315,10 @@ export default function DashboardPremium() {
   // ESTADO DE CARGA PREMIUM CORREGIDO (Mantiene la coherencia visual oscura)
   if (loading) {
     return (
-      <div style={{ 
-        display: "grid", 
-        placeItems: "center", 
-        height: "100vh", 
+      <div style={{
+        display: "grid",
+        placeItems: "center",
+        height: "100dvh",
         color: "var(--text-primary)", 
         backgroundColor: "var(--bg-primary)", 
         fontFamily: "sans-serif",
@@ -358,20 +365,22 @@ export default function DashboardPremium() {
   // una forma de cerrar sesión, sin pasar por Configuración.
   if (miembroActivo) {
     return (
-      <div style={{ padding: "24px", color: "var(--text-primary)", fontFamily: "sans-serif", backgroundColor: "var(--bg-primary)", minHeight: "100vh", width: "100%" }}>
+      <div style={{ padding: "24px", color: "var(--text-primary)", fontFamily: "sans-serif", backgroundColor: "var(--bg-primary)", minHeight: "100dvh", width: "100%" }}>
         <header className="dashboard-simple-saludo">
           <h1 style={{ fontSize: "24px", fontWeight: "700", margin: 0, letterSpacing: "-0.02em" }}>
             {t("dashboard.saludo")}, {miembroActivo.nombre} 👋
           </h1>
           <p
             suppressHydrationWarning
-            style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "4px 0 0 0", textTransform: "capitalize" }}
+            style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "4px 0 0 0" }}
           >
-            {new Date().toLocaleDateString(LOCALES[idioma], {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            })}
+            {capitalizarInicio(
+              new Date().toLocaleDateString(LOCALES[idioma], {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+              })
+            )}
           </p>
         </header>
 
@@ -419,7 +428,7 @@ export default function DashboardPremium() {
   }
 
   return (
-    <div style={{ padding: "12px 24px 24px 24px", color: "var(--text-primary)", fontFamily: "sans-serif", backgroundColor: "var(--bg-primary)", minHeight: "100vh", width: "100%" }}>
+    <div style={{ padding: "12px 24px 24px 24px", color: "var(--text-primary)", fontFamily: "sans-serif", backgroundColor: "var(--bg-primary)", minHeight: "100dvh", width: "100%" }}>
 
       {/* SECCIÓN SUPERIOR: ENCABEZADO */}
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", gap: 16, flexWrap: "wrap" }}>
@@ -430,13 +439,15 @@ export default function DashboardPremium() {
           </h1>
           <p
             suppressHydrationWarning
-            style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "4px 0 0 0", textTransform: "capitalize" }}
+            style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "4px 0 0 0" }}
           >
-            {new Date().toLocaleDateString(LOCALES[idioma], {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            })}
+            {capitalizarInicio(
+              new Date().toLocaleDateString(LOCALES[idioma], {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+              })
+            )}
           </p>
         </div>
 
@@ -529,7 +540,11 @@ export default function DashboardPremium() {
           style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "20px" }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: COLORES_PIE[2], display: "grid", placeItems: "center" }}>
+            {/* Color fijo, no de la paleta rotativa: en varios temas
+                (green, purple, amber, slate, cyan, sunset...) el tercer
+                color de COLORES_PIE es un tono pastel muy claro, y el
+                ícono blanco encima quedaba casi invisible. */}
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: "#22c55e", display: "grid", placeItems: "center" }}>
               <Package size={18} color="#fff" />
             </div>
             <p style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.productos_catalogo")}</p>
@@ -537,7 +552,7 @@ export default function DashboardPremium() {
           <h2 style={{ fontSize: "26px", fontWeight: "700", margin: "0 0 6px 0", color: "var(--text-primary)" }}>
             <ContadorAnimado valor={totalProductos} decimales={0} />
           </h2>
-          <span style={{ color: COLORES_PIE[2], fontSize: "12px" }}>● {t("dashboard.items_activos")}</span>
+          <span style={{ color: "#22c55e", fontSize: "12px" }}>● {t("dashboard.items_activos")}</span>
         </div>
 
         {/* ALERTAS DE STOCK (se mantiene en rojo/neutro: es una señal universal, no de marca) */}
@@ -594,6 +609,7 @@ export default function DashboardPremium() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
                   <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -615,6 +631,7 @@ export default function DashboardPremium() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
                   <Line type="monotone" dataKey="monto" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2.5} dot={false} />
                 </LineChart>
@@ -636,6 +653,7 @@ export default function DashboardPremium() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
                   <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} radius={[3, 3, 3, 3]}>
                     {dataLinea.map((punto, index) => {
@@ -669,6 +687,7 @@ export default function DashboardPremium() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
                   <Area type="monotone" dataKey="monto" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorMonto)" />
                 </AreaChart>
@@ -713,6 +732,7 @@ export default function DashboardPremium() {
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "12px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                     {dataPie.map((entry, index) => (
@@ -740,6 +760,7 @@ export default function DashboardPremium() {
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "12px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -787,7 +808,7 @@ export default function DashboardPremium() {
                     <tr key={venta.id} style={{ borderBottom: "1px solid var(--border)" }}>
                       <td className="dashboard-tabla-mini-producto" style={{ padding: "14px 8px", fontWeight: "500" }}>{venta.producto}</td>
                       <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>{venta.cantidad} {t("tabla.unidades_abrev")}</td>
-                      <td style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981" }}>${Number(venta.total).toFixed(2)}</td>
+                      <td style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981" }}>${formatoMoneda(Number(venta.total))}</td>
                       <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>
                         {new Date(venta.fecha).toLocaleDateString("es-MX", { day: "numeric", month: "numeric" })}
                       </td>
@@ -893,7 +914,7 @@ export default function DashboardPremium() {
                       {cliente.nombre}
                     </h4>
                     <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-                      ${cliente.total.toFixed(2)}
+                      ${formatoMoneda(cliente.total)}
                     </span>
                   </div>
                 </div>
