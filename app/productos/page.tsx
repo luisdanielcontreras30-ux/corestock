@@ -63,9 +63,11 @@ function ProductosInterno() {
   // Viene del FAB móvil "Nuevo producto (con cámara)": el selector de
   // imagen abre la cámara directo (en vez del picker con opción de
   // galería) y, apenas se toma la foto, se manda sola a analizar con
-  // IA. Se calcula una sola vez al montar — se queda así el resto de
-  // la visita a esta página, aunque después se cambie la foto.
-  const [capturaCamara] = useState(() => searchParams.get("camara") === "1");
+  // IA. Se consume una sola vez — en cuanto se elige esa primera
+  // foto se apaga (ver el onChange del input), así que "Cambiar"
+  // después ya no fuerza la cámara, solo ese primer disparo desde
+  // "Nuevo producto".
+  const [capturaCamara, setCapturaCamara] = useState(() => searchParams.get("camara") === "1");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const excelInputRef = useRef<HTMLInputElement>(null);
@@ -385,6 +387,7 @@ function ProductosInterno() {
             setPreview(URL.createObjectURL(file));
 
             if (capturaCamara) {
+              setCapturaCamara(false);
               analizarConIA(file);
             }
           }}

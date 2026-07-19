@@ -9,23 +9,21 @@ interface EventoInstalacion extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-// Botón para instalar CoreStock como PWA. En Chrome/Edge/Android
-// dispara el prompt nativo de instalación; en iOS (que no soporta ese
-// prompt) y en navegadores donde el evento todavía no llegó, muestra
-// instrucciones cortas en vez de desaparecer sin más.
+// Botón para instalar CoreStock como PWA. Solo se muestra cuando el
+// navegador realmente tiene el prompt nativo de instalación listo
+// (Chrome/Edge/Android) — nada de modal con instrucciones como
+// alternativa: si el navegador no lo soporta (iOS Safari) o el
+// evento todavía no llegó, el botón simplemente no aparece.
 export default function BotonInstalarApp({ className }: { className?: string }) {
   const { t } = useIdioma();
   const [eventoDiferido, setEventoDiferido] = useState<EventoInstalacion | null>(null);
   const [instalada, setInstalada] = useState(false);
-  const [esIOS, setEsIOS] = useState(false);
-  const [mostrarInstrucciones, setMostrarInstrucciones] = useState(false);
 
   useEffect(() => {
     const enStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
     setInstalada(enStandalone);
-    setEsIOS(/iphone|ipad|ipod/i.test(window.navigator.userAgent));
 
     function alDisponible(e: Event) {
       e.preventDefault();
@@ -47,54 +45,26 @@ export default function BotonInstalarApp({ className }: { className?: string }) 
   }, []);
 
   async function alHacerClic() {
-    if (eventoDiferido) {
-      await eventoDiferido.prompt();
-      const eleccion = await eventoDiferido.userChoice;
-      if (eleccion.outcome === "accepted") {
-        setEventoDiferido(null);
-      }
-      return;
-    }
+    if (!eventoDiferido) return;
 
-    setMostrarInstrucciones(true);
+    await eventoDiferido.prompt();
+    const eleccion = await eventoDiferido.userChoice;
+    if (eleccion.outcome === "accepted") {
+      setEventoDiferido(null);
+    }
   }
 
-  if (instalada) return null;
+  if (instalada || !eventoDiferido) return null;
 
   return (
-    <>
-      <button
-        type="button"
-        className={className ?? "landing-nav-cta"}
-        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
-        onClick={alHacerClic}
-      >
-        <Download size={14} />
-        <span className="boton-instalar-app-texto">{t("bienvenida.descargar_app")}</span>
-      </button>
-
-      {mostrarInstrucciones && (
-        <div className="factura-overlay" onClick={() => setMostrarInstrucciones(false)}>
-          <div
-            className="card fade-up"
-            style={{ width: "100%", maxWidth: 380 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ marginBottom: 12 }}>{t("bienvenida.instalar_titulo")}</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: 13.5, marginBottom: 10 }}>
-              {t("bienvenida.instalar_texto")}
-            </p>
-            {esIOS && (
-              <p style={{ color: "var(--text-secondary)", fontSize: 13.5, marginBottom: 16 }}>
-                {t("bienvenida.instalar_ios_texto")}
-              </p>
-            )}
-            <button className="btn-primary" onClick={() => setMostrarInstrucciones(false)}>
-              {t("bienvenida.instalar_entendido")}
-            </button>
-          </div>
-        </div>
-      )}
-    </>
+    <button
+      type="button"
+      className={className ?? "landing-nav-cta"}
+      style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
+      onClick={alHacerClic}
+    >
+      <Download size={14} />
+      <span className="boton-instalar-app-texto">{t("bienvenida.descargar_app")}</span>
+    </button>
   );
 }
