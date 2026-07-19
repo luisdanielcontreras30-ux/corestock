@@ -2,6 +2,7 @@ import { supabase } from "./supabase";
 
 export interface ResultadoAnalisisIA {
   nombre: string;
+  categoria: string;
   descripcion: string;
 }
 
@@ -63,7 +64,8 @@ async function redimensionarImagen(
 
 export async function analizarProductoConIA(
   archivo: File,
-  idioma: string
+  idioma: string,
+  categoriasExistentes: string[] = []
 ): Promise<ResultadoAnalisisIA> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
@@ -80,7 +82,7 @@ export async function analizarProductoConIA(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ imagenBase64, mimeType, idioma }),
+    body: JSON.stringify({ imagenBase64, mimeType, idioma, categoriasExistentes }),
   });
 
   let datos: unknown;

@@ -219,8 +219,11 @@ function ProductosInterno() {
 
     setAnalizandoIA(true);
     try {
-      const resultado = await analizarProductoConIA(archivo, idioma);
+      const resultado = await analizarProductoConIA(archivo, idioma, categorias);
       setNombre(resultado.nombre);
+      // Si la IA no devolvió categoría (o falló al parsearla), se deja
+      // lo que la persona ya haya escrito en vez de borrarlo con "".
+      if (resultado.categoria) setCategoria(resultado.categoria);
       setDescripcion(resultado.descripcion);
       mostrarToast(t("productos.msg_ia_completado"), "exito");
     } catch (error) {
@@ -338,8 +341,20 @@ function ProductosInterno() {
         <h2>{editando !== null ? t("productos.editar_producto") : t("productos.anadir_producto")}</h2>
 
         <div className="productos-grid">
-          <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={t("productos.nombre")} />
-          <input value={categoria} onChange={(e) => setCategoria(e.target.value)} placeholder={t("productos.categoria")} />
+          <input
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder={t("productos.nombre")}
+            disabled={analizandoIA}
+            className={analizandoIA ? "campo-ia-cargando" : undefined}
+          />
+          <input
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            placeholder={t("productos.categoria")}
+            disabled={analizandoIA}
+            className={analizandoIA ? "campo-ia-cargando" : undefined}
+          />
           <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
           {puede("ver_ganancias") && (
             <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
@@ -354,6 +369,8 @@ function ProductosInterno() {
           placeholder={t("productos.descripcion_placeholder")}
           rows={2}
           style={{ marginTop: 12, resize: "vertical" }}
+          disabled={analizandoIA}
+          className={analizandoIA ? "campo-ia-cargando" : undefined}
         />
 
         {/* UPLOAD IMAGE */}

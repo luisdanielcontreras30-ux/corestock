@@ -15,20 +15,34 @@ const NOMBRE_IDIOMA: Record<string, string> = {
 
 export interface ResultadoAnalisisProducto {
   nombre: string;
+  categoria: string;
   descripcion: string;
 }
 
-function construirPrompt(idioma: string): string {
+function construirPrompt(idioma: string, categoriasExistentes: string[]): string {
   const idiomaTexto = NOMBRE_IDIOMA[idioma] ?? "español";
+
+  // Si el negocio ya tiene categorías, se le pasan a la IA para que
+  // reutilice una en vez de inventar variantes casi idénticas (ej.
+  // "Bebida" vs "Bebidas") cada vez que se analiza una foto nueva.
+  const pistaCategorias =
+    categoriasExistentes.length > 0
+      ? `Las categorías que este negocio ya usa son: ${categoriasExistentes.join(", ")}. ` +
+        "Si el producto encaja claramente en alguna, usa exactamente ese mismo texto. " +
+        "Si ninguna encaja, proponé una categoría corta nueva. "
+      : "";
 
   return (
     "Eres un asistente que ayuda a dueños de pequeños negocios a catalogar " +
     "productos a partir de una foto. Mira la imagen y responde ÚNICAMENTE " +
-    'con un JSON de la forma {"nombre": "...", "descripcion": "..."}, sin ' +
-    "texto ni explicación fuera del JSON. " +
-    `Escribe ambos campos en ${idiomaTexto}. ` +
+    'con un JSON de la forma {"nombre": "...", "categoria": "...", ' +
+    '"descripcion": "..."}, sin texto ni explicación fuera del JSON. ' +
+    `Escribe los tres campos en ${idiomaTexto}. ` +
     '"nombre": un nombre corto y claro del producto, máximo 6 palabras, sin ' +
     "marca a menos que sea visible en el empaque. " +
+    '"categoria": una categoría general de catálogo, 1 a 3 palabras (ej. ' +
+    '"Electrónica", "Ropa", "Alimentos"). ' +
+    pistaCategorias +
     '"descripcion": una descripción breve y atractiva para un catálogo de ' +
     "ventas al público, 1 o 2 frases, sin inventar características que no " +
     "se puedan ver en la imagen."
@@ -55,7 +69,12 @@ function extraerResultado(texto: string): ResultadoAnalisisProducto {
     ) {
       const nombre = (json as { nombre: string }).nombre.trim();
       const descripcion = (json as { descripcion: string }).descripcion.trim();
-      if (nombre && descripcion) return { nombre, descripcion };
+      // categoria es un extra útil, no crítico — si el modelo la omite
+      // o la manda mal, no vale la pena descartar nombre/descripcion
+      // (que sí salieron bien) solo por eso.
+      const categoriaBruta = (json as { categoria?: unknown }).categoria;
+      const categoria = typeof categoriaBruta === "string" ? categoriaBruta.trim() : "";
+      if (nombre && descripcion) return { nombre, categoria, descripcion };
     }
     return null;
   }
@@ -91,16 +110,20 @@ function extraerResultado(texto: string): ResultadoAnalisisProducto {
     }
   }
 
-  // Intento 3: extracción directa de los dos campos por regex — cubre
-  // el caso de un JSON al que le falta la "}" de cierre pero cuyos
+  // Intento 3: extracción directa de los campos por regex — cubre el
+  // caso de un JSON al que le falta la "}" de cierre pero cuyos
   // valores sí están completos y bien entrecomillados.
   const nombreMatch = limpio.match(/"nombre"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  const categoriaMatch = limpio.match(/"categoria"\s*:\s*"((?:[^"\\]|\\.)*)"/);
   const descripcionMatch = limpio.match(/"descripcion"\s*:\s*"((?:[^"\\]|\\.)*)"/);
 
   if (nombreMatch && descripcionMatch) {
     const nombre = nombreMatch[1].replace(/\\"/g, '"').replace(/\\n/g, " ").trim();
     const descripcion = descripcionMatch[1].replace(/\\"/g, '"').replace(/\\n/g, " ").trim();
-    if (nombre && descripcion) return { nombre, descripcion };
+    const categoria = categoriaMatch
+      ? categoriaMatch[1].replace(/\\"/g, '"').replace(/\\n/g, " ").trim()
+      : "";
+    if (nombre && descripcion) return { nombre, categoria, descripcion };
   }
 
   throw new Error("La respuesta de Google AI no tiene el formato esperado.");
@@ -109,7 +132,8 @@ function extraerResultado(texto: string): ResultadoAnalisisProducto {
 export async function analizarImagenProducto(
   imagenBase64: string,
   mimeType: string,
-  idioma: string
+  idioma: string,
+  categoriasExistentes: string[] = []
 ): Promise<ResultadoAnalisisProducto> {
   const apiKey = process.env.GOOGLE_AI_API_KEY;
 
@@ -128,7 +152,7 @@ export async function analizarImagenProducto(
         contents: [
           {
             parts: [
-              { text: construirPrompt(idioma) },
+              { text: construirPrompt(idioma, categoriasExistentes) },
               { inline_data: { mime_type: mimeType, data: imagenBase64 } },
             ],
           },

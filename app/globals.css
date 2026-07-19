@@ -1022,6 +1022,36 @@ select optgroup {
   border: 1px solid var(--border);
 }
 
+/* Mientras la IA está analizando la foto, nombre/categoría/descripción
+   se deshabilitan y muestran este brillo en movimiento — así se ve
+   claro que esos campos en concreto están por llenarse solos, en vez
+   de solo un "Analizando..." genérico en el botón. */
+@keyframes campoIaShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.campo-ia-cargando {
+  color: transparent !important;
+  background-image: linear-gradient(
+    90deg,
+    var(--input-bg) 25%,
+    var(--border) 50%,
+    var(--input-bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: campoIaShimmer 1.4s ease-in-out infinite;
+  cursor: progress;
+}
+
+.campo-ia-cargando::placeholder {
+  color: transparent;
+}
+
 .stock-badge {
   display: inline-block;
   padding: 6px 12px;

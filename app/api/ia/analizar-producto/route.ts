@@ -41,13 +41,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: mensaje("cuerpo_invalido", "es") }, { status: 400 });
   }
 
-  const { imagenBase64, mimeType, idioma: idiomaBruto } = (cuerpo ?? {}) as {
-    imagenBase64?: unknown;
-    mimeType?: unknown;
-    idioma?: unknown;
-  };
+  const { imagenBase64, mimeType, idioma: idiomaBruto, categoriasExistentes: categoriasBrutas } =
+    (cuerpo ?? {}) as {
+      imagenBase64?: unknown;
+      mimeType?: unknown;
+      idioma?: unknown;
+      categoriasExistentes?: unknown;
+    };
 
   const idioma = typeof idiomaBruto === "string" ? idiomaBruto : "es";
+
+  // Tope de 30: es solo una pista de estilo para el prompt, no hace
+  // falta (ni conviene, por tamaño del prompt) mandar el catálogo
+  // completo de categorías de negocios con cientos de ellas.
+  const categoriasExistentes = Array.isArray(categoriasBrutas)
+    ? categoriasBrutas.filter((c): c is string => typeof c === "string" && !!c.trim()).slice(0, 30)
+    : [];
 
   if (typeof imagenBase64 !== "string" || !imagenBase64) {
     return NextResponse.json({ error: mensaje("falta_imagen", idioma) }, { status: 400 });
@@ -62,7 +71,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const resultado = await analizarImagenProducto(imagenBase64, mimeType, idioma);
+    const resultado = await analizarImagenProducto(imagenBase64, mimeType, idioma, categoriasExistentes);
     return NextResponse.json(resultado);
   } catch (error) {
     // El detalle técnico (a veces en inglés, a veces mencionando la
