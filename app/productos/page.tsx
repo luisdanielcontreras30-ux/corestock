@@ -351,22 +351,22 @@ function ProductosInterno() {
                 <button className="btn-delete" onClick={limpiar}>
                   {t("productos.quitar")}
                 </button>
-
-                {imagen && (
-                  <button
-                    className="btn-primary"
-                    disabled={analizandoIA}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      analizarConIA();
-                    }}
-                    style={{ display: "flex", alignItems: "center", gap: 6 }}
-                  >
-                    <Sparkles size={14} />
-                    {analizandoIA ? t("productos.analizando_ia") : t("productos.analizar_ia")}
-                  </button>
-                )}
               </div>
+
+              {imagen && (
+                <button
+                  className="btn-secondary"
+                  disabled={analizandoIA}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    analizarConIA();
+                  }}
+                  style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}
+                >
+                  <Sparkles size={14} />
+                  {analizandoIA ? t("productos.analizando_ia") : t("productos.analizar_ia")}
+                </button>
+              )}
             </div>
           )}
         </div>
