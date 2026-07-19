@@ -123,7 +123,7 @@ function CortesHistoricosContenido() {
               color: esDiferenciaCero(diferenciaAcumulada) ? "var(--text-primary)" : "#ef4444",
             }}
           >
-            $<ContadorAnimado valor={diferenciaAcumulada} decimales={2} />
+            {formatoMoneda(diferenciaAcumulada)}
           </h2>
         </div>
       </div>

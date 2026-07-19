@@ -3102,7 +3102,6 @@ select optgroup {
   color: var(--text-secondary);
   font-size: 15px;
   margin: 0;
-  text-transform: capitalize;
 }
 
 .dashboard-easy-vender {

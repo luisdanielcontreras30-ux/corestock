@@ -35,14 +35,23 @@ export function exportarExcel(ventas: Venta[]) {
   );
 }
 
-export function formatoMoneda(
-  valor: number
-) {
-  // toLocaleString pone el signo pegado a los dígitos ("-45.50"), así
-  // que armar el string directo daba "$-45.50" — el signo va antes del
-  // símbolo de moneda, no después.
+// toLocaleString pone el signo pegado a los dígitos ("-45.50"), así
+// que armar el string directo daba "$-45.50" — el signo va antes del
+// símbolo de moneda, no después.
+function conSeparadores(valor: number): string {
   const signo = valor < 0 ? "-" : "";
-  return `${signo}$${Math.abs(valor).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `${signo}${Math.abs(valor).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export function formatoMoneda(valor: number) {
+  return `$${conSeparadores(valor)}`;
+}
+
+// Igual que formatoMoneda() pero sin el "$" — para plantillas de texto
+// (ej. las respuestas del Asistente) que ya traen su propio "$" en el
+// string traducido y solo necesitan el número con separadores de miles.
+export function formatoNumeroMoneda(valor: number) {
+  return conSeparadores(valor);
 }
 
 export function formatoFecha(

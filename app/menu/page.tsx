@@ -510,7 +510,10 @@ export default function DashboardPremium() {
           style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "20px" }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: COLORES_PIE[1], display: "grid", placeItems: "center" }}>
+            {/* Color fijo (ver comentario en la tarjeta "Productos en
+                catálogo" más abajo): COLORES_PIE[1] es pastel en varios
+                temas y el ícono blanco quedaba casi invisible encima. */}
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: "#3b82f6", display: "grid", placeItems: "center" }}>
               <CalendarDays size={18} color="#fff" />
             </div>
             <p style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.ventas_mes")}</p>
@@ -809,7 +812,7 @@ export default function DashboardPremium() {
                     <tr key={venta.id} style={{ borderBottom: "1px solid var(--border)" }}>
                       <td className="dashboard-tabla-mini-producto" style={{ padding: "14px 8px", fontWeight: "500" }}>{venta.producto}</td>
                       <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>{venta.cantidad} {t("tabla.unidades_abrev")}</td>
-                      <td style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981" }}>${formatoMoneda(Number(venta.total))}</td>
+                      <td style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981" }}>{formatoMoneda(Number(venta.total))}</td>
                       <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>
                         {new Date(venta.fecha).toLocaleDateString("es-MX", { day: "numeric", month: "numeric" })}
                       </td>
@@ -915,7 +918,7 @@ export default function DashboardPremium() {
                       {cliente.nombre}
                     </h4>
                     <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-                      ${formatoMoneda(cliente.total)}
+                      {formatoMoneda(cliente.total)}
                     </span>
                   </div>
                 </div>

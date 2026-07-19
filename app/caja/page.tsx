@@ -7,7 +7,6 @@ import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
-import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoCaja } from "./types";
 import { cargarMovimientos, registrarMovimientoOffline } from "./acciones";
 import { formatoMoneda } from "../ventas/utils";
@@ -286,7 +285,7 @@ export default function CajaPage() {
               <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
                 {t("caja.saldo_actual")}
               </p>
-              <h2 style={{ fontSize: 30, margin: "6px 0 0 0" }}>$<ContadorAnimado valor={saldo} decimales={2} /></h2>
+              <h2 style={{ fontSize: 30, margin: "6px 0 0 0" }}>{formatoMoneda(saldo)}</h2>
             </div>
             <span
               style={{

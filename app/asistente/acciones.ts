@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { traducir, Idioma } from "../../lib/i18n";
+import { formatoNumeroMoneda } from "../ventas/utils";
 
 interface ProductoRaw {
   id: number;
@@ -168,9 +169,9 @@ export async function analizarGanancias(userId: string, idioma: Idioma): Promise
       f("asistente.gan_linea", idioma, {
         i: i + 1,
         nombre: p.nombre,
-        total: p.gananciaTotal.toFixed(2),
+        total: formatoNumeroMoneda(p.gananciaTotal),
         vendidos: p.vendidos,
-        margen: p.margenUnitario.toFixed(2),
+        margen: formatoNumeroMoneda(p.margenUnitario),
       })
     )
     .join("\n");
@@ -211,8 +212,8 @@ export async function analizarBajaVentas(userId: string, idioma: Idioma): Promis
   if (cambio >= 0) {
     return f("asistente.baja_subieron", idioma, {
       pct: cambio.toFixed(1),
-      actual: totalActual.toFixed(2),
-      anterior: totalAnterior.toFixed(2),
+      actual: formatoNumeroMoneda(totalActual),
+      anterior: formatoNumeroMoneda(totalAnterior),
     });
   }
 
@@ -231,14 +232,14 @@ export async function analizarBajaVentas(userId: string, idioma: Idioma): Promis
   const detalleProductos =
     caidas.length > 0
       ? `\n\n${f("asistente.baja_productos_header", idioma)}\n${caidas
-          .map((p, i) => f("asistente.baja_producto_linea", idioma, { i: i + 1, nombre: p.nombre, monto: p.caida.toFixed(2) }))
+          .map((p, i) => f("asistente.baja_producto_linea", idioma, { i: i + 1, nombre: p.nombre, monto: formatoNumeroMoneda(p.caida) }))
           .join("\n")}`
       : "";
 
   return `${f("asistente.baja_bajaron", idioma, {
     pct: Math.abs(cambio).toFixed(1),
-    actual: totalActual.toFixed(2),
-    anterior: totalAnterior.toFixed(2),
+    actual: formatoNumeroMoneda(totalActual),
+    anterior: formatoNumeroMoneda(totalAnterior),
   })}${detalleProductos}`;
 }
 
@@ -262,7 +263,7 @@ export async function analizarVentasHoy(userId: string, idioma: Idioma): Promise
   const unidades = ventasHoy.reduce((sum, v) => sum + Number(v.cantidad), 0);
 
   return f("asistente.hoy_resumen", idioma, {
-    total: total.toFixed(2),
+    total: formatoNumeroMoneda(total),
     n: ventasHoy.length,
     unidades,
   });
@@ -287,7 +288,7 @@ export async function analizarProductoTop(userId: string, idioma: Idioma): Promi
     return f("asistente.top_mismo", idioma, {
       nombre: topUnidades[0],
       unidades: topUnidades[1],
-      ingresos: topIngresos[1].toFixed(2),
+      ingresos: formatoNumeroMoneda(topIngresos[1]),
     });
   }
 
@@ -295,7 +296,7 @@ export async function analizarProductoTop(userId: string, idioma: Idioma): Promi
     nombreU: topUnidades[0],
     unidadesU: topUnidades[1],
     nombreI: topIngresos[0],
-    ingresosI: topIngresos[1].toFixed(2),
+    ingresosI: formatoNumeroMoneda(topIngresos[1]),
   });
 }
 
@@ -338,7 +339,7 @@ export async function analizarInventario(userId: string, idioma: Idioma): Promis
   const agotados = productos.filter((p) => p.stock === 0).length;
 
   const resumen = f("asistente.inv_resumen", idioma, { n: productos.length, unidades: unidadesTotales });
-  const valor = f("asistente.inv_valor", idioma, { valor: valorInventario.toFixed(2) });
+  const valor = f("asistente.inv_valor", idioma, { valor: formatoNumeroMoneda(valorInventario) });
   const estado = f("asistente.inv_estado", idioma, { agotados, bajos });
 
   return `${resumen}\n\n${valor}\n\n${estado}`;
@@ -377,13 +378,13 @@ export async function analizarResumenSemana(userId: string, idioma: Idioma): Pro
       : f("asistente.resumen_sin_datos_anteriores", idioma);
 
   const lineaTop = top
-    ? f("asistente.resumen_top", idioma, { nombre: top[0], monto: top[1].toFixed(2) })
+    ? f("asistente.resumen_top", idioma, { nombre: top[0], monto: formatoNumeroMoneda(top[1]) })
     : f("asistente.resumen_sin_ventas", idioma);
 
   const titulo = f("asistente.resumen_titulo", idioma);
-  const lineaIngresos = f("asistente.resumen_ingresos", idioma, { total: totalActual.toFixed(2), cambio: lineaCambio });
+  const lineaIngresos = f("asistente.resumen_ingresos", idioma, { total: formatoNumeroMoneda(totalActual), cambio: lineaCambio });
   const lineaVentas = f("asistente.resumen_ventas", idioma, { n: numTransacciones });
-  const lineaTicket = f("asistente.resumen_ticket", idioma, { monto: ticketPromedio.toFixed(2) });
+  const lineaTicket = f("asistente.resumen_ticket", idioma, { monto: formatoNumeroMoneda(ticketPromedio) });
 
   return `${titulo}\n\n${lineaIngresos}\n${lineaVentas}\n${lineaTicket}\n\n${lineaTop}`;
 }
@@ -419,7 +420,7 @@ export async function analizarMejorCliente(userId: string, idioma: Idioma): Prom
 
   const lineas = ranking
     .slice(0, 5)
-    .map((c, i) => f("asistente.clientes_linea", idioma, { i: i + 1, nombre: c.nombre, total: c.total.toFixed(2), compras: c.compras }))
+    .map((c, i) => f("asistente.clientes_linea", idioma, { i: i + 1, nombre: c.nombre, total: formatoNumeroMoneda(c.total), compras: c.compras }))
     .join("\n");
 
   return `${f("asistente.clientes_header", idioma)}\n\n${lineas}`;
@@ -456,10 +457,10 @@ export async function analizarVentasMes(userId: string, idioma: Idioma): Promise
       : f("asistente.mes_sin_comparacion", idioma);
 
   return f("asistente.mes_resumen", idioma, {
-    total: totalActual.toFixed(2),
+    total: formatoNumeroMoneda(totalActual),
     n: mesActual.length,
     unidades,
-    ticket: ticketPromedio.toFixed(2),
+    ticket: formatoNumeroMoneda(ticketPromedio),
     comparacion: lineaCambio,
   });
 }
@@ -491,7 +492,7 @@ export async function analizarCategoriaTop(userId: string, idioma: Idioma): Prom
   const lineas = ranking
     .slice(0, 5)
     .map((c, i) =>
-      f("asistente.cat_linea", idioma, { i: i + 1, nombre: c.nombre, ingresos: c.ingresos.toFixed(2), unidades: c.unidades })
+      f("asistente.cat_linea", idioma, { i: i + 1, nombre: c.nombre, ingresos: formatoNumeroMoneda(c.ingresos), unidades: c.unidades })
     )
     .join("\n");
 

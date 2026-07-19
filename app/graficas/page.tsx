@@ -37,6 +37,7 @@ import { useAuth } from "../../components/AuthProvider";
 import { useToast } from "../../components/ToastProvider";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import ContadorAnimado from "../../components/ContadorAnimado";
+import { formatoMoneda } from "../ventas/utils";
 
 const PERIODOS: { valor: Periodo; clave: string }[] = [
   { valor: "semanal", clave: "graficas.periodo_semanal" },
@@ -217,9 +218,12 @@ export default function GraficasPage() {
         </div>
 
         <div className="dashboard-card-mes card">
+          {/* Color fijo, no de la paleta rotativa: en varios temas su
+              color en este índice es pastel y el ícono blanco quedaba
+              casi invisible (mismo bug ya corregido en el Dashboard). */}
           <TarjetaMetricaContenido
             icono={<ShoppingBag size={18} color="#fff" />}
-            colorIcono={COLORES_PIE[1]}
+            colorIcono="#3b82f6"
             titulo={t("graficas.total_ventas")}
             valor={estadisticas.totalVentas}
             decimales={0}
@@ -230,7 +234,7 @@ export default function GraficasPage() {
         <div className="dashboard-card-prod card">
           <TarjetaMetricaContenido
             icono={<Box size={18} color="#fff" />}
-            colorIcono={COLORES_PIE[2]}
+            colorIcono="#22c55e"
             titulo={t("graficas.productos_vendidos")}
             valor={estadisticas.productosVendidos}
             decimales={0}
@@ -300,6 +304,7 @@ export default function GraficasPage() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
                   <Bar dataKey="ventas" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -312,6 +317,7 @@ export default function GraficasPage() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
                   <Line type="monotone" dataKey="ventas" stroke="var(--primary)" strokeWidth={2.5} dot={false} />
                 </LineChart>
@@ -324,6 +330,7 @@ export default function GraficasPage() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
                   <Bar dataKey="ventas" radius={[3, 3, 3, 3]}>
                     {puntosGrafica.map((punto, index) => {
@@ -352,6 +359,7 @@ export default function GraficasPage() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    formatter={(valor) => formatoMoneda(Number(valor))}
                   />
 
                   <Area
@@ -393,7 +401,7 @@ export default function GraficasPage() {
               </p>
               <p style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600, margin: 0 }}>
                 {mejorPeorPunto.mejor
-                  ? `$${mejorPeorPunto.mejor.ventas.toFixed(2)}`
+                  ? formatoMoneda(mejorPeorPunto.mejor.ventas)
                   : t("graficas.sin_datos")}
               </p>
             </div>
@@ -414,7 +422,7 @@ export default function GraficasPage() {
               </p>
               <p style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600, margin: 0 }}>
                 {mejorPeorPunto.peor
-                  ? `$${mejorPeorPunto.peor.ventas.toFixed(2)}`
+                  ? formatoMoneda(mejorPeorPunto.peor.ventas)
                   : t("graficas.sin_datos")}
               </p>
             </div>
@@ -486,7 +494,7 @@ export default function GraficasPage() {
                         fontWeight: 600,
                       }}
                     >
-                      ${producto.ingresos.toFixed(2)}
+                      {formatoMoneda(producto.ingresos)}
                     </span>
                   </div>
 
@@ -560,7 +568,7 @@ export default function GraficasPage() {
                 </div>
 
                 <span style={{ color: "#10b981", fontSize: 22, fontWeight: 700 }}>
-                  ${producto.ingresos.toFixed(2)}
+                  {formatoMoneda(producto.ingresos)}
                 </span>
 
                 <div style={{ width: "100%", height: 90, marginTop: 8 }}>
@@ -608,10 +616,7 @@ export default function GraficasPage() {
                 >
                   <span>{t("graficas.unidades").charAt(0).toUpperCase() + t("graficas.unidades").slice(1)}: {producto.unidades}</span>
                   <span>
-                    {t("graficas.precio_prom")}: $
-                    {producto.unidades > 0
-                      ? (producto.ingresos / producto.unidades).toFixed(2)
-                      : "0.00"}
+                    {t("graficas.precio_prom")}: {formatoMoneda(producto.unidades > 0 ? producto.ingresos / producto.unidades : 0)}
                   </span>
                 </div>
               </div>

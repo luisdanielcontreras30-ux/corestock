@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Zap, DollarSign, Receipt, Inbox, AlertTriangle } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useAuth } from "../../components/AuthProvider";
 import { LOCALES } from "../../lib/i18n";
 import { formatoMoneda } from "../ventas/utils";
 import ContadorAnimado from "../../components/ContadorAnimado";
@@ -12,6 +13,12 @@ interface Props {
   ticketsHoy: number;
   cajaActual: number;
   productosBajos: number;
+}
+
+// text-transform:capitalize pone en mayúscula CADA palabra ("Sábado, 18
+// De Julio"); aquí solo se capitaliza la primera letra de la frase.
+function capitalizarInicio(texto: string): string {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 // Dashboard de CoreStock Easy: una sola acción protagonista (Vender) y
@@ -24,17 +31,23 @@ export default function DashboardEasy({
   productosBajos,
 }: Props) {
   const { t, idioma } = useIdioma();
+  const { user } = useAuth();
 
   return (
     <main className="fade-up dashboard-easy">
       <header className="dashboard-easy-saludo">
-        <h1>{t("dashboard.saludo")} 👋</h1>
+        <h1>
+          {t("dashboard.saludo")}
+          {user?.email ? `, ${user.email.split("@")[0]}` : ""} 👋
+        </h1>
         <p suppressHydrationWarning>
-          {new Date().toLocaleDateString(LOCALES[idioma], {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-          })}
+          {capitalizarInicio(
+            new Date().toLocaleDateString(LOCALES[idioma], {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })
+          )}
         </p>
       </header>
 
