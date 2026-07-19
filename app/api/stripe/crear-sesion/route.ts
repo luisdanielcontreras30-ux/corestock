@@ -53,10 +53,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
+    // El detalle técnico (a veces texto crudo de la API de Stripe)
+    // queda solo en los logs del servidor — al usuario le llega un
+    // mensaje genérico, no información interna del proveedor de pagos.
     console.error(error);
-    const detalle = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: `No se pudo iniciar el proceso de pago: ${detalle}` },
+      { error: "No se pudo iniciar el proceso de pago. Intenta de nuevo en un momento." },
       { status: 500 }
     );
   }
