@@ -471,6 +471,19 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background-color: var(--card-bg);
+  /* Android no respeta el estilo de ::-webkit-scrollbar de abajo para
+     contenedores con scroll táctil (a diferencia de Chrome de
+     escritorio) — ahí se ve la barra nativa del sistema, gruesa y sin
+     bordes redondeados, encimada de forma tosca sobre la tabla. Se
+     oculta en todas las plataformas (el swipe para ver más columnas
+     sigue funcionando igual) en vez de dejar una barra que se ve bien
+     en unos navegadores y mal en otros. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabla::-webkit-scrollbar {
+  display: none;
 }
 
 .tabla table {
@@ -650,6 +663,27 @@ select optgroup {
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 999px;
+}
+
+/* Recharts 3 activa por defecto una capa de accesibilidad que vuelve
+   el SVG de la gráfica enfocable (tabIndex) — en celular, tocar una
+   gráfica dispara el anillo de foco por defecto del navegador, un
+   rectángulo recto que no combina con las tarjetas redondeadas del
+   resto de la app. No se quita el foco (sigue siendo navegable con
+   teclado), solo se cambia el estilo del anillo por uno acorde al
+   diseño en vez del rectángulo genérico del navegador. */
+.recharts-wrapper:focus,
+.recharts-wrapper *:focus,
+.recharts-surface:focus {
+  outline: none;
+}
+
+.recharts-wrapper:focus-visible,
+.recharts-wrapper *:focus-visible,
+.recharts-surface:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
 }
 
 /* Animación Existente */
