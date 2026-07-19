@@ -52,7 +52,11 @@ function ProductosInterno() {
   const [precio, setPrecio] = useState("");
   const [costo, setCosto] = useState("");
   const [stock, setStock] = useState("");
-  const [stockMinimo, setStockMinimo] = useState("5");
+  // Vacío por defecto, no "5" precargado — si se dejaba precargado,
+  // cualquiera que no tocara el campo terminaba con el mismo umbral
+  // de alerta para todos sus productos sin darse cuenta. Al guardar,
+  // si queda vacío sí se usa 5 como valor de resguardo (ver guardar()).
+  const [stockMinimo, setStockMinimo] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -220,7 +224,7 @@ function ProductosInterno() {
     setPrecio(String(p.precio_venta));
     setCosto(p.costo != null ? String(p.costo) : "");
     setStock(String(p.stock));
-    setStockMinimo(p.stock_minimo != null ? String(p.stock_minimo) : "5");
+    setStockMinimo(p.stock_minimo != null ? String(p.stock_minimo) : "");
     setDescripcion(p.descripcion || "");
     setPreview(p.imagen || "");
     setImagen(null);
@@ -301,7 +305,7 @@ function ProductosInterno() {
     setPrecio("");
     setCosto("");
     setStock("");
-    setStockMinimo("5");
+    setStockMinimo("");
     setDescripcion("");
     limpiarImagen();
     // Después de guardar o cancelar, vuelve a la lista en celular (ahí
