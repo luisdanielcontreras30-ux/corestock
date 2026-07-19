@@ -1014,6 +1014,14 @@ select optgroup {
   border: 1px solid var(--border);
 }
 
+.upload-box-preview {
+  width: 140px;
+  height: 140px;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
 .stock-badge {
   display: inline-block;
   padding: 6px 12px;

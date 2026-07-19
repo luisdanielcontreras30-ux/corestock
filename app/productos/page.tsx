@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { subirImagenSegura } from "../../lib/uploads";
 import { analizarProductoConIA } from "../../lib/iaAcciones";
@@ -41,6 +41,7 @@ function ProductosInterno() {
   const { confirmar } = useConfirm();
   const { user } = useAuth();
   const { puede } = useMiembroActivo();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -67,8 +68,13 @@ function ProductosInterno() {
   // IA. Se consume una sola vez — en cuanto se elige esa primera
   // foto se apaga (ver el onChange del input), así que "Cambiar"
   // después ya no fuerza la cámara, solo ese primer disparo desde
-  // "Nuevo producto".
-  const [capturaCamara, setCapturaCamara] = useState(() => searchParams.get("camara") === "1");
+  // "Nuevo producto". Es un ref (no un useState): el atributo
+  // "capture" se aplica al <input> a mano con setAttribute justo
+  // antes del .click() programático, en el mismo tick — si fuera
+  // estado de React, el cambio no se pintaría en el DOM sino hasta
+  // el siguiente render, y el .click() abriría el picker normal en
+  // vez de la cámara.
+  const capturaCamaraRef = useRef(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const excelInputRef = useRef<HTMLInputElement>(null);
@@ -79,11 +85,19 @@ function ProductosInterno() {
 
   // Viene del FAB móvil "Nuevo producto (con cámara)" — abre el
   // selector de imagen directo para que no sea un botón sin efecto.
+  // Se limpia el parámetro de la URL apenas se consume: así, si el
+  // usuario ya está en /productos y toca "Nuevo producto" de nuevo,
+  // router.push manda una URL distinta a la actual (no la misma que
+  // Next.js ignoraría por no haber cambio) y este efecto vuelve a
+  // dispararse en vez de quedarse con el estado de la primera vez.
   useEffect(() => {
-    if (searchParams.get("camara") === "1") {
-      fileInputRef.current?.click();
+    if (searchParams.get("camara") === "1" && fileInputRef.current) {
+      capturaCamaraRef.current = true;
+      fileInputRef.current.setAttribute("capture", "environment");
+      fileInputRef.current.click();
+      router.replace("/productos", { scroll: false });
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   async function cargar() {
     if (!user) return;
@@ -253,6 +267,12 @@ function ProductosInterno() {
     setStock("");
     setStockMinimo("5");
     setDescripcion("");
+    limpiarImagen();
+  }
+
+  // Solo la foto, sin tocar el resto del formulario — a diferencia de
+  // limpiar() que resetea todo (pensado para después de guardar/cancelar).
+  function limpiarImagen() {
     setImagen(null);
     setPreview("");
 
@@ -344,14 +364,26 @@ function ProductosInterno() {
             </>
           ) : (
             <div>
-              <img src={preview} alt={t("productos.subir_imagen")} className="product-image" />
+              <img src={preview} alt={t("productos.subir_imagen")} className="upload-box-preview" />
 
               <div className="productos-actions" style={{ marginTop: 10 }}>
-                <button className="btn-edit" onClick={() => fileInputRef.current?.click()}>
+                <button
+                  className="btn-edit"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                >
                   {t("productos.cambiar")}
                 </button>
 
-                <button className="btn-delete" onClick={limpiar}>
+                <button
+                  className="btn-delete"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    limpiarImagen();
+                  }}
+                >
                   {t("productos.quitar")}
                 </button>
               </div>
@@ -379,7 +411,6 @@ function ProductosInterno() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture={capturaCamara ? "environment" : undefined}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -387,8 +418,9 @@ function ProductosInterno() {
             setImagen(file);
             setPreview(URL.createObjectURL(file));
 
-            if (capturaCamara) {
-              setCapturaCamara(false);
+            if (capturaCamaraRef.current) {
+              capturaCamaraRef.current = false;
+              fileInputRef.current?.removeAttribute("capture");
               analizarConIA(file);
             }
           }}
