@@ -207,7 +207,8 @@ function ProductosInterno() {
       mostrarToast(t("productos.msg_ia_completado"), "exito");
     } catch (error) {
       console.error(error);
-      mostrarToast(t("productos.msg_error_analizar_ia"), "error");
+      const detalle = error instanceof Error ? error.message : "";
+      mostrarToast(detalle || t("productos.msg_error_analizar_ia"), "error");
     } finally {
       setAnalizandoIA(false);
     }

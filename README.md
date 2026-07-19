@@ -30,6 +30,15 @@ Solo son necesarias si quieres activar el plan de pago. Sin ellas, la app funcio
 
 Recuerda ejecutar `supabase_suscripciones.sql` en el SQL Editor de Supabase antes de probar pagos — sin esa migración las columnas de plan no existen y la suscripción nunca se activa.
 
+### Análisis de fotos de producto con IA (Google AI Studio, opcional)
+
+Solo es necesaria para el botón "Analizar foto con IA" en Productos. Sin ella, el resto de la app funciona normal — ese botón simplemente muestra un error.
+
+- `GOOGLE_AI_API_KEY` — API key de Google AI Studio (https://aistudio.google.com/apikey). **Nunca** la expongas con prefijo `NEXT_PUBLIC_`: solo la usa el servidor.
+- `GOOGLE_AI_MODEL` — opcional, modelo de Gemini a usar (por defecto `gemini-flash-latest`).
+
+Recuerda ejecutar `supabase_productos_descripcion.sql` en el SQL Editor de Supabase — sin esa migración la columna `descripcion` no existe y guardar el producto falla después de analizarlo.
+
 ## Desarrollo
 
 ```bash

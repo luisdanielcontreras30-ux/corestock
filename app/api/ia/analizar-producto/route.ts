@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 import { analizarImagenProducto } from "../../../../lib/googleAI";
 
-// Tope generoso pero acotado sobre el tamaño de la imagen en base64,
-// para no dejar pasar payloads gigantes hacia la API de Google (la
-// subida de imágenes de producto en sí ya limita a 5 MB en binario).
-const TAMANO_MAXIMO_BASE64 = 8 * 1024 * 1024;
+// El cliente ya redimensiona la foto antes de mandarla (ver
+// lib/iaAcciones.ts), así que en el caso normal esto pesa muy poco.
+// Este tope es solo una red de seguridad para el caso raro en que el
+// redimensionado falla y se manda la imagen original tal cual.
+const TAMANO_MAXIMO_BASE64 = 6 * 1024 * 1024;
 
 const TIPOS_PERMITIDOS = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 

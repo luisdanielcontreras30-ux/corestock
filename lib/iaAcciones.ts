@@ -5,18 +5,60 @@ export interface ResultadoAnalisisIA {
   descripcion: string;
 }
 
-function archivoABase64(archivo: File): Promise<string> {
+// Lado más largo al que se reduce la foto antes de mandarla a
+// analizar. Gemini no necesita la resolución completa de la cámara
+// para describir un producto, y muchos hosts serverless (ej. Vercel)
+// rechazan el request completo si el body pasa de ~4.5 MB — una foto
+// de celular sin redimensionar (fácil 6-12 MB) lo superaba siempre.
+const LADO_MAXIMO_PX = 1280;
+const CALIDAD_JPEG = 0.85;
+
+function blobABase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const lector = new FileReader();
     lector.onload = () => {
       const resultado = lector.result as string;
-      // "data:image/png;base64,AAAA..." — solo interesa lo de después de la coma.
+      // "data:image/jpeg;base64,AAAA..." — solo interesa lo de después de la coma.
       const base64 = resultado.split(",")[1] ?? "";
       resolve(base64);
     };
     lector.onerror = () => reject(new Error("No se pudo leer la imagen."));
-    lector.readAsDataURL(archivo);
+    lector.readAsDataURL(blob);
   });
+}
+
+async function redimensionarImagen(
+  archivo: File
+): Promise<{ base64: string; mimeType: string }> {
+  try {
+    const bitmap = await createImageBitmap(archivo);
+    const escala = Math.min(1, LADO_MAXIMO_PX / Math.max(bitmap.width, bitmap.height));
+    const ancho = Math.max(1, Math.round(bitmap.width * escala));
+    const alto = Math.max(1, Math.round(bitmap.height * escala));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = ancho;
+    canvas.height = alto;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas no disponible");
+
+    ctx.drawImage(bitmap, 0, 0, ancho, alto);
+    bitmap.close();
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", CALIDAD_JPEG)
+    );
+
+    if (!blob) throw new Error("No se pudo generar la imagen redimensionada");
+
+    return { base64: await blobABase64(blob), mimeType: "image/jpeg" };
+  } catch (error) {
+    // Si algo del redimensionado falla (formato no soportado por el
+    // navegador, etc.), se manda la imagen original tal cual en vez
+    // de bloquear el análisis por completo.
+    console.error("No se pudo redimensionar la imagen, se envía original:", error);
+    return { base64: await blobABase64(archivo), mimeType: archivo.type };
+  }
 }
 
 export async function analizarProductoConIA(
@@ -30,7 +72,7 @@ export async function analizarProductoConIA(
     throw new Error("Usuario no autenticado");
   }
 
-  const imagenBase64 = await archivoABase64(archivo);
+  const { base64: imagenBase64, mimeType } = await redimensionarImagen(archivo);
 
   const respuesta = await fetch("/api/ia/analizar-producto", {
     method: "POST",
@@ -38,13 +80,19 @@ export async function analizarProductoConIA(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ imagenBase64, mimeType: archivo.type, idioma }),
+    body: JSON.stringify({ imagenBase64, mimeType, idioma }),
   });
 
-  const datos = await respuesta.json();
+  let datos: unknown;
+  try {
+    datos = await respuesta.json();
+  } catch {
+    throw new Error(`El servidor respondió con un error inesperado (HTTP ${respuesta.status}).`);
+  }
 
   if (!respuesta.ok) {
-    throw new Error(datos.error || "No se pudo analizar la imagen.");
+    const mensaje = (datos as { error?: string })?.error;
+    throw new Error(mensaje || "No se pudo analizar la imagen.");
   }
 
   return datos as ResultadoAnalisisIA;
