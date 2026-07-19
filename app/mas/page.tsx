@@ -2,11 +2,21 @@
 
 import Link from "next/link";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useModoInterfaz } from "../../components/ModoInterfazProvider";
 import { SECCIONES_NAV, RUTAS_EN_TABBAR_MOVIL } from "../../lib/navegacion";
 import { esRutaPlus } from "../../lib/suscripcion";
 
 export default function MasPage() {
   const { t } = useIdioma();
+  const { esEasy } = useModoInterfaz();
+
+  // En modo Easy, la barra inferior cambia "/ventas" por "/caja" (ver
+  // MobileTabBar) — sin este ajuste, Caja aparecía repetida (fija en
+  // la barra Y como tarjeta aquí) porque RUTAS_EN_TABBAR_MOVIL no sabe
+  // de ese cambio.
+  const rutasEnTabbar = esEasy
+    ? RUTAS_EN_TABBAR_MOVIL.map((r) => (r === "/ventas" ? "/caja" : r))
+    : RUTAS_EN_TABBAR_MOVIL;
 
   return (
     <main className="fade-up mas-page">
@@ -17,7 +27,7 @@ export default function MasPage() {
 
       {SECCIONES_NAV.map((seccion) => {
         const items = seccion.items.filter(
-          (item) => !RUTAS_EN_TABBAR_MOVIL.includes(item.href)
+          (item) => !rutasEnTabbar.includes(item.href)
         );
 
         if (items.length === 0) return null;

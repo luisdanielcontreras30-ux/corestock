@@ -77,7 +77,8 @@ export default function Sidebar({
           ) : (
             SECCIONES_NAV.map((seccion) => {
               const itemsVisibles = seccion.items.filter((item) => {
-                if (miembroActivo && !RUTAS_PERMITIDAS_MIEMBRO.includes(item.href)) return false;
+                const permitidaPorConfiguracion = item.href === "/configuracion" && puede("configuracion");
+                if (miembroActivo && !RUTAS_PERMITIDAS_MIEMBRO.includes(item.href) && !permitidaPorConfiguracion) return false;
                 // Un miembro del equipo sin permiso "ver_ventas" no ve
                 // ese acceso en el menú (la página también lo bloquea).
                 if (item.href === "/ventas" && !puede("ver_ventas")) return false;

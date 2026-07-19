@@ -14,7 +14,7 @@ import { RUTAS_PERMITIDAS_MIEMBRO } from "../lib/navegacion";
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { miembroActivo, cargando: cargandoMiembro } = useMiembroActivo();
+  const { miembroActivo, puede, cargando: cargandoMiembro } = useMiembroActivo();
   const { modoInterfaz, cargando: cargandoModo } = useModoInterfaz();
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
 
@@ -29,11 +29,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   // Un miembro del equipo solo puede navegar a Dashboard/Caja/Ventas/
   // Productos — cualquier otra URL (aunque no aparezca en el menú) lo
-  // regresa al dashboard en vez de mostrarle esa pantalla.
+  // regresa al dashboard en vez de mostrarle esa pantalla. Configuración
+  // es la excepción: el dueño puede darle ese permiso puntual a un
+  // miembro (checkbox "Acceso a configuración" en Usuarios), así que se
+  // permite además cuando puede("configuracion") es verdadero.
   const rutaPermitida =
     !miembroActivo ||
     esPantallaPublica ||
-    RUTAS_PERMITIDAS_MIEMBRO.some((r) => pathname === r || pathname.startsWith(`${r}/`));
+    RUTAS_PERMITIDAS_MIEMBRO.some((r) => pathname === r || pathname.startsWith(`${r}/`)) ||
+    (puede("configuracion") && (pathname === "/configuracion" || pathname.startsWith("/configuracion/")));
 
   // Mientras todavía no se sabe si esta sesión tiene un miembro activo
   // (justo después de recargar la página, por ejemplo), no se monta el

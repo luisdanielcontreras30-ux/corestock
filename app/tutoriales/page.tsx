@@ -35,7 +35,10 @@ export default function TutorialesPage() {
     return GUIAS.filter((guia) => {
       if (categoria && guia.categoria !== categoria) return false;
       if (!texto) return true;
-      return t(guia.tituloClave).toLowerCase().includes(texto);
+      return (
+        t(guia.tituloClave).toLowerCase().includes(texto) ||
+        t(guia.descripcionClave).toLowerCase().includes(texto)
+      );
     });
   }, [busqueda, categoria, t]);
 

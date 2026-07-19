@@ -13,6 +13,7 @@ import {
   Inbox,
   LogOut,
   Zap,
+  Settings,
 } from "lucide-react";
 import { useTheme } from "../../components/ThemeProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -408,6 +409,15 @@ export default function DashboardPremium() {
             </span>
             {t("sidebar.productos")}
           </Link>
+
+          {puede("configuracion") && (
+            <Link href="/configuracion" className="dashboard-simple-tile">
+              <span className="dashboard-simple-tile-icono" style={{ background: "#64748b" }}>
+                <Settings size={26} color="#fff" />
+              </span>
+              {t("sidebar.configuracion")}
+            </Link>
+          )}
         </div>
 
         <button className="dashboard-simple-salir" onClick={cerrarSesionMiembro}>
