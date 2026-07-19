@@ -4,8 +4,9 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { subirImagenSegura } from "../../lib/uploads";
+import { analizarProductoConIA } from "../../lib/iaAcciones";
 import * as XLSX from "xlsx";
-import { ImagePlus, Package } from "lucide-react";
+import { ImagePlus, Package, Sparkles } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
@@ -22,6 +23,7 @@ interface Producto {
   stock: number;
   stock_minimo: number | null;
   imagen: string | null;
+  descripcion: string | null;
 }
 
 export default function Productos() {
@@ -33,7 +35,7 @@ export default function Productos() {
 }
 
 function ProductosInterno() {
-  const { t } = useIdioma();
+  const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
   const { user } = useAuth();
@@ -48,6 +50,7 @@ function ProductosInterno() {
   const [costo, setCosto] = useState("");
   const [stock, setStock] = useState("");
   const [stockMinimo, setStockMinimo] = useState("5");
+  const [descripcion, setDescripcion] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
 
@@ -55,6 +58,7 @@ function ProductosInterno() {
   const [preview, setPreview] = useState("");
   const [editando, setEditando] = useState<number | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const [analizandoIA, setAnalizandoIA] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const excelInputRef = useRef<HTMLInputElement>(null);
@@ -145,6 +149,7 @@ function ProductosInterno() {
         stock_minimo: stockMinimoNum,
         user_id: user.id,
         imagen: imagenUrl,
+        descripcion: descripcion.trim() || null,
       };
 
       if (editando !== null) {
@@ -177,9 +182,27 @@ function ProductosInterno() {
     setCosto(p.costo != null ? String(p.costo) : "");
     setStock(String(p.stock));
     setStockMinimo(p.stock_minimo != null ? String(p.stock_minimo) : "5");
+    setDescripcion(p.descripcion || "");
     setPreview(p.imagen || "");
     setImagen(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function analizarConIA() {
+    if (!imagen || analizandoIA) return;
+
+    setAnalizandoIA(true);
+    try {
+      const resultado = await analizarProductoConIA(imagen, idioma);
+      setNombre(resultado.nombre);
+      setDescripcion(resultado.descripcion);
+      mostrarToast(t("productos.msg_ia_completado"), "exito");
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("productos.msg_error_analizar_ia"), "error");
+    } finally {
+      setAnalizandoIA(false);
+    }
   }
 
   async function eliminar(id: number) {
@@ -217,6 +240,7 @@ function ProductosInterno() {
     setCosto("");
     setStock("");
     setStockMinimo("5");
+    setDescripcion("");
     setImagen(null);
     setPreview("");
 
@@ -291,6 +315,14 @@ function ProductosInterno() {
           <input value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} placeholder={t("productos.stock_minimo")} type="number" min="0" step="1" />
         </div>
 
+        <textarea
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          placeholder={t("productos.descripcion_placeholder")}
+          rows={2}
+          style={{ marginTop: 12, resize: "vertical" }}
+        />
+
         {/* UPLOAD IMAGE */}
         <div className="upload-box" onClick={() => fileInputRef.current?.click()}>
           {!preview ? (
@@ -310,6 +342,21 @@ function ProductosInterno() {
                 <button className="btn-delete" onClick={limpiar}>
                   {t("productos.quitar")}
                 </button>
+
+                {imagen && (
+                  <button
+                    className="btn-primary"
+                    disabled={analizandoIA}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      analizarConIA();
+                    }}
+                    style={{ display: "flex", alignItems: "center", gap: 6 }}
+                  >
+                    <Sparkles size={14} />
+                    {analizandoIA ? t("productos.analizando_ia") : t("productos.analizar_ia")}
+                  </button>
+                )}
               </div>
             </div>
           )}

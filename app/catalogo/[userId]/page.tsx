@@ -167,6 +167,10 @@ export default function CatalogoPublicoPage({ params }: Props) {
                             </button>
                           </div>
 
+                          {p.descripcion && (
+                            <p className="catalogo-publico-panel-descripcion">{p.descripcion}</p>
+                          )}
+
                           {telefono ? (
                             <>
                               <a

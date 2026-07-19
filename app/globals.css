@@ -3839,6 +3839,19 @@ select optgroup {
   background: var(--glass-border);
 }
 
+.catalogo-publico-panel-descripcion {
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  line-height: 1.4;
+  margin: 0;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .catalogo-publico-panel-opcion {
   display: flex;
   align-items: center;
