@@ -60,6 +60,13 @@ function ProductosInterno() {
   const [guardando, setGuardando] = useState(false);
   const [analizandoIA, setAnalizandoIA] = useState(false);
 
+  // Viene del FAB móvil "Nuevo producto (con cámara)": el selector de
+  // imagen abre la cámara directo (en vez del picker con opción de
+  // galería) y, apenas se toma la foto, se manda sola a analizar con
+  // IA. Se calcula una sola vez al montar — se queda así el resto de
+  // la visita a esta página, aunque después se cambie la foto.
+  const [capturaCamara] = useState(() => searchParams.get("camara") === "1");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const excelInputRef = useRef<HTMLInputElement>(null);
 
@@ -188,12 +195,13 @@ function ProductosInterno() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  async function analizarConIA() {
-    if (!imagen || analizandoIA) return;
+  async function analizarConIA(archivoOverride?: File) {
+    const archivo = archivoOverride ?? imagen;
+    if (!archivo || analizandoIA) return;
 
     setAnalizandoIA(true);
     try {
-      const resultado = await analizarProductoConIA(imagen, idioma);
+      const resultado = await analizarProductoConIA(archivo, idioma);
       setNombre(resultado.nombre);
       setDescripcion(resultado.descripcion);
       mostrarToast(t("productos.msg_ia_completado"), "exito");
@@ -367,12 +375,17 @@ function ProductosInterno() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          capture={capturaCamara ? "environment" : undefined}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;
 
             setImagen(file);
             setPreview(URL.createObjectURL(file));
+
+            if (capturaCamara) {
+              analizarConIA(file);
+            }
           }}
         />
 
