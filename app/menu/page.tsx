@@ -84,6 +84,13 @@ const PERIODOS_RANKING: { valor: PeriodoRanking; clave: string }[] = [
   { valor: "todo", clave: "dashboard.periodo_todo" },
 ];
 
+// Fijos (no de COLORES_PIE, la paleta rotativa de gráficas) para el
+// círculo numerado de "Mejores clientes" — varios índices de esa
+// paleta son pastel según el tema y el número blanco encima quedaba
+// casi invisible, el mismo problema ya corregido en las tarjetas de
+// arriba de este mismo dashboard.
+const COLORES_RANKING = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6"];
+
 function dentroDePeriodo(fechaStr: string, periodo: PeriodoRanking): boolean {
   if (periodo === "todo") return true;
 
@@ -906,7 +913,7 @@ export default function DashboardPremium() {
                       flexShrink: 0,
                       display: "grid",
                       placeItems: "center",
-                      background: COLORES_PIE[i % COLORES_PIE.length],
+                      background: COLORES_RANKING[i % COLORES_RANKING.length],
                       color: "#fff",
                       fontSize: 12,
                       fontWeight: 700,
