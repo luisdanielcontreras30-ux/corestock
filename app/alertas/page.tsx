@@ -67,7 +67,13 @@ export default function Alertas() {
 
   if (loading) {
     return (
-      <main className="fade-up">
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={Bell}
+          color="#ef4444"
+          titulo={t("alertas.titulo")}
+          subtitulo={t("alertas.subtitulo")}
+        />
         <div className="card">{t("alertas.cargando")}</div>
       </main>
     );
@@ -75,7 +81,13 @@ export default function Alertas() {
 
   if (error) {
     return (
-      <main className="fade-up">
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={Bell}
+          color="#ef4444"
+          titulo={t("alertas.titulo")}
+          subtitulo={t("alertas.subtitulo")}
+        />
         <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
           <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("alertas.msg_error_cargar")}</p>
           <button className="btn-primary" onClick={() => user && cargar(user.id)}>

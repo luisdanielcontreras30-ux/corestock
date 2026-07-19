@@ -267,7 +267,7 @@ export default function VentasRapidasPage() {
     }
   }
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -286,7 +286,9 @@ export default function VentasRapidasPage() {
         subtitulo={t("ventas_rapidas.subtitulo")}
       />
 
-      {!puedeVender ? (
+      {loading ? (
+        <div className="card" style={{ marginTop: 20 }}>{t("header.cargando")}</div>
+      ) : !puedeVender ? (
         <div style={{ marginTop: 20 }}>
           <SinPermiso />
         </div>

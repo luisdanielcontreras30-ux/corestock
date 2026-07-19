@@ -77,7 +77,7 @@ function PortalClientesContenido() {
     c.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -94,6 +94,10 @@ function PortalClientesContenido() {
         subtitulo={t("portal_clientes.subtitulo")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
+      <>
       <input
         placeholder={t("clientes.buscar")}
         value={busqueda}
@@ -151,6 +155,8 @@ function PortalClientesContenido() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </main>
   );
 }

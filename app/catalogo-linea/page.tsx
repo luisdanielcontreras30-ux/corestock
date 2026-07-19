@@ -82,7 +82,7 @@ export default function CatalogoLineaPage() {
     setTimeout(() => setCopiado(false), 2000);
   }
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
@@ -99,6 +99,10 @@ export default function CatalogoLineaPage() {
         subtitulo={t("catalogo_linea.subtitulo")}
       />
 
+      {loading ? (
+        <div className="card">{t("header.cargando")}</div>
+      ) : (
+      <>
       <div className="card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <div>
@@ -169,6 +173,8 @@ export default function CatalogoLineaPage() {
           </div>
         )}
       </div>
+      </>
+      )}
     </main>
   );
 }
