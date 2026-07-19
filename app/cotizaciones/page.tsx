@@ -9,6 +9,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import CotizacionCompartirModal from "./components/CotizacionCompartirModal";
 import { Producto, Cliente, Cotizacion, EstadoCotizacion } from "./types";
 import {
@@ -229,14 +230,14 @@ function CotizacionesContenido() {
         <h2 style={{ marginBottom: 16 }}>{t("cotizaciones.registrar")}</h2>
 
         <div className="productos-grid">
-          <select value={productoId} onChange={(e) => alElegirProducto(e.target.value)}>
-            <option value="">{t("cotizaciones.selecciona_producto")}</option>
+          <SelectorPersonalizado value={productoId} onChange={alElegirProducto}>
+            <OpcionSelector value="">{t("cotizaciones.selecciona_producto")}</OpcionSelector>
             {productos.map((p) => (
-              <option key={p.id} value={p.id}>
+              <OpcionSelector key={p.id} value={p.id}>
                 {p.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
 
           <input
             list="lista-clientes-cotizaciones"
@@ -304,16 +305,16 @@ function CotizacionesContenido() {
           onChange={(e) => setBusqueda(e.target.value)}
         />
 
-        <select
+        <SelectorPersonalizado
           style={{ minWidth: 180 }}
           value={filtroEstado}
-          onChange={(e) => setFiltroEstado(e.target.value as EstadoCotizacion | "")}
+          onChange={(v) => setFiltroEstado(v as EstadoCotizacion | "")}
         >
-          <option value="">{t("cotizaciones.todos_estados")}</option>
-          <option value="pendiente">{t("cotizaciones.estado_pendiente")}</option>
-          <option value="aceptada">{t("cotizaciones.estado_aceptada")}</option>
-          <option value="rechazada">{t("cotizaciones.estado_rechazada")}</option>
-        </select>
+          <OpcionSelector value="">{t("cotizaciones.todos_estados")}</OpcionSelector>
+          <OpcionSelector value="pendiente">{t("cotizaciones.estado_pendiente")}</OpcionSelector>
+          <OpcionSelector value="aceptada">{t("cotizaciones.estado_aceptada")}</OpcionSelector>
+          <OpcionSelector value="rechazada">{t("cotizaciones.estado_rechazada")}</OpcionSelector>
+        </SelectorPersonalizado>
 
         {cotizaciones.length > 0 && (
           <button className="btn-secondary" onClick={() => exportarExcel(cotizacionesFiltradas)}>

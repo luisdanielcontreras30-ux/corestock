@@ -537,6 +537,107 @@ select optgroup {
   color: var(--text-primary);
 }
 
+/* ==========================================================================
+   SELECTOR PERSONALIZADO (reemplazo de <select> nativo)
+   ========================================================================== */
+
+.selector-personalizado {
+  position: relative;
+  width: 100%;
+}
+
+.selector-personalizado-boton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.selector-personalizado-boton:hover {
+  border-color: var(--primary);
+}
+
+.selector-personalizado-boton:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.selector-personalizado-boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.selector-personalizado-texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selector-personalizado-placeholder {
+  color: var(--text-muted);
+}
+
+.selector-personalizado-flecha {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform var(--transition-fast);
+}
+
+.selector-personalizado-lista {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  list-style: none;
+  animation: overlayFade 0.15s ease;
+}
+
+.selector-personalizado-opcion {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14.5px;
+  color: var(--text-primary);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.selector-personalizado-opcion-resaltada {
+  background: var(--card-hover);
+}
+
+.selector-personalizado-opcion-activa {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.selector-personalizado-opcion-deshabilitada {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -2225,6 +2326,44 @@ select optgroup {
 
 .landing-nav-cta:hover {
   background: rgba(255, 255, 255, 0.12);
+}
+
+/* El fondo de .landing es un degradado oscuro fijo sin importar el
+   tema que el visitante tenga guardado (todavía no inició sesión) —
+   el selector de idioma dentro del nav necesita los mismos colores
+   fijos que .landing-nav-cta en vez de las variables de --input-bg /
+   --text-primary del tema activo, o se ve un control claro flotando
+   sobre un fondo oscuro. */
+.landing-nav .selector-personalizado-boton {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.landing-nav .selector-personalizado-boton:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.landing-nav .selector-personalizado-flecha {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.landing-nav .selector-personalizado-lista {
+  background: #14163a;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.landing-nav .selector-personalizado-opcion {
+  color: #fff;
+}
+
+.landing-nav .selector-personalizado-opcion-resaltada {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.landing-nav .selector-personalizado-opcion-activa {
+  background: rgba(124, 108, 255, 0.25);
+  color: #fff;
 }
 
 @media (max-width: 420px) {

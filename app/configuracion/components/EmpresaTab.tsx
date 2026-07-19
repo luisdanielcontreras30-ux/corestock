@@ -6,6 +6,7 @@ import { EmpresaConfig, EMPRESA_VACIA } from "../types";
 import { cargarEmpresa, guardarEmpresa } from "../acciones";
 import { subirImagenSegura } from "../../../lib/uploads";
 import { useIdioma } from "../../../components/LanguageProvider";
+import SelectorPersonalizado, { OpcionSelector } from "../../../components/SelectorPersonalizado";
 
 const MONEDAS = ["MXN", "USD", "EUR", "COP", "ARS", "CLP", "PEN"];
 const IDIOMAS = [
@@ -257,46 +258,44 @@ export default function EmpresaTab() {
 
         <div>
           <label>{t("empresa.moneda")}</label>
-          <select
+          <SelectorPersonalizado
             value={empresa.moneda}
-            onChange={(e) => actualizarCampo("moneda", e.target.value)}
+            onChange={(v) => actualizarCampo("moneda", v)}
           >
             {MONEDAS.map((m) => (
-              <option key={m} value={m}>
+              <OpcionSelector key={m} value={m}>
                 {m}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
         </div>
 
         <div>
           <label>{t("empresa.zona_horaria")}</label>
-          <select
+          <SelectorPersonalizado
             value={empresa.zona_horaria}
-            onChange={(e) =>
-              actualizarCampo("zona_horaria", e.target.value)
-            }
+            onChange={(v) => actualizarCampo("zona_horaria", v)}
           >
             {ZONAS_HORARIAS.map((z) => (
-              <option key={z} value={z}>
+              <OpcionSelector key={z} value={z}>
                 {z}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
         </div>
 
         <div>
           <label>{t("empresa.idioma_negocio")}</label>
-          <select
+          <SelectorPersonalizado
             value={empresa.idioma}
-            onChange={(e) => actualizarCampo("idioma", e.target.value)}
+            onChange={(v) => actualizarCampo("idioma", v)}
           >
             {IDIOMAS.map((i) => (
-              <option key={i.valor} value={i.valor}>
+              <OpcionSelector key={i.valor} value={i.valor}>
                 {i.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
         </div>
 
         <div>

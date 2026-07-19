@@ -9,6 +9,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, Proveedor, Compra } from "./types";
 import { cargarDatos, registrarCompra, eliminarCompra } from "./acciones";
 import { exportarExcel } from "./utils";
@@ -184,14 +185,14 @@ function ComprasContenido() {
         <h2 style={{ marginBottom: 16 }}>{t("compras.registrar")}</h2>
 
         <div className="productos-grid">
-          <select value={productoId} onChange={(e) => alElegirProducto(e.target.value)}>
-            <option value="">{t("compras.selecciona_producto")}</option>
+          <SelectorPersonalizado value={productoId} onChange={alElegirProducto}>
+            <OpcionSelector value="">{t("compras.selecciona_producto")}</OpcionSelector>
             {productos.map((p) => (
-              <option key={p.id} value={p.id}>
+              <OpcionSelector key={p.id} value={p.id}>
                 {p.nombre} — {t("dashboard.stock_actual")}: {p.stock}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
 
           <input
             list="lista-proveedores-compras"

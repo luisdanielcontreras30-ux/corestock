@@ -10,6 +10,7 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import ContadorAnimado from "../../components/ContadorAnimado";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { MovimientoConciliacion, TipoMovimientoConciliacion } from "./types";
 import { cargarMovimientos, crearMovimiento, alternarConciliado, eliminarMovimiento } from "./acciones";
 import { formatoMoneda } from "../ventas/utils";
@@ -191,10 +192,10 @@ function ConciliacionesContenido() {
             placeholder={t("conciliaciones.descripcion_placeholder")}
           />
 
-          <select value={tipo} onChange={(e) => setTipo(e.target.value as TipoMovimientoConciliacion)}>
-            <option value="abono">{t("conciliaciones.tipo_abono")}</option>
-            <option value="cargo">{t("conciliaciones.tipo_cargo")}</option>
-          </select>
+          <SelectorPersonalizado value={tipo} onChange={(v) => setTipo(v as TipoMovimientoConciliacion)}>
+            <OpcionSelector value="abono">{t("conciliaciones.tipo_abono")}</OpcionSelector>
+            <OpcionSelector value="cargo">{t("conciliaciones.tipo_cargo")}</OpcionSelector>
+          </SelectorPersonalizado>
 
           <input
             type="number"

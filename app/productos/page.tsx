@@ -7,6 +7,7 @@ import { subirImagenSegura } from "../../lib/uploads";
 import { analizarProductoConIA } from "../../lib/iaAcciones";
 import * as XLSX from "xlsx";
 import { ImagePlus, Package, Sparkles } from "lucide-react";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
@@ -521,18 +522,18 @@ function ProductosInterno() {
         />
 
         {categorias.length > 0 && (
-          <select
+          <SelectorPersonalizado
             style={{ minWidth: 180 }}
             value={filtroCategoria}
-            onChange={(e) => setFiltroCategoria(e.target.value)}
+            onChange={setFiltroCategoria}
           >
-            <option value="">{t("productos.todas_categorias")}</option>
+            <OpcionSelector value="">{t("productos.todas_categorias")}</OpcionSelector>
             {categorias.map((c) => (
-              <option key={c} value={c}>
+              <OpcionSelector key={c} value={c}>
                 {c}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
         )}
       </div>
 

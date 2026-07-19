@@ -5,6 +5,7 @@ import { Producto, Cliente, MetodoPago } from "../types";
 import { PromocionAplicable } from "../../../lib/promociones";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { formatoMoneda } from "../utils";
+import SelectorPersonalizado, { OpcionSelector } from "../../../components/SelectorPersonalizado";
 
 interface Props {
   productos: Producto[];
@@ -53,18 +54,18 @@ export default function VentaForm({
         <div>
           <label>{t("tabla.producto")}</label>
 
-          <select
+          <SelectorPersonalizado
             value={productoId}
-            onChange={(e) => setProductoId(e.target.value)}
+            onChange={setProductoId}
           >
-            <option value="">{t("ventas.selecciona_producto")}</option>
+            <OpcionSelector value="">{t("ventas.selecciona_producto")}</OpcionSelector>
 
             {productos.map((p) => (
-              <option key={p.id} value={p.id}>
+              <OpcionSelector key={p.id} value={p.id}>
                 {p.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
         </div>
 
         <div>
@@ -105,16 +106,16 @@ export default function VentaForm({
         <div>
           <label>{t("ventas.metodo_pago")}</label>
 
-          <select
+          <SelectorPersonalizado
             value={metodoPago}
-            onChange={(e) => setMetodoPago(e.target.value as MetodoPago)}
+            onChange={(v) => setMetodoPago(v as MetodoPago)}
           >
-            <option value="efectivo">{t("ventas.metodo_efectivo")}</option>
-            <option value="tarjeta">{t("ventas.metodo_tarjeta")}</option>
-            <option value="transferencia">{t("ventas.metodo_transferencia")}</option>
-            <option value="prestamo">{t("ventas.metodo_prestamo")}</option>
-            <option value="otro">{t("ventas.metodo_otro")}</option>
-          </select>
+            <OpcionSelector value="efectivo">{t("ventas.metodo_efectivo")}</OpcionSelector>
+            <OpcionSelector value="tarjeta">{t("ventas.metodo_tarjeta")}</OpcionSelector>
+            <OpcionSelector value="transferencia">{t("ventas.metodo_transferencia")}</OpcionSelector>
+            <OpcionSelector value="prestamo">{t("ventas.metodo_prestamo")}</OpcionSelector>
+            <OpcionSelector value="otro">{t("ventas.metodo_otro")}</OpcionSelector>
+          </SelectorPersonalizado>
         </div>
       </div>
 

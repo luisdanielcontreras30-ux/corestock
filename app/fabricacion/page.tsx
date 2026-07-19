@@ -9,6 +9,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "./types";
 import {
   cargarDatos,
@@ -359,26 +360,26 @@ function FabricacionContenido() {
           {t("fabricacion.recetas_desc")}
         </p>
 
-        <select value={productoRecetaId} onChange={(e) => setProductoRecetaId(e.target.value)}>
-          <option value="">{t("fabricacion.selecciona_producto")}</option>
+        <SelectorPersonalizado value={productoRecetaId} onChange={setProductoRecetaId}>
+          <OpcionSelector value="">{t("fabricacion.selecciona_producto")}</OpcionSelector>
           {productos.map((p) => (
-            <option key={p.id} value={p.id}>
+            <OpcionSelector key={p.id} value={p.id}>
               {p.nombre}
-            </option>
+            </OpcionSelector>
           ))}
-        </select>
+        </SelectorPersonalizado>
 
         {productoRecetaId && (
           <>
             <div className="productos-grid" style={{ marginTop: 12 }}>
-              <select value={materiaRecetaId} onChange={(e) => setMateriaRecetaId(e.target.value)}>
-                <option value="">{t("fabricacion.selecciona_materia_prima")}</option>
+              <SelectorPersonalizado value={materiaRecetaId} onChange={setMateriaRecetaId}>
+                <OpcionSelector value="">{t("fabricacion.selecciona_materia_prima")}</OpcionSelector>
                 {materiasPrimas.map((m) => (
-                  <option key={m.id} value={m.id}>
+                  <OpcionSelector key={m.id} value={m.id}>
                     {m.nombre} ({m.unidad})
-                  </option>
+                  </OpcionSelector>
                 ))}
-              </select>
+              </SelectorPersonalizado>
 
               <input
                 type="number"
@@ -466,14 +467,14 @@ function FabricacionContenido() {
         </p>
 
         <div className="productos-grid">
-          <select value={productoProducirId} onChange={(e) => setProductoProducirId(e.target.value)}>
-            <option value="">{t("fabricacion.selecciona_producto_con_receta")}</option>
+          <SelectorPersonalizado value={productoProducirId} onChange={setProductoProducirId}>
+            <OpcionSelector value="">{t("fabricacion.selecciona_producto_con_receta")}</OpcionSelector>
             {productosConReceta.map((p) => (
-              <option key={p.id} value={p.id}>
+              <OpcionSelector key={p.id} value={p.id}>
                 {p.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
 
           <input
             type="number"

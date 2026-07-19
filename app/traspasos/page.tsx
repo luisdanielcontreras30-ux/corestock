@@ -9,6 +9,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, Ubicacion, StockUbicacion, Traspaso } from "./types";
 import { cargarDatos, crearUbicacion, eliminarUbicacion, realizarTraspaso } from "./acciones";
 
@@ -243,33 +244,33 @@ function TraspasosContenido() {
         <h2 style={{ marginBottom: 16 }}>{t("traspasos.traspasar")}</h2>
 
         <div className="productos-grid">
-          <select value={productoId} onChange={(e) => setProductoId(e.target.value)}>
-            <option value="">{t("fabricacion.selecciona_producto")}</option>
+          <SelectorPersonalizado value={productoId} onChange={setProductoId}>
+            <OpcionSelector value="">{t("fabricacion.selecciona_producto")}</OpcionSelector>
             {productos.map((p) => (
-              <option key={p.id} value={p.id}>
+              <OpcionSelector key={p.id} value={p.id}>
                 {p.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
 
-          <select value={origen} onChange={(e) => setOrigen(e.target.value)}>
-            <option value={TIENDA}>{t("traspasos.tienda")}</option>
+          <SelectorPersonalizado value={origen} onChange={setOrigen}>
+            <OpcionSelector value={TIENDA}>{t("traspasos.tienda")}</OpcionSelector>
             {ubicaciones.map((u) => (
-              <option key={u.id} value={u.id}>
+              <OpcionSelector key={u.id} value={u.id}>
                 {u.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
 
-          <select value={destino} onChange={(e) => setDestino(e.target.value)}>
-            <option value="">{t("traspasos.selecciona_destino")}</option>
-            <option value={TIENDA}>{t("traspasos.tienda")}</option>
+          <SelectorPersonalizado value={destino} onChange={setDestino}>
+            <OpcionSelector value="">{t("traspasos.selecciona_destino")}</OpcionSelector>
+            <OpcionSelector value={TIENDA}>{t("traspasos.tienda")}</OpcionSelector>
             {ubicaciones.map((u) => (
-              <option key={u.id} value={u.id}>
+              <OpcionSelector key={u.id} value={u.id}>
                 {u.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
 
           <input
             type="number"
@@ -301,13 +302,13 @@ function TraspasosContenido() {
           <p style={{ color: "var(--text-secondary)", fontSize: 13.5 }}>{t("traspasos.sin_ubicaciones")}</p>
         ) : (
           <>
-            <select value={ubicacionVistaActual} onChange={(e) => setUbicacionVista(e.target.value)} style={{ maxWidth: 260 }}>
+            <SelectorPersonalizado value={ubicacionVistaActual} onChange={setUbicacionVista} style={{ maxWidth: 260 }}>
               {ubicaciones.map((u) => (
-                <option key={u.id} value={u.id}>
+                <OpcionSelector key={u.id} value={u.id}>
                   {u.nombre}
-                </option>
+                </OpcionSelector>
               ))}
-            </select>
+            </SelectorPersonalizado>
 
             <div className="tabla" style={{ marginTop: 16 }}>
               <table>

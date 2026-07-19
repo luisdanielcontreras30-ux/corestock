@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DollarSign, ShoppingBag, Box, TrendingUp, TrendingDown, BarChart3, Trophy } from "lucide-react";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -275,17 +276,17 @@ export default function GraficasPage() {
               </p>
             </div>
 
-            <select
+            <SelectorPersonalizado
               value={periodo}
-              onChange={(e) => setPeriodo(e.target.value as Periodo)}
+              onChange={(v) => setPeriodo(v as Periodo)}
               style={{ width: "auto", minWidth: 160 }}
             >
               {PERIODOS.map((p) => (
-                <option key={p.valor} value={p.valor}>
+                <OpcionSelector key={p.valor} value={p.valor}>
                   {t(p.clave)}
-                </option>
+                </OpcionSelector>
               ))}
-            </select>
+            </SelectorPersonalizado>
           </div>
 
           <div style={{ width: "100%", height: 300 }}>

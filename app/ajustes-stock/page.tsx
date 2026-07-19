@@ -8,6 +8,7 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, AjusteStock } from "./types";
 import { cargarDatos, registrarAjuste, eliminarAjuste } from "./acciones";
 
@@ -147,19 +148,19 @@ export default function AjustesStockPage() {
         <h2 style={{ marginBottom: 16 }}>{t("ajustes_stock.registrar")}</h2>
 
         <div className="productos-grid">
-          <select value={productoId} onChange={(e) => setProductoId(e.target.value)}>
-            <option value="">{t("ajustes_stock.selecciona_producto")}</option>
+          <SelectorPersonalizado value={productoId} onChange={setProductoId}>
+            <OpcionSelector value="">{t("ajustes_stock.selecciona_producto")}</OpcionSelector>
             {productos.map((p) => (
-              <option key={p.id} value={p.id}>
+              <OpcionSelector key={p.id} value={p.id}>
                 {p.nombre} — {t("dashboard.stock_actual")}: {p.stock}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
 
-          <select value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)}>
-            <option value="agregar">{t("ajustes_stock.tipo_agregar")}</option>
-            <option value="quitar">{t("ajustes_stock.tipo_quitar")}</option>
-          </select>
+          <SelectorPersonalizado value={tipo} onChange={(v) => setTipo(v as Tipo)}>
+            <OpcionSelector value="agregar">{t("ajustes_stock.tipo_agregar")}</OpcionSelector>
+            <OpcionSelector value="quitar">{t("ajustes_stock.tipo_quitar")}</OpcionSelector>
+          </SelectorPersonalizado>
 
           <input
             type="number"

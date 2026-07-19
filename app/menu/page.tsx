@@ -25,6 +25,7 @@ import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import { useToast } from "../../components/ToastProvider";
 import { cargarMovimientos, calcularSaldo } from "../caja/acciones";
 import { formatoMoneda } from "../ventas/utils";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import DashboardEasy from "./DashboardEasy";
 import {
   ResponsiveContainer,
@@ -700,17 +701,17 @@ export default function DashboardPremium() {
         <div style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px", display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
             <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0 }}>{t("dashboard.top_articulos")}</h3>
-            <select
+            <SelectorPersonalizado
               value={periodoTopArticulos}
-              onChange={(e) => setPeriodoTopArticulos(e.target.value as PeriodoRanking)}
+              onChange={(v) => setPeriodoTopArticulos(v as PeriodoRanking)}
               style={{ width: "auto", fontSize: 12, padding: "6px 10px" }}
             >
               {PERIODOS_RANKING.map((p) => (
-                <option key={p.valor} value={p.valor}>
+                <OpcionSelector key={p.valor} value={p.valor}>
                   {t(p.clave)}
-                </option>
+                </OpcionSelector>
               ))}
-            </select>
+            </SelectorPersonalizado>
           </div>
           <div style={{ width: "100%", height: "220px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {dataPie.length === 0 ? (
@@ -854,17 +855,17 @@ export default function DashboardPremium() {
               <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 4px 0" }}>{t("dashboard.mejores_clientes")}</h3>
               <p style={{ color: "var(--text-secondary)", fontSize: "12px", margin: "0 0 20px 0" }}>{t("dashboard.mejores_clientes_desc")}</p>
             </div>
-            <select
+            <SelectorPersonalizado
               value={periodoMejoresClientes}
-              onChange={(e) => setPeriodoMejoresClientes(e.target.value as PeriodoRanking)}
+              onChange={(v) => setPeriodoMejoresClientes(v as PeriodoRanking)}
               style={{ width: "auto", fontSize: 12, padding: "6px 10px" }}
             >
               {PERIODOS_RANKING.map((p) => (
-                <option key={p.valor} value={p.valor}>
+                <OpcionSelector key={p.valor} value={p.valor}>
                   {t(p.clave)}
-                </option>
+                </OpcionSelector>
               ))}
-            </select>
+            </SelectorPersonalizado>
           </div>
 
           {mejoresClientes.length === 0 ? (

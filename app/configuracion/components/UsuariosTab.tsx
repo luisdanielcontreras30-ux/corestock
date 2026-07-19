@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Info, CheckCircle2, XCircle } from "lucide-react";
+import SelectorPersonalizado, { OpcionSelector } from "../../../components/SelectorPersonalizado";
 import {
   Miembro,
   Rol,
@@ -475,16 +476,16 @@ export default function UsuariosTab() {
 
               <div>
                 <label>{t("usuarios.col_rol")}</label>
-                <select
+                <SelectorPersonalizado
                   value={rol}
-                  onChange={(e) => alCambiarRol(e.target.value as Rol)}
+                  onChange={(v) => alCambiarRol(v as Rol)}
                 >
                   {ROLES.map((r) => (
-                    <option key={r.valor} value={r.valor}>
+                    <OpcionSelector key={r.valor} value={r.valor}>
                       {t(r.clave)}
-                    </option>
+                    </OpcionSelector>
                   ))}
-                </select>
+                </SelectorPersonalizado>
               </div>
 
               <div>

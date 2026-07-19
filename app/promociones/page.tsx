@@ -9,6 +9,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, Promocion, TipoDescuento } from "./types";
 import {
   cargarDatos,
@@ -205,19 +206,19 @@ function PromocionesContenido() {
             placeholder={t("promociones.nombre_placeholder")}
           />
 
-          <select value={productoId} onChange={(e) => setProductoId(e.target.value)}>
-            <option value="">{t("promociones.todos_productos")}</option>
+          <SelectorPersonalizado value={productoId} onChange={setProductoId}>
+            <OpcionSelector value="">{t("promociones.todos_productos")}</OpcionSelector>
             {productos.map((p) => (
-              <option key={p.id} value={p.id}>
+              <OpcionSelector key={p.id} value={p.id}>
                 {p.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
 
-          <select value={tipo} onChange={(e) => setTipo(e.target.value as TipoDescuento)}>
-            <option value="porcentaje">{t("promociones.tipo_porcentaje")}</option>
-            <option value="monto">{t("promociones.tipo_monto")}</option>
-          </select>
+          <SelectorPersonalizado value={tipo} onChange={(v) => setTipo(v as TipoDescuento)}>
+            <OpcionSelector value="porcentaje">{t("promociones.tipo_porcentaje")}</OpcionSelector>
+            <OpcionSelector value="monto">{t("promociones.tipo_monto")}</OpcionSelector>
+          </SelectorPersonalizado>
 
           <input
             type="number"
