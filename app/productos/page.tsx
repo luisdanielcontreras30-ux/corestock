@@ -386,16 +386,13 @@ function ProductosInterno() {
       <div className={`card productos-form${formularioAbierto ? "" : " productos-form-cerrado-movil"}`}>
         <h2>{editando !== null ? t("productos.editar_producto") : t("productos.anadir_producto")}</h2>
 
-        <fieldset className="campo-flotante">
-          <legend>{t("productos.nombre")}</legend>
-          <input
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            placeholder={t("productos.nombre")}
-            disabled={analizandoIA}
-            className={analizandoIA ? "campo-ia-cargando" : undefined}
-          />
-        </fieldset>
+        <input
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          placeholder={t("productos.nombre")}
+          disabled={analizandoIA}
+          className={analizandoIA ? "campo-ia-cargando" : undefined}
+        />
 
         <div className="campo-categoria-datalist">
           <input
@@ -415,35 +412,19 @@ function ProductosInterno() {
 
         {puede("ver_ganancias") ? (
           <div className="productos-grid-2col">
-            <fieldset className="campo-flotante">
-              <legend>{t("productos.precio")}</legend>
-              <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
-            </fieldset>
-            <fieldset className="campo-flotante">
-              <legend>{t("productos.costo")}</legend>
-              <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
-            </fieldset>
+            <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
+            <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
           </div>
         ) : (
-          <fieldset className="campo-flotante">
-            <legend>{t("productos.precio")}</legend>
-            <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
-          </fieldset>
+          <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
         )}
 
         <div className="productos-grid-2col">
-          <fieldset className="campo-flotante">
-            <legend>{t("productos.stock")}</legend>
-            <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" min="0" step="1" />
-          </fieldset>
-          <fieldset className="campo-flotante">
-            <legend>{t("productos.stock_minimo")}</legend>
-            <input value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} placeholder={t("productos.stock_minimo")} type="number" min="0" step="1" />
-          </fieldset>
+          <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" min="0" step="1" />
+          <input value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} placeholder={t("productos.stock_minimo")} type="number" min="0" step="1" />
         </div>
 
-        <fieldset className="campo-flotante campo-flotante-descripcion">
-          <legend>{t("productos.descripcion")}</legend>
+        <div className="campo-descripcion-wrap">
           <textarea
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
@@ -461,7 +442,7 @@ function ProductosInterno() {
             <Sparkles size={14} />
             {analizandoIA ? t("productos.analizando_ia") : t("productos.analizar_ia")}
           </button>
-        </fieldset>
+        </div>
 
         {/* UPLOAD IMAGE */}
         <div
