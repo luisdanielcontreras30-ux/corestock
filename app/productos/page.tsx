@@ -7,7 +7,7 @@ import { subirImagenSegura } from "../../lib/uploads";
 import { analizarProductoConIA } from "../../lib/iaAcciones";
 import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
-import { ImagePlus, Package, Sparkles } from "lucide-react";
+import { ImagePlus, Package, Plus, Sparkles } from "lucide-react";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -63,6 +63,14 @@ function ProductosInterno() {
   const [guardando, setGuardando] = useState(false);
   const [analizandoIA, setAnalizandoIA] = useState(false);
 
+  // En celular, el formulario de alta empieza cerrado — solo la lista
+  // de productos está a la vista al entrar al módulo. Se abre al
+  // tocar "Nuevo producto", al editar un producto existente, o al
+  // llegar desde el FAB "Nuevo producto" (que además dispara la
+  // cámara). En escritorio no aplica: ahí el formulario siempre está
+  // visible (ver CSS, la clase que lo oculta solo actúa en móvil).
+  const [formularioAbierto, setFormularioAbierto] = useState(false);
+
   // Viene del FAB móvil "Nuevo producto (con cámara)": el selector de
   // imagen abre la cámara directo (en vez del picker con opción de
   // galería) y, apenas se toma la foto, se manda sola a analizar con
@@ -93,6 +101,7 @@ function ProductosInterno() {
   // dispararse en vez de quedarse con el estado de la primera vez.
   useEffect(() => {
     if (searchParams.get("camara") === "1" && fileInputRef.current) {
+      setFormularioAbierto(true);
       capturaCamaraRef.current = true;
       fileInputRef.current.setAttribute("capture", "environment");
       fileInputRef.current.click();
@@ -200,6 +209,11 @@ function ProductosInterno() {
   }
 
   function editar(p: Producto) {
+    setFormularioAbierto(true);
+    // En celular el formulario está cerrado por defecto y solo se abre
+    // al editar — sin esto, alguien editando un producto lejos en la
+    // lista no vería que el formulario ya apareció arriba.
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setEditando(p.id);
     setNombre(p.nombre);
     setCategoria(p.categoria);
@@ -213,9 +227,27 @@ function ProductosInterno() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
+  // Compartido por el <input type="file"> (clic/cámara) y por soltar
+  // un archivo arrastrado sobre la caja de subir imagen.
+  function manejarArchivoSeleccionado(file: File) {
+    setImagen(file);
+    setPreview(URL.createObjectURL(file));
+
+    if (capturaCamaraRef.current) {
+      capturaCamaraRef.current = false;
+      fileInputRef.current?.removeAttribute("capture");
+      analizarConIA(file);
+    }
+  }
+
   async function analizarConIA(archivoOverride?: File) {
     const archivo = archivoOverride ?? imagen;
-    if (!archivo || analizandoIA) return;
+    if (analizandoIA) return;
+
+    if (!archivo) {
+      mostrarToast(t("productos.msg_falta_foto_ia"), "error");
+      return;
+    }
 
     setAnalizandoIA(true);
     try {
@@ -272,6 +304,10 @@ function ProductosInterno() {
     setStockMinimo("5");
     setDescripcion("");
     limpiarImagen();
+    // Después de guardar o cancelar, vuelve a la lista en celular (ahí
+    // es donde el formulario se cierra por completo; en escritorio no
+    // tiene efecto visual, siempre queda visible).
+    setFormularioAbierto(false);
   }
 
   // Solo la foto, sin tocar el resto del formulario — a diferencia de
@@ -337,10 +373,21 @@ function ProductosInterno() {
       </div>
 
       {puede("gestionar_inventario") && (
-      <div className="card productos-form">
+      <>
+      <button
+        type="button"
+        className="productos-boton-nuevo-movil"
+        onClick={() => setFormularioAbierto((v) => !v)}
+      >
+        <Plus size={16} />
+        {editando !== null ? t("productos.editar_producto") : t("productos.anadir_producto")}
+      </button>
+
+      <div className={`card productos-form${formularioAbierto ? "" : " productos-form-cerrado-movil"}`}>
         <h2>{editando !== null ? t("productos.editar_producto") : t("productos.anadir_producto")}</h2>
 
-        <div className="productos-grid">
+        <fieldset className="campo-flotante">
+          <legend>{t("productos.nombre")}</legend>
           <input
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
@@ -348,37 +395,90 @@ function ProductosInterno() {
             disabled={analizandoIA}
             className={analizandoIA ? "campo-ia-cargando" : undefined}
           />
+        </fieldset>
+
+        <div className="campo-categoria-datalist">
           <input
+            list="lista-categorias-nuevo-producto"
             value={categoria}
             onChange={(e) => setCategoria(e.target.value)}
             placeholder={t("productos.categoria")}
             disabled={analizandoIA}
             className={analizandoIA ? "campo-ia-cargando" : undefined}
           />
-          <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
-          {puede("ver_ganancias") && (
-            <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
-          )}
-          <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" min="0" step="1" />
-          <input value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} placeholder={t("productos.stock_minimo")} type="number" min="0" step="1" />
+          <datalist id="lista-categorias-nuevo-producto">
+            {categorias.map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
         </div>
 
-        <textarea
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          placeholder={t("productos.descripcion_placeholder")}
-          rows={2}
-          style={{ marginTop: 12, resize: "vertical" }}
-          disabled={analizandoIA}
-          className={analizandoIA ? "campo-ia-cargando" : undefined}
-        />
+        {puede("ver_ganancias") ? (
+          <div className="productos-grid-2col">
+            <fieldset className="campo-flotante">
+              <legend>{t("productos.precio")}</legend>
+              <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
+            </fieldset>
+            <fieldset className="campo-flotante">
+              <legend>{t("productos.costo")}</legend>
+              <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
+            </fieldset>
+          </div>
+        ) : (
+          <fieldset className="campo-flotante">
+            <legend>{t("productos.precio")}</legend>
+            <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
+          </fieldset>
+        )}
+
+        <div className="productos-grid-2col">
+          <fieldset className="campo-flotante">
+            <legend>{t("productos.stock")}</legend>
+            <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" min="0" step="1" />
+          </fieldset>
+          <fieldset className="campo-flotante">
+            <legend>{t("productos.stock_minimo")}</legend>
+            <input value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} placeholder={t("productos.stock_minimo")} type="number" min="0" step="1" />
+          </fieldset>
+        </div>
+
+        <fieldset className="campo-flotante campo-flotante-descripcion">
+          <legend>{t("productos.descripcion")}</legend>
+          <textarea
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder={t("productos.descripcion_placeholder")}
+            rows={2}
+            disabled={analizandoIA}
+            className={analizandoIA ? "campo-ia-cargando" : undefined}
+          />
+          <button
+            type="button"
+            className="btn-generar-ia-inline"
+            disabled={analizandoIA}
+            onClick={() => analizarConIA()}
+          >
+            <Sparkles size={14} />
+            {analizandoIA ? t("productos.analizando_ia") : t("productos.analizar_ia")}
+          </button>
+        </fieldset>
 
         {/* UPLOAD IMAGE */}
-        <div className="upload-box" onClick={() => fileInputRef.current?.click()}>
+        <div
+          className="upload-box"
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files?.[0];
+            if (file) manejarArchivoSeleccionado(file);
+          }}
+        >
           {!preview ? (
             <>
               <ImagePlus size={34} color="var(--text-muted)" />
               <p>{t("productos.subir_imagen")}</p>
+              <p className="upload-box-subtexto">{t("productos.subir_imagen_subtexto")}</p>
             </>
           ) : (
             <div>
@@ -405,21 +505,6 @@ function ProductosInterno() {
                   {t("productos.quitar")}
                 </button>
               </div>
-
-              {imagen && (
-                <button
-                  className="btn-secondary"
-                  disabled={analizandoIA}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    analizarConIA();
-                  }}
-                  style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}
-                >
-                  <Sparkles size={14} />
-                  {analizandoIA ? t("productos.analizando_ia") : t("productos.analizar_ia")}
-                </button>
-              )}
             </div>
           )}
         </div>
@@ -431,16 +516,7 @@ function ProductosInterno() {
           accept="image/*"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (!file) return;
-
-            setImagen(file);
-            setPreview(URL.createObjectURL(file));
-
-            if (capturaCamaraRef.current) {
-              capturaCamaraRef.current = false;
-              fileInputRef.current?.removeAttribute("capture");
-              analizarConIA(file);
-            }
+            if (file) manejarArchivoSeleccionado(file);
           }}
         />
 
@@ -577,6 +653,7 @@ function ProductosInterno() {
           }}
         />
       </div>
+      </>
       )}
 
       <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>

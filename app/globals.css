@@ -900,6 +900,125 @@ select optgroup {
   gap: 8px;
 }
 
+/* Distinta de .productos-grid (genérica, reusada por otros módulos) —
+   esta es solo para las parejas precio/costo y stock/stock mínimo del
+   formulario rediseñado de Productos. */
+.productos-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* Campo con etiqueta flotante partiendo el borde superior — un
+   <fieldset>/<legend> ya hace ese efecto nativo sin trucos de
+   posicionamiento absoluto, solo hay que restylearlo. El fieldset
+   pone el borde y el fondo; el input/textarea de adentro queda sin
+   los suyos para no duplicarlos. */
+fieldset.campo-flotante {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--input-bg);
+  padding: 0 12px 8px;
+  margin: 0;
+  min-width: 0;
+  transition: var(--transition-fast);
+}
+
+fieldset.campo-flotante:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.campo-flotante legend {
+  padding: 0 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.campo-flotante input,
+.campo-flotante textarea {
+  border: none;
+  background: transparent;
+  padding: 0;
+  box-shadow: none !important;
+}
+
+.campo-categoria-datalist {
+  position: relative;
+}
+
+.campo-categoria-datalist input {
+  padding-right: 34px;
+}
+
+/* input[list] no siempre muestra una flecha propia según el
+   navegador (sí en Chrome/Android, no en la mayoría del resto) — se
+   dibuja una a mano para que se vea igual en todos lados. Es solo
+   decorativa: el propio input ya abre las sugerencias del datalist al
+   tocarlo/escribir. */
+.campo-categoria-datalist::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.campo-flotante-descripcion {
+  position: relative;
+}
+
+/* El padding-bottom va en el textarea (no en el fieldset envolvente):
+   así el texto/placeholder deja de crecer antes de llegar a la franja
+   donde se dibuja el botón, en vez de solo empujar el borde exterior
+   del fieldset hacia abajo sin afectar el área de texto en sí. */
+.campo-flotante-descripcion textarea {
+  resize: vertical;
+  width: 100%;
+  padding-bottom: 38px;
+}
+
+.btn-generar-ia-inline {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--primary-soft);
+  transition: var(--transition-fast);
+}
+
+.btn-generar-ia-inline:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-generar-ia-inline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Alterna el formulario de alta en celular — en escritorio siempre
+   está visible (ver el media query donde se ocultan estas reglas). */
+.productos-boton-nuevo-movil {
+  display: none;
+}
+
 .upload-box {
   margin-top: 18px;
   border: 2px dashed var(--border);
@@ -914,6 +1033,12 @@ select optgroup {
 .upload-box:hover {
   border-color: var(--primary);
   background: rgba(89,69,228,0.08);
+}
+
+.upload-box-subtexto {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  margin-top: 2px;
 }
 
 .btn-primary {
@@ -1934,6 +2059,33 @@ select optgroup {
 
   .productos-toolbar button {
     width: 100%;
+  }
+
+  /* En celular, "Nuevo producto" queda separado de la lista: el
+     formulario arranca oculto y solo aparece al tocar este botón (o
+     al llegar por el FAB / editar un producto, que lo abren solo).
+     En escritorio ninguna de estas dos reglas aplica — el formulario
+     siempre está a la vista, como antes. */
+  .productos-boton-nuevo-movil {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 16px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 14px 20px;
+    min-height: 46px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .productos-form-cerrado-movil {
+    display: none;
   }
 }
 
