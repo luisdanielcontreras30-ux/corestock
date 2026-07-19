@@ -229,6 +229,11 @@ function FabricacionContenido() {
       return;
     }
 
+    if (!Number.isInteger(cantidadProducirNum)) {
+      mostrarToast(t("comun.msg_cantidad_entera"), "error");
+      return;
+    }
+
     try {
       setProduciendo(true);
       await producir(producto, cantidadProducirNum, ingredientesAProducir);

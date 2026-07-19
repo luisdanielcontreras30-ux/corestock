@@ -18,6 +18,13 @@ function limpiarTelefono(telefono: string) {
   return telefono.replace(/[^\d]/g, "");
 }
 
+// Con separador de miles — sin importar formatoMoneda() de ventas/utils
+// para no meter xlsx (usado solo por exportarExcel) en el bundle de esta
+// página pública.
+function precioFormato(valor: number) {
+  return valor.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function enlaceWhatsApp(telefono: string, mensaje: string) {
   const numero = limpiarTelefono(telefono);
   return `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(mensaje)}`;
@@ -153,7 +160,7 @@ export default function CatalogoPublicoPage({ params }: Props) {
                       </div>
                       <p className="catalogo-publico-producto-nombre">{p.nombre}</p>
                       <p style={{ fontSize: 15, color: colorPrincipal, fontWeight: 700, margin: "6px 0 0 0" }}>
-                        ${Number(p.precio).toFixed(2)}
+                        ${precioFormato(Number(p.precio))}
                       </p>
                     </div>
 
@@ -179,7 +186,7 @@ export default function CatalogoPublicoPage({ params }: Props) {
                                   telefono,
                                   t("catalogo_publico.msg_cotizar")
                                     .replace("{producto}", p.nombre)
-                                    .replace("{precio}", Number(p.precio).toFixed(2))
+                                    .replace("{precio}", precioFormato(Number(p.precio)))
                                 )}
                                 target="_blank"
                                 rel="noopener noreferrer"

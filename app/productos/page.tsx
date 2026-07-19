@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { subirImagenSegura } from "../../lib/uploads";
 import { analizarProductoConIA } from "../../lib/iaAcciones";
+import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
 import { ImagePlus, Package, Sparkles } from "lucide-react";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
@@ -520,12 +521,18 @@ function ProductosInterno() {
             // por fila — con un Excel de cientos de productos, esto pasa
             // de tardar minutos a tardar segundos.
             let importados = 0;
+            let fallaronAlGuardar = false;
             if (filasValidas.length > 0) {
               const { error } = await supabase.from("productos").insert(filasValidas);
 
               if (error) {
+                // Distinto de "omitidos por datos inválidos": estas filas
+                // sí tenían datos correctos, pero la inserción en la base
+                // de datos falló (ej. RLS, conexión) — no hay que
+                // mezclarlas con los omitidos o el usuario cree que su
+                // Excel tenía errores cuando el problema fue del servidor.
                 console.error(error);
-                omitidos += filasValidas.length;
+                fallaronAlGuardar = true;
               } else {
                 importados = filasValidas.length;
               }
@@ -534,12 +541,22 @@ function ProductosInterno() {
             if (excelInputRef.current) excelInputRef.current.value = "";
 
             await cargar();
-            mostrarToast(
-              t("productos.msg_importacion_resultado")
-                .replace("{importados}", String(importados))
-                .replace("{omitidos}", String(omitidos)),
-              "exito"
-            );
+
+            if (fallaronAlGuardar) {
+              mostrarToast(
+                t("productos.msg_importacion_fallo_guardado")
+                  .replace("{validos}", String(filasValidas.length))
+                  .replace("{omitidos}", String(omitidos)),
+                "error"
+              );
+            } else {
+              mostrarToast(
+                t("productos.msg_importacion_resultado")
+                  .replace("{importados}", String(importados))
+                  .replace("{omitidos}", String(omitidos)),
+                "exito"
+              );
+            }
           }}
         />
       </div>
@@ -610,9 +627,9 @@ function ProductosInterno() {
                     </td>
 
                     <td>{p.nombre}</td>
-                    <td>{p.categoria}</td>
-                    <td>${p.precio_venta.toFixed(2)}</td>
-                    {puede("ver_ganancias") && <td>${(p.costo ?? 0).toFixed(2)}</td>}
+                    <td>{p.categoria?.trim() ? p.categoria : t("productos.sin_categoria")}</td>
+                    <td>{formatoMoneda(p.precio_venta)}</td>
+                    {puede("ver_ganancias") && <td>{formatoMoneda(p.costo ?? 0)}</td>}
                     <td>{p.stock}</td>
 
                     {puede("gestionar_inventario") && (

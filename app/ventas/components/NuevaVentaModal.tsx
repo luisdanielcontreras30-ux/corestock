@@ -84,6 +84,11 @@ export default function NuevaVentaModal({ onClose }: Props) {
       return;
     }
 
+    if (!Number.isInteger(cantidad)) {
+      mostrarToast(t("comun.msg_cantidad_entera"), "error");
+      return;
+    }
+
     if (cantidad > producto.stock) {
       mostrarToast(t("ventas.msg_sin_stock"), "error");
       return;

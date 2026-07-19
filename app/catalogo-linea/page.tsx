@@ -10,6 +10,7 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { ProductoCatalogo } from "./types";
 import { cargarEstadoCatalogo, actualizarCatalogoActivo } from "./acciones";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
+import { formatoMoneda } from "../ventas/utils";
 
 export default function CatalogoLineaPage() {
   const router = useRouter();
@@ -161,7 +162,7 @@ export default function CatalogoLineaPage() {
                 </div>
                 <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{p.nombre}</p>
                 <p style={{ fontSize: 13, color: "var(--primary)", fontWeight: 700, margin: "4px 0 0 0" }}>
-                  ${Number(p.precio_venta).toFixed(2)}
+                  {formatoMoneda(Number(p.precio_venta))}
                 </p>
               </div>
             ))}

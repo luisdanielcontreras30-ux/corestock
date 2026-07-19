@@ -6,6 +6,7 @@ import { Inbox, ArrowDownCircle, ArrowUpCircle, Lock, Unlock } from "lucide-reac
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { MovimientoCaja } from "./types";
 import { cargarMovimientos, registrarMovimientoOffline } from "./acciones";
@@ -56,6 +57,7 @@ export default function CajaPage() {
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [movimientos, setMovimientos] = useState<MovimientoCaja[]>([]);
@@ -205,6 +207,8 @@ export default function CajaPage() {
 
     const diferencia = contado - saldo;
 
+    if (!(await confirmar(t("caja.confirmar_cierre"), { peligroso: true }))) return;
+
     try {
       setProcesando(true);
       const { encoladoOffline } = await registrarMovimientoOffline(
@@ -323,16 +327,16 @@ export default function CajaPage() {
 
               <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
                 <button
-                  className="btn-primary"
-                  style={{ display: "flex", alignItems: "center", gap: 6, background: "#10b981" }}
+                  className="btn-success"
+                  style={{ display: "flex", alignItems: "center", gap: 6 }}
                   onClick={() => registrarEntradaSalida("entrada")}
                   disabled={procesando}
                 >
                   <ArrowDownCircle size={15} /> {t("caja.tipo_entrada")}
                 </button>
                 <button
-                  className="btn-primary"
-                  style={{ display: "flex", alignItems: "center", gap: 6, background: "#ef4444" }}
+                  className="btn-delete"
+                  style={{ display: "flex", alignItems: "center", gap: 6 }}
                   onClick={() => registrarEntradaSalida("salida")}
                   disabled={procesando}
                 >

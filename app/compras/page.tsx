@@ -115,6 +115,11 @@ function ComprasContenido() {
       return;
     }
 
+    if (!Number.isInteger(cantidad)) {
+      mostrarToast(t("comun.msg_cantidad_entera"), "error");
+      return;
+    }
+
     if (!Number.isFinite(costoNum) || costoNum < 0) {
       mostrarToast(t("compras.msg_costo_invalido"), "error");
       return;

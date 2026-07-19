@@ -82,6 +82,11 @@ export default function AjustesStockPage() {
       return;
     }
 
+    if (!Number.isInteger(cantidadNum)) {
+      mostrarToast(t("comun.msg_cantidad_entera"), "error");
+      return;
+    }
+
     const delta = tipo === "agregar" ? cantidadNum : -cantidadNum;
 
     if (tipo === "quitar" && cantidadNum > producto.stock) {

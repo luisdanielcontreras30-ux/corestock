@@ -9,6 +9,13 @@ interface Props {
   params: Promise<{ token: string }>;
 }
 
+// Con separador de miles — sin importar formatoMoneda() de ventas/utils
+// para no meter xlsx (usado solo por exportarExcel) en el bundle de esta
+// página pública.
+function precioFormato(valor: number) {
+  return valor.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export default function PortalClientePage({ params }: Props) {
   const { token } = use(params);
   const { t } = useIdioma();
@@ -79,7 +86,7 @@ export default function PortalClientePage({ params }: Props) {
         <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
           {t("portal_publico.total_gastado")}
         </p>
-        <h2 style={{ fontSize: 28, margin: "6px 0 0 0", color: "var(--primary)" }}>${totalGastado.toFixed(2)}</h2>
+        <h2 style={{ fontSize: 28, margin: "6px 0 0 0", color: "var(--primary)" }}>${precioFormato(totalGastado)}</h2>
       </div>
 
       <div className="tabla">
@@ -105,7 +112,7 @@ export default function PortalClientePage({ params }: Props) {
                   <td>{new Date(c.fecha).toLocaleDateString()}</td>
                   <td>{c.producto}</td>
                   <td>{c.cantidad}</td>
-                  <td style={{ fontWeight: 700 }}>${Number(c.total).toFixed(2)}</td>
+                  <td style={{ fontWeight: 700 }}>${precioFormato(Number(c.total))}</td>
                 </tr>
               ))
             )}
