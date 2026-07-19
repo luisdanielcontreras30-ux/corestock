@@ -26,6 +26,11 @@ export default function MobileTabBar() {
   const { esEasy } = useModoInterfaz();
   const [fabAbierto, setFabAbierto] = useState(false);
 
+  // Sin ninguno de los dos permisos, el panel del "+" se abriría vacío
+  // (solo el encabezado, sin ninguna opción) — mejor no mostrar el
+  // botón que abrir un panel en blanco.
+  const tieneAccionesFab = puede("registrar_ventas") || puede("gestionar_inventario");
+
   // En modo Easy, "Caja" reemplaza a "Ventas" en la barra — vender de
   // verdad ya vive en el botón central (+), y Caja es uno de los
   // cuatro destinos principales de este modo.
@@ -110,20 +115,22 @@ export default function MobileTabBar() {
           })}
         </div>
 
-        <button
-          className="mobile-tab-fab"
-          aria-label={t("mobile.acciones_rapidas")}
-          onClick={() => setFabAbierto((v) => !v)}
-        >
-          <Plus
-            size={24}
-            color="#fff"
-            style={{
-              transform: fabAbierto ? "rotate(45deg)" : "none",
-              transition: "transform .2s ease",
-            }}
-          />
-        </button>
+        {tieneAccionesFab && (
+          <button
+            className="mobile-tab-fab"
+            aria-label={t("mobile.acciones_rapidas")}
+            onClick={() => setFabAbierto((v) => !v)}
+          >
+            <Plus
+              size={24}
+              color="#fff"
+              style={{
+                transform: fabAbierto ? "rotate(45deg)" : "none",
+                transition: "transform .2s ease",
+              }}
+            />
+          </button>
+        )}
 
         <div className="mobile-tabbar-lado">
           {!miembroActivo && tabs.slice(2).map((tab) => {
