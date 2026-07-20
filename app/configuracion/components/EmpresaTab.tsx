@@ -17,6 +17,7 @@ const IDIOMAS = [
   { valor: "fr", nombre: "Français" },
   { valor: "de", nombre: "Deutsch" },
   { valor: "zh", nombre: "中文" },
+  { valor: "it", nombre: "Italiano" },
 ];
 const ZONAS_HORARIAS = [
   "America/Mexico_City",

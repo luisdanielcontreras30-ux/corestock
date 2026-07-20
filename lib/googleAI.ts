@@ -11,6 +11,7 @@ const NOMBRE_IDIOMA: Record<string, string> = {
   fr: "francés",
   de: "alemán",
   zh: "chino",
+  it: "italiano",
 };
 
 export interface ResultadoAnalisisProducto {

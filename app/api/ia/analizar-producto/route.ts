@@ -15,12 +15,12 @@ const TIPOS_PERMITIDOS = new Set(["image/png", "image/jpeg", "image/webp", "imag
 // app y nunca incluyen el texto crudo de un error de proveedor externo
 // (ej. Gemini), que queda solo en el console.error del servidor.
 const MENSAJES: Record<string, Record<string, string>> = {
-  no_autenticado: { es: "No autenticado.", en: "Not authenticated.", pt: "Não autenticado.", fr: "Non authentifié.", de: "Nicht authentifiziert.", zh: "未认证。" },
-  cuerpo_invalido: { es: "Cuerpo de la solicitud inválido.", en: "Invalid request body.", pt: "Corpo da solicitação inválido.", fr: "Corps de la requête invalide.", de: "Ungültiger Anfragetext.", zh: "请求正文无效。" },
-  falta_imagen: { es: "Falta la imagen a analizar.", en: "Missing image to analyze.", pt: "Falta a imagem a analisar.", fr: "Image à analyser manquante.", de: "Bild zum Analysieren fehlt.", zh: "缺少要分析的图片。" },
-  tipo_no_soportado: { es: "Tipo de imagen no soportado.", en: "Unsupported image type.", pt: "Tipo de imagem não suportado.", fr: "Type d'image non pris en charge.", de: "Nicht unterstützter Bildtyp.", zh: "不支持的图片类型。" },
-  imagen_muy_grande: { es: "La imagen es demasiado grande.", en: "The image is too large.", pt: "A imagem é muito grande.", fr: "L'image est trop grande.", de: "Das Bild ist zu groß.", zh: "图片太大。" },
-  fallo_analisis: { es: "No se pudo analizar la imagen. Intenta de nuevo en un momento.", en: "Couldn't analyze the image. Try again in a moment.", pt: "Não foi possível analisar a imagem. Tente novamente em instantes.", fr: "Impossible d'analyser l'image. Réessayez dans un instant.", de: "Bild konnte nicht analysiert werden. Versuche es gleich noch einmal.", zh: "无法分析图片，请稍后重试。" },
+  no_autenticado: { es: "No autenticado.", en: "Not authenticated.", pt: "Não autenticado.", fr: "Non authentifié.", de: "Nicht authentifiziert.", zh: "未认证。", it: "Non autenticato." },
+  cuerpo_invalido: { es: "Cuerpo de la solicitud inválido.", en: "Invalid request body.", pt: "Corpo da solicitação inválido.", fr: "Corps de la requête invalide.", de: "Ungültiger Anfragetext.", zh: "请求正文无效。", it: "Corpo della richiesta non valido." },
+  falta_imagen: { es: "Falta la imagen a analizar.", en: "Missing image to analyze.", pt: "Falta a imagem a analisar.", fr: "Image à analyser manquante.", de: "Bild zum Analysieren fehlt.", zh: "缺少要分析的图片。", it: "Manca l'immagine da analizzare." },
+  tipo_no_soportado: { es: "Tipo de imagen no soportado.", en: "Unsupported image type.", pt: "Tipo de imagem não suportado.", fr: "Type d'image non pris en charge.", de: "Nicht unterstützter Bildtyp.", zh: "不支持的图片类型。", it: "Tipo di immagine non supportato." },
+  imagen_muy_grande: { es: "La imagen es demasiado grande.", en: "The image is too large.", pt: "A imagem é muito grande.", fr: "L'image est trop grande.", de: "Das Bild ist zu groß.", zh: "图片太大。", it: "L'immagine è troppo grande." },
+  fallo_analisis: { es: "No se pudo analizar la imagen. Intenta de nuevo en un momento.", en: "Couldn't analyze the image. Try again in a moment.", pt: "Não foi possível analisar a imagem. Tente novamente em instantes.", fr: "Impossible d'analyser l'image. Réessayez dans un instant.", de: "Bild konnte nicht analysiert werden. Versuche es gleich noch einmal.", zh: "无法分析图片，请稍后重试。", it: "Impossibile analizzare l'immagine. Riprova tra un momento." },
 };
 
 function mensaje(clave: keyof typeof MENSAJES, idioma: string) {

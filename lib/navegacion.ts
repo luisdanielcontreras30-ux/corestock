@@ -27,6 +27,7 @@ import {
   Crown,
   Zap,
   ScanSearch,
+  RotateCcw,
   LucideIcon,
 } from "lucide-react";
 
@@ -77,6 +78,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
     items: [
       { claveNombre: "sidebar.ventas", href: "/ventas", Icono: DollarSign, colorMovil: "#10b981" },
       { claveNombre: "sidebar.ventas_rapidas", href: "/ventas-rapidas", Icono: Zap, colorMovil: "#10b981" },
+      { claveNombre: "sidebar.devoluciones", href: "/devoluciones", Icono: RotateCcw, colorMovil: "#fb7185" },
       { claveNombre: "sidebar.clientes", href: "/clientes", Icono: Users, colorMovil: "#ec4899" },
       { claveNombre: "sidebar.compras", href: "/compras", Icono: ShoppingCart, colorMovil: "#14b8a6" },
       { claveNombre: "sidebar.cotizaciones", href: "/cotizaciones", Icono: FileText, colorMovil: "#3b82f6" },

@@ -1,0 +1,129 @@
+import { supabase } from "../../lib/supabase";
+import { ajustarStockConCas } from "../../lib/stockCas";
+import { Producto, Devolucion } from "./types";
+
+export async function cargarDatos() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      productos: [] as Producto[],
+      devoluciones: [] as Devolucion[],
+    };
+  }
+
+  const userId = user.id;
+
+  // Las 2 consultas son independientes — se piden en paralelo en vez de
+  // una tras otra para no sumar sus tiempos de ida y vuelta.
+  const [
+    { data: productos, error: errorProductos },
+    { data: devoluciones, error: errorDevoluciones },
+  ] = await Promise.all([
+    supabase
+      .from("productos")
+      .select("id, nombre, stock, precio_venta")
+      .eq("user_id", userId)
+      .eq("activo", true)
+      .order("nombre"),
+    supabase
+      .from("devoluciones")
+      .select("*")
+      .eq("user_id", userId)
+      .order("id", { ascending: false }),
+  ]);
+
+  if (errorProductos) throw errorProductos;
+  if (errorDevoluciones) throw errorDevoluciones;
+
+  return {
+    productos: (productos ?? []) as Producto[],
+    devoluciones: (devoluciones ?? []) as Devolucion[],
+  };
+}
+
+export async function registrarDevolucion(
+  producto: Producto,
+  cantidad: number,
+  montoReembolsado: number,
+  motivo: string,
+  reponerStock: boolean
+) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Usuario no autenticado");
+  }
+
+  // Repite del lado del servidor las mismas validaciones que ya hace
+  // el formulario — esta acción es exportada y podría llamarse
+  // directamente sin pasar por él.
+  if (!Number.isFinite(cantidad) || cantidad <= 0) {
+    throw new Error("La cantidad debe ser mayor a 0");
+  }
+
+  if (!Number.isFinite(montoReembolsado) || montoReembolsado < 0) {
+    throw new Error("El monto reembolsado no puede ser negativo");
+  }
+
+  const { error } = await supabase.from("devoluciones").insert({
+    user_id: user.id,
+    producto_id: producto.id,
+    producto: producto.nombre,
+    cantidad,
+    monto_reembolsado: montoReembolsado,
+    motivo: motivo.trim() || null,
+    repuso_stock: reponerStock,
+    fecha: new Date().toISOString(),
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (reponerStock) {
+    const exito = await ajustarStockConCas(producto.id, user.id, cantidad);
+    if (!exito) {
+      // La devolución ya quedó registrada (el reembolso es un hecho
+      // real) — solo no se pudo reponer el stock automáticamente por
+      // una condición de carrera persistente. Se avisa para ajustarlo
+      // a mano en vez de perder silenciosamente esas unidades.
+      throw new Error(
+        "La devolución se registró, pero no se pudo reponer el stock automáticamente. Ajústalo desde Ajustes de Stock."
+      );
+    }
+  }
+}
+
+export async function eliminarDevolucion(devolucion: Devolucion) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Usuario no autenticado");
+  }
+
+  const { error } = await supabase
+    .from("devoluciones")
+    .delete()
+    .eq("id", devolucion.id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    throw error;
+  }
+
+  // Si esta devolución había repuesto stock, deshacer ese incremento
+  // al borrar el registro — mismo patrón que eliminarAjuste en
+  // Ajustes de Stock.
+  if (devolucion.repuso_stock && devolucion.producto_id) {
+    await ajustarStockConCas(devolucion.producto_id, user.id, -devolucion.cantidad, {
+      minimoCero: true,
+    });
+  }
+}
