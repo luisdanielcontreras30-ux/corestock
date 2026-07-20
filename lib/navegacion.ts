@@ -97,7 +97,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { claveNombre: "sidebar.promociones", href: "/promociones", Icono: Percent, colorMovil: "#f97316" },
       { claveNombre: "sidebar.catalogo_linea", href: "/catalogo-linea", Icono: BookOpen, colorMovil: "#7c3aed" },
       { claveNombre: "sidebar.portal_clientes", href: "/portal-clientes", Icono: UserCircle, colorMovil: "#db2777" },
-      { claveNombre: "sidebar.whatsapp", href: "/whatsapp", Icono: MessageCircle, proximamente: true, colorMovil: "#25d366" },
+      { claveNombre: "sidebar.whatsapp", href: "/whatsapp", Icono: MessageCircle, colorMovil: "#25d366" },
     ],
   },
   {

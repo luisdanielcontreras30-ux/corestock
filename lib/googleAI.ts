@@ -203,3 +203,92 @@ export async function analizarImagenProducto(
 
   return extraerResultado(texto);
 }
+
+// "Empleados IA" — Vendedor de WhatsApp (fase 1: solo la lógica que
+// genera la respuesta a partir del catálogo real; la conexión con
+// WhatsApp de verdad se agrega después). Reusa la misma clave de
+// Google AI que el análisis de fotos de producto.
+export interface ProductoParaVendedor {
+  nombre: string;
+  categoria: string | null;
+  precio_venta: number;
+  stock: number;
+}
+
+function construirPromptVendedor(
+  pregunta: string,
+  productos: ProductoParaVendedor[],
+  idioma: string
+): string {
+  const idiomaTexto = NOMBRE_IDIOMA[idioma] ?? "español";
+
+  const catalogoTexto =
+    productos.length > 0
+      ? productos
+          .map(
+            (p) =>
+              `- ${p.nombre} (${p.categoria || "sin categoría"}): $${p.precio_venta}, ` +
+              (p.stock > 0 ? `${p.stock} disponibles` : "agotado")
+          )
+          .join("\n")
+      : "(El catálogo todavía no tiene productos.)";
+
+  return (
+    "Eres el vendedor virtual de un negocio, respondiendo por WhatsApp a un " +
+    "cliente. Responde ÚNICAMENTE con el mensaje que le mandarías al cliente " +
+    "— sin explicaciones, sin markdown, en tono amable y breve (máximo 3 " +
+    `frases). Responde en ${idiomaTexto}. ` +
+    "SOLO puedes usar la información del catálogo de abajo: si preguntan por " +
+    "algo que no está en la lista, dilo amablemente sin inventar precios ni " +
+    "existencias. Si el stock de un producto es 0, di que está agotado — " +
+    "nunca lo ofrezcas como disponible.\n\n" +
+    `Catálogo:\n${catalogoTexto}\n\n` +
+    `Pregunta del cliente: "${pregunta}"`
+  );
+}
+
+export async function generarRespuestaVendedor(
+  pregunta: string,
+  productos: ProductoParaVendedor[],
+  idioma: string
+): Promise<string> {
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
+
+  if (!apiKey) {
+    throw new ErrorGoogleAI("Falta configurar GOOGLE_AI_API_KEY en el servidor.", 401);
+  }
+
+  const modelo = process.env.GOOGLE_AI_MODEL || MODELO_POR_DEFECTO;
+
+  const respuesta = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: construirPromptVendedor(pregunta, productos, idioma) }] }],
+        generationConfig: { temperature: 0.5, thinkingConfig: { thinkingBudget: 0 } },
+      }),
+    }
+  );
+
+  if (!respuesta.ok) {
+    let detalle = `HTTP ${respuesta.status}`;
+    try {
+      const cuerpo = await respuesta.json();
+      detalle = cuerpo?.error?.message || detalle;
+    } catch {
+      // sin cuerpo JSON legible, se deja el detalle genérico
+    }
+    throw new ErrorGoogleAI(detalle, respuesta.status);
+  }
+
+  const datos = await respuesta.json();
+  const texto = datos?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (typeof texto !== "string" || !texto.trim()) {
+    throw new Error("Google AI no devolvió una respuesta utilizable.");
+  }
+
+  return texto.trim();
+}

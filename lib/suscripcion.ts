@@ -24,6 +24,7 @@ export const RUTAS_PLUS = [
   "/portal-clientes",
   "/asistente",
   "/promociones",
+  "/whatsapp",
 ] as const;
 
 export function esRutaPlus(ruta: string): boolean {
