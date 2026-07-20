@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShoppingCart, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../components/AuthProvider";
@@ -160,14 +160,18 @@ function ComprasContenido() {
     }
   }
 
-  const comprasFiltradas = compras.filter((c) => {
-    const termino = busqueda.toLowerCase().trim();
-    if (!termino) return true;
-    return (
-      c.producto.toLowerCase().includes(termino) ||
-      (c.proveedor_nombre ?? "").toLowerCase().includes(termino)
-    );
-  });
+  const comprasFiltradas = useMemo(
+    () =>
+      compras.filter((c) => {
+        const termino = busqueda.toLowerCase().trim();
+        if (!termino) return true;
+        return (
+          c.producto.toLowerCase().includes(termino) ||
+          (c.proveedor_nombre ?? "").toLowerCase().includes(termino)
+        );
+      }),
+    [compras, busqueda]
+  );
 
   if (cargandoAuth || !user) {
     return (

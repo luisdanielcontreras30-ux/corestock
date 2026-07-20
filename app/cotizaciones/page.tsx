@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Check, X, Trash2, ShoppingCart, Share2 } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
@@ -199,15 +199,19 @@ function CotizacionesContenido() {
     }
   }
 
-  const cotizacionesFiltradas = cotizaciones.filter((c) => {
-    if (filtroEstado !== "" && c.estado !== filtroEstado) return false;
+  const cotizacionesFiltradas = useMemo(
+    () =>
+      cotizaciones.filter((c) => {
+        if (filtroEstado !== "" && c.estado !== filtroEstado) return false;
 
-    const termino = busqueda.toLowerCase().trim();
-    if (!termino) return true;
+        const termino = busqueda.toLowerCase().trim();
+        if (!termino) return true;
 
-    const nombreCliente = (c.cliente_nombre ?? t("ventas.cliente_general")).toLowerCase();
-    return nombreCliente.includes(termino) || c.producto.toLowerCase().includes(termino);
-  });
+        const nombreCliente = (c.cliente_nombre ?? t("ventas.cliente_general")).toLowerCase();
+        return nombreCliente.includes(termino) || c.producto.toLowerCase().includes(termino);
+      }),
+    [cotizaciones, filtroEstado, busqueda, t]
+  );
 
   if (cargandoAuth || !user) {
     return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Users } from "lucide-react";
 import ClienteForm from "./components/ClienteForm";
 import ClientesTabla from "./components/ClientesTabla";
@@ -148,8 +148,9 @@ export default function ClientesPage() {
     }
   }
 
-  const clientesFiltrados = clientes.filter((c) =>
-    c.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  const clientesFiltrados = useMemo(
+    () => clientes.filter((c) => c.nombre.toLowerCase().includes(busqueda.toLowerCase())),
+    [clientes, busqueda]
   );
 
   return (

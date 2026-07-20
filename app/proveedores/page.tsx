@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Phone, Mail, Plus, Truck, History } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -161,8 +161,10 @@ function ProveedoresContenido() {
     }
   }
 
-  const proveedoresFiltrados = proveedores.filter((p) =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase().trim())
+  const proveedoresFiltrados = useMemo(
+    () =>
+      proveedores.filter((p) => p.nombre.toLowerCase().includes(busqueda.toLowerCase().trim())),
+    [proveedores, busqueda]
   );
 
   return (

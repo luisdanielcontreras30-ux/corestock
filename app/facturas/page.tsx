@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Receipt } from "lucide-react";
@@ -56,15 +56,19 @@ function FacturasContenido() {
 
   const texto = busqueda.trim().toLowerCase();
 
-  const filtradas = ventas.filter((v) => {
-    if (!texto) return true;
+  const filtradas = useMemo(
+    () =>
+      ventas.filter((v) => {
+        if (!texto) return true;
 
-    return (
-      v.producto.toLowerCase().includes(texto) ||
-      (v.clientes?.nombre ?? "").toLowerCase().includes(texto) ||
-      folioDe(v.id).toLowerCase().includes(texto)
-    );
-  });
+        return (
+          v.producto.toLowerCase().includes(texto) ||
+          (v.clientes?.nombre ?? "").toLowerCase().includes(texto) ||
+          folioDe(v.id).toLowerCase().includes(texto)
+        );
+      }),
+    [ventas, texto]
+  );
 
   if (cargandoAuth || !user) {
     return (

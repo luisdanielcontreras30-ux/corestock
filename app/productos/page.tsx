@@ -283,10 +283,11 @@ function ProductosInterno() {
         .eq("user_id", user.id);
 
       if (error) {
+        console.error(error);
         if (error.message.includes("foreign key") || error.code === "23503") {
           mostrarToast(t("productos.msg_error_eliminar_fk"), "error");
         } else {
-          mostrarToast(`${t("productos.msg_error_eliminar")}: ${error.message}`, "error");
+          mostrarToast(t("productos.msg_error_eliminar"), "error");
         }
         return;
       }

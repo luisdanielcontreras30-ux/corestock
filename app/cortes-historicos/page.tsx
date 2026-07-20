@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarClock } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
@@ -55,12 +55,16 @@ function CortesHistoricosContenido() {
       .finally(() => setLoading(false));
   }, [cargandoAuth, user]);
 
-  const filtrados = cierres.filter((c) => {
-    const fecha = new Date(c.fecha);
-    if (desde && fecha < new Date(`${desde}T00:00:00`)) return false;
-    if (hasta && fecha > new Date(`${hasta}T23:59:59`)) return false;
-    return true;
-  });
+  const filtrados = useMemo(
+    () =>
+      cierres.filter((c) => {
+        const fecha = new Date(c.fecha);
+        if (desde && fecha < new Date(`${desde}T00:00:00`)) return false;
+        if (hasta && fecha > new Date(`${hasta}T23:59:59`)) return false;
+        return true;
+      }),
+    [cierres, desde, hasta]
+  );
 
   const totalCortes = filtrados.length;
   const diferenciaAcumulada = filtrados.reduce((sum, c) => sum + (c.diferencia ?? 0), 0);
