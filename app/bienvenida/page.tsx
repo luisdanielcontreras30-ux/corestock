@@ -76,6 +76,7 @@ export default function BienvenidaPage() {
             <Link href="/login?modo=login" className="landing-cta-secondary">
               {t("bienvenida.cta_ya_tengo_cuenta")}
             </Link>
+            <BotonInstalarApp className="landing-cta-descargar" />
           </div>
         </div>
 
