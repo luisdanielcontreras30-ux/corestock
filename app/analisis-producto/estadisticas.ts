@@ -80,8 +80,13 @@ export function calcularEstadisticasCategoria(
   }
 
   const precioPromedio = promedio(productosCategoria.map((p) => p.precio_venta));
+  // costo=0 no distingue "el negocio no capturó el costo" de "este
+  // producto de verdad no cuesta nada" — guardar() en Productos escribe
+  // 0 (nunca null) cuando el campo se deja vacío, así que tratar 0 como
+  // costo real infla el margen a 100% para cualquier producto sin costo
+  // capturado. Se excluye igual que el caso null.
   const margenes = productosCategoria
-    .filter((p) => p.costo != null && p.precio_venta > 0)
+    .filter((p) => p.costo != null && p.costo > 0 && p.precio_venta > 0)
     .map((p) => (p.precio_venta - (p.costo as number)) / p.precio_venta);
   const margenPromedioPct = margenes.length > 0 ? promedio(margenes) : null;
 
@@ -99,17 +104,20 @@ export function calcularEstadisticasCategoria(
   }
 
   const porMesUnidades = new Map<string, number>();
-  const mesesConVenta = new Set<string>();
 
   for (const v of ventasCategoria) {
     const clave = claveMes(new Date(v.fecha));
     porMesUnidades.set(clave, (porMesUnidades.get(clave) ?? 0) + v.cantidad);
-    mesesConVenta.add(clave);
   }
 
-  const mesesConDatos = mesesConVenta.size;
-  const unidadesPromedioMes = ventasCategoria.reduce((acc, v) => acc + v.cantidad, 0) / mesesConDatos;
-  const ingresosPromedioMes = ventasCategoria.reduce((acc, v) => acc + v.total, 0) / mesesConDatos;
+  // Se divide entre la ventana fija (MESES_HISTORIAL), no entre los
+  // meses que sí tuvieron venta — dividir solo entre meses con datos
+  // convertía una venta puntual en un solo mes en un "promedio
+  // mensual" igual de alto que si se vendiera todos los meses,
+  // contradiciendo la propia gráfica de barras (que sí muestra los
+  // meses sin venta en cero).
+  const unidadesPromedioMes = ventasCategoria.reduce((acc, v) => acc + v.cantidad, 0) / MESES_HISTORIAL;
+  const ingresosPromedioMes = ventasCategoria.reduce((acc, v) => acc + v.total, 0) / MESES_HISTORIAL;
   const gananciaEstimadaMensual = margenPromedioPct != null ? ingresosPromedioMes * margenPromedioPct : 0;
 
   return {
@@ -122,7 +130,7 @@ export function calcularEstadisticasCategoria(
     margenPromedioPct,
     ingresosPromedioMes,
     gananciaEstimadaMensual,
-    frecuencia: clasificarFrecuencia(ventasCategoria.length / mesesConDatos),
+    frecuencia: clasificarFrecuencia(ventasCategoria.length / MESES_HISTORIAL),
     ventasPorMes: construirSerieMeses(porMesUnidades),
   };
 }

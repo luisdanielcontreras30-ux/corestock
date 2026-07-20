@@ -10,8 +10,18 @@
 const LADO_MAXIMO_PX = 1600;
 const CALIDAD_JPEG = 0.85;
 
+// PNG/WEBP/GIF pueden tener transparencia (el caso típico es un logo
+// de negocio con fondo transparente) — forzar todo a JPEG rellenaría
+// esas zonas de negro. Solo se reconvierte a JPEG lo que ya venía sin
+// canal alfa (fotos), donde además comprime mucho mejor.
+const TIPOS_CON_ALFA = new Set(["image/png", "image/webp", "image/gif"]);
+
 export async function redimensionarParaSubir(archivo: File): Promise<File> {
   try {
+    const preservarAlfa = TIPOS_CON_ALFA.has(archivo.type);
+    const tipoSalida = preservarAlfa ? "image/png" : "image/jpeg";
+    const extension = preservarAlfa ? "png" : "jpg";
+
     const bitmap = await createImageBitmap(archivo);
     const escala = Math.min(1, LADO_MAXIMO_PX / Math.max(bitmap.width, bitmap.height));
     const ancho = Math.max(1, Math.round(bitmap.width * escala));
@@ -27,13 +37,13 @@ export async function redimensionarParaSubir(archivo: File): Promise<File> {
     bitmap.close();
 
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", CALIDAD_JPEG)
+      canvas.toBlob(resolve, tipoSalida, preservarAlfa ? undefined : CALIDAD_JPEG)
     );
 
     if (!blob) throw new Error("No se pudo generar la imagen redimensionada");
 
-    const nombre = archivo.name.replace(/\.\w+$/, "") + ".jpg";
-    return new File([blob], nombre, { type: "image/jpeg" });
+    const nombre = archivo.name.replace(/\.\w+$/, "") + "." + extension;
+    return new File([blob], nombre, { type: tipoSalida });
   } catch (error) {
     // Si el redimensionado falla (formato no soportado por el
     // navegador, etc.) se sube el archivo original tal cual en vez de
