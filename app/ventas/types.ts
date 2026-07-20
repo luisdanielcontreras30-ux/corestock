@@ -32,6 +32,10 @@ export interface Venta {
   precio: number;
   total: number;
   metodo_pago: MetodoPago;
+  // Solo es relevante cuando metodo_pago es "prestamo" — indica si esa
+  // venta fiada ya se cobró. Cualquier otro método siempre queda en
+  // true (ver registrarVenta()). Usado por el módulo Cuentas por Cobrar.
+  cobrado: boolean;
 
   producto_id: number;
   cliente_id: number | null;

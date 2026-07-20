@@ -194,6 +194,10 @@ export async function registrarVenta(
         precio: precioUnitario,
         total,
         metodo_pago: metodoPago,
+        // Una venta a préstamo empieza sin cobrar — cualquier otro
+        // método se da por cobrado de inmediato. Ver módulo Cuentas
+        // por Cobrar.
+        cobrado: metodoPago !== "prestamo",
         uuid: uuid ?? null,
         user_id: user.id,
       })
