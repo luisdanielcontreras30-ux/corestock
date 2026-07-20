@@ -1674,8 +1674,9 @@ select optgroup {
 
 .sidebar-link {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 4px 12px;
   padding: 13px 14px;
   border-radius: 10px;
   color: var(--text-secondary);
@@ -1704,8 +1705,14 @@ select optgroup {
 }
 
 .sidebar-link-label {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 auto;
+  /* No 0: con 0 el texto se aplastaba hasta un par de letras para
+     dejarle espacio a la etiqueta "Próximamente"/"Plus+" en vez de
+     bajar de línea (ver flex-wrap en .sidebar-link) — algunos idiomas
+     traducen esa etiqueta con una palabra bastante más larga
+     ("Bientôt disponible" en francés), así que el mínimo no puede
+     depender del idioma actual. */
+  min-width: 70px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
