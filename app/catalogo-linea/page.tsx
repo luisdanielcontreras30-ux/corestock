@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Copy, ExternalLink } from "lucide-react";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -64,7 +65,7 @@ export default function CatalogoLineaPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(error instanceof Error ? error.message : t("catalogo_linea.msg_error_guardar"), "error");
+      mostrarToast(mensajeErrorSeguro(error) || t("catalogo_linea.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }

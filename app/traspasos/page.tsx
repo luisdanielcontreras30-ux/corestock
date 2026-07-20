@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRightLeft, Trash2 } from "lucide-react";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -105,7 +106,7 @@ function TraspasosContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(error instanceof Error ? error.message : t("traspasos.msg_error_eliminar_ubicacion"), "error");
+      mostrarToast(mensajeErrorSeguro(error) || t("traspasos.msg_error_eliminar_ubicacion"), "error");
     }
   }
 
@@ -164,7 +165,7 @@ function TraspasosContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(error instanceof Error ? error.message : t("traspasos.msg_error_traspaso"), "error");
+      mostrarToast(mensajeErrorSeguro(error) || t("traspasos.msg_error_traspaso"), "error");
     } finally {
       setTraspasando(false);
     }

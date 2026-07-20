@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingCart, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -140,7 +141,7 @@ function ComprasContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("compras.msg_error_registrar"), "error");
     } finally {
       setGuardando(false);
@@ -155,7 +156,7 @@ function ComprasContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(`${t("compras.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`, "error");
     }
   }

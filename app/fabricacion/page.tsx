@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Factory, Trash2, PackagePlus } from "lucide-react";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -242,7 +243,7 @@ function FabricacionContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("fabricacion.msg_error_producir"), "error");
     } finally {
       setProduciendo(false);

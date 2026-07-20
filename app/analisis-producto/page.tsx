@@ -18,6 +18,7 @@ import { useToast } from "../../components/ToastProvider";
 import RequierePlus from "../../components/RequierePlus";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { analizarProductoConIA } from "../../lib/iaAcciones";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import { formatoMoneda } from "../ventas/utils";
 import { EstadisticasCategoria, ProductoCategoria, ResultadoIA, VentaCategoria } from "./types";
 import { cargarDatosAnalisis } from "./acciones";
@@ -83,6 +84,7 @@ function AnalisisProductoContenido() {
   );
 
   function manejarArchivo(file: File) {
+    if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
     setImagen(file);
     setPreview(URL.createObjectURL(file));
     setResultadoIA(null);
@@ -106,7 +108,7 @@ function AnalisisProductoContenido() {
       );
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("analisis.msg_error_analizar"), "error");
     } finally {
       setAnalizando(false);
@@ -114,6 +116,7 @@ function AnalisisProductoContenido() {
   }
 
   function analizarOtra() {
+    if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
     setImagen(null);
     setPreview("");
     setResultadoIA(null);
@@ -307,7 +310,9 @@ function ResultadoEstadisticas({
           <div className="card" style={{ marginTop: 14, background: "var(--glass-bg)" }}>
             <p className="analisis-stat-label" style={{ marginBottom: 8 }}>
               {t("analisis.ganancia_estimada_mes")}:{" "}
-              <strong style={{ color: "#10b981" }}>{formatoMoneda(gananciaEstimadaMensual)}</strong>
+              <strong style={{ color: "#10b981" }}>
+                {margenPromedioPct != null ? formatoMoneda(gananciaEstimadaMensual) : "—"}
+              </strong>
             </p>
 
             <div style={{ width: "100%", height: 140 }}>

@@ -2,6 +2,7 @@ import { supabase } from "../../lib/supabase";
 import { registrarVenta } from "../ventas/acciones";
 import { Producto, Promocion, MetodoPago } from "../ventas/types";
 import { db, generarUuid, esFalloDeRed } from "../../lib/db";
+import { mensajeErrorSeguro } from "../../lib/errores";
 
 // Intenta traer productos y promociones de Supabase; si falla (sin
 // conexión, o con conexión pero sin poder alcanzar el servidor — por
@@ -136,7 +137,7 @@ export async function registrarVentaRapida(
       // validación real), se encola para sincronizar después en vez de
       // perder la venta.
       if (!esFalloDeRed(error)) {
-        const mensaje = error instanceof Error ? error.message : String(error);
+        const mensaje = mensajeErrorSeguro(error) || String(error);
         throw new ErrorCobroParcial(mensaje, vendidos);
       }
 

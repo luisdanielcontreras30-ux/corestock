@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase";
 import { subirImagenSegura } from "../../lib/uploads";
 import { redimensionarParaSubir } from "../../lib/imagenes";
 import { analizarProductoConIA } from "../../lib/iaAcciones";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
 import { ImagePlus, Package, Plus, Sparkles } from "lucide-react";
@@ -254,6 +255,7 @@ function ProductosInterno() {
     setStock(String(p.stock));
     setStockMinimo(p.stock_minimo != null ? String(p.stock_minimo) : "");
     setDescripcion(p.descripcion || "");
+    if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
     setPreview(p.imagen || "");
     setImagen(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -262,6 +264,7 @@ function ProductosInterno() {
   // Compartido por el <input type="file"> (clic/cámara) y por soltar
   // un archivo arrastrado sobre la caja de subir imagen.
   function manejarArchivoSeleccionado(file: File) {
+    if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
     setImagen(file);
     setPreview(URL.createObjectURL(file));
 
@@ -292,7 +295,7 @@ function ProductosInterno() {
       mostrarToast(t("productos.msg_ia_completado"), "exito");
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("productos.msg_error_analizar_ia"), "error");
     } finally {
       setAnalizandoIA(false);
@@ -346,6 +349,7 @@ function ProductosInterno() {
   // Solo la foto, sin tocar el resto del formulario — a diferencia de
   // limpiar() que resetea todo (pensado para después de guardar/cancelar).
   function limpiarImagen() {
+    if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
     setImagen(null);
     setPreview("");
 

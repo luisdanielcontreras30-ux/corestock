@@ -1,6 +1,7 @@
 import { db, VentaPendiente, CajaPendiente } from "./db";
 import { registrarVenta } from "../app/ventas/acciones";
 import { registrarMovimiento } from "../app/caja/acciones";
+import { mensajeErrorSeguro } from "./errores";
 import { Producto } from "../app/ventas/types";
 
 // Drena las colas de Dexie (ventas_pendientes, caja_pendientes) contra
@@ -71,7 +72,7 @@ export async function sincronizarPendientes(
       // muestre y alguien decida qué hacer (ej. ya no hay stock porque
       // otro dispositivo vendió el último mientras ambos estaban sin
       // conexión — eso es preferible a inventar stock que no existe).
-      const mensaje = error instanceof Error ? error.message : String(error);
+      const mensaje = mensajeErrorSeguro(error) || "Error de sincronización.";
       await db.ventas_pendientes.update(venta.uuid, {
         estado: "error",
         error: mensaje,
@@ -105,7 +106,7 @@ export async function sincronizarPendientes(
       });
       resultado.cajaSincronizada++;
     } catch (error) {
-      const mensaje = error instanceof Error ? error.message : String(error);
+      const mensaje = mensajeErrorSeguro(error) || "Error de sincronización.";
       await db.caja_pendientes.update(mov.uuid, {
         estado: "error",
         error: mensaje,

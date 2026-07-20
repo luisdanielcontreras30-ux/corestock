@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import VentaForm from "./VentaForm";
 import { cargarDatos, registrarVenta } from "../acciones";
+import { mensajeErrorSeguro } from "../../../lib/errores";
 import { Producto, Cliente, Promocion, MetodoPago } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
@@ -101,7 +102,7 @@ export default function NuevaVentaModal({ onClose }: Props) {
       onClose();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("ventas.msg_error_registrar"), "error");
     } finally {
       setGuardando(false);

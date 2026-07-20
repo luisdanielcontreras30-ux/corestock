@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Check, X, Trash2, ShoppingCart, Share2 } from "lucide-react";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -151,7 +152,7 @@ function CotizacionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("cotizaciones.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
@@ -192,7 +193,7 @@ function CotizacionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("cotizaciones.msg_error_convertir"), "error");
     } finally {
       setConvirtiendoId(null);

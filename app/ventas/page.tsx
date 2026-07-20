@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { DollarSign } from "lucide-react";
 import Historial from "./Historial";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import VentaForm from "./components/VentaForm";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 
@@ -139,7 +140,7 @@ export default function VentasPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("ventas.msg_error_registrar"), "error");
     } finally {
       setGuardando(false);
@@ -156,7 +157,7 @@ export default function VentasPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(`${t("ventas.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`, "error");
     }
   }

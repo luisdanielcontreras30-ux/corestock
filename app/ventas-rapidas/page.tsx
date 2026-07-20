@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -242,7 +243,7 @@ export default function VentasRapidasPage() {
       await obtenerDatos(false);
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(
         `${t("ventas_rapidas.msg_error_cobro")}${detalle ? ": " + detalle : ""}`,
         "error"

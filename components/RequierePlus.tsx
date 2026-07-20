@@ -9,6 +9,7 @@ import { useIdioma } from "./LanguageProvider";
 import { useToast } from "./ToastProvider";
 import { iniciarCheckoutPlus } from "../lib/suscripcionAcciones";
 import { BLOQUEO_PLUS_ACTIVO } from "../lib/suscripcion";
+import { mensajeErrorSeguro } from "../lib/errores";
 
 // Envuelve el contenido de un módulo exclusivo de CoreStock Plus+. Si
 // el negocio no tiene el plan Plus+, muestra un aviso con enlace para
@@ -29,7 +30,7 @@ export default function RequierePlus({ children }: { children: ReactNode }) {
       window.location.href = url;
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
+      const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("plus.msg_error_checkout"), "error");
       setProcesando(false);
     }

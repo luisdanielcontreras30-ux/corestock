@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Files, Trash2 } from "lucide-react";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -95,7 +96,7 @@ function FacturasGlobalesContenido() {
       if (error instanceof Error && error.message === "SIN_VENTAS_EN_RANGO") {
         mostrarToast(t("facturas_globales.msg_sin_ventas_rango"), "error");
       } else {
-        const detalle = error instanceof Error ? error.message : "";
+        const detalle = mensajeErrorSeguro(error);
         mostrarToast(detalle || t("facturas_globales.msg_error_generar"), "error");
       }
     } finally {

@@ -52,10 +52,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
+    // El detalle técnico (texto crudo de Postgres, a veces con nombres
+    // de tabla/columna) queda solo en los logs del servidor — al
+    // cliente le llega un mensaje genérico, igual que en el resto de
+    // las rutas de la API.
     console.error(error);
-    const detalle = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: `No se pudo guardar la contraseña: ${detalle}` },
+      { error: "No se pudo guardar la contraseña. Intenta de nuevo en un momento." },
       { status: 500 }
     );
   }
