@@ -158,6 +158,7 @@ async function ajustarStockUbicacion(
     .from("stock_ubicaciones")
     .update({ stock: nuevoStock })
     .eq("id", fila.id)
+    .eq("user_id", userId)
     .eq("stock", fila.stock)
     .select("id");
 
