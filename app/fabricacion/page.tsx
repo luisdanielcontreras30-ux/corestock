@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Factory, Trash2, PackagePlus } from "lucide-react";
+import { Factory, Trash2, PackagePlus, Plus, ArrowRight, Package } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -30,6 +30,13 @@ export default function FabricacionPage() {
   );
 }
 
+// Color estable por materia prima (mismo id → mismo color siempre),
+// para que las tarjetas del diagrama de receta sean distinguibles sin
+// depender de fotos que este módulo todavía no soporta.
+function colorAvatarMP(id: number): string {
+  return `hsl(${(id * 47) % 360}, 60%, 45%)`;
+}
+
 function FabricacionContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
@@ -43,6 +50,8 @@ function FabricacionContenido() {
   const [materiasPrimas, setMateriasPrimas] = useState<MateriaPrima[]>([]);
   const [recetas, setRecetas] = useState<IngredienteReceta[]>([]);
   const [producciones, setProducciones] = useState<Produccion[]>([]);
+
+  const nombreMpRef = useRef<HTMLInputElement>(null);
 
   // Materias primas
   const [nombreMP, setNombreMP] = useState("");
@@ -90,6 +99,11 @@ function FabricacionContenido() {
 
     obtenerDatos();
   }, [cargandoAuth, user]);
+
+  function irACrearFabricacion() {
+    nombreMpRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    nombreMpRef.current?.focus();
+  }
 
   async function guardarMateriaPrima() {
     if (guardandoMP) return;
@@ -278,12 +292,42 @@ function FabricacionContenido() {
         </div>
       ) : (
       <>
+      {materiasPrimas.length === 0 && recetas.length === 0 && (
+        <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              background: "rgba(234, 88, 12, 0.12)",
+              display: "grid",
+              placeItems: "center",
+              margin: "0 auto 16px",
+            }}
+          >
+            <Factory size={26} color="#ea580c" />
+          </div>
+          <h2 style={{ marginBottom: 8 }}>{t("fabricacion.vacio_titulo")}</h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: 13.5, maxWidth: 420, margin: "0 auto 20px" }}>
+            {t("fabricacion.vacio_texto")}
+          </p>
+          <button
+            className="btn-primary"
+            onClick={irACrearFabricacion}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            <Plus size={16} /> {t("fabricacion.vacio_boton")}
+          </button>
+        </div>
+      )}
+
       {/* MATERIAS PRIMAS */}
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("fabricacion.materias_primas")}</h2>
 
         <div className="productos-grid">
           <input
+            ref={nombreMpRef}
             value={nombreMP}
             onChange={(e) => setNombreMP(e.target.value)}
             placeholder={t("fabricacion.nombre_mp_placeholder")}
@@ -377,7 +421,161 @@ function FabricacionContenido() {
 
         {productoRecetaId && (
           <>
-            <div className="productos-grid" style={{ marginTop: 12 }}>
+            {/* Diagrama visual: cada materia prima de la receta se conecta
+                a la tarjeta del producto fabricado, para ver de un vistazo
+                de qué está hecho sin leer una lista. */}
+            <div
+              style={{
+                marginTop: 20,
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                padding: "20px 14px",
+                background: "var(--bg-secondary)",
+                border: "1px dashed var(--border)",
+                borderRadius: 14,
+              }}
+            >
+              {recetaSeleccionada.length === 0 ? (
+                <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
+                  {t("fabricacion.sin_receta")}
+                </p>
+              ) : (
+                <>
+                  {recetaSeleccionada.map((r, indice) => (
+                    <div key={r.id} style={{ display: "contents" }}>
+                      <div
+                        style={{
+                          position: "relative",
+                          width: 108,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "12px 8px",
+                          background: "var(--card-bg)",
+                          border: "1px solid var(--border)",
+                          borderRadius: 12,
+                          textAlign: "center",
+                        }}
+                      >
+                        <button
+                          className="btn-delete"
+                          onClick={() => borrarIngrediente(r.id)}
+                          aria-label={t("productos.eliminar")}
+                          style={{ position: "absolute", top: -8, right: -8, width: 22, height: 22, padding: 0, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                        <div
+                          style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: "50%",
+                            display: "grid",
+                            placeItems: "center",
+                            background: colorAvatarMP(r.materia_prima_id),
+                            color: "#fff",
+                            fontWeight: 700,
+                            fontSize: 14,
+                          }}
+                        >
+                          {r.materia_prima_nombre.charAt(0).toUpperCase()}
+                        </div>
+                        <span
+                          style={{
+                            fontSize: 12.5,
+                            fontWeight: 600,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: "100%",
+                          }}
+                        >
+                          {r.materia_prima_nombre}
+                        </span>
+                        <span style={{ fontSize: 11.5, color: "var(--text-secondary)" }}>
+                          {r.cantidad_por_unidad}
+                        </span>
+                      </div>
+                      {indice < recetaSeleccionada.length - 1 && (
+                        <Plus size={16} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+                      )}
+                    </div>
+                  ))}
+
+                  <ArrowRight size={20} color="#ea580c" style={{ flexShrink: 0, margin: "0 4px" }} />
+
+                  <div
+                    style={{
+                      width: 116,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "12px 8px",
+                      background: "rgba(234, 88, 12, 0.08)",
+                      border: "1px solid rgba(234, 88, 12, 0.35)",
+                      borderRadius: 12,
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        display: "grid",
+                        placeItems: "center",
+                        background: "#ea580c",
+                        color: "#fff",
+                      }}
+                    >
+                      <Package size={17} />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: "100%",
+                      }}
+                    >
+                      {productos.find((p) => p.id === Number(productoRecetaId))?.nombre}
+                    </span>
+                    <span style={{ fontSize: 10.5, color: "var(--text-secondary)" }}>
+                      {t("fabricacion.producto_fabricado")}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {recetaSeleccionada.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "10px 14px",
+                  marginTop: 12,
+                  background: "rgba(234, 88, 12, 0.08)",
+                  border: "1px solid rgba(234, 88, 12, 0.25)",
+                  borderRadius: 10,
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                <span>{t("fabricacion.costo_por_unidad")}</span>
+                <span>{formatoMoneda(costoPorUnidadReceta)}</span>
+              </div>
+            )}
+
+            <div className="productos-grid" style={{ marginTop: 20 }}>
               <SelectorPersonalizado value={materiaRecetaId} onChange={setMateriaRecetaId}>
                 <OpcionSelector value="">{t("fabricacion.selecciona_materia_prima")}</OpcionSelector>
                 {materiasPrimas.map((m) => (
@@ -405,59 +603,6 @@ function FabricacionContenido() {
               >
                 {t("fabricacion.agregar_ingrediente")}
               </button>
-            </div>
-
-            <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-              {recetaSeleccionada.length === 0 ? (
-                <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>
-                  {t("fabricacion.sin_receta")}
-                </p>
-              ) : (
-                <>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "10px 14px",
-                      background: "rgba(234, 88, 12, 0.08)",
-                      border: "1px solid rgba(234, 88, 12, 0.25)",
-                      borderRadius: 10,
-                      fontSize: 13,
-                      fontWeight: 600,
-                    }}
-                  >
-                    <span>{t("fabricacion.costo_por_unidad")}</span>
-                    <span>{formatoMoneda(costoPorUnidadReceta)}</span>
-                  </div>
-                  {recetaSeleccionada.map((r) => (
-                  <div
-                    key={r.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "10px 14px",
-                      background: "var(--bg-secondary)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 10,
-                    }}
-                  >
-                    <span style={{ fontSize: 13.5, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {r.cantidad_por_unidad} × {r.materia_prima_nombre}
-                    </span>
-                    <button
-                      className="btn-delete"
-                      onClick={() => borrarIngrediente(r.id)}
-                      aria-label={t("productos.eliminar")}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                ))}
-                </>
-              )}
             </div>
           </>
         )}
