@@ -330,6 +330,29 @@ html[data-theme="mint"] {
   --table-header-bg: rgba(11, 43, 33, 0.04);
 }
 
+html[data-theme="teal"] {
+  color-scheme: light;
+  --bg-primary: #eafbf9;
+  --bg-secondary: #ffffff;
+  --card-bg: #ffffff;
+  --card-hover: #f0fdfb;
+  --border: #cceceb;
+  --primary: #0d9488;
+  --primary-hover: #0b7d73;
+  --primary-soft: rgba(13, 148, 136, 0.1);
+  --text-primary: #062b26;
+  --text-secondary: #3a6b64;
+  --text-muted: #4e7d75;
+  --glass-bg: rgba(13, 148, 136, 0.04);
+  --glass-border: rgba(13, 148, 136, 0.1);
+  --shadow-sm: 0 2px 10px rgba(6, 43, 38, 0.06);
+  --shadow-md: 0 8px 24px rgba(6, 43, 38, 0.08);
+  --shadow-lg: 0 14px 40px rgba(6, 43, 38, 0.12);
+  --input-bg: rgba(6, 43, 38, 0.04);
+  --btn-secondary-bg: #eafbf9;
+  --table-header-bg: rgba(6, 43, 38, 0.04);
+}
+
 html[data-theme="sunset"] {
   color-scheme: dark;
   --bg-primary: #170a05;

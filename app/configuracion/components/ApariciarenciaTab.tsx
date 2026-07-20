@@ -27,6 +27,7 @@ const opciones: OpcionTema[] = [
   { valor: "pink", claveNombre: "tema.pink.nombre", claveDesc: "tema.pink.desc", colores: ["#f4a9cf", "#fce3ee", "#c2255f"] },
   { valor: "mint", claveNombre: "tema.mint.nombre", claveDesc: "tema.mint.desc", colores: ["#eafaf3", "#ffffff", "#10b981"] },
   { valor: "sunset", claveNombre: "tema.sunset.nombre", claveDesc: "tema.sunset.desc", colores: ["#170a05", "#2a150a", "#f97316"] },
+  { valor: "teal", claveNombre: "tema.teal.nombre", claveDesc: "tema.teal.desc", colores: ["#eafbf9", "#ffffff", "#0d9488"] },
 ];
 
 const OPCIONES_TENDENCIA: { valor: "area" | "linea" | "barras" | "velas"; clave: string }[] = [

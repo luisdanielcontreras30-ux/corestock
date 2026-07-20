@@ -8,7 +8,7 @@ import React, {
   ReactNode,
 } from "react";
 
-export type Tema = "dark" | "green" | "blue" | "purple" | "amber" | "slate" | "cyan" | "wine" | "light" | "pink" | "mint" | "sunset";
+export type Tema = "dark" | "green" | "blue" | "purple" | "amber" | "slate" | "cyan" | "wine" | "light" | "pink" | "mint" | "sunset" | "teal";
 
 // Tipo de gráfica para la tendencia de ventas (área/línea/barras) y
 // para la distribución de artículos (pastel/barras) — se pueden
@@ -43,7 +43,7 @@ const CLAVE_STORAGE = "corestock-theme";
 const CLAVE_STORAGE_TENDENCIA = "corestock-grafica-tendencia";
 const CLAVE_STORAGE_DISTRIBUCION = "corestock-grafica-distribucion";
 
-const TEMAS_VALIDOS: Tema[] = ["dark", "green", "blue", "purple", "amber", "slate", "cyan", "wine", "light", "pink", "mint", "sunset"];
+const TEMAS_VALIDOS: Tema[] = ["dark", "green", "blue", "purple", "amber", "slate", "cyan", "wine", "light", "pink", "mint", "sunset", "teal"];
 const TENDENCIAS_VALIDAS: TipoGraficaTendencia[] = ["area", "linea", "barras", "velas"];
 const DISTRIBUCIONES_VALIDAS: TipoGraficaDistribucion[] = ["pastel", "barras"];
 
