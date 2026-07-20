@@ -273,9 +273,19 @@ export async function realizarTraspaso(
     // no perder algún otro movimiento concurrente sobre ese mismo producto
     // mientras este traspaso estaba en curso.
     if (origenId === null) {
-      await ajustarStockConCas(producto.id, user.id, cantidad).catch(() => {});
+      await ajustarStockConCas(producto.id, user.id, cantidad).catch((errorRevertir) => {
+        console.error(
+          `No se pudo revertir el stock de producto_id=${producto.id} tras un fallo en el traspaso. Revisar manualmente.`,
+          errorRevertir
+        );
+      });
     } else {
-      await ajustarStockUbicacion(user.id, producto.id, origenId, cantidad).catch(() => {});
+      await ajustarStockUbicacion(user.id, producto.id, origenId, cantidad).catch((errorRevertir) => {
+        console.error(
+          `No se pudo revertir el stock de ubicación (producto_id=${producto.id}, ubicacion_id=${origenId}) tras un fallo en el traspaso. Revisar manualmente.`,
+          errorRevertir
+        );
+      });
     }
 
     throw error;

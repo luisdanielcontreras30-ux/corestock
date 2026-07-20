@@ -259,11 +259,21 @@ export async function producir(
     // de que fallara el paso siguiente. Se suma de vuelta con CAS (en
     // vez de pisar con el stock previo guardado) para no perder algún
     // otro movimiento concurrente sobre esa misma materia prima mientras
-    // esta producción estaba en curso.
+    // esta producción estaba en curso. Cada reversión va en su propio
+    // try/catch: si una de ellas falla (red, condición de carrera), no
+    // debe abortar el resto del ciclo ni reemplazar el error original
+    // que se relanza al final.
     for (const a of aplicados) {
-      await ajustarStockConCas(a.id, user.id, a.necesario, {
-        tabla: "materias_primas",
-      });
+      try {
+        await ajustarStockConCas(a.id, user.id, a.necesario, {
+          tabla: "materias_primas",
+        });
+      } catch (errorRevertir) {
+        console.error(
+          `No se pudo revertir el stock de materia_prima_id=${a.id} tras un fallo en producir(). Revisar manualmente.`,
+          errorRevertir
+        );
+      }
     }
     throw error;
   }

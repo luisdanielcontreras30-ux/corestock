@@ -244,11 +244,22 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
     // la cotización (que nunca quedó vinculada a esta venta) podría
     // reintentarse y descontar el stock una segunda vez.
     if (stockDescontado) {
-      const revertido = await ajustarStockConCas(productoId, user.id, cotizacion.cantidad);
-      if (!revertido) {
+      // Envuelto aparte: si el propio intento de revertir lanza (en vez
+      // de simplemente devolver false), no debe impedir que se borre la
+      // venta a medio crear ni que se relance el error original de abajo.
+      try {
+        const revertido = await ajustarStockConCas(productoId, user.id, cotizacion.cantidad);
+        if (!revertido) {
+          console.error(
+            "No se pudo revertir el stock tras un fallo al convertir la cotización en venta. Revisar manualmente producto_id=" +
+              productoId
+          );
+        }
+      } catch (errorRevertir) {
         console.error(
           "No se pudo revertir el stock tras un fallo al convertir la cotización en venta. Revisar manualmente producto_id=" +
-            productoId
+            productoId,
+          errorRevertir
         );
       }
     }
