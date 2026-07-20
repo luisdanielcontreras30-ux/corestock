@@ -9,6 +9,19 @@ interface ValorWebhook {
   messages?: { from?: string; type?: string; text?: { body?: string } }[];
 }
 
+// Si Gemini falla (cuota agotada, clave inválida, etc.) un cliente
+// real esperando respuesta no debe quedarse sin nada — se manda esto
+// en vez de silencio total, para que sepa que su mensaje sí llegó.
+const MENSAJE_FALLBACK: Record<string, string> = {
+  es: "¡Gracias por escribirnos! En un momento te contestamos.",
+  en: "Thanks for reaching out! We'll get back to you shortly.",
+  pt: "Obrigado por escrever! Já já te respondemos.",
+  fr: "Merci de nous avoir écrit ! Nous vous répondrons sous peu.",
+  de: "Danke für deine Nachricht! Wir melden uns gleich bei dir.",
+  zh: "感谢您的留言！我们会尽快回复您。",
+  it: "Grazie per averci scritto! Ti risponderemo a breve.",
+};
+
 // GET: handshake de verificación que Meta hace una sola vez, al
 // guardar esta URL como webhook en su panel de desarrolladores.
 export async function GET(request: Request) {
@@ -105,12 +118,18 @@ async function responderMensaje(phoneNumberId: string, deNumero: string, texto: 
 
   const idioma = (empresa.idioma as string) || "es";
 
-  // Mismo tope que en la ruta de prueba (vendedor-whatsapp/route.ts).
-  const respuesta = await generarRespuestaVendedor(
-    texto.slice(0, 500),
-    (productos ?? []) as ProductoParaVendedor[],
-    idioma
-  );
+  let respuesta: string;
+  try {
+    // Mismo tope que en la ruta de prueba (vendedor-whatsapp/route.ts).
+    respuesta = await generarRespuestaVendedor(
+      texto.slice(0, 500),
+      (productos ?? []) as ProductoParaVendedor[],
+      idioma
+    );
+  } catch (error) {
+    console.error("Fallo generando la respuesta del vendedor de WhatsApp:", error);
+    respuesta = MENSAJE_FALLBACK[idioma] ?? MENSAJE_FALLBACK.es;
+  }
 
   await enviarMensajeWhatsApp(phoneNumberId, deNumero, respuesta);
 }
