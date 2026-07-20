@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { subirImagenSegura } from "../../lib/uploads";
+import { redimensionarParaSubir } from "../../lib/imagenes";
 import { analizarProductoConIA } from "../../lib/iaAcciones";
 import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
@@ -189,7 +190,8 @@ function ProductosInterno() {
       let imagenUrl = preview;
 
       if (imagen) {
-        const { url, error } = await subirImagenSegura("productos", imagen);
+        const archivoParaSubir = await redimensionarParaSubir(imagen);
+        const { url, error } = await subirImagenSegura("productos", archivoParaSubir);
 
         if (error === "tipo_invalido") {
           mostrarToast(t("productos.msg_imagen_tipo_invalido"), "error");

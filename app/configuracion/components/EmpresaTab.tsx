@@ -5,6 +5,7 @@ import { CheckCircle2, XCircle, ImagePlus, X } from "lucide-react";
 import { EmpresaConfig, EMPRESA_VACIA } from "../types";
 import { cargarEmpresa, guardarEmpresa } from "../acciones";
 import { subirImagenSegura } from "../../../lib/uploads";
+import { redimensionarParaSubir } from "../../../lib/imagenes";
 import { useIdioma } from "../../../components/LanguageProvider";
 import SelectorPersonalizado, { OpcionSelector } from "../../../components/SelectorPersonalizado";
 
@@ -66,7 +67,8 @@ export default function EmpresaTab() {
     setSubiendoLogo(true);
     setMensaje(null);
 
-    const { url, error } = await subirImagenSegura("productos", archivo, "logo-");
+    const archivoParaSubir = await redimensionarParaSubir(archivo);
+    const { url, error } = await subirImagenSegura("productos", archivoParaSubir, "logo-");
 
     if (error === "tipo_invalido") {
       setMensaje({ tipo: "error", texto: t("empresa.msg_logo_tipo_invalido") });
