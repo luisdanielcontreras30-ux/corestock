@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircle, Send, Bot, User } from "lucide-react";
+import { MessageCircle, Send, Bot, User, Copy } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -10,6 +10,8 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { probarVendedorIA } from "../../lib/whatsappVendedor";
+import { cargarNumeroWhatsApp, guardarNumeroWhatsApp } from "./acciones";
+import { copiarAlPortapapeles } from "../../lib/portapapeles";
 
 interface Intercambio {
   id: number;
@@ -36,14 +38,68 @@ function WhatsappContenido() {
   const [intercambios, setIntercambios] = useState<Intercambio[]>([]);
   const finRef = useRef<HTMLDivElement>(null);
 
+  const [numeroWhatsApp, setNumeroWhatsApp] = useState("");
+  const [numeroGuardado, setNumeroGuardado] = useState<string | null>(null);
+  const [cargandoNumero, setCargandoNumero] = useState(true);
+  const [guardandoNumero, setGuardandoNumero] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+
   useEffect(() => {
     if (cargandoAuth) return;
     if (!user) router.push("/login");
   }, [cargandoAuth, user]);
 
   useEffect(() => {
+    if (cargandoAuth || !user) return;
+
+    cargarNumeroWhatsApp()
+      .then((valor) => {
+        setNumeroGuardado(valor);
+        setNumeroWhatsApp(valor ?? "");
+      })
+      .catch((error) => {
+        console.error(error);
+        mostrarToast(t("comun.msg_error_cargar_datos"), "error");
+      })
+      .finally(() => setCargandoNumero(false));
+  }, [cargandoAuth, user]);
+
+  useEffect(() => {
     finRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [intercambios, enviando]);
+
+  async function guardarNumero() {
+    if (guardandoNumero) return;
+
+    setGuardandoNumero(true);
+    try {
+      await guardarNumeroWhatsApp(numeroWhatsApp);
+      setNumeroGuardado(numeroWhatsApp.trim() || null);
+      mostrarToast(t("whatsapp.msg_numero_guardado"), "exito");
+    } catch (error) {
+      console.error(error);
+      const detalle =
+        error instanceof Error && error.message === "EMPRESA_NO_CONFIGURADA"
+          ? t("catalogo_linea.msg_falta_empresa")
+          : mensajeErrorSeguro(error);
+      mostrarToast(detalle || t("whatsapp.msg_error_numero"), "error");
+    } finally {
+      setGuardandoNumero(false);
+    }
+  }
+
+  const urlWebhook =
+    typeof window !== "undefined" ? `${window.location.origin}/api/whatsapp/webhook` : "";
+
+  async function copiarUrlWebhook() {
+    const exito = await copiarAlPortapapeles(urlWebhook);
+    if (exito) {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } else {
+      mostrarToast(t("comun.msg_error_copiar"), "error");
+    }
+  }
 
   async function probar() {
     const textoPregunta = pregunta.trim();
@@ -82,9 +138,50 @@ function WhatsappContenido() {
 
       <div className="card">
         <h2 style={{ marginBottom: 10 }}>{t("whatsapp.conectar_titulo")}</h2>
-        <p style={{ color: "var(--text-secondary)", fontSize: 13.5, lineHeight: 1.6, marginBottom: 0 }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: 13.5, lineHeight: 1.6, marginBottom: 18 }}>
           {t("whatsapp.conectar_texto")}
         </p>
+
+        <label style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>
+          {t("whatsapp.webhook_url_label")}
+        </label>
+        <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+          <input value={urlWebhook} readOnly onFocus={(e) => e.target.select()} />
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={copiarUrlWebhook}
+            style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
+          >
+            <Copy size={14} /> {copiado ? t("catalogo_linea.copiado") : t("catalogo_linea.copiar_enlace")}
+          </button>
+        </div>
+
+        <label style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>
+          {t("whatsapp.numero_label")}
+        </label>
+        <div style={{ display: "flex", gap: 10 }}>
+          <input
+            value={numeroWhatsApp}
+            onChange={(e) => setNumeroWhatsApp(e.target.value)}
+            placeholder={t("whatsapp.numero_placeholder")}
+            disabled={cargandoNumero || guardandoNumero}
+          />
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={guardarNumero}
+            disabled={cargandoNumero || guardandoNumero || numeroWhatsApp.trim() === (numeroGuardado ?? "")}
+            style={{ flexShrink: 0 }}
+          >
+            {guardandoNumero ? t("compras.guardando") : t("whatsapp.numero_guardar")}
+          </button>
+        </div>
+        {numeroGuardado && (
+          <p style={{ color: "#22c55e", fontSize: 12.5, marginTop: 8, marginBottom: 0 }}>
+            {t("whatsapp.numero_conectado")}
+          </p>
+        )}
       </div>
 
       <div className="card">
