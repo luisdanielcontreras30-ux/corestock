@@ -215,13 +215,23 @@ export default function DashboardPremium() {
 
   async function cargarDatosDashboard(userId: string) {
     try {
-      // 1. OBTENER PRODUCTOS (Select corregido para TypeScript)
-      const { data: productos, error: errorProductos } = await supabase
-        .from("productos")
-        .select("id, nombre, stock, stock_minimo")
-        .eq("user_id", userId);
+      // Las 3 consultas son independientes entre sí (ninguna usa el
+      // resultado de otra), así que se lanzan en paralelo en vez de
+      // encadenarlas — evita una cascada de 3 round-trips secuenciales
+      // en la página que más se visita.
+      const [
+        { data: productos, error: errorProductos },
+        { data: ventas, error: errorVentas },
+        { data: clientes, error: errorClientes },
+      ] = await Promise.all([
+        supabase.from("productos").select("id, nombre, stock, stock_minimo").eq("user_id", userId),
+        supabase.from("ventas").select("*").eq("user_id", userId),
+        supabase.from("clientes").select("id, nombre").eq("user_id", userId),
+      ]);
 
       if (errorProductos) throw errorProductos;
+      if (errorVentas) throw errorVentas;
+      if (errorClientes) throw errorClientes;
 
       if (productos) {
         setTotalProductos(productos.length);
@@ -230,14 +240,6 @@ export default function DashboardPremium() {
         setProductosAlerta(bajos.slice(0, 4));
         setAlertasStockCount(bajos.length);
       }
-
-      // 2. OBTENER VENTAS (Con tipado explícito)
-      const { data: ventas, error: errorVentas } = await supabase
-        .from("ventas")
-        .select("*")
-        .eq("user_id", userId);
-
-      if (errorVentas) throw errorVentas;
 
       if (ventas) {
         const ventasTipadas = ventas as VentaReciente[];
@@ -291,13 +293,6 @@ export default function DashboardPremium() {
         // "Mejores clientes" cuando el usuario cambie el período,
         // sin volver a consultar la base de datos.
         setVentasTodas(ventasTipadas);
-
-        const { data: clientes, error: errorClientes } = await supabase
-          .from("clientes")
-          .select("id, nombre")
-          .eq("user_id", userId);
-
-        if (errorClientes) throw errorClientes;
 
         setNombresClientes(
           new Map((clientes ?? []).map((c) => [c.id as number, c.nombre as string]))
