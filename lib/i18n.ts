@@ -84,6 +84,9 @@ export const TRADUCCIONES: Diccionario = {
   "config.tab.usuarios": { es: "Usuarios y permisos", en: "Users & permissions", pt: "Usuários e permissões", fr: "Utilisateurs et permissions", de: "Benutzer & Rechte", zh: "用户与权限" },
   "config.tab.cuenta": { es: "Mi cuenta", en: "My account", pt: "Minha conta", fr: "Mon compte", de: "Mein Konto", zh: "我的账户" },
   "config.tab.idioma": { es: "Idioma", en: "Language", pt: "Idioma", fr: "Langue", de: "Sprache", zh: "语言" },
+  "config.apariencia.tab_interfaz": { es: "Interfaz", en: "Interface", pt: "Interface", fr: "Interface", de: "Oberfläche", zh: "界面" },
+  "config.apariencia.tab_temas": { es: "Temas", en: "Themes", pt: "Temas", fr: "Thèmes", de: "Designs", zh: "主题" },
+  "config.apariencia.tab_graficas": { es: "Gráficas", en: "Charts", pt: "Gráficos", fr: "Graphiques", de: "Diagramme", zh: "图表" },
 
   // Configuración - Cuenta
   "cuenta.titulo": { es: "Mi cuenta", en: "My account", pt: "Minha conta", fr: "Mon compte", de: "Mein Konto", zh: "我的账户" },

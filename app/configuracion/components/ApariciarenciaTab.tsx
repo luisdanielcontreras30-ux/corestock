@@ -1,11 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { SlidersHorizontal, Palette, BarChart3, LucideIcon } from "lucide-react";
 import { useTheme, Tema } from "../../../components/ThemeProvider";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
 import { useModoInterfaz, ModoInterfaz } from "../../../components/ModoInterfazProvider";
 import SelectorModoInterfaz from "../../../components/SelectorModoInterfaz";
+
+type SubSeccion = "interfaz" | "temas" | "graficas";
+
+const SUBSECCIONES: { id: SubSeccion; clave: string; Icono: LucideIcon }[] = [
+  { id: "interfaz", clave: "config.apariencia.tab_interfaz", Icono: SlidersHorizontal },
+  { id: "temas", clave: "config.apariencia.tab_temas", Icono: Palette },
+  { id: "graficas", clave: "config.apariencia.tab_graficas", Icono: BarChart3 },
+];
 
 interface OpcionTema {
   valor: Tema;
@@ -55,6 +64,7 @@ export default function ApariciarenciaTab() {
   const { mostrarToast } = useToast();
   const { modoInterfaz, cambiarModo } = useModoInterfaz();
   const [guardandoModo, setGuardandoModo] = useState<ModoInterfaz | null>(null);
+  const [subSeccion, setSubSeccion] = useState<SubSeccion>("interfaz");
 
   async function elegirModo(modo: ModoInterfaz) {
     if (guardandoModo || modo === modoInterfaz) return;
@@ -73,6 +83,23 @@ export default function ApariciarenciaTab() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="config-tabs">
+      {SUBSECCIONES.map((sub) => {
+        const Icono = sub.Icono;
+        return (
+          <button
+            key={sub.id}
+            className={`config-tab ${subSeccion === sub.id ? "config-tab-active" : ""}`}
+            onClick={() => setSubSeccion(sub.id)}
+          >
+            <Icono size={15} />
+            {t(sub.clave)}
+          </button>
+        );
+      })}
+    </div>
+
+    {subSeccion === "interfaz" && (
     <div className="card">
       <h2 style={{ marginBottom: 6 }}>{t("configuracion.modo_interfaz_titulo")}</h2>
       <p
@@ -91,7 +118,9 @@ export default function ApariciarenciaTab() {
         onElegir={elegirModo}
       />
     </div>
+    )}
 
+    {subSeccion === "temas" && (
     <div className="card">
       <h2 style={{ marginBottom: 6 }}>{t("tema.titulo")}</h2>
       <p
@@ -186,7 +215,9 @@ export default function ApariciarenciaTab() {
         })}
       </div>
     </div>
+    )}
 
+    {subSeccion === "graficas" && (
     <div className="card">
       <h2 style={{ marginBottom: 6 }}>{t("tema.graficas_titulo")}</h2>
       <p style={{ color: "var(--text-secondary)", marginBottom: 20, fontSize: 13 }}>
@@ -227,6 +258,7 @@ export default function ApariciarenciaTab() {
         </div>
       </div>
     </div>
+    )}
     </div>
   );
 }
