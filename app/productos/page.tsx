@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { subirImagenSegura } from "../../lib/uploads";
 import { redimensionarParaSubir } from "../../lib/imagenes";
-import { analizarProductoConIA } from "../../lib/iaAcciones";
+import { analizarProductoConIA, ErrorAnalisisIA } from "../../lib/iaAcciones";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
@@ -73,6 +73,16 @@ function ProductosInterno() {
   const [editando, setEditando] = useState<number | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [analizandoIA, setAnalizandoIA] = useState(false);
+  // Segundos restantes de enfriamiento tras un 429 (cuota de IA
+  // agotada) — bloquea el botón en vez de dejar que la persona
+  // reintente de inmediato y vuelva a chocar con el mismo límite.
+  const [enfriamientoIA, setEnfriamientoIA] = useState(0);
+
+  useEffect(() => {
+    if (enfriamientoIA <= 0) return;
+    const id = setTimeout(() => setEnfriamientoIA((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(id);
+  }, [enfriamientoIA]);
 
   // En celular, el formulario de alta empieza cerrado — solo la lista
   // de productos está a la vista al entrar al módulo. Se abre al
@@ -279,6 +289,17 @@ function ProductosInterno() {
     const archivo = archivoOverride ?? imagen;
     if (analizandoIA) return;
 
+    if (enfriamientoIA > 0) {
+      // También se llega aquí al tomar una foto con la cámara (que
+      // dispara el análisis solo, sin pasar por el botón) — sin este
+      // aviso, la persona vería que "no pasó nada" tras la foto.
+      mostrarToast(
+        t("productos.ia_enfriamiento").replace("{segundos}", String(enfriamientoIA)),
+        "error"
+      );
+      return;
+    }
+
     if (!archivo) {
       mostrarToast(t("productos.msg_falta_foto_ia"), "error");
       return;
@@ -295,6 +316,12 @@ function ProductosInterno() {
       mostrarToast(t("productos.msg_ia_completado"), "exito");
     } catch (error) {
       console.error(error);
+      // 429 = sin cuota por ahora: reintentar de inmediato solo vuelve
+      // a chocar con el mismo límite, así que se bloquea el botón con
+      // una cuenta regresiva en vez de dejarlo disponible enseguida.
+      if (error instanceof ErrorAnalisisIA && error.status === 429) {
+        setEnfriamientoIA(60);
+      }
       const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("productos.msg_error_analizar_ia"), "error");
     } finally {
@@ -473,11 +500,15 @@ function ProductosInterno() {
           <button
             type="button"
             className="btn-generar-ia-inline"
-            disabled={analizandoIA}
+            disabled={analizandoIA || enfriamientoIA > 0}
             onClick={() => analizarConIA()}
           >
             <Sparkles size={14} />
-            {analizandoIA ? t("productos.analizando_ia") : t("productos.analizar_ia")}
+            {analizandoIA
+              ? t("productos.analizando_ia")
+              : enfriamientoIA > 0
+                ? t("productos.ia_enfriamiento").replace("{segundos}", String(enfriamientoIA))
+                : t("productos.analizar_ia")}
           </button>
         </div>
 

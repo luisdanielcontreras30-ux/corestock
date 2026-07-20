@@ -6,6 +6,20 @@ export interface ResultadoAnalisisIA {
   descripcion: string;
 }
 
+// Lleva el status HTTP para que quien llama pueda distinguir "sin
+// cuota por ahora" (429) de cualquier otra falla — el llamador usa
+// esto para bloquear el botón de análisis con una cuenta regresiva en
+// vez de dejar que la persona reintente de inmediato y vuelva a
+// chocar con el mismo límite.
+export class ErrorAnalisisIA extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ErrorAnalisisIA";
+    this.status = status;
+  }
+}
+
 // Lado más largo al que se reduce la foto antes de mandarla a
 // analizar. Gemini no necesita la resolución completa de la cámara
 // para describir un producto, y muchos hosts serverless (ej. Vercel)
@@ -89,12 +103,15 @@ export async function analizarProductoConIA(
   try {
     datos = await respuesta.json();
   } catch {
-    throw new Error(`El servidor respondió con un error inesperado (HTTP ${respuesta.status}).`);
+    throw new ErrorAnalisisIA(
+      `El servidor respondió con un error inesperado (HTTP ${respuesta.status}).`,
+      respuesta.status
+    );
   }
 
   if (!respuesta.ok) {
     const mensaje = (datos as { error?: string })?.error;
-    throw new Error(mensaje || "No se pudo analizar la imagen.");
+    throw new ErrorAnalisisIA(mensaje || "No se pudo analizar la imagen.", respuesta.status);
   }
 
   return datos as ResultadoAnalisisIA;
