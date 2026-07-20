@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
-import { analizarImagenProducto } from "../../../../lib/googleAI";
+import { analizarImagenProducto, ErrorGoogleAI } from "../../../../lib/googleAI";
 
 // El cliente ya redimensiona la foto antes de mandarla (ver
 // lib/iaAcciones.ts), así que en el caso normal esto pesa muy poco.
@@ -21,6 +21,12 @@ const MENSAJES: Record<string, Record<string, string>> = {
   tipo_no_soportado: { es: "Tipo de imagen no soportado.", en: "Unsupported image type.", pt: "Tipo de imagem não suportado.", fr: "Type d'image non pris en charge.", de: "Nicht unterstützter Bildtyp.", zh: "不支持的图片类型。", it: "Tipo di immagine non supportato." },
   imagen_muy_grande: { es: "La imagen es demasiado grande.", en: "The image is too large.", pt: "A imagem é muito grande.", fr: "L'image est trop grande.", de: "Das Bild ist zu groß.", zh: "图片太大。", it: "L'immagine è troppo grande." },
   fallo_analisis: { es: "No se pudo analizar la imagen. Intenta de nuevo en un momento.", en: "Couldn't analyze the image. Try again in a moment.", pt: "Não foi possível analisar a imagem. Tente novamente em instantes.", fr: "Impossible d'analyser l'image. Réessayez dans un instant.", de: "Bild konnte nicht analysiert werden. Versuche es gleich noch einmal.", zh: "无法分析图片，请稍后重试。", it: "Impossibile analizzare l'immagine. Riprova tra un momento." },
+  // Estos dos NO se van a resolver reintentando — a diferencia de
+  // fallo_analisis (una falla transitoria real), acá conviene decirle
+  // al dueño que espere un rato largo (cuota) o que avise al soporte
+  // (configuración), en vez del mismo "intenta de nuevo" de siempre.
+  cuota_excedida: { es: "Se alcanzó el límite de análisis con IA por ahora. Intenta de nuevo más tarde (en unos minutos u horas).", en: "The AI analysis limit was reached for now. Try again later (in a few minutes or hours).", pt: "O limite de análises com IA foi atingido por agora. Tente novamente mais tarde (em alguns minutos ou horas).", fr: "La limite d'analyses IA a été atteinte pour le moment. Réessayez plus tard (dans quelques minutes ou heures).", de: "Das Limit für KI-Analysen wurde vorübergehend erreicht. Versuche es später erneut (in ein paar Minuten oder Stunden).", zh: "AI 分析次数已达上限，请稍后再试（几分钟或几小时后）。", it: "Il limite di analisi IA è stato raggiunto per ora. Riprova più tardi (tra qualche minuto o ora)." },
+  configuracion_invalida: { es: "El análisis con IA no está disponible en este momento. Contacta a soporte.", en: "AI analysis isn't available right now. Contact support.", pt: "A análise com IA não está disponível no momento. Entre em contato com o suporte.", fr: "L'analyse IA n'est pas disponible pour le moment. Contactez le support.", de: "Die KI-Analyse ist derzeit nicht verfügbar. Wende dich an den Support.", zh: "AI 分析目前不可用，请联系支持团队。", it: "L'analisi IA non è disponibile al momento. Contatta l'assistenza." },
 };
 
 function mensaje(clave: keyof typeof MENSAJES, idioma: string) {
@@ -79,6 +85,16 @@ export async function POST(request: Request) {
     // servidor — al usuario final le llega un mensaje genérico y
     // traducido, no el texto crudo del proveedor.
     console.error(error);
+
+    if (error instanceof ErrorGoogleAI) {
+      if (error.status === 429) {
+        return NextResponse.json({ error: mensaje("cuota_excedida", idioma) }, { status: 429 });
+      }
+      if (error.status === 401 || error.status === 403) {
+        return NextResponse.json({ error: mensaje("configuracion_invalida", idioma) }, { status: 500 });
+      }
+    }
+
     return NextResponse.json({ error: mensaje("fallo_analisis", idioma) }, { status: 500 });
   }
 }

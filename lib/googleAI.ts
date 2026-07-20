@@ -20,6 +20,20 @@ export interface ResultadoAnalisisProducto {
   descripcion: string;
 }
 
+// Lleva el status HTTP de la respuesta de Google AI para que la ruta
+// (route.ts) pueda distinguir "sin cuota"/"clave inválida" — errores
+// que NO se van a resolver solos reintentando más tarde — de una
+// falla transitoria real, en vez de mostrar siempre el mismo "intenta
+// de nuevo" genérico incluso cuando reintentar nunca va a funcionar.
+export class ErrorGoogleAI extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ErrorGoogleAI";
+    this.status = status;
+  }
+}
+
 function construirPrompt(idioma: string, categoriasExistentes: string[]): string {
   const idiomaTexto = NOMBRE_IDIOMA[idioma] ?? "español";
 
@@ -139,7 +153,9 @@ export async function analizarImagenProducto(
   const apiKey = process.env.GOOGLE_AI_API_KEY;
 
   if (!apiKey) {
-    throw new Error("Falta configurar GOOGLE_AI_API_KEY en el servidor.");
+    // Mismo tratamiento que una clave inválida (401 de la API): no es
+    // una falla transitoria, reintentar nunca lo va a arreglar.
+    throw new ErrorGoogleAI("Falta configurar GOOGLE_AI_API_KEY en el servidor.", 401);
   }
 
   const modelo = process.env.GOOGLE_AI_MODEL || MODELO_POR_DEFECTO;
@@ -175,7 +191,7 @@ export async function analizarImagenProducto(
     } catch {
       // sin cuerpo JSON legible, se deja el detalle genérico
     }
-    throw new Error(detalle);
+    throw new ErrorGoogleAI(detalle, respuesta.status);
   }
 
   const datos = await respuesta.json();
