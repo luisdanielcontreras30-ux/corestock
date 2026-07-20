@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 import { generarRespuestaVendedor, ErrorGoogleAI, ProductoParaVendedor } from "../../../../lib/googleAI";
+import { tieneAccesoBeta } from "../../../../lib/betaAcceso";
 
 // Tope generoso para una pregunta de cliente por WhatsApp — evita
 // mandar textos absurdamente largos al prompt sin motivo real.
@@ -25,6 +26,13 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: mensaje("no_autenticado", "es") }, { status: 401 });
+  }
+
+  // Beta cerrada — mismo criterio que el sidebar (ver lib/betaAcceso.ts),
+  // pero comprobado también acá: ocultar el botón en la interfaz no
+  // alcanza si esta ruta sigue respondiendo a quien la llame directo.
+  if (!tieneAccesoBeta(user.email)) {
+    return NextResponse.json({ error: mensaje("no_autenticado", "es") }, { status: 403 });
   }
 
   let cuerpo: unknown;

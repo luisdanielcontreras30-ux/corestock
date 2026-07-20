@@ -6,8 +6,10 @@ import { usePathname } from "next/navigation";
 import { useIdioma } from "./LanguageProvider";
 import { SECCIONES_NAV, RUTAS_PERMITIDAS_MIEMBRO, RUTAS_EASY, ItemNav } from "../lib/navegacion";
 import { esRutaPlus } from "../lib/suscripcion";
+import { esRutaBetaCerrada, tieneAccesoBeta } from "../lib/betaAcceso";
 import { useMiembroActivo } from "./MiembroActivoProvider";
 import { useModoInterfaz } from "./ModoInterfazProvider";
+import { useAuth } from "./AuthProvider";
 
 export default function Sidebar({
   isOpen,
@@ -18,6 +20,7 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const { t } = useIdioma();
+  const { user } = useAuth();
   const { miembroActivo, puede } = useMiembroActivo();
   const { esEasy } = useModoInterfaz();
 
@@ -83,6 +86,9 @@ export default function Sidebar({
                 // ese acceso en el menú (la página también lo bloquea).
                 if (item.href === "/ventas" && !puede("ver_ventas")) return false;
                 if (item.href === "/ventas-rapidas" && !puede("registrar_ventas")) return false;
+                // Empleados IA / WhatsApp: en beta cerrada, solo visibles
+                // para la cuenta que los está probando (ver lib/betaAcceso.ts).
+                if (esRutaBetaCerrada(item.href) && !tieneAccesoBeta(user?.email)) return false;
                 return true;
               });
 

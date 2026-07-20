@@ -12,6 +12,7 @@ import { mensajeErrorSeguro } from "../../lib/errores";
 import { probarVendedorIA } from "../../lib/whatsappVendedor";
 import { cargarNumeroWhatsApp, guardarNumeroWhatsApp } from "./acciones";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
+import { tieneAccesoBeta } from "../../lib/betaAcceso";
 
 interface Intercambio {
   id: number;
@@ -46,7 +47,13 @@ function WhatsappContenido() {
 
   useEffect(() => {
     if (cargandoAuth) return;
-    if (!user) router.push("/login");
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    // Beta cerrada — quien no tiene acceso ni entra por URL directa,
+    // no solo se le oculta del menú (ver lib/betaAcceso.ts).
+    if (!tieneAccesoBeta(user.email)) router.push("/menu");
   }, [cargandoAuth, user]);
 
   useEffect(() => {
@@ -119,7 +126,7 @@ function WhatsappContenido() {
     }
   }
 
-  if (cargandoAuth || !user) {
+  if (cargandoAuth || !user || !tieneAccesoBeta(user.email)) {
     return (
       <main className="fade-up">
         <div className="card">{t("header.cargando")}</div>
