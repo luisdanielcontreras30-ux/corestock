@@ -92,6 +92,7 @@ export default function VentaForm({
           <input
             type="number"
             min={1}
+            step={1}
             value={cantidad}
             onChange={(e) => setCantidad(Number(e.target.value))}
           />

@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { ajustarStockConCas } from "../../lib/stockCas";
 import { Producto, Cliente, Cotizacion, EstadoCotizacion } from "./types";
 
 export async function cargarDatos() {
@@ -145,6 +146,8 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
     throw new Error("El producto de esta cotización ya no existe.");
   }
 
+  const productoId = cotizacion.producto_id;
+
   if (cotizacion.cantidad <= 0) {
     throw new Error("Esta cotización tiene una cantidad inválida.");
   }
@@ -179,7 +182,7 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
   const { data: productoActual, error: errorProducto } = await supabase
     .from("productos")
     .select("stock")
-    .eq("id", cotizacion.producto_id)
+    .eq("id", productoId)
     .eq("user_id", user.id)
     .single();
 
@@ -206,13 +209,15 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
 
   if (errorVenta) throw errorVenta;
 
+  let stockDescontado = false;
+
   try {
     const nuevoStock = productoActual.stock - cotizacion.cantidad;
 
     const { data: actualizado, error: errorStock } = await supabase
       .from("productos")
       .update({ stock: nuevoStock })
-      .eq("id", cotizacion.producto_id)
+      .eq("id", productoId)
       .eq("user_id", user.id)
       .eq("stock", productoActual.stock)
       .select("id");
@@ -223,6 +228,8 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
       throw new Error("El stock de este producto cambió mientras se procesaba. Intenta de nuevo.");
     }
 
+    stockDescontado = true;
+
     const { error: errorActualizarCotizacion } = await supabase
       .from("cotizaciones")
       .update({ venta_id: ventaCreada.id })
@@ -231,6 +238,20 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
 
     if (errorActualizarCotizacion) throw errorActualizarCotizacion;
   } catch (error) {
+    // Si el stock ya se había descontado antes de que fallara el paso
+    // siguiente, hay que devolverlo — de lo contrario queda reducido
+    // permanentemente sin ninguna venta real que lo explique, y encima
+    // la cotización (que nunca quedó vinculada a esta venta) podría
+    // reintentarse y descontar el stock una segunda vez.
+    if (stockDescontado) {
+      const revertido = await ajustarStockConCas(productoId, user.id, cotizacion.cantidad);
+      if (!revertido) {
+        console.error(
+          "No se pudo revertir el stock tras un fallo al convertir la cotización en venta. Revisar manualmente producto_id=" +
+            productoId
+        );
+      }
+    }
     await supabase.from("ventas").delete().eq("id", ventaCreada.id);
     throw error;
   }

@@ -132,6 +132,11 @@ function CotizacionesContenido() {
       return;
     }
 
+    if (!Number.isInteger(cantidad)) {
+      mostrarToast(t("comun.msg_cantidad_entera"), "error");
+      return;
+    }
+
     if (!Number.isFinite(precioNum) || precioNum < 0) {
       mostrarToast(t("cotizaciones.msg_precio_invalido"), "error");
       return;

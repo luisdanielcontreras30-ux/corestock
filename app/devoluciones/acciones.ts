@@ -108,6 +108,23 @@ export async function eliminarDevolucion(devolucion: Devolucion) {
     throw new Error("Usuario no autenticado");
   }
 
+  // Mismo orden que eliminarAjuste en Ajustes de Stock: primero se
+  // revierte el stock (comprobando el resultado del CAS) y solo si eso
+  // tuvo éxito se borra la fila. Así, si el CAS falla tras sus
+  // reintentos, la devolución sigue existiendo y el usuario puede
+  // reintentar en vez de perder silenciosamente el ajuste de stock.
+  if (devolucion.repuso_stock && devolucion.producto_id) {
+    const exito = await ajustarStockConCas(devolucion.producto_id, user.id, -devolucion.cantidad, {
+      minimoCero: true,
+    });
+
+    if (!exito) {
+      throw new Error(
+        "El stock de este producto cambió mientras se procesaba el borrado. Intenta de nuevo."
+      );
+    }
+  }
+
   const { error } = await supabase
     .from("devoluciones")
     .delete()
@@ -116,14 +133,5 @@ export async function eliminarDevolucion(devolucion: Devolucion) {
 
   if (error) {
     throw error;
-  }
-
-  // Si esta devolución había repuesto stock, deshacer ese incremento
-  // al borrar el registro — mismo patrón que eliminarAjuste en
-  // Ajustes de Stock.
-  if (devolucion.repuso_stock && devolucion.producto_id) {
-    await ajustarStockConCas(devolucion.producto_id, user.id, -devolucion.cantidad, {
-      minimoCero: true,
-    });
   }
 }
