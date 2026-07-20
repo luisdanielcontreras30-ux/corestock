@@ -65,7 +65,10 @@ export default function CatalogoLineaPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(mensajeErrorSeguro(error) || t("catalogo_linea.msg_error_guardar"), "error");
+      const detalle = error instanceof Error && error.message === "EMPRESA_NO_CONFIGURADA"
+        ? t("catalogo_linea.msg_falta_empresa")
+        : mensajeErrorSeguro(error);
+      mostrarToast(detalle || t("catalogo_linea.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }

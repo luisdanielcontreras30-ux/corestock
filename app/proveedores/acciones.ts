@@ -71,10 +71,10 @@ export async function crearProveedor(
 ): Promise<void> {
   const { error } = await supabase.from("proveedores").insert({
     user_id: userId,
-    nombre,
-    telefono,
-    correo,
-    notas,
+    nombre: nombre.trim(),
+    telefono: telefono.trim() || null,
+    correo: correo.trim() || null,
+    notas: notas.trim() || null,
     activo: true,
   });
 

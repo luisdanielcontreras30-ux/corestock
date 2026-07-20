@@ -64,6 +64,10 @@ export async function actualizarCatalogoActivo(activo: boolean) {
   if (error) throw error;
 
   if (!data || data.length === 0) {
-    throw new Error("Primero guarda los datos de tu negocio en Configuración → Empresa.");
+    // Sentinel sin traducir a propósito — este archivo no tiene acceso
+    // al idioma activo. page.tsx lo reconoce y muestra el mensaje ya
+    // traducido (catalogo_linea.msg_falta_empresa); si no lo reconoce,
+    // muestra su propio mensaje genérico.
+    throw new Error("EMPRESA_NO_CONFIGURADA");
   }
 }

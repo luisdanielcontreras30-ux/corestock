@@ -20,10 +20,3 @@ export interface CompraProveedor {
   costo_unitario: number;
   total: number;
 }
-
-export const PROVEEDOR_VACIO = {
-  nombre: "",
-  telefono: "",
-  correo: "",
-  notas: "",
-};

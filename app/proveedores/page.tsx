@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Phone, Mail, Plus, Truck, History } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -43,6 +43,9 @@ function ProveedoresContenido() {
   const [proveedorHistorial, setProveedorHistorial] = useState<ProveedorConResumen | null>(null);
   const [comprasHistorial, setComprasHistorial] = useState<CompraProveedor[]>([]);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
+  // Mismo guard que en Clientes: descarta la respuesta si ya se pidió
+  // el historial de otro proveedor mientras esta seguía en camino.
+  const idHistorialSolicitadoRef = useRef<string | null>(null);
 
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -91,18 +94,23 @@ function ProveedoresContenido() {
   async function verHistorial(p: ProveedorConResumen) {
     if (!user) return;
 
+    idHistorialSolicitadoRef.current = p.id;
     setProveedorHistorial(p);
     setCargandoHistorial(true);
 
     try {
       const datos = await cargarHistorialCompras(user.id, p.id);
+      if (idHistorialSolicitadoRef.current !== p.id) return;
       setComprasHistorial(datos);
     } catch (error) {
+      if (idHistorialSolicitadoRef.current !== p.id) return;
       console.error(error);
       setComprasHistorial([]);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
-      setCargandoHistorial(false);
+      if (idHistorialSolicitadoRef.current === p.id) {
+        setCargandoHistorial(false);
+      }
     }
   }
 
@@ -119,10 +127,10 @@ function ProveedoresContenido() {
     try {
       if (editando) {
         await actualizarProveedor(user.id, editando.id, {
-          nombre,
-          telefono,
-          correo,
-          notas,
+          nombre: nombre.trim(),
+          telefono: telefono.trim() || null,
+          correo: correo.trim() || null,
+          notas: notas.trim() || null,
         });
       } else {
         await crearProveedor(user.id, nombre, telefono, correo, notas);

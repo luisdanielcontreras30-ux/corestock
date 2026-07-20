@@ -61,16 +61,3 @@ export function formatoFecha(
     fecha
   ).toLocaleString();
 }
-
-export function buscarVentas(
-  ventas: Venta[],
-  texto: string
-) {
-  if (!texto.trim()) return ventas;
-
-  return ventas.filter((venta) =>
-    venta.producto
-      .toLowerCase()
-      .includes(texto.toLowerCase())
-  );
-}

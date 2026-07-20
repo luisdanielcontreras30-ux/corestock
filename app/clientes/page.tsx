@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Users } from "lucide-react";
 import ClienteForm from "./components/ClienteForm";
 import ClientesTabla from "./components/ClientesTabla";
@@ -48,6 +48,12 @@ export default function ClientesPage() {
     useState<ClienteConResumen | null>(null);
   const [compras, setCompras] = useState<CompraCliente[]>([]);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
+  // Si se abre el historial de un cliente y, antes de que cargue, se
+  // abre el de otro, la respuesta del primero puede resolver después
+  // y pisar `compras` con datos de otro cliente mientras el modal ya
+  // muestra el encabezado del segundo. Este ref guarda cuál fue la
+  // última solicitud para descartar respuestas que ya no aplican.
+  const idHistorialSolicitadoRef = useRef<number | null>(null);
 
   async function obtenerDatos() {
     setLoading(true);
@@ -133,18 +139,23 @@ export default function ClientesPage() {
   }
 
   async function verHistorial(cliente: ClienteConResumen) {
+    idHistorialSolicitadoRef.current = cliente.id;
     setClienteHistorial(cliente);
     setCargandoHistorial(true);
 
     try {
       const datos = await cargarHistorialCompras(cliente.id);
+      if (idHistorialSolicitadoRef.current !== cliente.id) return;
       setCompras(datos);
     } catch (error) {
+      if (idHistorialSolicitadoRef.current !== cliente.id) return;
       console.error(error);
       setCompras([]);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
-      setCargandoHistorial(false);
+      if (idHistorialSolicitadoRef.current === cliente.id) {
+        setCargandoHistorial(false);
+      }
     }
   }
 
