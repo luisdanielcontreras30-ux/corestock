@@ -11,6 +11,7 @@ export const BLOQUEO_PLUS_ACTIVO = false;
 // (Ventas, Productos, Gráficas, Caja, Catálogo en Línea, Ajustes de
 // Stock, Alertas, Clientes) es gratis.
 export const RUTAS_PLUS = [
+  "/analisis-producto",
   "/compras",
   "/proveedores",
   "/cotizaciones",

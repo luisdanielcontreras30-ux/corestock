@@ -47,8 +47,13 @@ function ProductosInterno() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
 
-  const [nombre, setNombre] = useState("");
-  const [categoria, setCategoria] = useState("");
+  // Los tres campos leen su valor inicial de la URL (?nombre_sugerido=,
+  // ?categoria_sugerida=, ?descripcion_sugerida=) cuando se llega desde
+  // "Análisis de Producto" (CoreStock Plus+) — así el formulario ya
+  // aparece precargado en el primer render, sin pasar por un efecto
+  // que dispare un segundo render solo para sincronizar estado.
+  const [nombre, setNombre] = useState(() => searchParams.get("nombre_sugerido") ?? "");
+  const [categoria, setCategoria] = useState(() => searchParams.get("categoria_sugerida") ?? "");
   const [precio, setPrecio] = useState("");
   const [costo, setCosto] = useState("");
   const [stock, setStock] = useState("");
@@ -57,7 +62,7 @@ function ProductosInterno() {
   // de alerta para todos sus productos sin darse cuenta. Al guardar,
   // si queda vacío sí se usa 5 como valor de resguardo (ver guardar()).
   const [stockMinimo, setStockMinimo] = useState("");
-  const [descripcion, setDescripcion] = useState("");
+  const [descripcion, setDescripcion] = useState(() => searchParams.get("descripcion_sugerida") ?? "");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
 
@@ -73,7 +78,14 @@ function ProductosInterno() {
   // llegar desde el FAB "Nuevo producto" (que además dispara la
   // cámara). En escritorio no aplica: ahí el formulario siempre está
   // visible (ver CSS, la clase que lo oculta solo actúa en móvil).
-  const [formularioAbierto, setFormularioAbierto] = useState(false);
+  const [formularioAbierto, setFormularioAbierto] = useState(
+    () =>
+      !!(
+        searchParams.get("nombre_sugerido") ||
+        searchParams.get("categoria_sugerida") ||
+        searchParams.get("descripcion_sugerida")
+      )
+  );
 
   // Viene del FAB móvil "Nuevo producto (con cámara)": el selector de
   // imagen abre la cámara directo (en vez del picker con opción de
@@ -109,6 +121,20 @@ function ProductosInterno() {
       capturaCamaraRef.current = true;
       fileInputRef.current.setAttribute("capture", "environment");
       fileInputRef.current.click();
+      router.replace("/productos", { scroll: false });
+    }
+  }, [searchParams, router]);
+
+  // Los campos y "formularioAbierto" ya se precargaron arriba (estado
+  // inicial perezoso, leído una sola vez de la URL) — este efecto solo
+  // limpia la URL para que no se vuelvan a aplicar si la persona
+  // refresca la página o navega de vuelta a /productos.
+  useEffect(() => {
+    if (
+      searchParams.get("nombre_sugerido") ||
+      searchParams.get("categoria_sugerida") ||
+      searchParams.get("descripcion_sugerida")
+    ) {
       router.replace("/productos", { scroll: false });
     }
   }, [searchParams, router]);

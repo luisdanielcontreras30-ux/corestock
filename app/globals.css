@@ -1147,6 +1147,62 @@ select optgroup {
   border: 1px solid var(--border);
 }
 
+.analisis-badge-categoria {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.analisis-vacio {
+  background: var(--glass-bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.analisis-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.analisis-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.analisis-stat-icono {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.analisis-stat-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin: 0;
+}
+
+.analisis-stat-valor {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 2px 0 0 0;
+}
+
 /* Mientras la IA está analizando la foto, nombre/categoría/descripción
    se deshabilitan y muestran este brillo en movimiento — así se ve
    claro que esos campos en concreto están por llenarse solos, en vez
