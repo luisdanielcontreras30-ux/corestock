@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BookOpen, Copy, ExternalLink } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
@@ -16,8 +17,17 @@ import { formatoMoneda } from "../ventas/utils";
 export default function CatalogoLineaPage() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
+
+  // La activación del catálogo escribe en empresa_config, que RLS
+  // exige el permiso "configuracion" para tocar (ver
+  // supabase_permisos_miembros.sql) — sin este candado en la interfaz,
+  // un miembro sin ese permiso vería el error genérico de "falta
+  // configurar Empresa" al hacer clic, en vez de uno que refleje la
+  // causa real (no tiene permiso).
+  const puedeConfigurar = puede("configuracion");
 
   const [loading, setLoading] = useState(true);
   const [activo, setActivo] = useState(false);
@@ -57,7 +67,7 @@ export default function CatalogoLineaPage() {
   const enlacePublico = userId ? `${window.location.origin}/catalogo/${userId}` : "";
 
   async function alternar() {
-    if (guardando) return;
+    if (guardando || !puedeConfigurar) return;
 
     try {
       setGuardando(true);
@@ -116,12 +126,16 @@ export default function CatalogoLineaPage() {
             </p>
           </div>
 
-          <button className="btn-primary" onClick={alternar} disabled={guardando || !empresaConfigurada}>
+          <button className="btn-primary" onClick={alternar} disabled={guardando || !empresaConfigurada || !puedeConfigurar}>
             {activo ? t("catalogo_linea.desactivar") : t("catalogo_linea.activar")}
           </button>
         </div>
 
-        {!empresaConfigurada && (
+        {!puedeConfigurar ? (
+          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 14 }}>
+            {t("permisos.sin_acceso_accion")}
+          </p>
+        ) : !empresaConfigurada && (
           <p style={{ color: "#ef4444", fontSize: 13, marginTop: 14 }}>
             {t("catalogo_linea.msg_falta_empresa")}
           </p>
