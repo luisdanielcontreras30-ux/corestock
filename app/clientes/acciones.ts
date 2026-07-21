@@ -27,7 +27,7 @@ export async function cargarClientes() {
       .order("nombre"),
     supabase
       .from("ventas")
-      .select("cliente_id, total")
+      .select("cliente_id, total, cobrado")
       .not("cliente_id", "is", null),
   ]);
 
@@ -48,7 +48,14 @@ export async function cargarClientes() {
     };
 
     actual.compras += 1;
-    actual.totalGastado += Number(venta.total);
+
+    // Una venta a préstamo sin cobrar todavía es una cuenta por cobrar
+    // pendiente (ver Cuentas por Cobrar), no dinero que el cliente ya
+    // gastó — sumarla aquí infla "total gastado" con dinero que el
+    // negocio no ha recibido.
+    if (venta.cobrado) {
+      actual.totalGastado += Number(venta.total);
+    }
 
     resumenPorCliente.set(venta.cliente_id, actual);
   }

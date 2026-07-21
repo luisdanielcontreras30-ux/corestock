@@ -1915,7 +1915,7 @@ select optgroup {
 }
 
 .login-card h1 {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 22px;
   font-weight: 700;
   margin-bottom: 6px;
@@ -3316,6 +3316,10 @@ select optgroup {
   margin-bottom: 32px;
 }
 
+.dashboard-simple-saludo-h1 {
+  font-size: 24px;
+}
+
 .dashboard-simple-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -3369,6 +3373,33 @@ select optgroup {
 
 .dashboard-simple-salir:hover {
   color: var(--danger);
+}
+
+/* Mismo problema que ya se corrigió en el panel de Cobrar y en
+   Dashboard Easy: en monitor de escritorio, este dashboard (el que ven
+   los miembros del equipo) quedaba con un ancho fijo de 640px pegado a
+   la izquierda de toda la pantalla. Como el grid ya usa auto-fit, solo
+   hace falta ensanchar el contenedor — las tarjetas se acomodan solas
+   en más columnas — y agrandar un poco su contenido. */
+@media (min-width: 900px) {
+  .dashboard-simple-tiles {
+    max-width: 1400px;
+    gap: 24px;
+  }
+
+  .dashboard-simple-saludo-h1 {
+    font-size: 32px;
+  }
+
+  .dashboard-simple-tile {
+    padding: 44px 20px;
+    font-size: 17px;
+  }
+
+  .dashboard-simple-tile-icono {
+    width: 68px;
+    height: 68px;
+  }
 }
 
 /* ==========================================================================

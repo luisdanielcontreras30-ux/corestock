@@ -71,8 +71,15 @@ export async function registrarCompra(
     throw new Error("La cantidad debe ser mayor a 0.");
   }
 
-  if (!Number.isFinite(costoUnitario) || costoUnitario < 0) {
-    throw new Error("El costo no puede ser negativo.");
+  // A diferencia del precio de venta (donde 0 es válido: una promoción de
+  // 100% de descuento), un costo de compra en 0 no tiene un caso de uso
+  // real aquí y sí tiene un efecto colateral dañino: la actualización de
+  // abajo sobrescribe productos.costo con este valor sin condición, así
+  // que un costo en 0 (typo o campo vacío) dejaría el costeo del producto
+  // en $0 hasta la siguiente compra real, arruinando el cálculo de
+  // Ganancias en el Asistente en silencio.
+  if (!Number.isFinite(costoUnitario) || costoUnitario <= 0) {
+    throw new Error("El costo debe ser mayor a 0.");
   }
 
   // Releemos el stock justo antes de comprar, igual que en Ventas, para

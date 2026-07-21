@@ -38,6 +38,17 @@ export async function crearMovimiento(
 
   const negocioId = await obtenerNegocioId(user.id);
 
+  // El formulario (page.tsx) ya valida esto, pero se repite aquí porque
+  // esta acción es exportada y podría llamarse directamente sin pasar
+  // por él — mismo patrón que Compras/Devoluciones/Promociones.
+  if (!descripcion.trim()) {
+    throw new Error("Falta la descripción del movimiento.");
+  }
+
+  if (!Number.isFinite(monto) || monto <= 0) {
+    throw new Error("El monto debe ser mayor a 0.");
+  }
+
   const { error } = await supabase.from("conciliaciones").insert({
     fecha: new Date().toISOString(),
     descripcion: descripcion.trim(),

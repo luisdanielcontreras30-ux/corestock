@@ -88,10 +88,12 @@ function ComprasContenido() {
   function alElegirProducto(id: string) {
     setProductoId(id);
 
+    // Si el producto nuevo no tiene un costo previo, se limpia el campo
+    // en vez de dejar el costo del producto elegido antes — si no, al
+    // cambiar de un producto con costo a otro sin costo, el campo se
+    // quedaba mostrando (y se podía guardar) el costo equivocado.
     const p = productos.find((x) => x.id === Number(id));
-    if (p && p.costo != null && p.costo > 0) {
-      setCostoUnitario(String(p.costo));
-    }
+    setCostoUnitario(p && p.costo != null && p.costo > 0 ? String(p.costo) : "");
   }
 
   function limpiar() {
@@ -121,7 +123,7 @@ function ComprasContenido() {
       return;
     }
 
-    if (!Number.isFinite(costoNum) || costoNum < 0) {
+    if (!Number.isFinite(costoNum) || costoNum <= 0) {
       mostrarToast(t("compras.msg_costo_invalido"), "error");
       return;
     }

@@ -369,7 +369,7 @@ export default function DashboardPremium() {
     return (
       <div style={{ padding: "24px", color: "var(--text-primary)", fontFamily: "sans-serif", backgroundColor: "var(--bg-primary)", minHeight: "100dvh", width: "100%" }}>
         <header className="dashboard-simple-saludo">
-          <h1 style={{ fontSize: "24px", fontWeight: "700", margin: 0, letterSpacing: "-0.02em" }}>
+          <h1 className="dashboard-simple-saludo-h1" style={{ fontWeight: "700", margin: 0, letterSpacing: "-0.02em" }}>
             {t("dashboard.saludo")}, {miembroActivo.nombre} 👋
           </h1>
           <p

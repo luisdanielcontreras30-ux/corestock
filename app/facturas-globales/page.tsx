@@ -95,6 +95,8 @@ function FacturasGlobalesContenido() {
 
       if (error instanceof Error && error.message === "SIN_VENTAS_EN_RANGO") {
         mostrarToast(t("facturas_globales.msg_sin_ventas_rango"), "error");
+      } else if (error instanceof Error && error.message === "RANGO_INVALIDO") {
+        mostrarToast(t("facturas_globales.msg_rango_invalido"), "error");
       } else {
         const detalle = mensajeErrorSeguro(error);
         mostrarToast(detalle || t("facturas_globales.msg_error_generar"), "error");

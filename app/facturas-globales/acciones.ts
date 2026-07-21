@@ -41,6 +41,20 @@ export async function generarFacturaGlobal(
   const fechaInicio = new Date(`${fechaInicioStr}T00:00:00`);
   const fechaFin = new Date(`${fechaFinStr}T23:59:59`);
 
+  // El formulario (page.tsx) ya valida esto, pero se repite aquí porque
+  // esta acción es exportada y podría llamarse directamente sin pasar
+  // por él — mismo patrón que Compras/Devoluciones/Promociones.
+  if (Number.isNaN(fechaInicio.getTime()) || Number.isNaN(fechaFin.getTime())) {
+    throw new Error("Rango de fechas inválido.");
+  }
+
+  if (fechaInicio > fechaFin) {
+    // Mensaje sin traducir a propósito, igual que SIN_VENTAS_EN_RANGO
+    // abajo: page.tsx reconoce este texto exacto y muestra la clave
+    // i18n correspondiente en su lugar.
+    throw new Error("RANGO_INVALIDO");
+  }
+
   const { data: ventas, error: errorVentas } = await supabase
     .from("ventas")
     .select("total")
