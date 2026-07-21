@@ -141,11 +141,19 @@ export default function DashboardPremium() {
   const [ventasRecientes, setVentasRecientes] = useState<VentaReciente[]>([]);
   const [productosAlerta, setProductosAlerta] = useState<ProductoStockBajo[]>([]);
 
-  // Todas las ventas (crudas) y el mapa de nombres de clientes, para
-  // poder recalcular "Top artículos" y "Mejores clientes" según el
-  // período elegido sin volver a consultar la base de datos.
+  // Ventana acotada de ventas recientes (últimos 40 días, no la tabla
+  // completa) y el mapa de nombres de clientes, para poder recalcular
+  // "Top artículos" y "Mejores clientes" en los períodos hoy/semana/mes
+  // sin volver a consultar la base de datos. El período "todo" no usa
+  // esta ventana — ver topArticulosTodo/mejoresClientesTodo abajo.
   const [ventasTodas, setVentasTodas] = useState<VentaReciente[]>([]);
   const [nombresClientes, setNombresClientes] = useState<Map<number, string>>(new Map());
+
+  // Ranking del historial completo, calculado en la base de datos (no
+  // se puede derivar de ventasTodas porque esa es solo la ventana de
+  // los últimos 40 días).
+  const [topArticulosTodo, setTopArticulosTodo] = useState<DataGraficoPie[]>([]);
+  const [mejoresClientesTodo, setMejoresClientesTodo] = useState<ClienteTop[]>([]);
 
   // Cada tarjeta tiene su propio selector de período — son controles
   // independientes, no deben cambiar juntos al mover uno solo.
@@ -179,6 +187,8 @@ export default function DashboardPremium() {
   );
 
   const dataPie = useMemo<DataGraficoPie[]>(() => {
+    if (periodoTopArticulos === "todo") return topArticulosTodo;
+
     const mapaProductos: { [key: string]: number } = {};
 
     ventasParaTopArticulos.forEach((v) => {
@@ -191,9 +201,11 @@ export default function DashboardPremium() {
       .map((key) => ({ name: key, value: mapaProductos[key] }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
-  }, [ventasParaTopArticulos]);
+  }, [ventasParaTopArticulos, periodoTopArticulos, topArticulosTodo]);
 
   const mejoresClientes = useMemo<ClienteTop[]>(() => {
+    if (periodoMejoresClientes === "todo") return mejoresClientesTodo;
+
     const conCliente = ventasParaMejoresClientes.filter((v) => v.cliente_id != null);
     const mapaClientes = new Map<number, number>();
 
@@ -209,27 +221,78 @@ export default function DashboardPremium() {
       }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 5);
-  }, [ventasParaMejoresClientes, nombresClientes, t]);
+  }, [ventasParaMejoresClientes, nombresClientes, t, periodoMejoresClientes, mejoresClientesTodo]);
 
   async function cargarDatosDashboard() {
     try {
-      // Las 3 consultas son independientes entre sí (ninguna usa el
+      // Ventana de 40 días: cubre de sobra "hoy", "semana" (7 días) y
+      // "mes" (máximo 31 días) sin importar en qué día del mes estemos
+      // ni el desfase de zona horaria del navegador — antes se traía
+      // la tabla "ventas" COMPLETA solo para calcular estas tarjetas.
+      const corte = new Date();
+      corte.setDate(corte.getDate() - 40);
+      const corteISO = corte.toISOString();
+
+      // Las consultas son independientes entre sí (ninguna usa el
       // resultado de otra), así que se lanzan en paralelo en vez de
-      // encadenarlas — evita una cascada de 3 round-trips secuenciales
+      // encadenarlas — evita una cascada de round-trips secuenciales
       // en la página que más se visita.
       const [
         { data: productos, error: errorProductos },
         { data: ventas, error: errorVentas },
         { data: clientes, error: errorClientes },
+        { data: recientes, error: errorRecientes },
       ] = await Promise.all([
         supabase.from("productos").select("id, nombre, stock, stock_minimo"),
-        supabase.from("ventas").select("*"),
+        supabase.from("ventas").select("*").gte("fecha", corteISO),
         supabase.from("clientes").select("id, nombre"),
+        supabase
+          .from("ventas")
+          .select("id, producto, cantidad, total, fecha, cliente_id")
+          .order("fecha", { ascending: false })
+          .limit(4),
       ]);
 
       if (errorProductos) throw errorProductos;
       if (errorVentas) throw errorVentas;
       if (errorClientes) throw errorClientes;
+      if (errorRecientes) throw errorRecientes;
+
+      if (recientes) {
+        setVentasRecientes(recientes as VentaReciente[]);
+      }
+
+      // Aparte y tolerante a fallos: el ranking "todo" depende de dos
+      // funciones de Postgres (ver supabase_dashboard_agregado.sql)
+      // que hay que correr a mano en Supabase — si un proyecto todavía
+      // no las tiene, el resto del dashboard no debe dejar de
+      // mostrarse por eso.
+      try {
+        const [{ data: topArticulos, error: errorTopArticulos }, { data: topClientes, error: errorTopClientes }] =
+          await Promise.all([
+            supabase.rpc("dashboard_top_articulos", { p_limite: 5 }),
+            supabase.rpc("dashboard_top_clientes", { p_limite: 5 }),
+          ]);
+
+        if (errorTopArticulos) throw errorTopArticulos;
+        if (errorTopClientes) throw errorTopClientes;
+
+        setTopArticulosTodo(
+          (topArticulos ?? []).map((r: { producto: string; total: number }) => ({
+            name: r.producto,
+            value: Number(r.total),
+          }))
+        );
+
+        setMejoresClientesTodo(
+          (topClientes ?? []).map((r: { cliente_id: number; nombre: string | null; total: number }) => ({
+            nombre: r.nombre ?? t("dashboard.cliente_eliminado"),
+            total: Number(r.total),
+          }))
+        );
+      } catch (errorRanking) {
+        console.error(errorRanking);
+      }
 
       if (productos) {
         setTotalProductos(productos.length);
@@ -257,10 +320,6 @@ export default function DashboardPremium() {
         setVentasHoy(hoyFiltradas.reduce((sum, v) => sum + Number(v.total), 0));
         setTicketsHoy(hoyFiltradas.length);
         setVentasMes(mesFiltradas.reduce((sum, v) => sum + Number(v.total), 0));
-
-        // Historial reciente ordenado cronológicamente
-        const ordenadas = [...ventasTipadas].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
-        setVentasRecientes(ordenadas.slice(0, 4));
 
         // ==========================================
         // PROCESAMIENTO DE GRÁFICA DE LÍNEA (Historial 7 días)
