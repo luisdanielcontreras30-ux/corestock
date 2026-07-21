@@ -2,7 +2,7 @@
 // da uno) en vez del selector de chats del propio usuario — WhatsApp
 // solo reconoce el parámetro "phone" con puros dígitos (código de país
 // incluido), sin espacios, guiones ni el "+" inicial.
-export function limpiarTelefono(telefono: string): string {
+function limpiarTelefono(telefono: string): string {
   return telefono.replace(/[^\d]/g, "");
 }
 
