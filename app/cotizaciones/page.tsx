@@ -61,6 +61,32 @@ function CotizacionesContenido() {
   const [filtroEstado, setFiltroEstado] = useState<EstadoCotizacion | "">("");
   const [compartiendo, setCompartiendo] = useState<Cotizacion | null>(null);
 
+  // acciones.ts lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce; null si el error no es
+  // ninguno de los esperados (deja pasar a mensajeErrorSeguro/fallback).
+  function mensajeCotizacion(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "CANTIDAD_INVALIDA":
+        return t("cotizaciones.msg_cantidad_mayor");
+      case "PRECIO_INVALIDO":
+        return t("cotizaciones.msg_precio_invalido");
+      case "NO_ACEPTADA":
+        return t("cotizaciones.msg_no_aceptada");
+      case "YA_CONVERTIDA":
+        return t("cotizaciones.msg_ya_convertida");
+      case "PRODUCTO_NO_EXISTE":
+        return t("cotizaciones.msg_producto_no_existe");
+      case "STOCK_INSUFICIENTE_CONVERSION":
+        return t("cotizaciones.msg_stock_insuficiente_conversion");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      default:
+        return null;
+    }
+  }
+
   async function obtenerDatos() {
     setLoading(true);
     try {
@@ -157,7 +183,7 @@ function CotizacionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeCotizacion(error) || mensajeErrorSeguro(error);
       mostrarToast(detalle || t("cotizaciones.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
@@ -198,7 +224,7 @@ function CotizacionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeCotizacion(error) || mensajeErrorSeguro(error);
       mostrarToast(detalle || t("cotizaciones.msg_error_convertir"), "error");
     } finally {
       setConvirtiendoId(null);

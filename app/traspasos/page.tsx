@@ -48,6 +48,30 @@ function TraspasosContenido() {
 
   const [ubicacionVista, setUbicacionVista] = useState("");
 
+  // acciones.ts lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce; null si el error no es
+  // ninguno de los esperados (deja pasar a mensajeErrorSeguro/fallback).
+  function mensajeTraspaso(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "UBICACION_CON_STOCK":
+        return t("traspasos.msg_ubicacion_con_stock");
+      case "STOCK_INSUFICIENTE_UBICACION":
+        return t("traspasos.msg_stock_insuficiente_ubicacion");
+      case "STOCK_INSUFICIENTE_TIENDA":
+        return t("traspasos.msg_stock_insuficiente_tienda");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      case "ORIGEN_DESTINO_IGUALES":
+        return t("traspasos.msg_origen_destino_iguales");
+      case "CANTIDAD_INVALIDA":
+        return t("fabricacion.msg_cantidad_invalida");
+      default:
+        return null;
+    }
+  }
+
   async function obtenerDatos() {
     setLoading(true);
     try {
@@ -106,7 +130,7 @@ function TraspasosContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(mensajeErrorSeguro(error) || t("traspasos.msg_error_eliminar_ubicacion"), "error");
+      mostrarToast(mensajeTraspaso(error) || mensajeErrorSeguro(error) || t("traspasos.msg_error_eliminar_ubicacion"), "error");
     }
   }
 
@@ -165,7 +189,7 @@ function TraspasosContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(mensajeErrorSeguro(error) || t("traspasos.msg_error_traspaso"), "error");
+      mostrarToast(mensajeTraspaso(error) || mensajeErrorSeguro(error) || t("traspasos.msg_error_traspaso"), "error");
     } finally {
       setTraspasando(false);
     }
