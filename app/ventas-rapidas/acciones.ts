@@ -108,9 +108,16 @@ export async function registrarVentaRapida(
   metodoPago: MetodoPago,
   userId: string,
   nombreCliente: string = ""
-): Promise<{ encoladoOffline: boolean }> {
+): Promise<{ encoladoOffline: boolean; primerId: number | null }> {
   const vendidos: number[] = [];
   let encoladoOffline = false;
+  // Referencia para el folio del ticket — no hay un id de "transacción"
+  // que agrupe las líneas de un mismo cobro (cada producto distinto es
+  // su propia fila en "ventas"), así que se usa el id de la primera
+  // línea que sí quedó registrada en línea. Si todo terminó encolado
+  // offline, queda null y el ticket automático no se muestra (no hay
+  // un id real todavía — ver confirmarCobro()).
+  let primerId: number | null = null;
 
   for (const item of items) {
     const uuid = generarUuid();
@@ -120,7 +127,7 @@ export async function registrarVentaRapida(
         throw new Error("SIN_CONEXION");
       }
 
-      await registrarVenta(
+      const resultado = await registrarVenta(
         item.producto,
         null,
         item.cantidad,
@@ -129,6 +136,10 @@ export async function registrarVentaRapida(
         metodoPago,
         uuid
       );
+
+      if (primerId === null && resultado) {
+        primerId = resultado.id;
+      }
     } catch (error) {
       // Si de plano no hay conexión, o la venta con conexión falló por
       // un problema de red (no por stock insuficiente ni otra
@@ -171,5 +182,5 @@ export async function registrarVentaRapida(
     vendidos.push(item.producto.id);
   }
 
-  return { encoladoOffline };
+  return { encoladoOffline, primerId };
 }

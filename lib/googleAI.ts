@@ -34,6 +34,25 @@ export class ErrorGoogleAI extends Error {
   }
 }
 
+// Google devuelve 400 (no 401/403) cuando la API key está mal formada
+// o revocada — "API key not valid. Please pass a valid API key." — así
+// que sin este chequeo ese caso caía en el mismo status 400 que
+// cualquier otro request mal formado, y el usuario final recibía el
+// mensaje genérico de "intenta de nuevo" para un problema que
+// reintentar nunca iba a arreglar.
+async function errorDesdeRespuesta(respuesta: Response): Promise<ErrorGoogleAI> {
+  let detalle = `HTTP ${respuesta.status}`;
+  try {
+    const cuerpo = await respuesta.json();
+    detalle = cuerpo?.error?.message || detalle;
+  } catch {
+    // sin cuerpo JSON legible, se deja el detalle genérico
+  }
+
+  const esClaveInvalida = respuesta.status === 400 && /api key/i.test(detalle);
+  return new ErrorGoogleAI(detalle, esClaveInvalida ? 401 : respuesta.status);
+}
+
 function construirPrompt(idioma: string, categoriasExistentes: string[]): string {
   const idiomaTexto = NOMBRE_IDIOMA[idioma] ?? "español";
 
@@ -184,14 +203,7 @@ export async function analizarImagenProducto(
   );
 
   if (!respuesta.ok) {
-    let detalle = `HTTP ${respuesta.status}`;
-    try {
-      const cuerpo = await respuesta.json();
-      detalle = cuerpo?.error?.message || detalle;
-    } catch {
-      // sin cuerpo JSON legible, se deja el detalle genérico
-    }
-    throw new ErrorGoogleAI(detalle, respuesta.status);
+    throw await errorDesdeRespuesta(respuesta);
   }
 
   const datos = await respuesta.json();
@@ -273,14 +285,7 @@ export async function generarRespuestaVendedor(
   );
 
   if (!respuesta.ok) {
-    let detalle = `HTTP ${respuesta.status}`;
-    try {
-      const cuerpo = await respuesta.json();
-      detalle = cuerpo?.error?.message || detalle;
-    } catch {
-      // sin cuerpo JSON legible, se deja el detalle genérico
-    }
-    throw new ErrorGoogleAI(detalle, respuesta.status);
+    throw await errorDesdeRespuesta(respuesta);
   }
 
   const datos = await respuesta.json();

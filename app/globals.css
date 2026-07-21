@@ -3471,6 +3471,107 @@ select optgroup {
   font-variant-numeric: tabular-nums;
 }
 
+/* En monitor/tablet de escritorio, CoreStock Easy quedaba con un ancho
+   fijo de 640px flotando en medio de toda la pantalla — mismo ajuste
+   que el panel de Cobrar: crece y agranda textos, botón y tarjetas. */
+@media (min-width: 900px) {
+  .dashboard-easy {
+    max-width: 1100px;
+    padding: 24px 4px 32px;
+  }
+
+  .dashboard-easy-saludo h1 {
+    font-size: 36px;
+  }
+
+  .dashboard-easy-saludo p {
+    font-size: 18px;
+  }
+
+  .dashboard-easy-vender {
+    min-height: 84px;
+    font-size: 26px;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .dashboard-easy-grid {
+    gap: 20px;
+  }
+
+  .dashboard-easy-tile {
+    padding: 30px;
+    gap: 12px;
+  }
+
+  .dashboard-easy-tile-icono {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+  }
+
+  .dashboard-easy-tile-etiqueta {
+    font-size: 17px;
+  }
+
+  .dashboard-easy-tile strong {
+    font-size: 34px;
+  }
+}
+
+/* A partir de aquí (tablet grande/monitor), 4 tarjetas en 2x2 seguían
+   dejando franjas vacías a los lados y abajo — se ven "flotando" en
+   vez de ocupar la pantalla. Se estira el bloque mucho más y las 4
+   tarjetas pasan a una sola fila (usa el ancho completo, sin huecos),
+   con tarjetas más altas y textos aún más grandes. */
+@media (min-width: 1200px) {
+  .dashboard-easy {
+    max-width: 1700px;
+    padding: 32px 24px 40px;
+    min-height: 78vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .dashboard-easy-saludo h1 {
+    font-size: 44px;
+  }
+
+  .dashboard-easy-saludo p {
+    font-size: 20px;
+  }
+
+  .dashboard-easy-vender {
+    min-height: 100px;
+    font-size: 30px;
+  }
+
+  .dashboard-easy-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .dashboard-easy-tile {
+    padding: 36px 28px;
+    min-height: 220px;
+    justify-content: center;
+  }
+
+  .dashboard-easy-tile-icono {
+    width: 64px;
+    height: 64px;
+  }
+
+  .dashboard-easy-tile-etiqueta {
+    font-size: 18px;
+  }
+
+  .dashboard-easy-tile strong {
+    font-size: 40px;
+  }
+}
+
 /* ==========================================================================
    GRIDS RESPONSIVOS (antes eran inline styles fijos que se rompían en móvil)
    ========================================================================== */
@@ -4977,6 +5078,87 @@ select optgroup {
 @media (max-width: 360px) {
   .venta-rapida-metodos {
     grid-template-columns: 1fr;
+  }
+}
+
+/* En pantallas grandes (monitor de escritorio, tablet horizontal) el
+   panel de cobro quedaba con un ancho fijo de 640px flotando en medio
+   de toda la pantalla — se sentía chico y perdido. Aquí crece para
+   ocupar casi todo el ancho, con textos y botones más grandes también
+   (más fácil de tocar/leer desde lejos, como en un mostrador). */
+@media (min-width: 900px) {
+  .venta-rapida-panel-header h3 {
+    font-size: 28px;
+  }
+
+  .venta-rapida-panel-cerrar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .venta-rapida-panel-body {
+    max-width: 1100px;
+    padding: 40px 32px 32px;
+  }
+
+  .venta-rapida-monto-box {
+    padding: 44px 40px;
+    margin-bottom: 32px;
+  }
+
+  .venta-rapida-monto-box span {
+    font-size: 20px;
+  }
+
+  .venta-rapida-monto-box strong {
+    font-size: 72px;
+  }
+
+  .venta-rapida-metodos {
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .venta-rapida-metodos button {
+    min-height: 150px;
+    font-size: 22px;
+    gap: 14px;
+  }
+
+  .venta-rapida-efectivo {
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .venta-rapida-efectivo label {
+    font-size: 19px;
+  }
+
+  .venta-rapida-efectivo input {
+    font-size: 28px;
+    padding: 22px 24px;
+  }
+
+  .venta-rapida-cambio-box {
+    padding: 24px 28px;
+  }
+
+  .venta-rapida-cambio-box span {
+    font-size: 19px;
+  }
+
+  .venta-rapida-cambio-box strong {
+    font-size: 34px;
+  }
+
+  .venta-rapida-panel-footer {
+    padding: 24px 32px;
+    gap: 20px;
+  }
+
+  .venta-rapida-panel-footer button {
+    min-height: 84px;
+    font-size: 24px;
   }
 }
 

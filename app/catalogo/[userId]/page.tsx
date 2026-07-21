@@ -4,6 +4,7 @@ import { Fragment, use, useEffect, useMemo, useState } from "react";
 import { Store, PackageX, MessageCircle, FileText, X } from "lucide-react";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { obtenerCatalogoPublico, ProductoPublico } from "./acciones";
+import { enlaceWhatsApp } from "../../../lib/whatsapp";
 
 interface Props {
   params: Promise<{ userId: string }>;
@@ -14,10 +15,6 @@ interface Categoria {
   productos: ProductoPublico[];
 }
 
-function limpiarTelefono(telefono: string) {
-  return telefono.replace(/[^\d]/g, "");
-}
-
 // Con separador de miles — sin importar formatoMoneda() de ventas/utils
 // para no meter xlsx (usado solo por exportarExcel) en el bundle de esta
 // página pública.
@@ -25,10 +22,6 @@ function precioFormato(valor: number) {
   return valor.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function enlaceWhatsApp(telefono: string, mensaje: string) {
-  const numero = limpiarTelefono(telefono);
-  return `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(mensaje)}`;
-}
 
 export default function CatalogoPublicoPage({ params }: Props) {
   const { userId } = use(params);
@@ -183,10 +176,10 @@ export default function CatalogoPublicoPage({ params }: Props) {
                               <a
                                 className="catalogo-publico-panel-opcion"
                                 href={enlaceWhatsApp(
-                                  telefono,
                                   t("catalogo_publico.msg_cotizar")
                                     .replace("{producto}", p.nombre)
-                                    .replace("{precio}", precioFormato(Number(p.precio)))
+                                    .replace("{precio}", precioFormato(Number(p.precio))),
+                                  telefono
                                 )}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -200,8 +193,8 @@ export default function CatalogoPublicoPage({ params }: Props) {
                               <a
                                 className="catalogo-publico-panel-opcion"
                                 href={enlaceWhatsApp(
-                                  telefono,
-                                  t("catalogo_publico.msg_contactar").replace("{producto}", p.nombre)
+                                  t("catalogo_publico.msg_contactar").replace("{producto}", p.nombre),
+                                  telefono
                                 )}
                                 target="_blank"
                                 rel="noopener noreferrer"

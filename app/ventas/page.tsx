@@ -26,15 +26,29 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import { useSuscripcion } from "../../components/SuscripcionProvider";
 import SinPermiso from "../../components/SinPermiso";
+import TicketModal, { ItemTicket } from "./components/TicketModal";
 import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../lib/promociones";
+
+interface TicketPendiente {
+  folioId: number;
+  fecha: string;
+  clienteNombre: string;
+  clienteTelefono: string | null;
+  metodoPago: MetodoPago;
+  items: ItemTicket[];
+  total: number;
+}
 
 export default function VentasPage() {
   const { t } = useIdioma();
   const { confirmar } = useConfirm();
   const { mostrarToast } = useToast();
   const { puede } = useMiembroActivo();
+  const { esPlus } = useSuscripcion();
   const [loading, setLoading] = useState(true);
+  const [ticket, setTicket] = useState<TicketPendiente | null>(null);
 
   const [productos, setProductos] = useState<Producto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -128,7 +142,33 @@ export default function VentasPage() {
     try {
       setGuardando(true);
 
-      await registrarVenta(producto, cliente, cantidad, clienteNombre, precioUnitario, metodoPago);
+      const resultado = await registrarVenta(
+        producto,
+        cliente,
+        cantidad,
+        clienteNombre,
+        precioUnitario,
+        metodoPago
+      );
+
+      if (esPlus && resultado) {
+        setTicket({
+          folioId: resultado.id,
+          fecha: new Date().toISOString(),
+          clienteNombre: cliente?.nombre || clienteNombre.trim() || t("ventas.cliente_general"),
+          clienteTelefono: cliente?.telefono ?? null,
+          metodoPago,
+          items: [
+            {
+              producto: producto.nombre,
+              cantidad,
+              precioUnitario,
+              total,
+            },
+          ],
+          total,
+        });
+      }
 
       setProductoId("");
       setClienteId("");
@@ -227,6 +267,8 @@ export default function VentasPage() {
           exportarExcel={puede("exportar_datos") ? () => exportarExcel(ventas) : undefined}
         />
       )}
+
+      {ticket && <TicketModal {...ticket} onClose={() => setTicket(null)} />}
     </main>
   );
 }

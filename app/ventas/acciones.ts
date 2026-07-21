@@ -39,7 +39,8 @@ export async function cargarDatos() {
       .select(`
         *,
         clientes(
-          nombre
+          nombre,
+          telefono
         )
       `)
       .order("id", {
@@ -78,7 +79,7 @@ export async function registrarVenta(
   // después del insert, antes de que la respuesta llegara), se detecta
   // aquí y no se vuelve a insertar ni a descontar stock una segunda vez.
   uuid?: string
-) {
+): Promise<{ id: number } | undefined> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -100,7 +101,7 @@ export async function registrarVenta(
 
     // Ya se aplicó en un intento de sincronización anterior: no-op,
     // no se vuelve a vender ni a tocar el stock.
-    if (ventaExistente) return;
+    if (ventaExistente) return { id: ventaExistente.id };
   }
 
   // La UI (Ventas y Venta Rápida) ya bloquea el botón de confirmar si
@@ -230,6 +231,8 @@ export async function registrarVenta(
       "El stock de este producto cambió mientras se procesaba la venta. Intenta de nuevo."
     );
   }
+
+  return { id: ventaCreada.id };
 }
 export async function eliminarVenta(
   id: number

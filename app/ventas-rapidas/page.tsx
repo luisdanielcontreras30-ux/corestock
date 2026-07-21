@@ -24,6 +24,7 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import { useSuscripcion } from "../../components/SuscripcionProvider";
 import SinPermiso from "../../components/SinPermiso";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import {
@@ -34,6 +35,7 @@ import {
 } from "./acciones";
 import { Producto, Promocion, MetodoPago } from "../ventas/types";
 import { CLAVE_METODO_PAGO, formatoMoneda } from "../ventas/utils";
+import TicketModal, { ItemTicket } from "../ventas/components/TicketModal";
 import {
   obtenerPromocionAplicable,
   calcularPrecioConDescuento,
@@ -56,8 +58,17 @@ export default function VentasRapidasPage() {
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
   const { puede } = useMiembroActivo();
+  const { esPlus } = useSuscripcion();
 
   const [loading, setLoading] = useState(true);
+  const [ticket, setTicket] = useState<{
+    folioId: number;
+    fecha: string;
+    clienteNombre: string;
+    metodoPago: MetodoPago;
+    items: ItemTicket[];
+    total: number;
+  } | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [promociones, setPromociones] = useState<Promocion[]>([]);
   const [busqueda, setBusqueda] = useState("");
@@ -226,7 +237,7 @@ export default function VentasRapidasPage() {
 
     try {
       setCobrando(true);
-      const { encoladoOffline } = await registrarVentaRapida(
+      const { encoladoOffline, primerId } = await registrarVentaRapida(
         itemsCarrito,
         metodoPago,
         user.id,
@@ -238,6 +249,29 @@ export default function VentasRapidasPage() {
           : t("ventas_rapidas.msg_cobro_exitoso"),
         encoladoOffline ? "info" : "exito"
       );
+
+      // Sin conexión no hay un id real todavía (la venta quedó
+      // encolada para sincronizar después) — sin id no hay folio que
+      // mostrar, así que el ticket automático se salta en ese caso.
+      if (esPlus && !encoladoOffline && primerId !== null) {
+        setTicket({
+          folioId: primerId,
+          fecha: new Date().toISOString(),
+          clienteNombre:
+            metodoPago === "prestamo" && nombreClientePrestamo.trim()
+              ? nombreClientePrestamo.trim()
+              : t("ventas.cliente_general"),
+          metodoPago,
+          items: itemsCarrito.map((item) => ({
+            producto: item.producto.nombre,
+            cantidad: item.cantidad,
+            precioUnitario: item.precioUnitario,
+            total: item.precioUnitario * item.cantidad,
+          })),
+          total: totalCarrito,
+        });
+      }
+
       setCarrito(new Map());
       setPanelAbierto(false);
       await obtenerDatos(false);
@@ -581,6 +615,14 @@ export default function VentasRapidasPage() {
           </div>,
           document.body
         )}
+
+      {ticket && (
+        <TicketModal
+          {...ticket}
+          clienteTelefono={null}
+          onClose={() => setTicket(null)}
+        />
+      )}
     </main>
   );
 }
