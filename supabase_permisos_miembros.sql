@@ -152,10 +152,10 @@ create policy "ventas_miembro_delete" on public.ventas
   using (public.miembro_tiene_permiso(user_id, 'eliminar_ventas'));
 
 -- 6) productos: ver el catálogo queda abierto a cualquier miembro
--- activo (lo necesitan para vender); modificarlo requiere
--- "gestionar_inventario". Nota: esto no oculta la columna "costo" —
--- ver_ganancias sigue siendo solo de interfaz, igual que hoy, porque
--- RLS protege filas, no columnas.
+-- activo (lo necesitan para vender); crear o eliminar un producto
+-- requiere "gestionar_inventario". Nota: esto no oculta la columna
+-- "costo" — ver_ganancias sigue siendo solo de interfaz, igual que
+-- hoy, porque RLS protege filas, no columnas.
 drop policy if exists "productos_miembro_select" on public.productos;
 create policy "productos_miembro_select" on public.productos
   for select
@@ -166,11 +166,21 @@ create policy "productos_miembro_insert" on public.productos
   for insert
   with check (public.miembro_tiene_permiso(user_id, 'gestionar_inventario'));
 
+-- El update queda con cualquier miembro activo, NO solo
+-- "gestionar_inventario" — a diferencia de crear/eliminar un
+-- producto, este UPDATE es el que usan como efecto secundario
+-- ventas, compras, devoluciones, ajustes de stock, traspasos,
+-- fabricación y cotizaciones para mover productos.stock (ninguna de
+-- esas tablas exige gestionar_inventario para sí misma, quedaron con
+-- acceso de cualquier miembro activo en la sección 7 de abajo). Con
+-- el update exigiendo gestionar_inventario, un cajero podía registrar
+-- la venta pero el descuento de stock quedaba bloqueado por RLS sin
+-- avisar claramente por qué — ninguna venta se podía completar.
 drop policy if exists "productos_miembro_update" on public.productos;
 create policy "productos_miembro_update" on public.productos
   for update
-  using (public.miembro_tiene_permiso(user_id, 'gestionar_inventario'))
-  with check (public.miembro_tiene_permiso(user_id, 'gestionar_inventario'));
+  using (public.es_miembro_activo(user_id))
+  with check (public.es_miembro_activo(user_id));
 
 drop policy if exists "productos_miembro_delete" on public.productos;
 create policy "productos_miembro_delete" on public.productos
