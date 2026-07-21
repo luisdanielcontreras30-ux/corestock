@@ -18,6 +18,19 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import { guardarBorrador, leerBorrador, borrarBorrador } from "../../lib/borrador";
+
+const CLAVE_BORRADOR = "corestock-borrador-producto";
+
+interface BorradorProducto {
+  nombre: string;
+  categoria: string;
+  precio: string;
+  costo: string;
+  stock: string;
+  stockMinimo: string;
+  descripcion: string;
+}
 
 interface Producto {
   id: number;
@@ -151,6 +164,72 @@ function ProductosInterno() {
       router.replace("/productos", { scroll: false });
     }
   }, [searchParams, router]);
+
+  // Recupera lo que ya se había escrito si la página se recargó a
+  // medio llenar "Nuevo producto" — solo cuando no viene de Análisis
+  // de Producto (esos campos ya tienen prioridad, arriba) y solo para
+  // un producto nuevo, no para una edición en curso (la foto no se
+  // guarda aquí — un File no se puede serializar — así que restaurar
+  // un borrador de edición dejaría el resto de los campos del
+  // producto original sin cargar).
+  useEffect(() => {
+    if (
+      searchParams.get("nombre_sugerido") ||
+      searchParams.get("categoria_sugerida") ||
+      searchParams.get("descripcion_sugerida")
+    ) {
+      return;
+    }
+
+    const borrador = leerBorrador<BorradorProducto>(CLAVE_BORRADOR);
+    if (!borrador) return;
+
+    setNombre(borrador.nombre);
+    setCategoria(borrador.categoria);
+    setPrecio(borrador.precio);
+    setCosto(borrador.costo);
+    setStock(borrador.stock);
+    setStockMinimo(borrador.stockMinimo);
+    setDescripcion(borrador.descripcion);
+
+    if (
+      borrador.nombre ||
+      borrador.categoria ||
+      borrador.precio ||
+      borrador.costo ||
+      borrador.stock ||
+      borrador.stockMinimo ||
+      borrador.descripcion
+    ) {
+      setFormularioAbierto(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Guarda el borrador en cada cambio — solo mientras se está creando
+  // un producto nuevo (no durante una edición, para no arriesgar mezclar
+  // el borrador con los datos de un producto ya existente).
+  useEffect(() => {
+    if (editando !== null) return;
+
+    const vacio =
+      !nombre && !categoria && !precio && !costo && !stock && !stockMinimo && !descripcion;
+
+    if (vacio) {
+      borrarBorrador(CLAVE_BORRADOR);
+      return;
+    }
+
+    guardarBorrador<BorradorProducto>(CLAVE_BORRADOR, {
+      nombre,
+      categoria,
+      precio,
+      costo,
+      stock,
+      stockMinimo,
+      descripcion,
+    });
+  }, [nombre, categoria, precio, costo, stock, stockMinimo, descripcion, editando]);
 
   async function cargar() {
     if (!user) return;
@@ -370,6 +449,7 @@ function ProductosInterno() {
     setStock("");
     setStockMinimo("");
     setDescripcion("");
+    borrarBorrador(CLAVE_BORRADOR);
     limpiarImagen();
     // Después de guardar o cancelar, vuelve a la lista en celular (ahí
     // es donde el formulario se cierra por completo; en escritorio no

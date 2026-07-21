@@ -36,6 +36,9 @@ import {
 import { Producto, Promocion, MetodoPago } from "../ventas/types";
 import { CLAVE_METODO_PAGO, formatoMoneda } from "../ventas/utils";
 import TicketModal, { ItemTicket } from "../ventas/components/TicketModal";
+import { guardarBorrador, leerBorrador, borrarBorrador } from "../../lib/borrador";
+
+const CLAVE_BORRADOR_CARRITO = "corestock-borrador-carrito-rapido";
 import {
   obtenerPromocionAplicable,
   calcularPrecioConDescuento,
@@ -86,6 +89,25 @@ export default function VentasRapidasPage() {
   // "containing block" para position:fixed y recortaba el panel.
   const [montado, setMontado] = useState(false);
   useEffect(() => setMontado(true), []);
+
+  // Recupera el carrito si la página se recargó a medio cobrar — un
+  // Map no es serializable directo, se guarda/lee como arreglo de
+  // pares [id, cantidad].
+  useEffect(() => {
+    const borrador = leerBorrador<[number, number][]>(CLAVE_BORRADOR_CARRITO);
+    if (borrador && borrador.length > 0) {
+      setCarrito(new Map(borrador));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (carrito.size === 0) {
+      borrarBorrador(CLAVE_BORRADOR_CARRITO);
+      return;
+    }
+
+    guardarBorrador(CLAVE_BORRADOR_CARRITO, Array.from(carrito.entries()));
+  }, [carrito]);
 
   // mostrarCarga solo se apaga cuando se refresca en segundo plano
   // (después de cobrar) — si reusara el mismo "loading" de la carga

@@ -30,6 +30,17 @@ import { useSuscripcion } from "../../components/SuscripcionProvider";
 import SinPermiso from "../../components/SinPermiso";
 import TicketModal, { ItemTicket } from "./components/TicketModal";
 import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../lib/promociones";
+import { guardarBorrador, leerBorrador, borrarBorrador } from "../../lib/borrador";
+
+const CLAVE_BORRADOR = "corestock-borrador-venta";
+
+interface BorradorVenta {
+  productoId: string;
+  clienteId: string;
+  clienteNombre: string;
+  cantidad: number;
+  metodoPago: MetodoPago;
+}
 
 interface TicketPendiente {
   folioId: number;
@@ -83,6 +94,37 @@ export default function VentasPage() {
   useEffect(() => {
     obtenerDatos();
   }, []);
+
+  // Recupera lo que ya se había llenado del formulario de venta si la
+  // página se recargó a medio capturar.
+  useEffect(() => {
+    const borrador = leerBorrador<BorradorVenta>(CLAVE_BORRADOR);
+    if (!borrador) return;
+
+    setProductoId(borrador.productoId);
+    setClienteId(borrador.clienteId);
+    setClienteNombre(borrador.clienteNombre);
+    setCantidad(borrador.cantidad);
+    setMetodoPago(borrador.metodoPago);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const vacio = !productoId && !clienteId && !clienteNombre && cantidad === 1 && metodoPago === "efectivo";
+
+    if (vacio) {
+      borrarBorrador(CLAVE_BORRADOR);
+      return;
+    }
+
+    guardarBorrador<BorradorVenta>(CLAVE_BORRADOR, {
+      productoId,
+      clienteId,
+      clienteNombre,
+      cantidad,
+      metodoPago,
+    });
+  }, [productoId, clienteId, clienteNombre, cantidad, metodoPago]);
 
   const producto = productos.find(
     (p) => p.id === Number(productoId)
@@ -175,6 +217,7 @@ export default function VentasPage() {
       setClienteNombre("");
       setCantidad(1);
       setMetodoPago("efectivo");
+      borrarBorrador(CLAVE_BORRADOR);
 
       mostrarToast(t("ventas.msg_venta_registrada"), "exito");
       await obtenerDatos();
