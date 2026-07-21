@@ -55,7 +55,7 @@ export async function registrarAjuste(
     throw new Error("Usuario no autenticado");
   }
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { data: productoActual, error: errorProductoActual } = await supabase
     .from("productos")
@@ -134,7 +134,7 @@ export async function eliminarAjuste(id: number) {
   }
 
   if (ajuste.producto_id) {
-    const negocioId = await obtenerNegocioId();
+    const negocioId = await obtenerNegocioId(user.id);
 
     // CAS con reintentos (igual que Ventas/Compras/registrarAjuste) en vez
     // de leer-y-escribir sin candado: si el producto no existe ya no hay

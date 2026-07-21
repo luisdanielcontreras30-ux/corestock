@@ -63,7 +63,7 @@ function ProveedoresContenido() {
     setCargando(true);
     setError(false);
     try {
-      const negocioId = await obtenerNegocioId();
+      const negocioId = await obtenerNegocioId(user.id);
       const datos = await cargarProveedores(negocioId);
       setProveedores(datos);
     } catch (error) {
@@ -101,7 +101,7 @@ function ProveedoresContenido() {
     setCargandoHistorial(true);
 
     try {
-      const negocioId = await obtenerNegocioId();
+      const negocioId = await obtenerNegocioId(user.id);
       const datos = await cargarHistorialCompras(negocioId, p.id);
       if (idHistorialSolicitadoRef.current !== p.id) return;
       setComprasHistorial(datos);
@@ -128,7 +128,7 @@ function ProveedoresContenido() {
     setGuardando(true);
 
     try {
-      const negocioId = await obtenerNegocioId();
+      const negocioId = await obtenerNegocioId(user.id);
       if (editando) {
         await actualizarProveedor(negocioId, editando.id, {
           nombre: nombre.trim(),
@@ -158,7 +158,7 @@ function ProveedoresContenido() {
     }
 
     try {
-      const negocioId = await obtenerNegocioId();
+      const negocioId = await obtenerNegocioId(user.id);
       await eliminarProveedor(negocioId, p.id);
       await refrescar();
     } catch (error: unknown) {

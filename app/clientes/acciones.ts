@@ -76,7 +76,7 @@ export async function crearCliente(
     throw new Error("Usuario no autenticado");
   }
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase.from("clientes").insert({
     nombre: datos.nombre.trim(),

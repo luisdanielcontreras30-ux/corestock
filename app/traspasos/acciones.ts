@@ -74,7 +74,7 @@ export async function crearUbicacion(nombre: string) {
 
   if (!user) throw new Error("Usuario no autenticado");
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase
     .from("ubicaciones")
@@ -180,7 +180,7 @@ export async function realizarTraspaso(
 
   if (!user) throw new Error("Usuario no autenticado");
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   if (cantidad <= 0) {
     throw new Error("La cantidad debe ser mayor a 0.");

@@ -74,7 +74,7 @@ export async function crearCotizacion(
   }
 
   const total = cantidad * precioUnitario;
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase.from("cotizaciones").insert({
     fecha: new Date().toISOString(),
@@ -148,7 +148,7 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
     throw new Error("Esta cotización tiene una cantidad inválida.");
   }
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   let clienteId = cotizacion.cliente_id;
 

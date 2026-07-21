@@ -61,7 +61,7 @@ export async function generarFacturaGlobal(
   }
 
   const total = (ventas ?? []).reduce((sum, v) => sum + Number(v.total), 0);
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase.from("facturas_globales").insert({
     fecha_inicio: fechaInicio.toISOString(),

@@ -20,7 +20,7 @@ export async function cargarEstadoCatalogo() {
   // el del NEGOCIO (la ruta pública /catalogo/[userId] está scopeada
   // por ese id), no el auth.uid() propio de quien llama: para un
   // miembro del equipo son distintos.
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   // Las 2 consultas son independientes — se piden en paralelo en vez de
   // una tras otra para no sumar sus tiempos de ida y vuelta.
@@ -60,7 +60,7 @@ export async function actualizarCatalogoActivo(activo: boolean) {
 
   if (!user) throw new Error("Usuario no autenticado");
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { data, error } = await supabase
     .from("empresa_config")

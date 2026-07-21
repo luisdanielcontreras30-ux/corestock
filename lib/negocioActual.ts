@@ -29,9 +29,17 @@ export function leerMiembroActivoGuardado(): DatosMiembroGuardado | null {
 // un miembro del equipo son distintos desde que cada uno tiene su
 // propia identidad de Supabase (ver supabase_permisos_miembros.sql).
 // Sin dueño activo (sesión del propio dueño), coinciden.
-export async function obtenerNegocioId(): Promise<string> {
+//
+// authUidConocido es opcional: casi todo llamador ya hizo su propio
+// supabase.auth.getUser() unas líneas antes (para el guard de "no
+// autenticado") — pasar ese user.id aquí evita repetir ese mismo
+// viaje de red una segunda vez. Sin el argumento, se resuelve solo
+// (más lento, pero sigue siendo correcto) para quien no lo tenga a mano.
+export async function obtenerNegocioId(authUidConocido?: string): Promise<string> {
   const datos = leerMiembroActivoGuardado();
   if (datos) return datos.negocioId;
+
+  if (authUidConocido) return authUidConocido;
 
   const {
     data: { user },

@@ -239,7 +239,7 @@ function ProductosInterno() {
         // tiene el dueño correcto y no debe tocarse (para un miembro
         // del equipo, escribir su propio auth.uid() aquí rompería la
         // pertenencia del producto al negocio).
-        const negocioId = await obtenerNegocioId();
+        const negocioId = await obtenerNegocioId(user.id);
         const { error } = await supabase
           .from("productos")
           .insert([{ ...producto, user_id: negocioId }]);
@@ -623,7 +623,7 @@ function ProductosInterno() {
               stock_minimo?: unknown;
             }
 
-            const negocioId = await obtenerNegocioId();
+            const negocioId = await obtenerNegocioId(user.id);
 
             let omitidos = 0;
             const filasValidas: {

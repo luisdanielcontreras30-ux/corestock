@@ -27,8 +27,8 @@ export async function cargarNumeroWhatsApp(): Promise<string | null> {
 }
 
 export async function guardarNumeroWhatsApp(phoneNumberId: string): Promise<void> {
-  await obtenerUsuarioActual();
-  const negocioId = await obtenerNegocioId();
+  const user = await obtenerUsuarioActual();
+  const negocioId = await obtenerNegocioId(user.id);
 
   // update en vez de upsert: si todavía no existe la fila de
   // empresa_config (el negocio nunca guardó Configuración → Empresa),

@@ -119,7 +119,7 @@ export default function ModoInterfazProvider({
     // (piensa que hace falta crearla) y el insert de respaldo crearía
     // una fila fantasma de empresa_config pegada al auth.uid() del
     // miembro en vez de tocar la del negocio real.
-    const negocioId = await obtenerNegocioId();
+    const negocioId = await obtenerNegocioId(user.id);
 
     // Una cuenta recién registrada puede no tener fila en
     // empresa_config todavía (se crea perezosamente al guardar algo

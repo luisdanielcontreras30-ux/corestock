@@ -69,7 +69,7 @@ export async function crearMateriaPrima(
 
   if (!user) throw new Error("Usuario no autenticado");
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase.from("materias_primas").insert({
     nombre: nombre.trim(),
@@ -108,7 +108,7 @@ export async function agregarIngrediente(
 
   if (!user) throw new Error("Usuario no autenticado");
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase.from("recetas").insert({
     producto_id: producto.id,
@@ -152,7 +152,7 @@ export async function producir(
 
   if (!user) throw new Error("Usuario no autenticado");
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   if (cantidadAProducir <= 0) {
     throw new Error("La cantidad a producir debe ser mayor a 0.");

@@ -36,7 +36,7 @@ export async function crearMovimiento(
     throw new Error("Usuario no autenticado");
   }
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase.from("conciliaciones").insert({
     fecha: new Date().toISOString(),

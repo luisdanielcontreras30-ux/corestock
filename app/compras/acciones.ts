@@ -65,7 +65,7 @@ export async function registrarCompra(
     throw new Error("Usuario no autenticado");
   }
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   if (!Number.isFinite(cantidad) || cantidad <= 0) {
     throw new Error("La cantidad debe ser mayor a 0.");
@@ -157,7 +157,7 @@ export async function eliminarCompra(id: number) {
   }
 
   if (compra.producto_id) {
-    const negocioId = await obtenerNegocioId();
+    const negocioId = await obtenerNegocioId(user.id);
 
     // Compare-and-swap, igual que al registrar: si otra venta/compra
     // concurrente sobre el mismo producto cambia el stock justo en este

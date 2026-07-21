@@ -87,7 +87,7 @@ export async function registrarVenta(
     throw new Error("Usuario no autenticado");
   }
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   if (uuid) {
     const { data: ventaExistente, error: errorExistente } = await supabase
@@ -258,7 +258,7 @@ export async function eliminarVenta(
   }
 
   if (venta.producto_id) {
-    const negocioId = await obtenerNegocioId();
+    const negocioId = await obtenerNegocioId(user.id);
 
     // Compare-and-swap, igual que al registrar: si otra venta/compra
     // concurrente sobre el mismo producto cambia el stock justo en este

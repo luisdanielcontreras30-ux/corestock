@@ -38,12 +38,12 @@ export async function cargarEmpresa(): Promise<EmpresaConfig | null> {
 export async function guardarEmpresa(
   config: EmpresaConfig
 ): Promise<void> {
-  await obtenerUsuarioActual();
+  const user = await obtenerUsuarioActual();
 
   // A diferencia de un simple filtro, este id sí se escribe en la
   // fila — tiene que ser el del NEGOCIO (que un miembro con permiso
   // "configuracion" puede editar), no el auth.uid() propio del miembro.
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase
     .from("empresa_config")
@@ -88,9 +88,9 @@ export async function crearMiembro(
   rol: Rol,
   permisos: Permiso[]
 ): Promise<string> {
-  await obtenerUsuarioActual();
+  const user = await obtenerUsuarioActual();
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { data, error } = await supabase
     .from("miembros_equipo")

@@ -116,7 +116,7 @@ export async function registrarMovimiento(
     "registrar_movimiento_caja no existe todavía en Supabase — usando registro directo. Corre supabase_caja_atomico.sql en el SQL Editor para activar la protección atómica."
   );
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   if (uuid) {
     const { data: existente, error: errorExistente } = await supabase

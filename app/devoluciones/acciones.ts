@@ -67,7 +67,7 @@ export async function registrarDevolucion(
     throw new Error("El monto reembolsado no puede ser negativo");
   }
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase.from("devoluciones").insert({
     user_id: negocioId,
@@ -113,7 +113,7 @@ export async function eliminarDevolucion(devolucion: Devolucion) {
   // reintentos, la devolución sigue existiendo y el usuario puede
   // reintentar en vez de perder silenciosamente el ajuste de stock.
   if (devolucion.repuso_stock && devolucion.producto_id) {
-    const negocioId = await obtenerNegocioId();
+    const negocioId = await obtenerNegocioId(user.id);
     const exito = await ajustarStockConCas(devolucion.producto_id, negocioId, -devolucion.cantidad, {
       minimoCero: true,
     });

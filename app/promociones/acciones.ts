@@ -73,7 +73,7 @@ export async function crearPromocion(
     throw new Error("La fecha de fin no puede ser anterior a la fecha de inicio");
   }
 
-  const negocioId = await obtenerNegocioId();
+  const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase.from("promociones").insert({
     nombre: nombre.trim(),
