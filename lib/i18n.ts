@@ -787,6 +787,9 @@ export const TRADUCCIONES: Diccionario = {
   "factura.precio_unitario": { es: "Precio unitario", en: "Unit price", pt: "Preço unitário", fr: "Prix unitaire", de: "Einzelpreis", zh: "单价", it: "Prezzo unitario" },
   "factura.gracias": { es: "Gracias por su compra — generado con CoreStock", en: "Thank you for your purchase — generated with CoreStock", pt: "Obrigado pela sua compra — gerado com CoreStock", fr: "Merci pour votre achat — généré avec CoreStock", de: "Danke für deinen Einkauf — erstellt mit CoreStock", zh: "感谢您的惠顾 — 由 CoreStock 生成", it: "Grazie per il tuo acquisto — generato con CoreStock" },
 
+  // Ticket automático tras cada venta (CoreStock Plus+)
+  "ticket.numero": { es: "TICKET", en: "RECEIPT", pt: "RECIBO", fr: "TICKET", de: "BELEG", zh: "小票", it: "SCONTRINO" },
+
   // Gráficas
   "graficas.cargando": { es: "Cargando gráficas...", en: "Loading charts...", pt: "Carregando gráficos...", fr: "Chargement des graphiques...", de: "Diagramme werden geladen...", zh: "正在加载图表...", it: "Caricamento grafici..." },
   "graficas.titulo": { es: "Análisis de Ventas", en: "Sales Analysis", pt: "Análise de Vendas", fr: "Analyse des ventes", de: "Verkaufsanalyse", zh: "销售分析", it: "Analisi delle vendite" },

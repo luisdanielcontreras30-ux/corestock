@@ -10,6 +10,7 @@ export interface Producto {
 export interface Cliente {
   id: number;
   nombre: string;
+  telefono?: string | null;
 }
 
 export interface Promocion {
@@ -42,5 +43,6 @@ export interface Venta {
 
   clientes?: {
     nombre: string;
+    telefono: string | null;
   } | null;
 }

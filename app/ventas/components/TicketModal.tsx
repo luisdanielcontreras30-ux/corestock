@@ -2,54 +2,78 @@
 
 import { useState } from "react";
 import { Printer, MessageCircle } from "lucide-react";
-import { Venta } from "../types";
+import { MetodoPago } from "../types";
 import { formatoFecha, formatoMoneda, CLAVE_METODO_PAGO } from "../utils";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useEmpresa } from "../../../lib/useEmpresa";
 import { enlaceWhatsApp } from "../../../lib/whatsapp";
 
+export interface ItemTicket {
+  producto: string;
+  cantidad: number;
+  precioUnitario: number;
+  total: number;
+}
+
 interface Props {
-  venta: Venta;
+  folioId: number;
+  fecha: string;
+  clienteNombre: string;
+  clienteTelefono: string | null;
+  metodoPago: MetodoPago;
+  items: ItemTicket[];
+  total: number;
   onClose: () => void;
 }
 
-export default function FacturaModal({ venta, onClose }: Props) {
+// Ticket automático que aparece después de cada venta (CoreStock
+// Plus+) — misma hoja imprimible/compartible que FacturaModal, pero
+// con varias líneas (una venta rápida puede cobrar varios productos a
+// la vez, cada uno su propia fila) en vez de una sola. Se mantiene
+// como componente aparte para no arriesgar el módulo de Facturas ya
+// existente, que trabaja con una venta puntual del historial.
+export default function TicketModal({
+  folioId,
+  fecha,
+  clienteNombre,
+  clienteTelefono,
+  metodoPago,
+  items,
+  total,
+  onClose,
+}: Props) {
   const { t } = useIdioma();
   const empresa = useEmpresa();
   const [logoRoto, setLogoRoto] = useState(false);
   const nombreNegocio = empresa?.nombre_negocio?.trim() || "CoreStock";
-  const folio = `F-${String(venta.id).padStart(6, "0")}`;
+  const folio = `T-${String(folioId).padStart(6, "0")}`;
 
   function compartirPorWhatsApp() {
-    const cliente = venta.clientes?.nombre ?? t("ventas.cliente_general");
+    const lineas = items
+      .map((item) => `${item.producto} x${item.cantidad} — ${formatoMoneda(item.total)}`)
+      .join("\n");
 
     const mensaje =
-      `🧾 *${nombreNegocio} — ${t("factura.numero")} ${folio}*\n\n` +
-      `${t("factura.facturado_a")}: ${cliente}\n` +
-      `${formatoFecha(venta.fecha)}\n\n` +
-      `${venta.producto} x${venta.cantidad}\n` +
-      `${t("tabla.total")}: ${formatoMoneda(venta.total)}\n\n` +
+      `🧾 *${nombreNegocio} — ${t("ticket.numero")} ${folio}*\n\n` +
+      `${t("factura.facturado_a")}: ${clienteNombre}\n` +
+      `${formatoFecha(fecha)}\n\n` +
+      `${lineas}\n\n` +
+      `${t("tabla.total")}: ${formatoMoneda(total)}\n\n` +
       `${t("factura.gracias")}`;
 
-    window.open(enlaceWhatsApp(mensaje, venta.clientes?.telefono), "_blank");
+    window.open(enlaceWhatsApp(mensaje, clienteTelefono), "_blank");
   }
 
   return (
     <div className="factura-overlay" onClick={onClose}>
-      <div
-        className="factura-modal fade-up"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="factura-modal fade-up" onClick={(e) => e.stopPropagation()}>
         <div className="factura-modal-toolbar">
           <button className="btn-secondary" onClick={onClose}>
             {t("factura.cerrar")}
           </button>
 
           <div style={{ display: "flex", gap: 8 }}>
-            <button
-              className="btn-whatsapp"
-              onClick={compartirPorWhatsApp}
-            >
+            <button className="btn-whatsapp" onClick={compartirPorWhatsApp}>
               <MessageCircle size={15} /> {t("factura.whatsapp")}
             </button>
 
@@ -84,21 +108,17 @@ export default function FacturaModal({ venta, onClose }: Props) {
             </div>
 
             <div className="factura-folio">
-              <p className="factura-folio-label">{t("factura.numero")}</p>
+              <p className="factura-folio-label">{t("ticket.numero")}</p>
               <p className="factura-folio-numero">{folio}</p>
-              <p className="factura-folio-fecha">
-                {formatoFecha(venta.fecha)}
-              </p>
+              <p className="factura-folio-fecha">{formatoFecha(fecha)}</p>
             </div>
           </div>
 
           <div className="factura-cliente">
             <p className="factura-cliente-label">{t("factura.facturado_a")}</p>
-            <p className="factura-cliente-nombre">
-              {venta.clientes?.nombre ?? t("ventas.cliente_general")}
-            </p>
+            <p className="factura-cliente-nombre">{clienteNombre}</p>
             <p style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 4 }}>
-              {t("ventas.metodo_pago")}: {t(CLAVE_METODO_PAGO[venta.metodo_pago] ?? CLAVE_METODO_PAGO.efectivo)}
+              {t("ventas.metodo_pago")}: {t(CLAVE_METODO_PAGO[metodoPago] ?? CLAVE_METODO_PAGO.efectivo)}
             </p>
           </div>
 
@@ -113,25 +133,25 @@ export default function FacturaModal({ venta, onClose }: Props) {
             </thead>
 
             <tbody>
-              <tr>
-                <td>{venta.producto}</td>
-                <td>{venta.cantidad}</td>
-                <td>{formatoMoneda(venta.precio)}</td>
-                <td>{formatoMoneda(venta.total)}</td>
-              </tr>
+              {items.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.producto}</td>
+                  <td>{item.cantidad}</td>
+                  <td>{formatoMoneda(item.precioUnitario)}</td>
+                  <td>{formatoMoneda(item.total)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
 
           <div className="factura-totales">
             <div className="factura-total-fila factura-total-final">
               <span>{t("tabla.total")}</span>
-              <span>{formatoMoneda(venta.total)}</span>
+              <span>{formatoMoneda(total)}</span>
             </div>
           </div>
 
-          <p className="factura-footer">
-            {t("factura.gracias")}
-          </p>
+          <p className="factura-footer">{t("factura.gracias")}</p>
         </div>
       </div>
     </div>
