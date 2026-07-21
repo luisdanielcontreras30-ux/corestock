@@ -3519,6 +3519,59 @@ select optgroup {
   }
 }
 
+/* A partir de aquí (tablet grande/monitor), 4 tarjetas en 2x2 seguían
+   dejando franjas vacías a los lados y abajo — se ven "flotando" en
+   vez de ocupar la pantalla. Se estira el bloque mucho más y las 4
+   tarjetas pasan a una sola fila (usa el ancho completo, sin huecos),
+   con tarjetas más altas y textos aún más grandes. */
+@media (min-width: 1200px) {
+  .dashboard-easy {
+    max-width: 1700px;
+    padding: 32px 24px 40px;
+    min-height: 78vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .dashboard-easy-saludo h1 {
+    font-size: 44px;
+  }
+
+  .dashboard-easy-saludo p {
+    font-size: 20px;
+  }
+
+  .dashboard-easy-vender {
+    min-height: 100px;
+    font-size: 30px;
+  }
+
+  .dashboard-easy-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .dashboard-easy-tile {
+    padding: 36px 28px;
+    min-height: 220px;
+    justify-content: center;
+  }
+
+  .dashboard-easy-tile-icono {
+    width: 64px;
+    height: 64px;
+  }
+
+  .dashboard-easy-tile-etiqueta {
+    font-size: 18px;
+  }
+
+  .dashboard-easy-tile strong {
+    font-size: 40px;
+  }
+}
+
 /* ==========================================================================
    GRIDS RESPONSIVOS (antes eran inline styles fijos que se rompían en móvil)
    ========================================================================== */
