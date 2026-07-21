@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { MovimientoConciliacion, TipoMovimientoConciliacion } from "./types";
 
 export async function cargarMovimientos() {
@@ -13,7 +14,6 @@ export async function cargarMovimientos() {
   const { data, error } = await supabase
     .from("conciliaciones")
     .select("*")
-    .eq("user_id", user.id)
     .order("fecha", { ascending: false });
 
   if (error) {
@@ -36,13 +36,15 @@ export async function crearMovimiento(
     throw new Error("Usuario no autenticado");
   }
 
+  const negocioId = await obtenerNegocioId();
+
   const { error } = await supabase.from("conciliaciones").insert({
     fecha: new Date().toISOString(),
     descripcion: descripcion.trim(),
     tipo,
     monto,
     conciliado: false,
-    user_id: user.id,
+    user_id: negocioId,
   });
 
   if (error) {
@@ -62,8 +64,7 @@ export async function alternarConciliado(id: number, conciliado: boolean) {
   const { error } = await supabase
     .from("conciliaciones")
     .update({ conciliado })
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;
@@ -82,8 +83,7 @@ export async function eliminarMovimiento(id: number) {
   const { error } = await supabase
     .from("conciliaciones")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;

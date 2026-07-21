@@ -90,7 +90,7 @@ function LoginInterno() {
         return;
       }
 
-      establecerMiembroActivo(resultado.miembro, resultado.userId);
+      establecerMiembroActivo(resultado.miembro, resultado.userId, resultado.negocioId);
       router.push("/");
     } catch (err) {
       console.error(err);

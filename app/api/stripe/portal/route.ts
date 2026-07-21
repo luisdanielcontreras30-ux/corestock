@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { obtenerStripe } from "../../../../lib/stripe";
 import { obtenerSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
+import { resolverNegocioYPermisos } from "../../../../lib/resolverNegocioId";
 
 // Crea una sesión del Portal de Facturación de Stripe — ahí el usuario
 // agrega/cambia su tarjeta, ve sus facturas o cancela su suscripción.
@@ -17,10 +18,19 @@ export async function POST(request: Request) {
     const stripe = obtenerStripe();
     const admin = obtenerSupabaseAdmin();
 
+    // Misma idea que en crear-sesion: la facturación es del negocio,
+    // no de quien la administra — si es un miembro, se exige
+    // "configuracion" y se factura a la cuenta del negocio.
+    const { negocioId, esMiembro, permisos } = await resolverNegocioYPermisos(user.id);
+
+    if (esMiembro && !permisos.includes("configuracion")) {
+      return NextResponse.json({ error: "No tienes permiso para hacer esto." }, { status: 403 });
+    }
+
     const { data: empresa } = await admin
       .from("empresa_config")
       .select("stripe_customer_id")
-      .eq("user_id", user.id)
+      .eq("user_id", negocioId)
       .maybeSingle();
 
     const customerId = empresa?.stripe_customer_id as string | null;

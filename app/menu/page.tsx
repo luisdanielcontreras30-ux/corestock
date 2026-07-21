@@ -167,7 +167,7 @@ export default function DashboardPremium() {
       return;
     }
 
-    cargarDatosDashboard(user.id);
+    cargarDatosDashboard();
   }, [cargandoAuth, user]);
 
   const ventasParaTopArticulos = useMemo(
@@ -213,7 +213,7 @@ export default function DashboardPremium() {
       .slice(0, 5);
   }, [ventasParaMejoresClientes, nombresClientes, t]);
 
-  async function cargarDatosDashboard(userId: string) {
+  async function cargarDatosDashboard() {
     try {
       // Las 3 consultas son independientes entre sí (ninguna usa el
       // resultado de otra), así que se lanzan en paralelo en vez de
@@ -224,9 +224,9 @@ export default function DashboardPremium() {
         { data: ventas, error: errorVentas },
         { data: clientes, error: errorClientes },
       ] = await Promise.all([
-        supabase.from("productos").select("id, nombre, stock, stock_minimo").eq("user_id", userId),
-        supabase.from("ventas").select("*").eq("user_id", userId),
-        supabase.from("clientes").select("id, nombre").eq("user_id", userId),
+        supabase.from("productos").select("id, nombre, stock, stock_minimo"),
+        supabase.from("ventas").select("*"),
+        supabase.from("clientes").select("id, nombre"),
       ]);
 
       if (errorProductos) throw errorProductos;

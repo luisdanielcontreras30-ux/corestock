@@ -57,7 +57,6 @@ export default function SuscripcionProvider({
     const { data, error } = await supabase
       .from("empresa_config")
       .select("plan")
-      .eq("user_id", user.id)
       .maybeSingle();
 
     if (error) {

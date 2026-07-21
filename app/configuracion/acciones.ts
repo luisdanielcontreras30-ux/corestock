@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { EmpresaConfig, Miembro, Rol, Permiso } from "./types";
 
 async function obtenerUsuarioActual() {
@@ -16,12 +17,15 @@ async function obtenerUsuarioActual() {
 // ----------------- EMPRESA -----------------
 
 export async function cargarEmpresa(): Promise<EmpresaConfig | null> {
-  const user = await obtenerUsuarioActual();
+  await obtenerUsuarioActual();
 
+  // Sin filtro por user_id: con un miembro del equipo ya no coincide
+  // con su propio auth.uid() (tiene identidad propia — ver
+  // supabase_permisos_miembros.sql). RLS solo deja ver la fila del
+  // negocio al que pertenece la sesión, sea dueño o miembro.
   const { data, error } = await supabase
     .from("empresa_config")
     .select("*")
-    .eq("user_id", user.id)
     .maybeSingle();
 
   if (error) {
@@ -34,14 +38,19 @@ export async function cargarEmpresa(): Promise<EmpresaConfig | null> {
 export async function guardarEmpresa(
   config: EmpresaConfig
 ): Promise<void> {
-  const user = await obtenerUsuarioActual();
+  await obtenerUsuarioActual();
+
+  // A diferencia de un simple filtro, este id sí se escribe en la
+  // fila — tiene que ser el del NEGOCIO (que un miembro con permiso
+  // "configuracion" puede editar), no el auth.uid() propio del miembro.
+  const negocioId = await obtenerNegocioId();
 
   const { error } = await supabase
     .from("empresa_config")
     .upsert(
       {
         ...config,
-        user_id: user.id,
+        user_id: negocioId,
       },
       { onConflict: "user_id" }
     );
@@ -54,15 +63,16 @@ export async function guardarEmpresa(
 // ----------------- MIEMBROS DEL EQUIPO -----------------
 
 export async function cargarMiembros(): Promise<Miembro[]> {
-  const user = await obtenerUsuarioActual();
+  await obtenerUsuarioActual();
 
   // Nunca selecciona password_hash: esta consulta corre con la
   // sesión del navegador, y ese hash solo debe pasar por rutas de
-  // servidor (app/api/miembros/**).
+  // servidor (app/api/miembros/**). Sin filtro por user_id: RLS exige
+  // el permiso "configuracion" para ver esta tabla (ver
+  // supabase_permisos_miembros.sql).
   const { data, error } = await supabase
     .from("miembros_equipo")
     .select("id, user_id, nombre, correo, rol, permisos, activo, tiene_contrasena, creado_en")
-    .eq("user_id", user.id)
     .order("creado_en", { ascending: true });
 
   if (error) {
@@ -78,12 +88,14 @@ export async function crearMiembro(
   rol: Rol,
   permisos: Permiso[]
 ): Promise<string> {
-  const user = await obtenerUsuarioActual();
+  await obtenerUsuarioActual();
+
+  const negocioId = await obtenerNegocioId();
 
   const { data, error } = await supabase
     .from("miembros_equipo")
     .insert({
-      user_id: user.id,
+      user_id: negocioId,
       nombre,
       correo,
       rol,
@@ -104,13 +116,12 @@ export async function actualizarMiembro(
   id: string,
   cambios: Partial<Miembro>
 ): Promise<void> {
-  const user = await obtenerUsuarioActual();
+  await obtenerUsuarioActual();
 
   const { error } = await supabase
     .from("miembros_equipo")
     .update(cambios)
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;
@@ -135,7 +146,7 @@ export type RazonLoginMiembro =
   | "contrasena_incorrecta";
 
 export type ResultadoLoginMiembro =
-  | { ok: true; userId: string; tokenHash: string; miembro: Miembro }
+  | { ok: true; userId: string; negocioId: string; tokenHash: string; miembro: Miembro }
   | { ok: false; razon: RazonLoginMiembro };
 
 // Se llama en el login cuando se escribió un nombre de usuario: deja
@@ -186,13 +197,12 @@ export async function establecerContrasenaMiembro(
 }
 
 export async function eliminarMiembro(id: string): Promise<void> {
-  const user = await obtenerUsuarioActual();
+  await obtenerUsuarioActual();
 
   const { error } = await supabase
     .from("miembros_equipo")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;

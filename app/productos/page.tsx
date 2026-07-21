@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { subirImagenSegura } from "../../lib/uploads";
 import { redimensionarParaSubir } from "../../lib/imagenes";
 import { analizarProductoConIA, ErrorAnalisisIA } from "../../lib/iaAcciones";
@@ -158,7 +159,6 @@ function ProductosInterno() {
     const { data, error } = await supabase
       .from("productos")
       .select("*")
-      .eq("user_id", user.id)
       .order("id", { ascending: false });
 
     if (error) {
@@ -224,7 +224,6 @@ function ProductosInterno() {
         costo: costoNum,
         stock: stockNum,
         stock_minimo: stockMinimoNum,
-        user_id: user.id,
         imagen: imagenUrl,
         descripcion: descripcion.trim() || null,
       };
@@ -233,11 +232,17 @@ function ProductosInterno() {
         const { error } = await supabase
           .from("productos")
           .update(producto)
-          .eq("id", editando)
-          .eq("user_id", user.id);
+          .eq("id", editando);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("productos").insert([producto]);
+        // user_id solo hace falta al crear — al editar, la fila ya
+        // tiene el dueño correcto y no debe tocarse (para un miembro
+        // del equipo, escribir su propio auth.uid() aquí rompería la
+        // pertenencia del producto al negocio).
+        const negocioId = await obtenerNegocioId();
+        const { error } = await supabase
+          .from("productos")
+          .insert([{ ...producto, user_id: negocioId }]);
         if (error) throw error;
       }
 
@@ -337,8 +342,7 @@ function ProductosInterno() {
       const { error } = await supabase
         .from("productos")
         .delete()
-        .eq("id", id)
-        .eq("user_id", user.id);
+        .eq("id", id);
 
       if (error) {
         console.error(error);
@@ -619,6 +623,8 @@ function ProductosInterno() {
               stock_minimo?: unknown;
             }
 
+            const negocioId = await obtenerNegocioId();
+
             let omitidos = 0;
             const filasValidas: {
               nombre: string;
@@ -655,7 +661,7 @@ function ProductosInterno() {
                 costo: costoItem,
                 stock: stockItem,
                 stock_minimo: stockMinimoItem,
-                user_id: user.id,
+                user_id: negocioId,
               });
             }
 

@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { ajustarStockConCas } from "../../lib/stockCas";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "./types";
 
 export async function cargarDatos() {
@@ -16,8 +17,6 @@ export async function cargarDatos() {
     };
   }
 
-  const userId = user.id;
-
   // Las 4 consultas son independientes — se piden en paralelo en vez de
   // una tras otra para no sumar sus tiempos de ida y vuelta.
   const [
@@ -29,23 +28,19 @@ export async function cargarDatos() {
     supabase
       .from("productos")
       .select("id, nombre, stock")
-      .eq("user_id", userId)
       .eq("activo", true)
       .order("nombre"),
     supabase
       .from("materias_primas")
       .select("*")
-      .eq("user_id", userId)
       .order("nombre"),
     supabase
       .from("recetas")
       .select("*")
-      .eq("user_id", userId)
       .order("id"),
     supabase
       .from("producciones")
       .select("*")
-      .eq("user_id", userId)
       .order("id", { ascending: false }),
   ]);
 
@@ -74,12 +69,14 @@ export async function crearMateriaPrima(
 
   if (!user) throw new Error("Usuario no autenticado");
 
+  const negocioId = await obtenerNegocioId();
+
   const { error } = await supabase.from("materias_primas").insert({
     nombre: nombre.trim(),
     unidad: unidad.trim() || "unidad",
     stock,
     costo_unitario: costoUnitario,
-    user_id: user.id,
+    user_id: negocioId,
   });
 
   if (error) throw error;
@@ -95,8 +92,7 @@ export async function eliminarMateriaPrima(id: number) {
   const { error } = await supabase
     .from("materias_primas")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) throw error;
 }
@@ -112,13 +108,15 @@ export async function agregarIngrediente(
 
   if (!user) throw new Error("Usuario no autenticado");
 
+  const negocioId = await obtenerNegocioId();
+
   const { error } = await supabase.from("recetas").insert({
     producto_id: producto.id,
     producto_nombre: producto.nombre,
     materia_prima_id: materiaPrima.id,
     materia_prima_nombre: materiaPrima.nombre,
     cantidad_por_unidad: cantidadPorUnidad,
-    user_id: user.id,
+    user_id: negocioId,
   });
 
   if (error) throw error;
@@ -134,8 +132,7 @@ export async function eliminarIngrediente(id: number) {
   const { error } = await supabase
     .from("recetas")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) throw error;
 }
@@ -155,6 +152,8 @@ export async function producir(
 
   if (!user) throw new Error("Usuario no autenticado");
 
+  const negocioId = await obtenerNegocioId();
+
   if (cantidadAProducir <= 0) {
     throw new Error("La cantidad a producir debe ser mayor a 0.");
   }
@@ -168,8 +167,7 @@ export async function producir(
   const { data: materiasFrescas, error: errorMaterias } = await supabase
     .from("materias_primas")
     .select("id, stock")
-    .in("id", materiasIds)
-    .eq("user_id", user.id);
+    .in("id", materiasIds);
 
   if (errorMaterias) throw errorMaterias;
 
@@ -203,7 +201,6 @@ export async function producir(
         .from("materias_primas")
         .update({ stock: nuevoStock })
         .eq("id", ing.materia_prima_id)
-        .eq("user_id", user.id)
         .eq("stock", stockActual)
         .select("id");
 
@@ -222,7 +219,6 @@ export async function producir(
       .from("productos")
       .select("stock")
       .eq("id", producto.id)
-      .eq("user_id", user.id)
       .single();
 
     if (errorProductoActual) throw errorProductoActual;
@@ -233,7 +229,6 @@ export async function producir(
       .from("productos")
       .update({ stock: nuevoStockProducto })
       .eq("id", producto.id)
-      .eq("user_id", user.id)
       .eq("stock", productoActual.stock)
       .select("id");
 
@@ -250,7 +245,7 @@ export async function producir(
       producto_nombre: producto.nombre,
       cantidad: cantidadAProducir,
       fecha: new Date().toISOString(),
-      user_id: user.id,
+      user_id: negocioId,
     });
 
     if (errorLog) throw errorLog;
@@ -265,7 +260,7 @@ export async function producir(
     // que se relanza al final.
     for (const a of aplicados) {
       try {
-        await ajustarStockConCas(a.id, user.id, a.necesario, {
+        await ajustarStockConCas(a.id, negocioId, a.necesario, {
           tabla: "materias_primas",
         });
       } catch (errorRevertir) {

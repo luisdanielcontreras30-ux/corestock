@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { ProductoCatalogo } from "./types";
 
 export async function cargarEstadoCatalogo() {
@@ -15,6 +16,12 @@ export async function cargarEstadoCatalogo() {
     };
   }
 
+  // El enlace público del catálogo se arma con este id — tiene que ser
+  // el del NEGOCIO (la ruta pública /catalogo/[userId] está scopeada
+  // por ese id), no el auth.uid() propio de quien llama: para un
+  // miembro del equipo son distintos.
+  const negocioId = await obtenerNegocioId();
+
   // Las 2 consultas son independientes — se piden en paralelo en vez de
   // una tras otra para no sumar sus tiempos de ida y vuelta.
   const [
@@ -24,12 +31,10 @@ export async function cargarEstadoCatalogo() {
     supabase
       .from("empresa_config")
       .select("catalogo_activo")
-      .eq("user_id", user.id)
       .maybeSingle(),
     supabase
       .from("productos")
       .select("id, nombre, precio_venta, imagen")
-      .eq("user_id", user.id)
       .eq("activo", true)
       .order("nombre"),
   ]);
@@ -41,7 +46,7 @@ export async function cargarEstadoCatalogo() {
     activo: empresa?.catalogo_activo ?? false,
     empresaConfigurada: empresa !== null,
     productos: (productos ?? []) as ProductoCatalogo[],
-    userId: user.id,
+    userId: negocioId,
   };
 }
 
@@ -55,10 +60,12 @@ export async function actualizarCatalogoActivo(activo: boolean) {
 
   if (!user) throw new Error("Usuario no autenticado");
 
+  const negocioId = await obtenerNegocioId();
+
   const { data, error } = await supabase
     .from("empresa_config")
     .update({ catalogo_activo: activo })
-    .eq("user_id", user.id)
+    .eq("user_id", negocioId)
     .select("user_id");
 
   if (error) throw error;

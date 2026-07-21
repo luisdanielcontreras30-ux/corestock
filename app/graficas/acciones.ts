@@ -13,7 +13,6 @@ export async function obtenerDatosGraficas(): Promise<VentaCruda[]> {
   const { data: ventas, error } = await supabase
     .from("ventas")
     .select("*")
-    .eq("user_id", user.id)
     .order("fecha", {
       ascending: true,
     });

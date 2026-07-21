@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { MovimientoCaja, TipoMovimientoCaja } from "./types";
 import { db, generarUuid, esFalloDeRed } from "../../lib/db";
 
@@ -14,7 +15,6 @@ export async function cargarMovimientos() {
   const { data, error } = await supabase
     .from("caja_movimientos")
     .select("*")
-    .eq("user_id", user.id)
     .order("fecha", { ascending: true });
 
   if (error) {
@@ -37,7 +37,6 @@ export async function cargarCierres() {
   const { data, error } = await supabase
     .from("caja_movimientos")
     .select("*")
-    .eq("user_id", user.id)
     .eq("tipo", "cierre")
     .order("fecha", { ascending: false });
 
@@ -117,12 +116,13 @@ export async function registrarMovimiento(
     "registrar_movimiento_caja no existe todavía en Supabase — usando registro directo. Corre supabase_caja_atomico.sql en el SQL Editor para activar la protección atómica."
   );
 
+  const negocioId = await obtenerNegocioId();
+
   if (uuid) {
     const { data: existente, error: errorExistente } = await supabase
       .from("caja_movimientos")
       .select("id")
       .eq("uuid", uuid)
-      .eq("user_id", user.id)
       .maybeSingle();
 
     if (errorExistente) throw errorExistente;
@@ -144,7 +144,7 @@ export async function registrarMovimiento(
     monto_esperado: extra?.montoEsperado ?? null,
     diferencia: extra?.diferencia ?? null,
     uuid: uuid ?? null,
-    user_id: user.id,
+    user_id: negocioId,
   });
 
   if (errorInsertar) {

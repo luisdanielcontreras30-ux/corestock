@@ -50,7 +50,6 @@ export default function Header({
     const { data, error } = await supabase
       .from("productos")
       .select("id, nombre, stock, stock_minimo")
-      .eq("user_id", user.id)
       .order("stock");
 
     if (error) {

@@ -18,13 +18,11 @@ export async function cargarProductosVentaRapida(userId: string) {
       supabase
         .from("productos")
         .select("*")
-        .eq("user_id", userId)
         .eq("activo", true)
         .order("nombre"),
       supabase
         .from("promociones")
         .select("id, nombre, producto_id, tipo, valor, fecha_inicio, fecha_fin")
-        .eq("user_id", userId)
         .eq("activa", true),
     ]);
 

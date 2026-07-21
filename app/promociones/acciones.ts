@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { Producto, Promocion, TipoDescuento } from "./types";
 
 export async function cargarDatos() {
@@ -13,8 +14,6 @@ export async function cargarDatos() {
     };
   }
 
-  const userId = user.id;
-
   // Las 2 consultas son independientes — se piden en paralelo en vez de
   // una tras otra para no sumar sus tiempos de ida y vuelta.
   const [
@@ -24,13 +23,11 @@ export async function cargarDatos() {
     supabase
       .from("productos")
       .select("id, nombre")
-      .eq("user_id", userId)
       .eq("activo", true)
       .order("nombre"),
     supabase
       .from("promociones")
       .select("*")
-      .eq("user_id", userId)
       .order("id", { ascending: false }),
   ]);
 
@@ -76,6 +73,8 @@ export async function crearPromocion(
     throw new Error("La fecha de fin no puede ser anterior a la fecha de inicio");
   }
 
+  const negocioId = await obtenerNegocioId();
+
   const { error } = await supabase.from("promociones").insert({
     nombre: nombre.trim(),
     producto_id: producto?.id ?? null,
@@ -85,7 +84,7 @@ export async function crearPromocion(
     fecha_inicio: fechaInicio ? new Date(`${fechaInicio}T00:00:00`).toISOString() : null,
     fecha_fin: fechaFin ? new Date(`${fechaFin}T23:59:59`).toISOString() : null,
     activa: true,
-    user_id: user.id,
+    user_id: negocioId,
   });
 
   if (error) {
@@ -105,8 +104,7 @@ export async function alternarActivaPromocion(id: number, activa: boolean) {
   const { error } = await supabase
     .from("promociones")
     .update({ activa })
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;
@@ -125,8 +123,7 @@ export async function eliminarPromocion(id: number) {
   const { error } = await supabase
     .from("promociones")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;

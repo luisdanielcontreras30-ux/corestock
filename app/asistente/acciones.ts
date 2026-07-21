@@ -26,15 +26,15 @@ interface ClienteRaw {
   nombre: string;
 }
 
-async function obtenerDatos(userId: string) {
+async function obtenerDatos() {
   const [
     { data: productos, error: errorProductos },
     { data: ventas, error: errorVentas },
     { data: clientes, error: errorClientes },
   ] = await Promise.all([
-    supabase.from("productos").select("*").eq("user_id", userId),
-    supabase.from("ventas").select("*").eq("user_id", userId),
-    supabase.from("clientes").select("id, nombre").eq("user_id", userId),
+    supabase.from("productos").select("*"),
+    supabase.from("ventas").select("*"),
+    supabase.from("clientes").select("id, nombre"),
   ]);
 
   // Sin este chequeo, una consulta fallida (RLS, red, sesión vencida)
@@ -92,8 +92,8 @@ function ingresosPorProducto(ventas: VentaRaw[]): Map<string, number> {
 
 // ----------------- 1. ¿QUÉ PRODUCTOS DEBO COMPRAR? -----------------
 
-export async function analizarQueComprar(userId: string, idioma: Idioma): Promise<string> {
-  const { productos, ventas } = await obtenerDatos(userId);
+export async function analizarQueComprar(idioma: Idioma): Promise<string> {
+  const { productos, ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const hace30 = new Date(hoy);
@@ -138,8 +138,8 @@ export async function analizarQueComprar(userId: string, idioma: Idioma): Promis
 
 // ----------------- 2. ¿QUÉ PRODUCTOS DEJAN MÁS GANANCIAS? -----------------
 
-export async function analizarGanancias(userId: string, idioma: Idioma): Promise<string> {
-  const { productos, ventas } = await obtenerDatos(userId);
+export async function analizarGanancias(idioma: Idioma): Promise<string> {
+  const { productos, ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const hace30 = new Date(hoy);
@@ -188,8 +188,8 @@ export async function analizarGanancias(userId: string, idioma: Idioma): Promise
 
 // ----------------- 3. ¿POR QUÉ BAJARON MIS VENTAS? -----------------
 
-export async function analizarBajaVentas(userId: string, idioma: Idioma): Promise<string> {
-  const { ventas } = await obtenerDatos(userId);
+export async function analizarBajaVentas(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const inicioSemana = new Date(hoy);
@@ -245,8 +245,8 @@ export async function analizarBajaVentas(userId: string, idioma: Idioma): Promis
 
 // ----------------- 5. VENTAS DE HOY -----------------
 
-export async function analizarVentasHoy(userId: string, idioma: Idioma): Promise<string> {
-  const { ventas } = await obtenerDatos(userId);
+export async function analizarVentasHoy(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const inicioDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
@@ -271,8 +271,8 @@ export async function analizarVentasHoy(userId: string, idioma: Idioma): Promise
 
 // ----------------- 6. PRODUCTO MÁS VENDIDO -----------------
 
-export async function analizarProductoTop(userId: string, idioma: Idioma): Promise<string> {
-  const { ventas } = await obtenerDatos(userId);
+export async function analizarProductoTop(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
 
   if (ventas.length === 0) {
     return f("asistente.top_ninguna", idioma);
@@ -302,8 +302,8 @@ export async function analizarProductoTop(userId: string, idioma: Idioma): Promi
 
 // ----------------- 7. PRODUCTOS AGOTADOS -----------------
 
-export async function analizarAgotados(userId: string, idioma: Idioma): Promise<string> {
-  const { productos } = await obtenerDatos(userId);
+export async function analizarAgotados(idioma: Idioma): Promise<string> {
+  const { productos } = await obtenerDatos();
 
   const agotados = productos.filter((p) => p.stock === 0);
 
@@ -323,8 +323,8 @@ export async function analizarAgotados(userId: string, idioma: Idioma): Promise<
 
 // ----------------- 8. RESUMEN DE INVENTARIO -----------------
 
-export async function analizarInventario(userId: string, idioma: Idioma): Promise<string> {
-  const { productos } = await obtenerDatos(userId);
+export async function analizarInventario(idioma: Idioma): Promise<string> {
+  const { productos } = await obtenerDatos();
 
   if (productos.length === 0) {
     return f("asistente.inv_vacio", idioma);
@@ -347,8 +347,8 @@ export async function analizarInventario(userId: string, idioma: Idioma): Promis
 
 // ----------------- 4. RESUMEN DE VENTAS DE LA SEMANA -----------------
 
-export async function analizarResumenSemana(userId: string, idioma: Idioma): Promise<string> {
-  const { ventas } = await obtenerDatos(userId);
+export async function analizarResumenSemana(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const inicioSemana = new Date(hoy);
@@ -391,8 +391,8 @@ export async function analizarResumenSemana(userId: string, idioma: Idioma): Pro
 
 // ----------------- 9. MEJORES CLIENTES -----------------
 
-export async function analizarMejorCliente(userId: string, idioma: Idioma): Promise<string> {
-  const { ventas, clientes } = await obtenerDatos(userId);
+export async function analizarMejorCliente(idioma: Idioma): Promise<string> {
+  const { ventas, clientes } = await obtenerDatos();
 
   const conCliente = ventas.filter((v) => v.cliente_id != null);
 
@@ -428,8 +428,8 @@ export async function analizarMejorCliente(userId: string, idioma: Idioma): Prom
 
 // ----------------- 10. VENTAS DEL MES -----------------
 
-export async function analizarVentasMes(userId: string, idioma: Idioma): Promise<string> {
-  const { ventas } = await obtenerDatos(userId);
+export async function analizarVentasMes(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
@@ -467,8 +467,8 @@ export async function analizarVentasMes(userId: string, idioma: Idioma): Promise
 
 // ----------------- 11. CATEGORÍA QUE MÁS VENDE -----------------
 
-export async function analizarCategoriaTop(userId: string, idioma: Idioma): Promise<string> {
-  const { productos, ventas } = await obtenerDatos(userId);
+export async function analizarCategoriaTop(idioma: Idioma): Promise<string> {
+  const { productos, ventas } = await obtenerDatos();
 
   if (ventas.length === 0) {
     return f("asistente.cat_ninguna", idioma);

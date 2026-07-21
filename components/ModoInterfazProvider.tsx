@@ -9,6 +9,7 @@ import React, {
   ReactNode,
 } from "react";
 import { supabase } from "../lib/supabase";
+import { obtenerNegocioId } from "../lib/negocioActual";
 import { useAuth } from "./AuthProvider";
 import { EMPRESA_VACIA } from "../app/configuracion/types";
 
@@ -79,7 +80,6 @@ export default function ModoInterfazProvider({
     const { data, error } = await supabase
       .from("empresa_config")
       .select("modo_interfaz")
-      .eq("user_id", user.id)
       .maybeSingle();
 
     if (error) {
@@ -113,6 +113,14 @@ export default function ModoInterfazProvider({
   async function cambiarModo(modo: ModoInterfaz) {
     if (!user) return;
 
+    // Tiene que ser el id del NEGOCIO, no el auth.uid() propio de
+    // quien llama — para un miembro del equipo son distintos. Sin
+    // esto, el update de abajo nunca encontraría la fila del negocio
+    // (piensa que hace falta crearla) y el insert de respaldo crearía
+    // una fila fantasma de empresa_config pegada al auth.uid() del
+    // miembro en vez de tocar la del negocio real.
+    const negocioId = await obtenerNegocioId();
+
     // Una cuenta recién registrada puede no tener fila en
     // empresa_config todavía (se crea perezosamente al guardar algo
     // en Configuración > Empresa por primera vez) — justo el caso más
@@ -124,7 +132,7 @@ export default function ModoInterfazProvider({
     const { data: actualizado, error: errorUpdate } = await supabase
       .from("empresa_config")
       .update({ modo_interfaz: modo })
-      .eq("user_id", user.id)
+      .eq("user_id", negocioId)
       .select("user_id");
 
     if (errorUpdate && esColumnaFaltante(errorUpdate)) {
@@ -145,7 +153,7 @@ export default function ModoInterfazProvider({
     if (!actualizado || actualizado.length === 0) {
       const { error: errorInsert } = await supabase
         .from("empresa_config")
-        .insert({ ...EMPRESA_VACIA, modo_interfaz: modo, user_id: user.id });
+        .insert({ ...EMPRESA_VACIA, modo_interfaz: modo, user_id: negocioId });
 
       if (errorInsert && esColumnaFaltante(errorInsert)) {
         console.warn(

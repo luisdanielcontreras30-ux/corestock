@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { ajustarStockConCas } from "../../lib/stockCas";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { Producto, Cliente, Venta, Promocion, MetodoPago } from "./types";
 
 export async function cargarDatos() {
@@ -16,8 +17,6 @@ export async function cargarDatos() {
     };
   }
 
-  const userId = user.id;
-
   // Las 4 consultas son independientes entre sí — se piden en paralelo
   // en vez de una tras otra para no sumar sus tiempos de ida y vuelta.
   const [
@@ -29,13 +28,11 @@ export async function cargarDatos() {
     supabase
       .from("productos")
       .select("*")
-      .eq("user_id", userId)
       .eq("activo", true)
       .order("nombre"),
     supabase
       .from("clientes")
       .select("*")
-      .eq("user_id", userId)
       .order("nombre"),
     supabase
       .from("ventas")
@@ -45,7 +42,6 @@ export async function cargarDatos() {
           nombre
         )
       `)
-      .eq("user_id", userId)
       .order("id", {
         ascending: false,
       }),
@@ -54,7 +50,6 @@ export async function cargarDatos() {
     supabase
       .from("promociones")
       .select("id, nombre, producto_id, tipo, valor, fecha_inicio, fecha_fin")
-      .eq("user_id", userId)
       .eq("activa", true),
   ]);
 
@@ -92,12 +87,13 @@ export async function registrarVenta(
     throw new Error("Usuario no autenticado");
   }
 
+  const negocioId = await obtenerNegocioId();
+
   if (uuid) {
     const { data: ventaExistente, error: errorExistente } = await supabase
       .from("ventas")
       .select("id")
       .eq("uuid", uuid)
-      .eq("user_id", user.id)
       .maybeSingle();
 
     if (errorExistente) throw errorExistente;
@@ -123,7 +119,6 @@ export async function registrarVenta(
       await supabase
         .from("clientes")
         .select("*")
-        .eq("user_id", user.id)
         .ilike("nombre", nombreCliente.trim())
         .maybeSingle();
 
@@ -137,7 +132,7 @@ export async function registrarVenta(
         .from("clientes")
         .insert({
           nombre: nombreCliente.trim(),
-          user_id: user.id,
+          user_id: negocioId,
         })
         .select()
         .single();
@@ -157,7 +152,6 @@ export async function registrarVenta(
       .from("productos")
       .select("stock")
       .eq("id", producto.id)
-      .eq("user_id", user.id)
       .single();
 
   if (errorProductoActual) {
@@ -199,7 +193,7 @@ export async function registrarVenta(
         // por Cobrar.
         cobrado: metodoPago !== "prestamo",
         uuid: uuid ?? null,
-        user_id: user.id,
+        user_id: negocioId,
       })
       .select("id")
       .single();
@@ -222,7 +216,6 @@ export async function registrarVenta(
         stock: nuevoStock,
       })
       .eq("id", producto.id)
-      .eq("user_id", user.id)
       .eq("stock", productoActual.stock)
       .select("id");
 
@@ -258,7 +251,6 @@ export async function eliminarVenta(
     .from("ventas")
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
     .single();
 
   if (errorVenta) {
@@ -266,12 +258,14 @@ export async function eliminarVenta(
   }
 
   if (venta.producto_id) {
+    const negocioId = await obtenerNegocioId();
+
     // Compare-and-swap, igual que al registrar: si otra venta/compra
     // concurrente sobre el mismo producto cambia el stock justo en este
     // instante, reintenta desde el valor fresco en vez de pisarlo.
     const exito = await ajustarStockConCas(
       venta.producto_id,
-      user.id,
+      negocioId,
       venta.cantidad
     );
 
@@ -287,8 +281,7 @@ export async function eliminarVenta(
   } = await supabase
     .from("ventas")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (errorEliminar) {
     throw errorEliminar;

@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { obtenerSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
+import { resolverNegocioYPermisos } from "../../../../lib/resolverNegocioId";
+import { asegurarAuthUserId } from "../../../../lib/identidadMiembro";
 
-// Establece o cambia la contraseña de un miembro del equipo. Solo el
-// dueño de la cuenta (autenticado con su JWT) puede llamar esto, y
-// solo sobre miembros que le pertenecen — el hash nunca se calcula ni
+// Establece o cambia la contraseña de un miembro del equipo. Puede
+// llamarlo el dueño o un miembro con permiso "configuracion" — nunca
+// otro miembro (antes de que cada uno tuviera su propia identidad de
+// Supabase, esta ruta solo comprobaba "pertenece a la misma cuenta",
+// lo cual dejaba de alcanzar en cuanto un miembro sin permisos podía
+// tener el mismo auth.uid() que el dueño). El hash nunca se calcula ni
 // se guarda desde el navegador.
 export async function POST(request: Request) {
   const user = await verificarUsuarioApi(request);
@@ -26,18 +31,25 @@ export async function POST(request: Request) {
   try {
     const admin = obtenerSupabaseAdmin();
 
-    // Confirma que el miembro pertenece a quien está llamando antes de
-    // tocar nada — sin esto, cualquier cuenta autenticada podría
-    // cambiar la contraseña de miembros de otro negocio.
+    const { negocioId, esMiembro, permisos } = await resolverNegocioYPermisos(user.id);
+
+    if (esMiembro && !permisos.includes("configuracion")) {
+      return NextResponse.json({ error: "No tienes permiso para hacer esto." }, { status: 403 });
+    }
+
+    // Confirma que el miembro pertenece al mismo negocio que quien
+    // llama antes de tocar nada — sin esto, cualquier cuenta con
+    // permiso "configuracion" podría cambiar la contraseña de
+    // miembros de otro negocio.
     const { data: miembro, error: errorBusqueda } = await admin
       .from("miembros_equipo")
-      .select("id, user_id")
+      .select("id, user_id, auth_user_id")
       .eq("id", miembroId)
       .maybeSingle();
 
     if (errorBusqueda) throw errorBusqueda;
 
-    if (!miembro || miembro.user_id !== user.id) {
+    if (!miembro || miembro.user_id !== negocioId) {
       return NextResponse.json({ error: "No encontrado." }, { status: 404 });
     }
 
@@ -49,6 +61,11 @@ export async function POST(request: Request) {
       .eq("id", miembroId);
 
     if (errorUpdate) throw errorUpdate;
+
+    // Ya con contraseña, este miembro puede entrar — asegura que tenga
+    // su propia identidad de Supabase Auth lista desde ahora (si no,
+    // se crea en su primer login igual, esto solo evita esa demora).
+    await asegurarAuthUserId(miembroId, (miembro.auth_user_id as string | null) ?? null);
 
     return NextResponse.json({ ok: true });
   } catch (error) {

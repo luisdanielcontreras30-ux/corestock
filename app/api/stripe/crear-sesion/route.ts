@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { obtenerStripe } from "../../../../lib/stripe";
 import { obtenerSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
+import { resolverNegocioYPermisos } from "../../../../lib/resolverNegocioId";
 
 // Crea una sesión de Stripe Checkout para pasar a CoreStock Plus+.
 // El cliente solo recibe la URL a la que redirigir — nunca toca datos
@@ -26,10 +27,21 @@ export async function POST(request: Request) {
     const stripe = obtenerStripe();
     const admin = obtenerSupabaseAdmin();
 
+    // La facturación es un asunto del NEGOCIO, no de quien la gestiona
+    // — si quien llama es un miembro del equipo, se factura a la
+    // cuenta del negocio (negocioId), nunca a su propia identidad, y
+    // se exige el permiso "configuracion" igual que para cualquier
+    // otra acción administrativa.
+    const { negocioId, esMiembro, permisos } = await resolverNegocioYPermisos(user.id);
+
+    if (esMiembro && !permisos.includes("configuracion")) {
+      return NextResponse.json({ error: "No tienes permiso para hacer esto." }, { status: 403 });
+    }
+
     const { data: empresa } = await admin
       .from("empresa_config")
       .select("stripe_customer_id")
-      .eq("user_id", user.id)
+      .eq("user_id", negocioId)
       .maybeSingle();
 
     const origin = request.headers.get("origin") ?? new URL(request.url).origin;
@@ -39,9 +51,9 @@ export async function POST(request: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       customer: (empresa?.stripe_customer_id as string | null) ?? undefined,
       customer_email: empresa?.stripe_customer_id ? undefined : user.email ?? undefined,
-      client_reference_id: user.id,
+      client_reference_id: negocioId,
       subscription_data: {
-        metadata: { supabase_user_id: user.id },
+        metadata: { supabase_user_id: negocioId },
       },
       success_url: `${origin}/suscripcion?estado=exito`,
       cancel_url: `${origin}/suscripcion?estado=cancelado`,

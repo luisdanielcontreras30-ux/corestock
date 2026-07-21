@@ -3,13 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useAuth } from "./AuthProvider";
 import { Miembro, Permiso } from "../app/configuracion/types";
-
-const CLAVE_STORAGE = "corestock_miembro_activo";
-
-interface DatosGuardados {
-  userId: string;
-  miembro: Miembro;
-}
+import { CLAVE_STORAGE_MIEMBRO_ACTIVO, DatosMiembroGuardado } from "../lib/negocioActual";
 
 interface MiembroActivoContexto {
   // null = sesión sin restricciones (el dueño de la cuenta).
@@ -19,7 +13,10 @@ interface MiembroActivoContexto {
   // que esto sea false antes de decidir, para no montar brevemente una
   // pantalla prohibida mientras todavía no se sabe si hay restricción.
   cargando: boolean;
-  establecerMiembroActivo: (miembro: Miembro, userId: string) => void;
+  // negocioId: el id del NEGOCIO al que pertenece este miembro (el
+  // dueño), distinto de userId (su propio auth.uid()) desde que cada
+  // miembro tiene su propia identidad de Supabase — ver lib/negocioActual.ts.
+  establecerMiembroActivo: (miembro: Miembro, userId: string, negocioId: string) => void;
   limpiarMiembroActivo: () => void;
   puede: (permiso: Permiso) => boolean;
 }
@@ -60,27 +57,28 @@ export default function MiembroActivoProvider({ children }: { children: ReactNod
     }
 
     try {
-      const guardado = sessionStorage.getItem(CLAVE_STORAGE);
+      const guardado = sessionStorage.getItem(CLAVE_STORAGE_MIEMBRO_ACTIVO);
       if (guardado) {
-        const datos = JSON.parse(guardado) as DatosGuardados;
+        const datos = JSON.parse(guardado) as DatosMiembroGuardado;
         if (datos.userId === user.id) {
           setMiembroActivo(datos.miembro);
         } else {
           // Corresponde a otra cuenta (navegador compartido) — se descarta.
-          sessionStorage.removeItem(CLAVE_STORAGE);
+          sessionStorage.removeItem(CLAVE_STORAGE_MIEMBRO_ACTIVO);
         }
       }
     } catch {
-      sessionStorage.removeItem(CLAVE_STORAGE);
+      sessionStorage.removeItem(CLAVE_STORAGE_MIEMBRO_ACTIVO);
     } finally {
       setCargando(false);
     }
   }, [user, cargandoAuth]);
 
-  function establecerMiembroActivo(miembro: Miembro, userId: string) {
+  function establecerMiembroActivo(miembro: Miembro, userId: string, negocioId: string) {
     setMiembroActivo(miembro);
     try {
-      sessionStorage.setItem(CLAVE_STORAGE, JSON.stringify({ userId, miembro }));
+      const datos: DatosMiembroGuardado = { userId, negocioId, miembro };
+      sessionStorage.setItem(CLAVE_STORAGE_MIEMBRO_ACTIVO, JSON.stringify(datos));
     } catch {
       // Si sessionStorage no está disponible, el identificador de
       // miembro solo vive en memoria durante esta sesión de React.
@@ -90,7 +88,7 @@ export default function MiembroActivoProvider({ children }: { children: ReactNod
   function limpiarMiembroActivo() {
     setMiembroActivo(null);
     try {
-      sessionStorage.removeItem(CLAVE_STORAGE);
+      sessionStorage.removeItem(CLAVE_STORAGE_MIEMBRO_ACTIVO);
     } catch {
       // ver comentario arriba
     }

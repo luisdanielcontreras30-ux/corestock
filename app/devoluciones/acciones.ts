@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { ajustarStockConCas } from "../../lib/stockCas";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { Producto, Devolucion } from "./types";
 
 export async function cargarDatos() {
@@ -14,8 +15,6 @@ export async function cargarDatos() {
     };
   }
 
-  const userId = user.id;
-
   // Las 2 consultas son independientes — se piden en paralelo en vez de
   // una tras otra para no sumar sus tiempos de ida y vuelta.
   const [
@@ -25,13 +24,11 @@ export async function cargarDatos() {
     supabase
       .from("productos")
       .select("id, nombre, stock, precio_venta")
-      .eq("user_id", userId)
       .eq("activo", true)
       .order("nombre"),
     supabase
       .from("devoluciones")
       .select("*")
-      .eq("user_id", userId)
       .order("id", { ascending: false }),
   ]);
 
@@ -70,8 +67,10 @@ export async function registrarDevolucion(
     throw new Error("El monto reembolsado no puede ser negativo");
   }
 
+  const negocioId = await obtenerNegocioId();
+
   const { error } = await supabase.from("devoluciones").insert({
-    user_id: user.id,
+    user_id: negocioId,
     producto_id: producto.id,
     producto: producto.nombre,
     cantidad,
@@ -86,7 +85,7 @@ export async function registrarDevolucion(
   }
 
   if (reponerStock) {
-    const exito = await ajustarStockConCas(producto.id, user.id, cantidad);
+    const exito = await ajustarStockConCas(producto.id, negocioId, cantidad);
     if (!exito) {
       // La devolución ya quedó registrada (el reembolso es un hecho
       // real) — solo no se pudo reponer el stock automáticamente por
@@ -114,7 +113,8 @@ export async function eliminarDevolucion(devolucion: Devolucion) {
   // reintentos, la devolución sigue existiendo y el usuario puede
   // reintentar en vez de perder silenciosamente el ajuste de stock.
   if (devolucion.repuso_stock && devolucion.producto_id) {
-    const exito = await ajustarStockConCas(devolucion.producto_id, user.id, -devolucion.cantidad, {
+    const negocioId = await obtenerNegocioId();
+    const exito = await ajustarStockConCas(devolucion.producto_id, negocioId, -devolucion.cantidad, {
       minimoCero: true,
     });
 
@@ -128,8 +128,7 @@ export async function eliminarDevolucion(devolucion: Devolucion) {
   const { error } = await supabase
     .from("devoluciones")
     .delete()
-    .eq("id", devolucion.id)
-    .eq("user_id", user.id);
+    .eq("id", devolucion.id);
 
   if (error) {
     throw error;

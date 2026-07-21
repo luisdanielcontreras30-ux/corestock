@@ -73,7 +73,6 @@ export async function POST(request: Request) {
   const { data: productos, error: errorProductos } = await supabase
     .from("productos")
     .select("nombre, categoria, precio_venta, stock")
-    .eq("user_id", user.id)
     .eq("activo", true)
     .order("nombre");
 

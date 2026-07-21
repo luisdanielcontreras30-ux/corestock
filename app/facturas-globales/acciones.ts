@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { FacturaGlobal } from "./types";
 
 export async function cargarFacturasGlobales() {
@@ -13,7 +14,6 @@ export async function cargarFacturasGlobales() {
   const { data, error } = await supabase
     .from("facturas_globales")
     .select("*")
-    .eq("user_id", user.id)
     .order("id", { ascending: false });
 
   if (error) {
@@ -44,7 +44,6 @@ export async function generarFacturaGlobal(
   const { data: ventas, error: errorVentas } = await supabase
     .from("ventas")
     .select("total")
-    .eq("user_id", user.id)
     .gte("fecha", fechaInicio.toISOString())
     .lte("fecha", fechaFin.toISOString());
 
@@ -62,6 +61,7 @@ export async function generarFacturaGlobal(
   }
 
   const total = (ventas ?? []).reduce((sum, v) => sum + Number(v.total), 0);
+  const negocioId = await obtenerNegocioId();
 
   const { error } = await supabase.from("facturas_globales").insert({
     fecha_inicio: fechaInicio.toISOString(),
@@ -69,7 +69,7 @@ export async function generarFacturaGlobal(
     cantidad_ventas: cantidadVentas,
     total,
     nota: nota.trim() || null,
-    user_id: user.id,
+    user_id: negocioId,
   });
 
   if (error) {
@@ -89,8 +89,7 @@ export async function eliminarFacturaGlobal(id: number) {
   const { error } = await supabase
     .from("facturas_globales")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;

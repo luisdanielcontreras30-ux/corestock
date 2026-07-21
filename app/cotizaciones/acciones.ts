@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { ajustarStockConCas } from "../../lib/stockCas";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { Producto, Cliente, Cotizacion, EstadoCotizacion } from "./types";
 
 export async function cargarDatos() {
@@ -15,8 +16,6 @@ export async function cargarDatos() {
     };
   }
 
-  const userId = user.id;
-
   // Las 3 consultas son independientes — se piden en paralelo en vez de
   // una tras otra para no sumar sus tiempos de ida y vuelta.
   const [
@@ -27,18 +26,15 @@ export async function cargarDatos() {
     supabase
       .from("productos")
       .select("id, nombre, precio_venta")
-      .eq("user_id", userId)
       .eq("activo", true)
       .order("nombre"),
     supabase
       .from("clientes")
       .select("id, nombre")
-      .eq("user_id", userId)
       .order("nombre"),
     supabase
       .from("cotizaciones")
       .select("*")
-      .eq("user_id", userId)
       .order("id", { ascending: false }),
   ]);
 
@@ -78,6 +74,7 @@ export async function crearCotizacion(
   }
 
   const total = cantidad * precioUnitario;
+  const negocioId = await obtenerNegocioId();
 
   const { error } = await supabase.from("cotizaciones").insert({
     fecha: new Date().toISOString(),
@@ -90,7 +87,7 @@ export async function crearCotizacion(
     total,
     estado: "pendiente",
     nota: nota.trim() || null,
-    user_id: user.id,
+    user_id: negocioId,
   });
 
   if (error) {
@@ -113,8 +110,7 @@ export async function cambiarEstadoCotizacion(
   const { error } = await supabase
     .from("cotizaciones")
     .update({ estado })
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;
@@ -152,13 +148,14 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
     throw new Error("Esta cotización tiene una cantidad inválida.");
   }
 
+  const negocioId = await obtenerNegocioId();
+
   let clienteId = cotizacion.cliente_id;
 
   if (!clienteId && cotizacion.cliente_nombre) {
     const { data: clienteExistente, error: errorBusquedaCliente } = await supabase
       .from("clientes")
       .select("id")
-      .eq("user_id", user.id)
       .ilike("nombre", cotizacion.cliente_nombre)
       .maybeSingle();
 
@@ -169,7 +166,7 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
     } else {
       const { data: nuevoCliente, error: errorCliente } = await supabase
         .from("clientes")
-        .insert({ nombre: cotizacion.cliente_nombre, user_id: user.id })
+        .insert({ nombre: cotizacion.cliente_nombre, user_id: negocioId })
         .select("id")
         .single();
 
@@ -183,7 +180,6 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
     .from("productos")
     .select("stock")
     .eq("id", productoId)
-    .eq("user_id", user.id)
     .single();
 
   if (errorProducto) throw errorProducto;
@@ -202,7 +198,7 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
       cantidad: cotizacion.cantidad,
       precio: cotizacion.precio_unitario,
       total: cotizacion.total,
-      user_id: user.id,
+      user_id: negocioId,
     })
     .select("id")
     .single();
@@ -218,7 +214,6 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
       .from("productos")
       .update({ stock: nuevoStock })
       .eq("id", productoId)
-      .eq("user_id", user.id)
       .eq("stock", productoActual.stock)
       .select("id");
 
@@ -233,8 +228,7 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
     const { error: errorActualizarCotizacion } = await supabase
       .from("cotizaciones")
       .update({ venta_id: ventaCreada.id })
-      .eq("id", cotizacion.id)
-      .eq("user_id", user.id);
+      .eq("id", cotizacion.id);
 
     if (errorActualizarCotizacion) throw errorActualizarCotizacion;
   } catch (error) {
@@ -248,7 +242,7 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
       // de simplemente devolver false), no debe impedir que se borre la
       // venta a medio crear ni que se relance el error original de abajo.
       try {
-        const revertido = await ajustarStockConCas(productoId, user.id, cotizacion.cantidad);
+        const revertido = await ajustarStockConCas(productoId, negocioId, cotizacion.cantidad);
         if (!revertido) {
           console.error(
             "No se pudo revertir el stock tras un fallo al convertir la cotización en venta. Revisar manualmente producto_id=" +
@@ -280,8 +274,7 @@ export async function eliminarCotizacion(id: number) {
   const { error } = await supabase
     .from("cotizaciones")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;

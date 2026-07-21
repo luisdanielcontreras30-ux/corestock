@@ -95,7 +95,7 @@ function AsistenteContenido() {
 
   async function enviarPregunta(
     texto: string,
-    calcular: (userId: string, idioma: Idioma) => Promise<string>
+    calcular: (idioma: Idioma) => Promise<string>
   ) {
     if (!user || pensando) return;
 
@@ -112,7 +112,7 @@ function AsistenteContenido() {
       // Pequeña pausa artificial: hace tangible que "está pensando",
       // aunque el cálculo real ya se está haciendo detrás.
       const [respuesta] = await Promise.all([
-        calcular(user.id, idioma),
+        calcular(idioma),
         new Promise((r) => setTimeout(r, 450)),
       ]);
 

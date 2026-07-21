@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { obtenerSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { asegurarAuthUserId, correoSinteticoMiembro } from "../../../../lib/identidadMiembro";
 
 type Razon = "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta";
 
@@ -35,10 +36,13 @@ async function buscarUsuarioPorCorreo(
 
 // Deja entrar a un miembro del equipo con SOLO su propio nombre y su
 // propia contraseña — nunca necesita la contraseña de la cuenta
-// principal. En vez de eso, una vez que se confirma el nombre y la
-// contraseña contra miembros_equipo, se genera un magic link con la
-// Admin API (sin enviar ningún correo) y se le devuelve al navegador
-// el token para que abra la sesión con verifyOtp.
+// principal. La contraseña se valida contra miembros_equipo.password_hash
+// (bcrypt, igual que siempre); si la validación pasa, se genera un
+// magic link apuntado a la identidad de Supabase Auth PROPIA de ese
+// miembro (no la del dueño — ver lib/identidadMiembro.ts), creándola
+// primero si es la primera vez que entra. Así cada miembro termina con
+// su propio auth.uid() real, que RLS sí puede distinguir del dueño
+// (ver supabase_permisos_miembros.sql).
 export async function POST(request: Request) {
   const { correo, nombre, password } = await request.json();
 
@@ -49,32 +53,23 @@ export async function POST(request: Request) {
   try {
     const admin = obtenerSupabaseAdmin();
 
-    const usuarioExistente = await buscarUsuarioPorCorreo(admin, correo);
+    const duenoExistente = await buscarUsuarioPorCorreo(admin, correo);
 
     // Mismo "no_encontrado" que el resto de los casos de esta función
     // (correo sin cuenta, nombre sin coincidencia, etc.) — una
     // respuesta distinta para cada caso permitiría a cualquiera (sin
     // haber iniciado sesión) comprobar si un correo tiene cuenta en
     // CoreStock probando aquí.
-    if (!usuarioExistente) {
+    if (!duenoExistente) {
       return NextResponse.json({ ok: false, razon: "no_encontrado" as Razon });
     }
 
-    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-      type: "magiclink",
-      email: correo,
-    });
-
-    if (linkError || !linkData?.user) {
-      return NextResponse.json({ ok: false, razon: "no_encontrado" as Razon });
-    }
-
-    const userId = linkData.user.id as string;
+    const negocioId = duenoExistente.id as string;
 
     const { data, error } = await admin
       .from("miembros_equipo")
-      .select("id, nombre, correo, rol, permisos, activo, password_hash")
-      .eq("user_id", userId)
+      .select("id, nombre, correo, rol, permisos, activo, password_hash, auth_user_id")
+      .eq("user_id", negocioId)
       .eq("activo", true);
 
     if (error) throw error;
@@ -98,9 +93,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, razon: "contrasena_incorrecta" as Razon });
     }
 
+    const authUserId = await asegurarAuthUserId(
+      miembro.id as string,
+      (miembro.auth_user_id as string | null) ?? null
+    );
+
+    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+      type: "magiclink",
+      email: correoSinteticoMiembro(miembro.id as string),
+    });
+
+    if (linkError || !linkData?.properties?.hashed_token) {
+      throw linkError ?? new Error("No se pudo generar el enlace de acceso.");
+    }
+
     return NextResponse.json({
       ok: true,
-      userId,
+      userId: authUserId,
+      negocioId,
       tokenHash: linkData.properties.hashed_token,
       miembro: {
         id: miembro.id,

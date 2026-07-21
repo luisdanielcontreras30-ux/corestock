@@ -8,9 +8,16 @@ const MAX_INTENTOS = 5;
 // concurrente (una venta, una compra, otro borrado) ya lo cambió, el
 // update afecta 0 filas en vez de pisar silenciosamente ese cambio.
 // Reintenta unas cuantas veces con el valor fresco antes de rendirse.
+//
+// negocioId tiene que ser el id del NEGOCIO dueño del producto, no el
+// auth.uid() de quien llama — para un miembro del equipo son distintos
+// (ver lib/negocioActual.ts). Si aquí se pasara por error el auth.uid()
+// propio de un miembro, la fila nunca se encontraría y la función
+// devolvería "true" igual (ver el "no hay stock que ajustar" de abajo),
+// como si el ajuste hubiera funcionado sin haber tocado nada.
 export async function ajustarStockConCas(
   productoId: number,
-  userId: string,
+  negocioId: string,
   delta: number,
   opciones: { minimoCero?: boolean; tabla?: "productos" | "materias_primas" } = {}
 ): Promise<boolean> {
@@ -21,7 +28,7 @@ export async function ajustarStockConCas(
       .from(tabla)
       .select("stock")
       .eq("id", productoId)
-      .eq("user_id", userId)
+      .eq("user_id", negocioId)
       .maybeSingle();
 
     if (errorLectura) throw errorLectura;
@@ -37,7 +44,7 @@ export async function ajustarStockConCas(
       .from(tabla)
       .update({ stock: nuevoStock })
       .eq("id", productoId)
-      .eq("user_id", userId)
+      .eq("user_id", negocioId)
       .eq("stock", fila.stock)
       .select("id");
 

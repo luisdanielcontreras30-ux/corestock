@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 
 async function obtenerUsuarioActual() {
   const {
@@ -13,12 +14,11 @@ async function obtenerUsuarioActual() {
 }
 
 export async function cargarNumeroWhatsApp(): Promise<string | null> {
-  const user = await obtenerUsuarioActual();
+  await obtenerUsuarioActual();
 
   const { data, error } = await supabase
     .from("empresa_config")
     .select("whatsapp_phone_number_id")
-    .eq("user_id", user.id)
     .maybeSingle();
 
   if (error) throw error;
@@ -27,7 +27,8 @@ export async function cargarNumeroWhatsApp(): Promise<string | null> {
 }
 
 export async function guardarNumeroWhatsApp(phoneNumberId: string): Promise<void> {
-  const user = await obtenerUsuarioActual();
+  await obtenerUsuarioActual();
+  const negocioId = await obtenerNegocioId();
 
   // update en vez de upsert: si todavía no existe la fila de
   // empresa_config (el negocio nunca guardó Configuración → Empresa),
@@ -36,7 +37,7 @@ export async function guardarNumeroWhatsApp(phoneNumberId: string): Promise<void
   const { data, error } = await supabase
     .from("empresa_config")
     .update({ whatsapp_phone_number_id: phoneNumberId.trim() || null })
-    .eq("user_id", user.id)
+    .eq("user_id", negocioId)
     .select("user_id");
 
   if (error) throw error;

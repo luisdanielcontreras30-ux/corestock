@@ -29,11 +29,10 @@ export async function cargarDatosAnalisis(): Promise<{
     { data: productos, error: errorProductos },
     { data: ventas, error: errorVentas },
   ] = await Promise.all([
-    supabase.from("productos").select("id, categoria, precio_venta, costo").eq("user_id", user.id),
+    supabase.from("productos").select("id, categoria, precio_venta, costo"),
     supabase
       .from("ventas")
       .select("fecha, cantidad, total, producto_id")
-      .eq("user_id", user.id)
       .gte("fecha", desde.toISOString()),
   ]);
 

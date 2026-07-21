@@ -11,7 +11,6 @@ export async function cargarPendientes(): Promise<VentaFiada[]> {
   const { data, error } = await supabase
     .from("ventas")
     .select("id, fecha, producto, cantidad, total, cliente_id, clientes(nombre)")
-    .eq("user_id", user.id)
     .eq("metodo_pago", "prestamo")
     .eq("cobrado", false)
     .order("fecha", { ascending: false });
@@ -34,7 +33,6 @@ export async function marcarComoCobrado(ventaId: number) {
     .from("ventas")
     .update({ cobrado: true })
     .eq("id", ventaId)
-    .eq("user_id", user.id)
     .eq("metodo_pago", "prestamo");
 
   if (error) {

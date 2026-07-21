@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import {
   ClienteConResumen,
   CompraCliente,
@@ -14,8 +15,6 @@ export async function cargarClientes() {
     return { clientes: [] as ClienteConResumen[] };
   }
 
-  const userId = user.id;
-
   // Las 2 consultas son independientes — se piden en paralelo en vez de
   // una tras otra para no sumar sus tiempos de ida y vuelta.
   const [
@@ -25,12 +24,10 @@ export async function cargarClientes() {
     supabase
       .from("clientes")
       .select("*")
-      .eq("user_id", userId)
       .order("nombre"),
     supabase
       .from("ventas")
       .select("cliente_id, total")
-      .eq("user_id", userId)
       .not("cliente_id", "is", null),
   ]);
 
@@ -79,12 +76,14 @@ export async function crearCliente(
     throw new Error("Usuario no autenticado");
   }
 
+  const negocioId = await obtenerNegocioId();
+
   const { error } = await supabase.from("clientes").insert({
     nombre: datos.nombre.trim(),
     telefono: datos.telefono.trim() || null,
     correo: datos.correo.trim() || null,
     notas: datos.notas.trim() || null,
-    user_id: user.id,
+    user_id: negocioId,
   });
 
   if (error) {
@@ -112,8 +111,7 @@ export async function actualizarCliente(
       correo: datos.correo.trim() || null,
       notas: datos.notas.trim() || null,
     })
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;
@@ -132,8 +130,7 @@ export async function eliminarCliente(id: number) {
   const { error } = await supabase
     .from("clientes")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) {
     throw error;
@@ -154,7 +151,6 @@ export async function cargarHistorialCompras(
   const { data, error } = await supabase
     .from("ventas")
     .select("id, fecha, producto, cantidad, precio, total")
-    .eq("user_id", user.id)
     .eq("cliente_id", clienteId)
     .order("fecha", { ascending: false });
 

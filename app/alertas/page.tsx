@@ -35,17 +35,16 @@ export default function Alertas() {
       return;
     }
 
-    cargar(user.id);
+    cargar();
   }, [cargandoAuth, user]);
 
-  async function cargar(userId: string) {
+  async function cargar() {
     setLoading(true);
     setError(false);
 
     const { data, error: errorConsulta } = await supabase
       .from("productos")
       .select("*")
-      .eq("user_id", userId)
       .order("stock");
 
     if (errorConsulta) {
@@ -90,7 +89,7 @@ export default function Alertas() {
         />
         <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
           <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("alertas.msg_error_cargar")}</p>
-          <button className="btn-primary" onClick={() => user && cargar(user.id)}>
+          <button className="btn-primary" onClick={() => user && cargar()}>
             {t("empresa.reintentar")}
           </button>
         </div>

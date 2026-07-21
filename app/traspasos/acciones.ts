@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { ajustarStockConCas } from "../../lib/stockCas";
+import { obtenerNegocioId } from "../../lib/negocioActual";
 import { Producto, Ubicacion, StockUbicacion, Traspaso } from "./types";
 
 export async function cargarDatos() {
@@ -16,8 +17,6 @@ export async function cargarDatos() {
     };
   }
 
-  const userId = user.id;
-
   // Las 4 consultas son independientes — se piden en paralelo en vez de
   // una tras otra para no sumar sus tiempos de ida y vuelta.
   const [
@@ -29,23 +28,19 @@ export async function cargarDatos() {
     supabase
       .from("productos")
       .select("id, nombre, stock")
-      .eq("user_id", userId)
       .eq("activo", true)
       .order("nombre"),
     supabase
       .from("ubicaciones")
       .select("id, nombre")
-      .eq("user_id", userId)
       .order("nombre"),
     supabase
       .from("stock_ubicaciones")
       .select("id, producto_id, ubicacion_id, stock, productos(nombre)")
-      .eq("user_id", userId)
       .gt("stock", 0),
     supabase
       .from("traspasos")
       .select("*")
-      .eq("user_id", userId)
       .order("fecha", { ascending: false }),
   ]);
 
@@ -79,9 +74,11 @@ export async function crearUbicacion(nombre: string) {
 
   if (!user) throw new Error("Usuario no autenticado");
 
+  const negocioId = await obtenerNegocioId();
+
   const { error } = await supabase
     .from("ubicaciones")
-    .insert({ nombre: nombre.trim(), user_id: user.id });
+    .insert({ nombre: nombre.trim(), user_id: negocioId });
 
   if (error) throw error;
 }
@@ -97,7 +94,6 @@ export async function eliminarUbicacion(id: number) {
     .from("stock_ubicaciones")
     .select("id")
     .eq("ubicacion_id", id)
-    .eq("user_id", user.id)
     .gt("stock", 0)
     .limit(1);
 
@@ -110,8 +106,7 @@ export async function eliminarUbicacion(id: number) {
   const { error } = await supabase
     .from("ubicaciones")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("id", id);
 
   if (error) throw error;
 }
@@ -120,7 +115,7 @@ export async function eliminarUbicacion(id: number) {
 // creando la fila si todavía no existe. Usa el mismo candado
 // compare-and-swap que el resto de la app contra condiciones de carrera.
 async function ajustarStockUbicacion(
-  userId: string,
+  negocioId: string,
   productoId: number,
   ubicacionId: number,
   delta: number
@@ -130,7 +125,7 @@ async function ajustarStockUbicacion(
     .select("id, stock")
     .eq("producto_id", productoId)
     .eq("ubicacion_id", ubicacionId)
-    .eq("user_id", userId)
+    .eq("user_id", negocioId)
     .maybeSingle();
 
   if (errorFila) throw errorFila;
@@ -142,7 +137,7 @@ async function ajustarStockUbicacion(
 
     const { error } = await supabase
       .from("stock_ubicaciones")
-      .insert({ producto_id: productoId, ubicacion_id: ubicacionId, stock: delta, user_id: userId });
+      .insert({ producto_id: productoId, ubicacion_id: ubicacionId, stock: delta, user_id: negocioId });
 
     if (error) throw error;
     return;
@@ -158,7 +153,7 @@ async function ajustarStockUbicacion(
     .from("stock_ubicaciones")
     .update({ stock: nuevoStock })
     .eq("id", fila.id)
-    .eq("user_id", userId)
+    .eq("user_id", negocioId)
     .eq("stock", fila.stock)
     .select("id");
 
@@ -185,6 +180,8 @@ export async function realizarTraspaso(
 
   if (!user) throw new Error("Usuario no autenticado");
 
+  const negocioId = await obtenerNegocioId();
+
   if (cantidad <= 0) {
     throw new Error("La cantidad debe ser mayor a 0.");
   }
@@ -199,7 +196,6 @@ export async function realizarTraspaso(
       .from("productos")
       .select("stock")
       .eq("id", producto.id)
-      .eq("user_id", user.id)
       .single();
 
     if (error) throw error;
@@ -212,7 +208,6 @@ export async function realizarTraspaso(
       .from("productos")
       .update({ stock: productoActual.stock - cantidad })
       .eq("id", producto.id)
-      .eq("user_id", user.id)
       .eq("stock", productoActual.stock)
       .select("id");
 
@@ -222,7 +217,7 @@ export async function realizarTraspaso(
       throw new Error("El stock de este producto cambió mientras se procesaba. Intenta de nuevo.");
     }
   } else {
-    await ajustarStockUbicacion(user.id, producto.id, origenId, -cantidad);
+    await ajustarStockUbicacion(negocioId, producto.id, origenId, -cantidad);
   }
 
   try {
@@ -232,7 +227,6 @@ export async function realizarTraspaso(
         .from("productos")
         .select("stock")
         .eq("id", producto.id)
-        .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
@@ -241,7 +235,6 @@ export async function realizarTraspaso(
         .from("productos")
         .update({ stock: productoActual.stock + cantidad })
         .eq("id", producto.id)
-        .eq("user_id", user.id)
         .eq("stock", productoActual.stock)
         .select("id");
 
@@ -251,7 +244,7 @@ export async function realizarTraspaso(
         throw new Error("El stock de este producto cambió mientras se procesaba. Intenta de nuevo.");
       }
     } else {
-      await ajustarStockUbicacion(user.id, producto.id, destinoId, cantidad);
+      await ajustarStockUbicacion(negocioId, producto.id, destinoId, cantidad);
     }
 
     // Paso 3: bitácora.
@@ -264,7 +257,7 @@ export async function realizarTraspaso(
       ubicacion_destino_nombre: destinoNombre,
       cantidad,
       fecha: new Date().toISOString(),
-      user_id: user.id,
+      user_id: negocioId,
     });
 
     if (errorTraspaso) throw errorTraspaso;
@@ -274,14 +267,14 @@ export async function realizarTraspaso(
     // no perder algún otro movimiento concurrente sobre ese mismo producto
     // mientras este traspaso estaba en curso.
     if (origenId === null) {
-      await ajustarStockConCas(producto.id, user.id, cantidad).catch((errorRevertir) => {
+      await ajustarStockConCas(producto.id, negocioId, cantidad).catch((errorRevertir) => {
         console.error(
           `No se pudo revertir el stock de producto_id=${producto.id} tras un fallo en el traspaso. Revisar manualmente.`,
           errorRevertir
         );
       });
     } else {
-      await ajustarStockUbicacion(user.id, producto.id, origenId, cantidad).catch((errorRevertir) => {
+      await ajustarStockUbicacion(negocioId, producto.id, origenId, cantidad).catch((errorRevertir) => {
         console.error(
           `No se pudo revertir el stock de ubicación (producto_id=${producto.id}, ubicacion_id=${origenId}) tras un fallo en el traspaso. Revisar manualmente.`,
           errorRevertir
