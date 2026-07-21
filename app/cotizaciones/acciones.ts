@@ -66,11 +66,11 @@ export async function crearCotizacion(
   }
 
   if (cantidad <= 0) {
-    throw new Error("La cantidad debe ser mayor a 0.");
+    throw new Error("CANTIDAD_INVALIDA");
   }
 
   if (precioUnitario < 0) {
-    throw new Error("El precio no puede ser negativo.");
+    throw new Error("PRECIO_INVALIDO");
   }
 
   const total = cantidad * precioUnitario;
@@ -131,21 +131,21 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
   }
 
   if (cotizacion.estado !== "aceptada") {
-    throw new Error("Solo puedes convertir cotizaciones aceptadas.");
+    throw new Error("NO_ACEPTADA");
   }
 
   if (cotizacion.venta_id) {
-    throw new Error("Esta cotización ya se convirtió en una venta.");
+    throw new Error("YA_CONVERTIDA");
   }
 
   if (!cotizacion.producto_id) {
-    throw new Error("El producto de esta cotización ya no existe.");
+    throw new Error("PRODUCTO_NO_EXISTE");
   }
 
   const productoId = cotizacion.producto_id;
 
   if (cotizacion.cantidad <= 0) {
-    throw new Error("Esta cotización tiene una cantidad inválida.");
+    throw new Error("CANTIDAD_INVALIDA");
   }
 
   const negocioId = await obtenerNegocioId(user.id);
@@ -185,7 +185,7 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
   if (errorProducto) throw errorProducto;
 
   if (productoActual.stock < cotizacion.cantidad) {
-    throw new Error("No hay suficiente stock para convertir esta cotización en venta.");
+    throw new Error("STOCK_INSUFICIENTE_CONVERSION");
   }
 
   const { data: ventaCreada, error: errorVenta } = await supabase
@@ -220,7 +220,7 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
     if (errorStock) throw errorStock;
 
     if (!actualizado || actualizado.length === 0) {
-      throw new Error("El stock de este producto cambió mientras se procesaba. Intenta de nuevo.");
+      throw new Error("STOCK_CAMBIO");
     }
 
     stockDescontado = true;

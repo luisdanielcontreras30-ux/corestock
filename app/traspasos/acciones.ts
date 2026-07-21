@@ -100,7 +100,7 @@ export async function eliminarUbicacion(id: number) {
   if (errorConsulta) throw errorConsulta;
 
   if (filasConStock && filasConStock.length > 0) {
-    throw new Error("Esta ubicación todavía tiene stock. Traspásalo antes de eliminarla.");
+    throw new Error("UBICACION_CON_STOCK");
   }
 
   const { error } = await supabase
@@ -132,7 +132,7 @@ async function ajustarStockUbicacion(
 
   if (!fila) {
     if (delta < 0) {
-      throw new Error("No hay suficiente stock en esa ubicación.");
+      throw new Error("STOCK_INSUFICIENTE_UBICACION");
     }
 
     const { error } = await supabase
@@ -146,7 +146,7 @@ async function ajustarStockUbicacion(
   const nuevoStock = fila.stock + delta;
 
   if (nuevoStock < 0) {
-    throw new Error("No hay suficiente stock en esa ubicación.");
+    throw new Error("STOCK_INSUFICIENTE_UBICACION");
   }
 
   const { data: actualizado, error } = await supabase
@@ -160,7 +160,7 @@ async function ajustarStockUbicacion(
   if (error) throw error;
 
   if (!actualizado || actualizado.length === 0) {
-    throw new Error("El stock de esa ubicación cambió mientras se procesaba. Intenta de nuevo.");
+    throw new Error("STOCK_CAMBIO");
   }
 }
 
@@ -183,11 +183,11 @@ export async function realizarTraspaso(
   const negocioId = await obtenerNegocioId(user.id);
 
   if (cantidad <= 0) {
-    throw new Error("La cantidad debe ser mayor a 0.");
+    throw new Error("CANTIDAD_INVALIDA");
   }
 
   if (origenId === destinoId) {
-    throw new Error("El origen y el destino no pueden ser el mismo.");
+    throw new Error("ORIGEN_DESTINO_IGUALES");
   }
 
   // Paso 1: descontar del origen.
@@ -201,7 +201,7 @@ export async function realizarTraspaso(
     if (error) throw error;
 
     if (productoActual.stock < cantidad) {
-      throw new Error("No hay suficiente stock en la Tienda.");
+      throw new Error("STOCK_INSUFICIENTE_TIENDA");
     }
 
     const { data: actualizado, error: errorUpdate } = await supabase
@@ -214,7 +214,7 @@ export async function realizarTraspaso(
     if (errorUpdate) throw errorUpdate;
 
     if (!actualizado || actualizado.length === 0) {
-      throw new Error("El stock de este producto cambió mientras se procesaba. Intenta de nuevo.");
+      throw new Error("STOCK_CAMBIO");
     }
   } else {
     await ajustarStockUbicacion(negocioId, producto.id, origenId, -cantidad);
@@ -241,7 +241,7 @@ export async function realizarTraspaso(
       if (errorUpdate) throw errorUpdate;
 
       if (!actualizadoDestino || actualizadoDestino.length === 0) {
-        throw new Error("El stock de este producto cambió mientras se procesaba. Intenta de nuevo.");
+        throw new Error("STOCK_CAMBIO");
       }
     } else {
       await ajustarStockUbicacion(negocioId, producto.id, destinoId, cantidad);
