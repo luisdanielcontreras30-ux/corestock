@@ -3471,6 +3471,54 @@ select optgroup {
   font-variant-numeric: tabular-nums;
 }
 
+/* En monitor/tablet de escritorio, CoreStock Easy quedaba con un ancho
+   fijo de 640px flotando en medio de toda la pantalla — mismo ajuste
+   que el panel de Cobrar: crece y agranda textos, botón y tarjetas. */
+@media (min-width: 900px) {
+  .dashboard-easy {
+    max-width: 1100px;
+    padding: 24px 4px 32px;
+  }
+
+  .dashboard-easy-saludo h1 {
+    font-size: 36px;
+  }
+
+  .dashboard-easy-saludo p {
+    font-size: 18px;
+  }
+
+  .dashboard-easy-vender {
+    min-height: 84px;
+    font-size: 26px;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .dashboard-easy-grid {
+    gap: 20px;
+  }
+
+  .dashboard-easy-tile {
+    padding: 30px;
+    gap: 12px;
+  }
+
+  .dashboard-easy-tile-icono {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+  }
+
+  .dashboard-easy-tile-etiqueta {
+    font-size: 17px;
+  }
+
+  .dashboard-easy-tile strong {
+    font-size: 34px;
+  }
+}
+
 /* ==========================================================================
    GRIDS RESPONSIVOS (antes eran inline styles fijos que se rompían en móvil)
    ========================================================================== */
