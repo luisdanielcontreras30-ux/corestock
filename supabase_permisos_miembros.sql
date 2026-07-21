@@ -65,12 +65,15 @@ security definer
 set search_path = public
 stable
 as $$
+  -- permisos es jsonb (array de strings), no un array nativo de
+  -- Postgres — el operador `?` es el equivalente correcto de ANY()
+  -- para comprobar si un texto existe como elemento de un array jsonb.
   select exists (
     select 1 from miembros_equipo
     where user_id = p_negocio_id
       and auth_user_id = auth.uid()
       and activo = true
-      and p_permiso = any(permisos)
+      and permisos ? p_permiso
   );
 $$;
 
