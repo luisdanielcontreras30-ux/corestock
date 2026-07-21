@@ -39,9 +39,8 @@ const opciones: OpcionTema[] = [
   { valor: "teal", claveNombre: "tema.teal.nombre", claveDesc: "tema.teal.desc", colores: ["#eafbf9", "#ffffff", "#0d9488"] },
 ];
 
-const OPCIONES_TENDENCIA: { valor: "area" | "linea" | "barras" | "velas"; clave: string }[] = [
+const OPCIONES_TENDENCIA: { valor: "area" | "barras" | "velas"; clave: string }[] = [
   { valor: "area", clave: "tema.grafica_area" },
-  { valor: "linea", clave: "tema.grafica_linea" },
   { valor: "barras", clave: "tema.grafica_barras" },
   { valor: "velas", clave: "tema.grafica_velas" },
 ];

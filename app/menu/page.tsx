@@ -34,8 +34,6 @@ import {
   Area,
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -629,28 +627,6 @@ export default function DashboardPremium() {
                   />
                   <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
-              ) : tipoTendencia === "linea" ? (
-                <LineChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
-                  <YAxis
-                    stroke="var(--text-muted)"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(valor) =>
-                      valor >= 1000
-                        ? `${(valor / 1000).toFixed(0)}k`
-                        : String(valor)
-                    }
-                  />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
-                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
-                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                    formatter={(valor) => formatoMoneda(Number(valor))}
-                  />
-                  <Line type="monotone" dataKey="monto" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2.5} dot={false} />
-                </LineChart>
               ) : tipoTendencia === "velas" ? (
                 <BarChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
@@ -675,7 +651,14 @@ export default function DashboardPremium() {
                     {dataLinea.map((punto, index) => {
                       const anterior = index > 0 ? dataLinea[index - 1].monto : punto.monto;
                       const sube = punto.monto >= anterior;
-                      return <Cell key={`vela-${index}`} fill={sube ? "#10b981" : "#ef4444"} />;
+                      return (
+                        <Cell
+                          key={`vela-${index}`}
+                          fill={sube ? "#10b981" : "#ef4444"}
+                          stroke={sube ? "#059669" : "#b91c1c"}
+                          strokeWidth={2}
+                        />
+                      );
                     })}
                   </Bar>
                 </BarChart>
@@ -683,8 +666,8 @@ export default function DashboardPremium() {
                 <AreaChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorMonto" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.9}/>
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.25}/>
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />

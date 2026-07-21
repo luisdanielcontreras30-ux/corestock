@@ -287,7 +287,6 @@ export const TRADUCCIONES: Diccionario = {
   "tema.grafica_distribucion": { es: "Gráfica de distribución", en: "Distribution chart", pt: "Gráfico de distribuição", fr: "Graphique de répartition", de: "Verteilungsdiagramm", zh: "分布图", it: "Grafico di distribuzione" },
   "tema.grafica_distribucion_desc": { es: "Se usa en \"Top Artículos\".", en: "Used in \"Top Items\".", pt: "Usado em \"Top Itens\".", fr: "Utilisé dans « Meilleurs articles ».", de: "Wird bei „Top-Artikel\" verwendet.", zh: "用于\"热门商品\"图表。", it: "Usato in \"Articoli principali\"." },
   "tema.grafica_area": { es: "Área", en: "Area", pt: "Área", fr: "Aire", de: "Fläche", zh: "面积图", it: "Area" },
-  "tema.grafica_linea": { es: "Línea", en: "Line", pt: "Linha", fr: "Ligne", de: "Linie", zh: "折线图", it: "Linea" },
   "tema.grafica_barras": { es: "Barras", en: "Bars", pt: "Barras", fr: "Barres", de: "Balken", zh: "柱状图", it: "Barre" },
   "tema.grafica_velas": { es: "Velas", en: "Candlestick", pt: "Velas", fr: "Chandelier", de: "Kerzen", zh: "蜡烛图", it: "Candele" },
   "tema.grafica_pastel": { es: "Pastel", en: "Pie", pt: "Pizza", fr: "Camembert", de: "Kreis", zh: "饼图", it: "Torta" },
