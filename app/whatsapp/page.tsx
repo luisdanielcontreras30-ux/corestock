@@ -9,7 +9,7 @@ import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { mensajeErrorSeguro } from "../../lib/errores";
-import { probarVendedorIA } from "../../lib/whatsappVendedor";
+import { probarVendedorIA, ErrorVendedorIA } from "../../lib/whatsappVendedor";
 import { cargarNumeroWhatsApp, guardarNumeroWhatsApp } from "./acciones";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
 import { tieneAccesoBeta } from "../../lib/betaAcceso";
@@ -38,6 +38,11 @@ function WhatsappContenido() {
   const [enviando, setEnviando] = useState(false);
   const [intercambios, setIntercambios] = useState<Intercambio[]>([]);
   const finRef = useRef<HTMLDivElement>(null);
+  // Mismo enfriamiento que "Analizar con IA" en Productos (ver
+  // app/productos/page.tsx) — ambas rutas comparten la misma cuota de
+  // Gemini, así que un 429 acá también significa esperar antes de
+  // reintentar, no solo en la otra pantalla.
+  const [enfriamientoIA, setEnfriamientoIA] = useState(0);
 
   const [numeroWhatsApp, setNumeroWhatsApp] = useState("");
   const [numeroGuardado, setNumeroGuardado] = useState<string | null>(null);
@@ -74,6 +79,12 @@ function WhatsappContenido() {
   useEffect(() => {
     finRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [intercambios, enviando]);
+
+  useEffect(() => {
+    if (enfriamientoIA <= 0) return;
+    const id = setTimeout(() => setEnfriamientoIA((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(id);
+  }, [enfriamientoIA]);
 
   async function guardarNumero() {
     if (guardandoNumero) return;
@@ -112,6 +123,11 @@ function WhatsappContenido() {
     const textoPregunta = pregunta.trim();
     if (!textoPregunta || enviando) return;
 
+    if (enfriamientoIA > 0) {
+      mostrarToast(t("productos.ia_enfriamiento").replace("{segundos}", String(enfriamientoIA)), "error");
+      return;
+    }
+
     setEnviando(true);
     setPregunta("");
     try {
@@ -119,6 +135,7 @@ function WhatsappContenido() {
       setIntercambios((prev) => [...prev, { id: Date.now(), pregunta: textoPregunta, respuesta }]);
     } catch (error) {
       console.error(error);
+      if (error instanceof ErrorVendedorIA && error.status === 429) setEnfriamientoIA(60);
       const detalle = mensajeErrorSeguro(error);
       mostrarToast(detalle || t("whatsapp.msg_error_probar"), "error");
     } finally {
@@ -311,13 +328,17 @@ function WhatsappContenido() {
             onKeyDown={(e) => {
               if (e.key === "Enter") probar();
             }}
-            placeholder={t("whatsapp.prueba_placeholder")}
-            disabled={enviando}
+            placeholder={
+              enfriamientoIA > 0
+                ? t("productos.ia_enfriamiento").replace("{segundos}", String(enfriamientoIA))
+                : t("whatsapp.prueba_placeholder")
+            }
+            disabled={enviando || enfriamientoIA > 0}
           />
           <button
             className="btn-primary"
             onClick={probar}
-            disabled={enviando || !pregunta.trim()}
+            disabled={enviando || enfriamientoIA > 0 || !pregunta.trim()}
             aria-label={t("whatsapp.prueba_enviar")}
             style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
           >
