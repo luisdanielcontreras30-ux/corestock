@@ -760,6 +760,12 @@ select optgroup {
   width: 100%;
   overflow: hidden;
   pointer-events: auto;
+  animation: toastEntrada 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes toastEntrada {
+  from { opacity: 0; transform: translateX(24px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
 }
 
 .toast-exito .toast-icono {
@@ -1673,6 +1679,7 @@ select optgroup {
 }
 
 .sidebar-link {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1696,8 +1703,33 @@ select optgroup {
 .sidebar-link-active {
   color: var(--text-primary);
   background: var(--primary-soft);
-  border-color: rgba(89, 69, 228, 0.3);
+  /* var(--primary), no el morado fijo de antes: ese rgba() era el
+     tono del tema por defecto sin importar cuál de los 13 temas de
+     color estuviera activo — en cualquier otro tema (verde, ámbar,
+     slate...) el borde de la sección activa quedaba morado, sin
+     relación con el resto del acento elegido. */
+  border-color: var(--primary);
   font-weight: 600;
+}
+
+/* Barra de acento a la izquierda del ítem activo — entra con una
+   pequeña animación al cambiar de sección, en vez de aparecer de
+   golpe, para que la navegación se sienta más pulida. */
+.sidebar-link-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--primary);
+  animation: sidebarIndicadorEntrada 0.25s ease both;
+}
+
+@keyframes sidebarIndicadorEntrada {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
 }
 
 .sidebar-link-icon {

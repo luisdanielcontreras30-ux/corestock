@@ -822,7 +822,19 @@ function ProductosInterno() {
       </div>
 
       {cargando ? (
-        <div className="card" style={{ marginTop: 24 }}>{t("header.cargando")}</div>
+        <div className="tabla" style={{ marginTop: 24, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                className="skeleton"
+                style={{ width: 44, height: 44, borderRadius: 8, flexShrink: 0, animationDelay: `${i * 0.06}s` }}
+              />
+              <div className="skeleton" style={{ flex: 2, height: 16, borderRadius: 4, animationDelay: `${i * 0.06}s` }} />
+              <div className="skeleton" style={{ flex: 1, height: 16, borderRadius: 4, animationDelay: `${i * 0.06}s` }} />
+              <div className="skeleton" style={{ flex: 1, height: 16, borderRadius: 4, animationDelay: `${i * 0.06}s` }} />
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="tabla" style={{ marginTop: 24 }}>
           <table>

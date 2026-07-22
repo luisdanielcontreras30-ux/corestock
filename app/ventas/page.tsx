@@ -334,7 +334,33 @@ export default function VentasPage() {
       )}
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <div className="card">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="skeleton" style={{ width: 180, height: 22, borderRadius: 6 }} />
+              <div className="skeleton" style={{ width: 240, height: 14, borderRadius: 4 }} />
+            </div>
+            <div className="skeleton" style={{ width: 130, height: 38, borderRadius: 10 }} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="skeleton"
+                style={{ height: 52, borderRadius: 10, animationDelay: `${i * 0.06}s` }}
+              />
+            ))}
+          </div>
+        </div>
       ) : (
         <Historial
           ventas={ventas}
