@@ -99,7 +99,9 @@ function WhatsappContenido() {
       const detalle =
         error instanceof Error && error.message === "EMPRESA_NO_CONFIGURADA"
           ? t("catalogo_linea.msg_falta_empresa")
-          : mensajeErrorSeguro(error);
+          : error instanceof Error && error.message === "SIN_ACCESO_BETA"
+            ? t("permisos.sin_acceso_accion")
+            : mensajeErrorSeguro(error);
       mostrarToast(detalle || t("whatsapp.msg_error_numero"), "error");
     } finally {
       setGuardandoNumero(false);

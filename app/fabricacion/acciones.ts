@@ -69,6 +69,13 @@ export async function crearMateriaPrima(
 
   if (!user) throw new Error("Usuario no autenticado");
 
+  // Se repite aquí la misma validación que ya hace el formulario —
+  // esta acción es exportada y podría llamarse directamente sin pasar
+  // por él, mismo patrón que Compras/Devoluciones/Promociones.
+  if (!Number.isFinite(stock) || stock < 0 || !Number.isFinite(costoUnitario) || costoUnitario < 0) {
+    throw new Error("DATOS_INVALIDOS");
+  }
+
   const negocioId = await obtenerNegocioId(user.id);
 
   const { error } = await supabase.from("materias_primas").insert({
@@ -107,6 +114,19 @@ export async function agregarIngrediente(
   } = await supabase.auth.getUser();
 
   if (!user) throw new Error("Usuario no autenticado");
+
+  // Se repite aquí la misma validación que ya hace el formulario —
+  // esta acción es exportada y podría llamarse directamente sin pasar
+  // por él. Además de ser una validación de negocio, es una guarda de
+  // integridad real: producir() (más abajo) resta
+  // cantidad_por_unidad * cantidadAProducir del stock de la materia
+  // prima — con un valor negativo, esa resta AUMENTARÍA el stock en
+  // vez de descontarlo, e incluso pasaría de largo el chequeo de
+  // "no hay suficiente stock" (un número negativo siempre es menor
+  // que el disponible).
+  if (!Number.isFinite(cantidadPorUnidad) || cantidadPorUnidad <= 0) {
+    throw new Error("CANTIDAD_INVALIDA");
+  }
 
   const negocioId = await obtenerNegocioId(user.id);
 

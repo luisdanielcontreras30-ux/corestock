@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FileText, Check, X, Trash2, ShoppingCart, Share2 } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
@@ -40,6 +41,7 @@ export default function CotizacionesPage() {
 function CotizacionesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
@@ -215,7 +217,7 @@ function CotizacionesContenido() {
   }
 
   async function alConvertirEnVenta(cotizacion: Cotizacion) {
-    if (convirtiendoId !== null) return;
+    if (convirtiendoId !== null || !puede("registrar_ventas")) return;
     if (!(await confirmar(t("cotizaciones.confirmar_convertir")))) return;
 
     try {
@@ -439,7 +441,7 @@ function CotizacionesContenido() {
                           </button>
                         </>
                       )}
-                      {c.estado === "aceptada" && !c.venta_id && (
+                      {c.estado === "aceptada" && !c.venta_id && puede("registrar_ventas") && (
                         <button
                           className="btn-primary"
                           style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px" }}

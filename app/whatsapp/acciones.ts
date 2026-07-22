@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { obtenerNegocioId } from "../../lib/negocioActual";
+import { tieneAccesoBeta } from "../../lib/betaAcceso";
 
 async function obtenerUsuarioActual() {
   const {
@@ -28,6 +29,15 @@ export async function cargarNumeroWhatsApp(): Promise<string | null> {
 
 export async function guardarNumeroWhatsApp(phoneNumberId: string): Promise<void> {
   const user = await obtenerUsuarioActual();
+
+  // El módulo está en beta cerrada — page.tsx ya oculta/redirige fuera
+  // de /whatsapp a quien no tiene acceso, pero esta acción es
+  // exportada y podría llamarse directamente sin pasar por esa
+  // pantalla, así que se repite el mismo chequeo aquí.
+  if (!tieneAccesoBeta(user.email)) {
+    throw new Error("SIN_ACCESO_BETA");
+  }
+
   const negocioId = await obtenerNegocioId(user.id);
 
   // update en vez de upsert: si todavía no existe la fila de

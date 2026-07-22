@@ -134,7 +134,11 @@ function FabricacionContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("fabricacion.msg_error_mp"), "error");
+      const detalle =
+        error instanceof Error && error.message === "DATOS_INVALIDOS"
+          ? t("fabricacion.msg_datos_invalidos_mp")
+          : mensajeErrorSeguro(error);
+      mostrarToast(detalle || t("fabricacion.msg_error_mp"), "error");
     } finally {
       setGuardandoMP(false);
     }
@@ -196,7 +200,11 @@ function FabricacionContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("fabricacion.msg_error_receta"), "error");
+      const detalle =
+        error instanceof Error && error.message === "CANTIDAD_INVALIDA"
+          ? t("fabricacion.msg_cantidad_invalida")
+          : mensajeErrorSeguro(error);
+      mostrarToast(detalle || t("fabricacion.msg_error_receta"), "error");
     } finally {
       setGuardandoIngrediente(false);
     }

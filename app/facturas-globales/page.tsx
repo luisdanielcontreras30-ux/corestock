@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Files, Trash2 } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
@@ -33,9 +34,16 @@ export default function FacturasGlobalesPage() {
 function FacturasGlobalesContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
+  // Generar factura global lee "ventas", que RLS exige el permiso
+  // "ver_ventas" para leer (ver supabase_permisos_miembros.sql) — sin
+  // este candado, un miembro sin ese permiso podía generar una
+  // "factura" vacía (0 filas por RLS) y recibir el mensaje engañoso de
+  // "sin ventas en ese rango" aunque el negocio sí hubiera vendido.
+  const puedeGenerar = puede("ver_ventas");
 
   const [loading, setLoading] = useState(true);
   const [globales, setGlobales] = useState<FacturaGlobal[]>([]);
@@ -70,7 +78,7 @@ function FacturasGlobalesContenido() {
   }, [cargandoAuth, user]);
 
   async function generar() {
-    if (generando) return;
+    if (generando || !puedeGenerar) return;
 
     if (!fechaInicio || !fechaFin) {
       mostrarToast(t("facturas_globales.msg_faltan_fechas"), "error");
@@ -170,10 +178,16 @@ function FacturasGlobalesContenido() {
         />
 
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-          <button className="btn-primary" onClick={generar} disabled={generando}>
+          <button className="btn-primary" onClick={generar} disabled={generando || !puedeGenerar}>
             {generando ? t("compras.guardando") : t("facturas_globales.generar")}
           </button>
         </div>
+
+        {!puedeGenerar && (
+          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 14 }}>
+            {t("permisos.sin_acceso_accion")}
+          </p>
+        )}
       </div>
 
       {loading ? (

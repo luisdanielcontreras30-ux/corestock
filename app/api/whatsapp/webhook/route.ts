@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { obtenerSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { generarRespuestaVendedor, ProductoParaVendedor } from "../../../../lib/googleAI";
@@ -39,11 +40,45 @@ export async function GET(request: Request) {
   return new NextResponse("Forbidden", { status: 403 });
 }
 
+// Meta firma cada callback con WHATSAPP_APP_SECRET (HMAC-SHA256 sobre
+// el cuerpo crudo, header X-Hub-Signature-256) — sin verificar esto,
+// cualquiera que adivine o filtre el phone_number_id de un negocio
+// podría hacer llamadas falsas a este endpoint para gastar su cuota de
+// Gemini o hacer que el negocio le mande WhatsApps arbitrarios a
+// cualquier número. Mismo criterio "fail closed" que ya usa el webhook
+// de Stripe (ver app/api/stripe/webhook/route.ts) ante firma o secreto
+// faltante.
+function firmaValida(cuerpoCrudo: string, firmaHeader: string | null, secreto: string): boolean {
+  if (!firmaHeader) return false;
+
+  const esperada = "sha256=" + createHmac("sha256", secreto).update(cuerpoCrudo).digest("hex");
+  const bufferRecibido = Buffer.from(firmaHeader);
+  const bufferEsperado = Buffer.from(esperada);
+
+  // Deben medir igual antes de comparar: timingSafeEqual lanza si los
+  // buffers tienen longitudes distintas, en vez de simplemente devolver
+  // false.
+  if (bufferRecibido.length !== bufferEsperado.length) return false;
+
+  return timingSafeEqual(bufferRecibido, bufferEsperado);
+}
+
 // POST: mensajes entrantes de clientes reales por WhatsApp.
 export async function POST(request: Request) {
+  const secreto = process.env.WHATSAPP_APP_SECRET;
+  const firmaHeader = request.headers.get("x-hub-signature-256");
+  const cuerpoCrudo = await request.text();
+
+  if (!secreto || !firmaValida(cuerpoCrudo, firmaHeader, secreto)) {
+    console.error(
+      "Webhook de WhatsApp rechazado: firma inválida o falta WHATSAPP_APP_SECRET en el servidor."
+    );
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+
   let cuerpo: unknown;
   try {
-    cuerpo = await request.json();
+    cuerpo = JSON.parse(cuerpoCrudo);
   } catch {
     // Meta reintenta el envío si no respondemos 200 — un cuerpo
     // ilegible no es algo que un reintento vaya a arreglar, así que se
