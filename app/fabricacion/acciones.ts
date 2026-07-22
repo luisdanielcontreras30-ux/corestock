@@ -174,7 +174,7 @@ export async function producir(
 
   const negocioId = await obtenerNegocioId(user.id);
 
-  if (cantidadAProducir <= 0) {
+  if (!Number.isFinite(cantidadAProducir) || cantidadAProducir <= 0) {
     throw new Error("La cantidad a producir debe ser mayor a 0.");
   }
 

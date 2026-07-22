@@ -85,6 +85,13 @@ export async function crearCliente(
 
   const negocioId = await obtenerNegocioId(user.id);
 
+  // El formulario (page.tsx) ya valida esto, pero se repite aquí porque
+  // esta acción es exportada y podría llamarse directamente sin pasar
+  // por él — mismo patrón que Compras/Devoluciones/Conciliaciones.
+  if (!datos.nombre.trim()) {
+    throw new Error("Falta el nombre del cliente.");
+  }
+
   const { error } = await supabase.from("clientes").insert({
     nombre: datos.nombre.trim(),
     telefono: datos.telefono.trim() || null,
@@ -108,6 +115,10 @@ export async function actualizarCliente(
 
   if (!user) {
     throw new Error("Usuario no autenticado");
+  }
+
+  if (!datos.nombre.trim()) {
+    throw new Error("Falta el nombre del cliente.");
   }
 
   const { error } = await supabase

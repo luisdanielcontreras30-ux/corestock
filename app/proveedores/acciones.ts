@@ -69,6 +69,13 @@ export async function crearProveedor(
   correo: string,
   notas: string
 ): Promise<void> {
+  // El formulario (page.tsx) ya valida esto, pero se repite aquí porque
+  // esta acción es exportada y podría llamarse directamente sin pasar
+  // por él — mismo patrón que Compras/Devoluciones/Conciliaciones.
+  if (!nombre.trim()) {
+    throw new Error("Falta el nombre del proveedor.");
+  }
+
   const { error } = await supabase.from("proveedores").insert({
     user_id: userId,
     nombre: nombre.trim(),
@@ -86,6 +93,10 @@ export async function actualizarProveedor(
   id: string,
   cambios: Partial<Proveedor>
 ): Promise<void> {
+  if (cambios.nombre !== undefined && !cambios.nombre.trim()) {
+    throw new Error("Falta el nombre del proveedor.");
+  }
+
   const { error } = await supabase
     .from("proveedores")
     .update(cambios)

@@ -182,7 +182,7 @@ export async function realizarTraspaso(
 
   const negocioId = await obtenerNegocioId(user.id);
 
-  if (cantidad <= 0) {
+  if (!Number.isFinite(cantidad) || cantidad <= 0) {
     throw new Error("CANTIDAD_INVALIDA");
   }
 
