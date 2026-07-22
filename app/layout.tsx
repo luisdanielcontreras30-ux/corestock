@@ -41,7 +41,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#5945e4",
+  // Color de arranque antes de que ThemeProvider (cliente) sepa qué
+  // tema tiene guardado este usuario y lo actualice — coincide con el
+  // fondo del tema por defecto ("light", --bg-primary en globals.css)
+  // en vez de un morado fijo que chocaba contra el resto de los temas.
+  themeColor: "#f1eefc",
   width: "device-width",
   initialScale: 1,
   // Sin esto, la app instalada (PWA) se sentía como una página web

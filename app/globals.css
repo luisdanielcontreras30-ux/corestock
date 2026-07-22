@@ -1893,7 +1893,11 @@ select optgroup {
 }
 
 .login-brand-content p {
-  color: var(--text-secondary);
+  /* Este panel siempre es oscuro (degradado fijo arriba), sin importar
+     el tema elegido — usar var(--text-secondary) hacía que el texto
+     casi desapareciera en los temas claros, donde esa variable es un
+     gris oscuro pensado para tarjetas blancas, no para este fondo. */
+  color: #cfd2e0;
   font-size: 15px;
   line-height: 1.6;
   margin-bottom: 28px;
@@ -2090,8 +2094,11 @@ select optgroup {
   height: 84px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #7c6ef2 0%, #4c3fc7 100%);
-  box-shadow: 0 12px 32px -8px rgba(76, 63, 199, 0.65);
+  /* Antes tenía un morado fijo — igual que los puntos y el fondo que
+     lo rodean (ambos ya usan var(--primary)), sin importar el tema
+     elegido para que la pantalla de carga se vea coherente en los 13. */
+  background: var(--primary);
+  box-shadow: 0 12px 32px -8px var(--primary-soft), 0 0 0 8px var(--primary-soft);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   animation:
     pantallaCargaEntrada 0.5s ease-out both,
@@ -2841,7 +2848,10 @@ select optgroup {
   text-decoration: none;
   font-size: 14.5px;
   margin-top: 0;
-  box-shadow: 0 10px 30px rgba(89, 69, 228, 0.35);
+  /* El botón (.btn-login) ya usa var(--primary) como fondo y cambia
+     con el tema — este resplandor se quedaba fijo en morado, chocando
+     de color contra el propio botón en cualquier otro tema. */
+  box-shadow: 0 10px 30px var(--primary-soft);
 }
 
 .landing-cta-secondary {

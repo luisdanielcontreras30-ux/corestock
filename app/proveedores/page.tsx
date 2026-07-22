@@ -285,7 +285,7 @@ function ProveedoresContenido() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.55)",
+            background: "rgba(0, 0, 0, 0.6)",
             display: "flex",
             alignItems: "flex-start",
             justifyContent: "center",

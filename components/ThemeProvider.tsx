@@ -39,6 +39,24 @@ export function useTheme() {
   return useContext(Contexto);
 }
 
+// El color de la barra de estado del sistema (Android/iOS, PWA
+// instalada) viene del <meta name="theme-color"> — es estático en el
+// HTML (ver app/layout.tsx) porque Next.js lo genera en el servidor,
+// sin saber todavía qué tema tiene guardado este usuario. Sin este
+// ajuste, esa barra se quedaba fija en el morado del tema por
+// defecto sin importar el tema elegido — chocaba fuerte contra fondos
+// oscuros o de otro color. Se actualiza a mano leyendo el mismo
+// --bg-primary que ya pinta el fondo de la página, para que la barra
+// se sienta parte de la interfaz en vez de una franja aparte.
+function actualizarColorBarraEstado() {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) return;
+  const color = getComputedStyle(document.documentElement)
+    .getPropertyValue("--bg-primary")
+    .trim();
+  if (color) meta.setAttribute("content", color);
+}
+
 const CLAVE_STORAGE = "corestock-theme";
 const CLAVE_STORAGE_TENDENCIA = "corestock-grafica-tendencia";
 const CLAVE_STORAGE_DISTRIBUCION = "corestock-grafica-distribucion";
@@ -61,6 +79,7 @@ export default function ThemeProvider({
     const inicial: Tema = guardado && TEMAS_VALIDOS.includes(guardado) ? guardado : "light";
     setTema(inicial);
     document.documentElement.setAttribute("data-theme", inicial);
+    actualizarColorBarraEstado();
 
     const tendenciaGuardada = window.localStorage.getItem(CLAVE_STORAGE_TENDENCIA) as TipoGraficaTendencia | null;
     if (tendenciaGuardada && TENDENCIAS_VALIDAS.includes(tendenciaGuardada)) {
@@ -77,6 +96,7 @@ export default function ThemeProvider({
     setTema(nuevoTema);
     document.documentElement.setAttribute("data-theme", nuevoTema);
     window.localStorage.setItem(CLAVE_STORAGE, nuevoTema);
+    actualizarColorBarraEstado();
   }
 
   function cambiarTipoTendencia(nuevoTipo: TipoGraficaTendencia) {
