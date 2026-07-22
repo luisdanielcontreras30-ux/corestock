@@ -7,6 +7,7 @@ import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { GUIAS } from "./data";
+import CargandoLista from "../../components/CargandoLista";
 
 const CATEGORIAS = [
   "sidebar.principal",
@@ -45,7 +46,7 @@ export default function TutorialesPage() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }

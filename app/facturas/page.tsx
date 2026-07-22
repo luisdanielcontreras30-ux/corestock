@@ -13,6 +13,7 @@ import { cargarDatos } from "../ventas/acciones";
 import { formatoFecha, formatoMoneda } from "../ventas/utils";
 import { Venta } from "../ventas/types";
 import FacturaModal from "../ventas/components/FacturaModal";
+import CargandoLista from "../../components/CargandoLista";
 
 function folioDe(id: number) {
   return `F-${String(id).padStart(6, "0")}`;
@@ -73,7 +74,7 @@ function FacturasContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -94,7 +95,7 @@ function FacturasContenido() {
       />
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : (
       <div className="tabla">
         <table>

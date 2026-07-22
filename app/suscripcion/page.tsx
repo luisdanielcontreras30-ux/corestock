@@ -10,6 +10,7 @@ import { useSuscripcion } from "../../components/SuscripcionProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { iniciarCheckoutPlus, abrirPortalFacturacion } from "../../lib/suscripcionAcciones";
 import { BLOQUEO_PLUS_ACTIVO } from "../../lib/suscripcion";
+import CargandoLista from "../../components/CargandoLista";
 
 const CARACTERISTICAS_FREE = [
   "sidebar.ventas",
@@ -105,7 +106,7 @@ function SuscripcionInterna() {
   if (cargandoAuth || cargando) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }

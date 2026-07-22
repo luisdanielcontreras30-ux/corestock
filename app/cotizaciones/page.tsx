@@ -21,6 +21,7 @@ import {
   eliminarCotizacion,
   convertirEnVenta,
 } from "./acciones";
+import CargandoLista from "../../components/CargandoLista";
 import { exportarExcel } from "./utils";
 import { formatoMoneda } from "../ventas/utils";
 
@@ -250,7 +251,7 @@ function CotizacionesContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -362,7 +363,7 @@ function CotizacionesContenido() {
       </div>
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : (
       <div className="tabla">
         <table>

@@ -18,6 +18,7 @@ import {
   generarFacturaGlobal,
   eliminarFacturaGlobal,
 } from "./acciones";
+import CargandoLista from "../../components/CargandoLista";
 
 function folioDe(id: number) {
   return `FG-${String(id).padStart(6, "0")}`;
@@ -129,7 +130,7 @@ function FacturasGlobalesContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -191,7 +192,7 @@ function FacturasGlobalesContenido() {
       </div>
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : (
       <div className="tabla">
         <table>

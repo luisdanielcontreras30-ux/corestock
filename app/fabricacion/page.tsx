@@ -20,6 +20,7 @@ import {
   eliminarIngrediente,
   producir,
 } from "./acciones";
+import CargandoLista from "../../components/CargandoLista";
 import { formatoMoneda } from "../ventas/utils";
 
 export default function FabricacionPage() {
@@ -275,7 +276,7 @@ function FabricacionContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -290,7 +291,7 @@ function FabricacionContenido() {
       />
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : error ? (
         <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
           <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("comun.msg_error_cargar_datos")}</p>

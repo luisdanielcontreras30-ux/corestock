@@ -14,6 +14,7 @@ import { probarVendedorIA, ErrorVendedorIA } from "../../lib/whatsappVendedor";
 import { cargarNumeroWhatsApp, guardarNumeroWhatsApp } from "./acciones";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
 import { tieneAccesoBeta } from "../../lib/betaAcceso";
+import CargandoLista from "../../components/CargandoLista";
 
 interface Intercambio {
   id: number;
@@ -160,7 +161,7 @@ function WhatsappContenido() {
   if (cargandoAuth || !user || !tieneAccesoBeta(user.email)) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }

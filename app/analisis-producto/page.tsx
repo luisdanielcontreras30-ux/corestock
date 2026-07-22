@@ -11,6 +11,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import CargandoLista from "../../components/CargandoLista";
 import { ImagePlus, ScanSearch, TrendingUp, DollarSign, Percent, Repeat } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -127,7 +128,7 @@ function AnalisisProductoContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }

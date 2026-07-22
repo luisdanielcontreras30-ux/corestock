@@ -8,6 +8,7 @@ import {
   CLAVE_METODO_PAGO,
 } from "./utils";
 import { useIdioma } from "../../components/LanguageProvider";
+import FilaVacia from "../../components/FilaVacia";
 
 interface Props {
   ventas: Venta[];
@@ -105,17 +106,10 @@ export default function Historial({
 
           <tbody>
             {ventasFiltradas.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={mostrarAcciones ? 8 : 7}
-                  style={{
-                    textAlign: "center",
-                    padding: 30,
-                  }}
-                >
-                  {ventas.length === 0 ? t("ventas.sin_ventas") : t("ventas.sin_resultados_busqueda")}
-                </td>
-              </tr>
+              <FilaVacia
+                colSpan={mostrarAcciones ? 8 : 7}
+                mensaje={ventas.length === 0 ? t("ventas.sin_ventas") : t("ventas.sin_resultados_busqueda")}
+              />
             ) : (
               ventasFiltradas.map((venta) => (
                 <tr key={venta.id}>

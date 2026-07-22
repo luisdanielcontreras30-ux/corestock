@@ -12,6 +12,7 @@ import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoCaja } from "../caja/types";
 import { cargarCierres } from "../caja/acciones";
 import { formatoMoneda } from "../ventas/utils";
+import CargandoLista from "../../components/CargandoLista";
 
 // Evita que errores de redondeo de punto flotante (ej. 0.1 + 0.2) marquen
 // como "no cuadrado" un cierre de caja que en realidad sí cuadra.
@@ -73,7 +74,7 @@ function CortesHistoricosContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -88,7 +89,7 @@ function CortesHistoricosContenido() {
       />
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : (
       <>
       <div

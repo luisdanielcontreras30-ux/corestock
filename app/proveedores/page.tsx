@@ -18,6 +18,7 @@ import {
   eliminarProveedor,
   cargarHistorialCompras,
 } from "./acciones";
+import CargandoLista from "../../components/CargandoLista";
 import { formatoMoneda } from "../ventas/utils";
 
 export default function ProveedoresPage() {
@@ -204,7 +205,7 @@ function ProveedoresContenido() {
       )}
 
       {cargando ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : error ? (
         <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
           <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("comun.msg_error_cargar_datos")}</p>

@@ -14,6 +14,7 @@ import SelectorPersonalizado, { OpcionSelector } from "../../components/Selector
 import { MovimientoConciliacion, TipoMovimientoConciliacion } from "./types";
 import { cargarMovimientos, crearMovimiento, alternarConciliado, eliminarMovimiento } from "./acciones";
 import { formatoMoneda } from "../ventas/utils";
+import CargandoLista from "../../components/CargandoLista";
 
 export default function ConciliacionesPage() {
   return (
@@ -131,7 +132,7 @@ function ConciliacionesContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -146,7 +147,7 @@ function ConciliacionesContenido() {
       />
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : (
       <>
       <div

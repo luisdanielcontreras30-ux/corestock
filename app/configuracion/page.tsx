@@ -14,6 +14,7 @@ import EmpresaTab from "./components/EmpresaTab";
 import UsuariosTab from "./components/UsuariosTab";
 import CuentaTab from "./components/CuentaTab";
 import IdiomaTab from "./components/IdiomaTab";
+import CargandoLista from "../../components/CargandoLista";
 
 export default function ConfiguracionPage() {
   const [tab, setTab] = useState("apariencia");
@@ -30,7 +31,7 @@ export default function ConfiguracionPage() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }

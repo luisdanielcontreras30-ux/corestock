@@ -15,6 +15,8 @@ import { Producto, Proveedor, Compra } from "./types";
 import { cargarDatos, registrarCompra, eliminarCompra } from "./acciones";
 import { exportarExcel } from "./utils";
 import { formatoMoneda } from "../ventas/utils";
+import CargandoLista from "../../components/CargandoLista";
+import FilaVacia from "../../components/FilaVacia";
 
 export default function ComprasPage() {
   return (
@@ -197,7 +199,7 @@ function ComprasContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -302,7 +304,7 @@ function ComprasContenido() {
       </div>
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : (
         <div className="tabla">
           <table>
@@ -320,11 +322,10 @@ function ComprasContenido() {
 
             <tbody>
               {comprasFiltradas.length === 0 ? (
-                <tr>
-                  <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
-                    {compras.length === 0 ? t("compras.sin_compras") : t("compras.sin_resultados_busqueda")}
-                  </td>
-                </tr>
+                <FilaVacia
+                  colSpan={7}
+                  mensaje={compras.length === 0 ? t("compras.sin_compras") : t("compras.sin_resultados_busqueda")}
+                />
               ) : (
                 comprasFiltradas.map((c) => (
                   <tr key={c.id}>

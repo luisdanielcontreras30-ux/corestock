@@ -13,6 +13,7 @@ import RequierePlus from "../../components/RequierePlus";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, Ubicacion, StockUbicacion, Traspaso } from "./types";
 import { cargarDatos, crearUbicacion, eliminarUbicacion, realizarTraspaso } from "./acciones";
+import CargandoLista from "../../components/CargandoLista";
 
 const TIENDA = "__tienda__";
 
@@ -202,7 +203,7 @@ function TraspasosContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -217,7 +218,7 @@ function TraspasosContenido() {
       />
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : (
       <>
       <div className="card">

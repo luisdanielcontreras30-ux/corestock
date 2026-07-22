@@ -11,6 +11,7 @@ import RequierePlus from "../../components/RequierePlus";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
 import { cargarClientes } from "../clientes/acciones";
 import { ClienteConResumen } from "../clientes/types";
+import CargandoLista from "../../components/CargandoLista";
 
 export default function PortalClientesPage() {
   return (
@@ -80,7 +81,7 @@ function PortalClientesContenido() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -95,7 +96,7 @@ function PortalClientesContenido() {
       />
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : (
       <>
       <input

@@ -7,6 +7,7 @@ import { useIdioma } from "../../../components/LanguageProvider";
 import { useAuth } from "../../../components/AuthProvider";
 import { useMiembroActivo } from "../../../components/MiembroActivoProvider";
 import { LOCALES } from "../../../lib/i18n";
+import CargandoLista from "../../../components/CargandoLista";
 
 export default function CuentaTab() {
   const { t, idioma } = useIdioma();
@@ -39,7 +40,7 @@ export default function CuentaTab() {
   const inicial = correo ? correo.charAt(0).toUpperCase() : "U";
 
   if (cargando) {
-    return <div className="card">{t("header.cargando")}</div>;
+    return <CargandoLista filas={3} />;
   }
 
   return (

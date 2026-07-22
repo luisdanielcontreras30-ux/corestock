@@ -13,6 +13,7 @@ import { ProductoCatalogo } from "./types";
 import { cargarEstadoCatalogo, actualizarCatalogoActivo } from "./acciones";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
 import { formatoMoneda } from "../ventas/utils";
+import CargandoLista from "../../components/CargandoLista";
 
 export default function CatalogoLineaPage() {
   const router = useRouter();
@@ -99,7 +100,7 @@ export default function CatalogoLineaPage() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -114,7 +115,7 @@ export default function CatalogoLineaPage() {
       />
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : (
       <>
       <div className="card">

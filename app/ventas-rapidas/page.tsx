@@ -19,6 +19,7 @@ import {
   HandCoins,
   Wallet,
 } from "lucide-react";
+import CargandoLista from "../../components/CargandoLista";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -358,7 +359,7 @@ export default function VentasRapidasPage() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -375,7 +376,7 @@ export default function VentasRapidasPage() {
       />
 
       {loading ? (
-        <div className="card" style={{ marginTop: 20 }}>{t("header.cargando")}</div>
+        <CargandoLista style={{ marginTop: 20 }} />
       ) : !puedeVender ? (
         <div style={{ marginTop: 20 }}>
           <SinPermiso />

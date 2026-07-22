@@ -12,6 +12,7 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, AjusteStock } from "./types";
 import { cargarDatos, registrarAjuste, eliminarAjuste } from "./acciones";
+import CargandoLista from "../../components/CargandoLista";
 
 type Tipo = "agregar" | "quitar";
 
@@ -144,7 +145,7 @@ export default function AjustesStockPage() {
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       </main>
     );
   }
@@ -159,7 +160,7 @@ export default function AjustesStockPage() {
       />
 
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <CargandoLista />
       ) : error ? (
         <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
           <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("comun.msg_error_cargar_datos")}</p>

@@ -3,6 +3,7 @@
 import { History } from "lucide-react";
 import { ClienteConResumen } from "../types";
 import { useIdioma } from "../../../components/LanguageProvider";
+import FilaVacia from "../../../components/FilaVacia";
 import { formatoMoneda } from "../../ventas/utils";
 
 interface Props {
@@ -38,11 +39,10 @@ export default function ClientesTabla({
 
         <tbody>
           {clientes.length === 0 ? (
-            <tr>
-              <td colSpan={6} style={{ textAlign: "center", padding: 30 }}>
-                {hayClientesRegistrados ? t("clientes.sin_resultados_busqueda") : t("clientes.sin_clientes")}
-              </td>
-            </tr>
+            <FilaVacia
+              colSpan={6}
+              mensaje={hayClientesRegistrados ? t("clientes.sin_resultados_busqueda") : t("clientes.sin_clientes")}
+            />
           ) : (
             clientes.map((cliente) => (
               <tr key={cliente.id}>

@@ -2187,6 +2187,19 @@ select optgroup {
   transform: scale(0.96);
 }
 
+/* Mismo anillo que ya usan los inputs (:focus) — sin esto, navegar los
+   botones con teclado (Tab) no daba ninguna señal visual propia de la
+   app, solo el contorno genérico del navegador. */
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-edit:focus-visible,
+.btn-delete:focus-visible,
+.btn-success:focus-visible,
+.btn-clip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
 .btn-primary:disabled, .btn-secondary:disabled {
   opacity: 0.6;
   cursor: not-allowed;

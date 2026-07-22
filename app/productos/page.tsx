@@ -19,6 +19,7 @@ import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { guardarBorrador, leerBorrador, borrarBorrador } from "../../lib/borrador";
+import FilaVacia from "../../components/FilaVacia";
 
 const CLAVE_BORRADOR = "corestock-borrador-producto";
 
@@ -852,18 +853,16 @@ function ProductosInterno() {
 
             <tbody>
               {filtrados.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={
-                      3 + (puede("ver_ganancias") ? 1 : 0) + 1 + (puede("gestionar_inventario") ? 1 : 0) + 1
-                    }
-                    style={{ textAlign: "center", padding: 30 }}
-                  >
-                    {productos.length > 0
+                <FilaVacia
+                  colSpan={
+                    3 + (puede("ver_ganancias") ? 1 : 0) + 1 + (puede("gestionar_inventario") ? 1 : 0) + 1
+                  }
+                  mensaje={
+                    productos.length > 0
                       ? t("productos.sin_resultados_busqueda")
-                      : t("productos.sin_productos")}
-                  </td>
-                </tr>
+                      : t("productos.sin_productos")
+                  }
+                />
               ) : (
                 filtrados.map((p) => (
                   <tr key={p.id}>
