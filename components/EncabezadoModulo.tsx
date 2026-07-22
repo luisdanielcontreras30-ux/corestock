@@ -13,8 +13,9 @@ interface Props {
 // todos se vean iguales.
 export default function EncabezadoModulo({ Icono, color, titulo, subtitulo }: Props) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+    <div className="encabezado-modulo" style={{ display: "flex", alignItems: "center", gap: 14 }}>
       <span
+        className="encabezado-modulo-icono"
         style={{
           width: 52,
           height: 52,
@@ -27,7 +28,7 @@ export default function EncabezadoModulo({ Icono, color, titulo, subtitulo }: Pr
       >
         <Icono size={26} color={color} />
       </span>
-      <div>
+      <div className="encabezado-modulo-texto">
         <h1 style={{ fontSize: 30, fontWeight: 700, margin: 0 }}>{titulo}</h1>
         <p style={{ color: "var(--text-secondary)", margin: "2px 0 0 0" }}>{subtitulo}</p>
       </div>

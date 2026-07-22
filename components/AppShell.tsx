@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import MobileTabBar from "./MobileTabBar";
+import PantallaCarga from "./PantallaCarga";
 import TutorialInicioModal from "./TutorialInicioModal";
 import ModoInicialModal from "./ModoInicialModal";
 import { useMiembroActivo } from "./MiembroActivoProvider";
@@ -39,12 +40,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
     RUTAS_PERMITIDAS_MIEMBRO.some((r) => pathname === r || pathname.startsWith(`${r}/`)) ||
     (puede("configuracion") && (pathname === "/configuracion" || pathname.startsWith("/configuracion/")));
 
-  // Mientras todavía no se sabe si esta sesión tiene un miembro activo
-  // (justo después de recargar la página, por ejemplo), no se monta el
-  // contenido: si no se esperara, una ruta prohibida podría alcanzar a
-  // renderizar brevemente antes de que este efecto la redirija.
-  const mostrarContenido = !cargandoMiembro && rutaPermitida;
-
   useEffect(() => {
     if (!cargandoMiembro && !rutaPermitida) {
       router.replace("/menu");
@@ -53,6 +48,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   if (esPantallaPublica) {
     return <>{children}</>;
+  }
+
+  // Mientras se resuelve si esta sesión tiene un miembro activo, se
+  // muestra la pantalla de marca en vez de montar el sidebar/header
+  // con el área de contenido vacía — así el arranque de la app se ve
+  // como una pantalla completa, no como un hueco en blanco dentro del
+  // layout ya armado.
+  if (cargandoMiembro) {
+    return <PantallaCarga />;
   }
 
   return (
@@ -68,7 +72,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         />
 
         <div className="page-content fade-up" key={pathname}>
-          {mostrarContenido ? children : null}
+          {rutaPermitida ? children : null}
         </div>
       </div>
 

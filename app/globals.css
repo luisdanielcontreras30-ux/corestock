@@ -2035,11 +2035,96 @@ select optgroup {
 }
 
 /* ==========================================================================
+   PANTALLA DE CARGA (arranque de la app — ver components/PantallaCarga.tsx)
+   ========================================================================== */
+
+.pantalla-carga {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+.pantalla-carga-contenido {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.pantalla-carga-hex {
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation:
+    pantallaCargaEntrada 0.5s ease-out both,
+    pantallaCargaPulso 2.4s ease-in-out 0.5s infinite;
+}
+
+@keyframes pantallaCargaEntrada {
+  from { opacity: 0; transform: scale(0.55); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pantallaCargaPulso {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 20px var(--primary)); }
+}
+
+.pantalla-carga-titulo {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+  animation: fadeUp 0.6s ease-out 0.15s both;
+}
+
+.pantalla-carga-puntos {
+  display: flex;
+  gap: 7px;
+  animation: fadeUp 0.6s ease-out 0.3s both;
+}
+
+.pantalla-carga-puntos span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: pantallaCargaPunto 1.2s ease-in-out infinite;
+}
+
+.pantalla-carga-puntos span:nth-child(2) { animation-delay: 0.15s; }
+.pantalla-carga-puntos span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes pantallaCargaPunto {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-4px); }
+}
+
+/* ==========================================================================
    MICRO-ANIMACIONES GENERALES
    ========================================================================== */
 
 .page-content {
   flex: 1;
+}
+
+.encabezado-modulo-icono {
+  animation: encabezadoModuloIcono 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes encabezadoModuloIcono {
+  from { opacity: 0; transform: scale(0.5) rotate(-8deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.encabezado-modulo-texto {
+  animation: fadeUp 0.4s ease 0.08s both;
 }
 
 .card, .estadistica, .tabla tr {
