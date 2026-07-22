@@ -2058,7 +2058,8 @@ select optgroup {
   height: 84px;
   display: grid;
   place-items: center;
-  background: var(--primary);
+  background: linear-gradient(135deg, #7c6ef2 0%, #4c3fc7 100%);
+  box-shadow: 0 12px 32px -8px rgba(76, 63, 199, 0.65);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   animation:
     pantallaCargaEntrada 0.5s ease-out both,
