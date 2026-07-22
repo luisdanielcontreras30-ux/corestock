@@ -1,14 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Venta } from "./types";
 import {
   formatoFecha,
   formatoMoneda,
   CLAVE_METODO_PAGO,
+  agruparPorFecha,
 } from "./utils";
 import { useIdioma } from "../../components/LanguageProvider";
 import FilaVacia from "../../components/FilaVacia";
+import FilaGrupo from "../../components/FilaGrupo";
 
 interface Props {
   ventas: Venta[];
@@ -40,6 +42,20 @@ export default function Historial({
       );
     });
   }, [ventas, busqueda, t]);
+
+  // Separa la lista en secciones por fecha (Hoy, Ayer, Últimos 7 días,
+  // Anteriores) en vez de un solo bloque continuo — más fácil de
+  // escanear cuando el historial es largo.
+  const gruposFecha = useMemo(
+    () =>
+      agruparPorFecha(ventasFiltradas, (venta) => venta.fecha, {
+        hoy: t("tabla.grupo_hoy"),
+        ayer: t("tabla.grupo_ayer"),
+        ultimos7Dias: t("tabla.grupo_ultimos_7_dias"),
+        anteriores: t("tabla.grupo_anteriores"),
+      }),
+    [ventasFiltradas, t]
+  );
 
   return (
     <div className="card fade-up">
@@ -111,57 +127,63 @@ export default function Historial({
                 mensaje={ventas.length === 0 ? t("ventas.sin_ventas") : t("ventas.sin_resultados_busqueda")}
               />
             ) : (
-              ventasFiltradas.map((venta) => (
-                <tr key={venta.id}>
-                  <td>
-                    {formatoFecha(
-                      venta.fecha
-                    )}
-                  </td>
+              gruposFecha.map((grupo) => (
+                <Fragment key={grupo.etiqueta}>
+                  <FilaGrupo etiqueta={grupo.etiqueta} colSpan={mostrarAcciones ? 8 : 7} />
 
-                  <td>
-                    {venta.clientes?.nombre ??
-                      t("ventas.cliente_general")}
-                  </td>
+                  {grupo.items.map((venta) => (
+                    <tr key={venta.id}>
+                      <td>
+                        {formatoFecha(
+                          venta.fecha
+                        )}
+                      </td>
 
-                  <td>{venta.producto}</td>
+                      <td>
+                        {venta.clientes?.nombre ??
+                          t("ventas.cliente_general")}
+                      </td>
 
-                  <td>{venta.cantidad}</td>
+                      <td>{venta.producto}</td>
 
-                  <td>
-                    {formatoMoneda(
-                      venta.precio
-                    )}
-                  </td>
+                      <td>{venta.cantidad}</td>
 
-                  <td
-                    style={{
-                      fontWeight: 700,
-                      color: "var(--primary)",
-                    }}
-                  >
-                    {formatoMoneda(
-                      venta.total
-                    )}
-                  </td>
+                      <td>
+                        {formatoMoneda(
+                          venta.precio
+                        )}
+                      </td>
 
-                  <td>{t(CLAVE_METODO_PAGO[venta.metodo_pago] ?? CLAVE_METODO_PAGO.efectivo)}</td>
-
-                  {mostrarAcciones && (
-                    <td>
-                      <button
-                        className="btn-delete"
-                        onClick={() =>
-                          eliminarVenta!(
-                            venta.id
-                          )
-                        }
+                      <td
+                        style={{
+                          fontWeight: 700,
+                          color: "var(--primary)",
+                        }}
                       >
-                        {t("ventas.eliminar")}
-                      </button>
-                    </td>
-                  )}
-                </tr>
+                        {formatoMoneda(
+                          venta.total
+                        )}
+                      </td>
+
+                      <td>{t(CLAVE_METODO_PAGO[venta.metodo_pago] ?? CLAVE_METODO_PAGO.efectivo)}</td>
+
+                      {mostrarAcciones && (
+                        <td>
+                          <button
+                            className="btn-delete"
+                            onClick={() =>
+                              eliminarVenta!(
+                                venta.id
+                              )
+                            }
+                          >
+                            {t("ventas.eliminar")}
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </Fragment>
               ))
             )}
           </tbody>

@@ -237,6 +237,10 @@ export const TRADUCCIONES: Diccionario = {
   "tabla.total": { es: "Total", en: "Total", pt: "Total", fr: "Total", de: "Gesamt", zh: "总计", it: "Totale" },
   "tabla.fecha": { es: "Fecha", en: "Date", pt: "Data", fr: "Date", de: "Datum", zh: "日期", it: "Data" },
   "tabla.unidades_abrev": { es: "uds.", en: "units", pt: "un.", fr: "unités", de: "Stk.", zh: "件", it: "unità" },
+  "tabla.grupo_hoy": { es: "Hoy", en: "Today", pt: "Hoje", fr: "Aujourd'hui", de: "Heute", zh: "今天", it: "Oggi" },
+  "tabla.grupo_ayer": { es: "Ayer", en: "Yesterday", pt: "Ontem", fr: "Hier", de: "Gestern", zh: "昨天", it: "Ieri" },
+  "tabla.grupo_ultimos_7_dias": { es: "Últimos 7 días", en: "Last 7 days", pt: "Últimos 7 dias", fr: "7 derniers jours", de: "Letzte 7 Tage", zh: "最近7天", it: "Ultimi 7 giorni" },
+  "tabla.grupo_anteriores": { es: "Anteriores", en: "Older", pt: "Anteriores", fr: "Précédents", de: "Älter", zh: "更早", it: "Precedenti" },
 
   // Alertas
   "alertas.cargando": { es: "Cargando alertas...", en: "Loading alerts...", pt: "Carregando alertas...", fr: "Chargement des alertes...", de: "Warnungen werden geladen...", zh: "正在加载警报...", it: "Caricamento avvisi..." },

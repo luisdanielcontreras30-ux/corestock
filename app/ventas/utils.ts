@@ -61,3 +61,51 @@ export function formatoFecha(
     fecha
   ).toLocaleString();
 }
+
+export interface GrupoFecha<T> {
+  etiqueta: string;
+  items: T[];
+}
+
+// Agrupa una lista (se asume ya ordenada de más reciente a más
+// antigua, como llega ventas.acciones.ts) en secciones por fecha —
+// mismo criterio compartido por Ventas y Facturas, para que una lista
+// larga se pueda escanear de un vistazo en vez de ser un bloque
+// continuo de filas. Se evitó agregar un corte por "este mes" porque,
+// cerca del día 1, ese rango puede quedar más reciente que el de
+// "últimos 7 días" y desordenar los grupos.
+export function agruparPorFecha<T>(
+  items: T[],
+  obtenerFecha: (item: T) => string,
+  etiquetas: { hoy: string; ayer: string; ultimos7Dias: string; anteriores: string }
+): GrupoFecha<T>[] {
+  const ahora = new Date();
+  const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  const inicioAyer = new Date(inicioHoy);
+  inicioAyer.setDate(inicioAyer.getDate() - 1);
+  const inicioUltimos7Dias = new Date(inicioHoy);
+  inicioUltimos7Dias.setDate(inicioUltimos7Dias.getDate() - 7);
+
+  const grupos: GrupoFecha<T>[] = [
+    { etiqueta: etiquetas.hoy, items: [] },
+    { etiqueta: etiquetas.ayer, items: [] },
+    { etiqueta: etiquetas.ultimos7Dias, items: [] },
+    { etiqueta: etiquetas.anteriores, items: [] },
+  ];
+
+  for (const item of items) {
+    const fecha = new Date(obtenerFecha(item));
+
+    if (fecha >= inicioHoy) {
+      grupos[0].items.push(item);
+    } else if (fecha >= inicioAyer) {
+      grupos[1].items.push(item);
+    } else if (fecha >= inicioUltimos7Dias) {
+      grupos[2].items.push(item);
+    } else {
+      grupos[3].items.push(item);
+    }
+  }
+
+  return grupos.filter((grupo) => grupo.items.length > 0);
+}

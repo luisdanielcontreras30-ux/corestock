@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Receipt } from "lucide-react";
@@ -10,10 +10,11 @@ import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import { cargarDatos } from "../ventas/acciones";
-import { formatoFecha, formatoMoneda } from "../ventas/utils";
+import { formatoFecha, formatoMoneda, agruparPorFecha } from "../ventas/utils";
 import { Venta } from "../ventas/types";
 import FacturaModal from "../ventas/components/FacturaModal";
 import CargandoLista from "../../components/CargandoLista";
+import FilaGrupo from "../../components/FilaGrupo";
 
 function folioDe(id: number) {
   return `F-${String(id).padStart(6, "0")}`;
@@ -69,6 +70,19 @@ function FacturasContenido() {
         );
       }),
     [ventas, texto]
+  );
+
+  // Separa la lista en secciones por fecha (Hoy, Ayer, Últimos 7 días,
+  // Anteriores) — mismo tratamiento que el historial de Ventas.
+  const gruposFecha = useMemo(
+    () =>
+      agruparPorFecha(filtradas, (venta) => venta.fecha, {
+        hoy: t("tabla.grupo_hoy"),
+        ayer: t("tabla.grupo_ayer"),
+        ultimos7Dias: t("tabla.grupo_ultimos_7_dias"),
+        anteriores: t("tabla.grupo_anteriores"),
+      }),
+    [filtradas, t]
   );
 
   if (cargandoAuth || !user) {
@@ -128,26 +142,32 @@ function FacturasContenido() {
                 </td>
               </tr>
             ) : (
-              filtradas.map((venta) => (
-                <tr key={venta.id}>
-                  <td>{folioDe(venta.id)}</td>
-                  <td>{formatoFecha(venta.fecha)}</td>
-                  <td>{venta.clientes?.nombre ?? t("ventas.cliente_general")}</td>
-                  <td>{venta.producto}</td>
-                  <td>{venta.cantidad}</td>
-                  <td style={{ fontWeight: 700, color: "var(--primary)" }}>
-                    {formatoMoneda(venta.total)}
-                  </td>
-                  <td>
-                    <button
-                      className="btn-edit"
-                      style={{ display: "flex", alignItems: "center", gap: 5 }}
-                      onClick={() => setVentaFactura(venta)}
-                    >
-                      <Receipt size={13} /> {t("ventas.factura")}
-                    </button>
-                  </td>
-                </tr>
+              gruposFecha.map((grupo) => (
+                <Fragment key={grupo.etiqueta}>
+                  <FilaGrupo etiqueta={grupo.etiqueta} colSpan={7} />
+
+                  {grupo.items.map((venta) => (
+                    <tr key={venta.id}>
+                      <td>{folioDe(venta.id)}</td>
+                      <td>{formatoFecha(venta.fecha)}</td>
+                      <td>{venta.clientes?.nombre ?? t("ventas.cliente_general")}</td>
+                      <td>{venta.producto}</td>
+                      <td>{venta.cantidad}</td>
+                      <td style={{ fontWeight: 700, color: "var(--primary)" }}>
+                        {formatoMoneda(venta.total)}
+                      </td>
+                      <td>
+                        <button
+                          className="btn-edit"
+                          style={{ display: "flex", alignItems: "center", gap: 5 }}
+                          onClick={() => setVentaFactura(venta)}
+                        >
+                          <Receipt size={13} /> {t("ventas.factura")}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
               ))
             )}
           </tbody>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { obtenerNegocioId } from "../../lib/negocioActual";
@@ -20,6 +20,7 @@ import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import { guardarBorrador, leerBorrador, borrarBorrador } from "../../lib/borrador";
 import FilaVacia from "../../components/FilaVacia";
+import FilaGrupo from "../../components/FilaGrupo";
 
 const CLAVE_BORRADOR = "corestock-borrador-producto";
 
@@ -496,6 +497,32 @@ function ProductosInterno() {
     [productos, busqueda, filtroCategoria]
   );
 
+  // Separa la tabla en secciones por categoría (orden alfabético, con
+  // "Sin categoría" al final) en vez de una lista plana — más fácil de
+  // ubicar un producto cuando el catálogo tiene muchas categorías.
+  const gruposCategoria = useMemo(() => {
+    const sinCategoria = t("productos.sin_categoria");
+    const mapa = new Map<string, typeof filtrados>();
+
+    for (const p of filtrados) {
+      const etiqueta = p.categoria?.trim() ? p.categoria : sinCategoria;
+      const lista = mapa.get(etiqueta);
+      if (lista) {
+        lista.push(p);
+      } else {
+        mapa.set(etiqueta, [p]);
+      }
+    }
+
+    return Array.from(mapa.entries())
+      .sort(([a], [b]) => {
+        if (a === sinCategoria) return 1;
+        if (b === sinCategoria) return -1;
+        return a.localeCompare(b);
+      })
+      .map(([etiqueta, items]) => ({ etiqueta, items }));
+  }, [filtrados, t]);
+
   function exportarExcel() {
     // Solo las columnas que la importación también sabe leer — sin el
     // id interno ni la URL cruda de la imagen, que no aportan nada
@@ -864,34 +891,45 @@ function ProductosInterno() {
                   }
                 />
               ) : (
-                filtrados.map((p) => (
-                  <tr key={p.id}>
-                    <td>
-                      {p.imagen ? (
-                        <img src={p.imagen} alt={p.nombre} className="product-image" />
-                      ) : "—"}
-                    </td>
+                gruposCategoria.map((grupo) => (
+                  <Fragment key={grupo.etiqueta}>
+                    <FilaGrupo
+                      etiqueta={`${grupo.etiqueta} (${grupo.items.length})`}
+                      colSpan={
+                        3 + (puede("ver_ganancias") ? 1 : 0) + 1 + (puede("gestionar_inventario") ? 1 : 0) + 1
+                      }
+                    />
 
-                    <td>{p.nombre}</td>
-                    <td>{p.categoria?.trim() ? p.categoria : t("productos.sin_categoria")}</td>
-                    <td>{formatoMoneda(p.precio_venta)}</td>
-                    {puede("ver_ganancias") && <td>{formatoMoneda(p.costo ?? 0)}</td>}
-                    <td>{p.stock}</td>
+                    {grupo.items.map((p) => (
+                      <tr key={p.id}>
+                        <td>
+                          {p.imagen ? (
+                            <img src={p.imagen} alt={p.nombre} className="product-image" />
+                          ) : "—"}
+                        </td>
 
-                    {puede("gestionar_inventario") && (
-                      <td>
-                        <div className="productos-actions">
-                          <button onClick={() => editar(p)} className="btn-edit">
-                            {t("productos.editar")}
-                          </button>
+                        <td>{p.nombre}</td>
+                        <td>{p.categoria?.trim() ? p.categoria : t("productos.sin_categoria")}</td>
+                        <td>{formatoMoneda(p.precio_venta)}</td>
+                        {puede("ver_ganancias") && <td>{formatoMoneda(p.costo ?? 0)}</td>}
+                        <td>{p.stock}</td>
 
-                          <button onClick={() => eliminar(p.id)} className="btn-delete">
-                            {t("productos.eliminar")}
-                          </button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
+                        {puede("gestionar_inventario") && (
+                          <td>
+                            <div className="productos-actions">
+                              <button onClick={() => editar(p)} className="btn-edit">
+                                {t("productos.editar")}
+                              </button>
+
+                              <button onClick={() => eliminar(p.id)} className="btn-delete">
+                                {t("productos.eliminar")}
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </Fragment>
                 ))
               )}
             </tbody>
