@@ -68,9 +68,30 @@ interface DataGraficoLinea {
   monto: number;
 }
 
+interface DataSparklineHora {
+  hora: string;
+  monto: number;
+}
+
+interface DataSparklineDia {
+  dia: string;
+  monto: number;
+}
+
 interface DataGraficoPie {
   name: string;
   value: number;
+}
+
+// Degradado sutil + sombra a tono, en vez del color plano de antes —
+// mismo tratamiento que ya lleva el ícono nuevo de la app (ver
+// public/icons/) para que las tarjetas del dashboard se sientan parte
+// de la misma marca en vez de cuadros de color liso.
+function degradadoIcono(color: string): React.CSSProperties {
+  return {
+    backgroundImage: `linear-gradient(135deg, color-mix(in srgb, ${color} 78%, white) 0%, ${color} 100%)`,
+    boxShadow: `0 8px 16px -6px ${color}80`,
+  };
 }
 
 type PeriodoRanking = "hoy" | "semana" | "mes" | "todo";
@@ -162,6 +183,12 @@ export default function DashboardPremium() {
 
   // Estados para las gráficas reales
   const [dataLinea, setDataLinea] = useState<DataGraficoLinea[]>([]);
+  // Sparklines de las tarjetas hero: cada una con su propia
+  // granularidad — antes las dos reusaban dataLinea (7 días), así que
+  // "Ventas de hoy" mostraba una tendencia semanal y su tooltip no
+  // tenía nada que ver con "hoy". Estas sí son por hora/por día real.
+  const [dataHoyPorHora, setDataHoyPorHora] = useState<DataSparklineHora[]>([]);
+  const [dataMesPorDia, setDataMesPorDia] = useState<DataSparklineDia[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -322,6 +349,42 @@ export default function DashboardPremium() {
         setVentasMes(mesFiltradas.reduce((sum, v) => sum + Number(v.total), 0));
 
         // ==========================================
+        // SPARKLINE "VENTAS DE HOY": por hora (00:00 a la hora actual)
+        // ==========================================
+        const mapaHoras: { [key: string]: number } = {};
+        for (let h = 0; h <= ahora.getHours(); h++) {
+          mapaHoras[String(h).padStart(2, "0") + ":00"] = 0;
+        }
+        hoyFiltradas.forEach((v) => {
+          const f = new Date(v.fecha);
+          const label = String(f.getHours()).padStart(2, "0") + ":00";
+          if (mapaHoras[label] !== undefined) {
+            mapaHoras[label] += Number(v.total);
+          }
+        });
+        setDataHoyPorHora(
+          Object.keys(mapaHoras).map((hora) => ({ hora, monto: mapaHoras[hora] }))
+        );
+
+        // ==========================================
+        // SPARKLINE "VENTAS DEL MES": por día (día 1 al día actual)
+        // ==========================================
+        const mapaDiasMes: { [key: string]: number } = {};
+        for (let d = 1; d <= ahora.getDate(); d++) {
+          mapaDiasMes[String(d)] = 0;
+        }
+        mesFiltradas.forEach((v) => {
+          const f = new Date(v.fecha);
+          const label = String(f.getDate());
+          if (mapaDiasMes[label] !== undefined) {
+            mapaDiasMes[label] += Number(v.total);
+          }
+        });
+        setDataMesPorDia(
+          Object.keys(mapaDiasMes).map((dia) => ({ dia, monto: mapaDiasMes[dia] }))
+        );
+
+        // ==========================================
         // PROCESAMIENTO DE GRÁFICA DE LÍNEA (Historial 7 días)
         // ==========================================
         const mapaDias: { [key: string]: number } = {};
@@ -373,39 +436,25 @@ export default function DashboardPremium() {
     }
   }
 
-  // ESTADO DE CARGA PREMIUM CORREGIDO (Mantiene la coherencia visual oscura)
+  // Esqueleto con la misma silueta del dashboard real (encabezado +
+  // grid de tarjetas KPI) en vez de un simple spinner centrado — así
+  // no hay un salto brusco de layout entre "cargando" y los datos
+  // reales, y se siente menos como una pantalla rota mientras carga.
   if (loading) {
     return (
-      <div style={{
-        display: "grid",
-        placeItems: "center",
-        height: "100dvh",
-        color: "var(--text-primary)", 
-        backgroundColor: "var(--bg-primary)", 
-        fontFamily: "sans-serif",
-        width: "100%"
-      }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{
-            width: "40px",
-            height: "40px",
-            border: "3px solid rgba(89, 69, 228, 0.1)",
-            borderTop: "3px solid var(--primary)",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-            margin: "0 auto 16px auto"
-          }} />
-          <style>{`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}</style>
-          <p style={{ fontSize: "14px", color: "var(--text-secondary)", letterSpacing: "0.05em", margin: 0 }}>
-            {t("dashboard.cargando")}
-          </p>
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div className="skeleton" style={{ width: 220, height: 32, borderRadius: 8 }} />
+        <div className="dashboard-hero-grid">
+          <div className="skeleton" style={{ height: 190, borderRadius: 14, gridArea: "hero" }} />
+          <div className="skeleton" style={{ height: 130, borderRadius: 14, gridArea: "mes" }} />
+          <div className="skeleton" style={{ height: 130, borderRadius: 14, gridArea: "prod" }} />
+          <div className="skeleton" style={{ height: 100, borderRadius: 14, gridArea: "alertas" }} />
         </div>
-      </div>
+        <div className="dashboard-bottom-grid">
+          <div className="skeleton" style={{ height: 280, borderRadius: 14 }} />
+          <div className="skeleton" style={{ height: 280, borderRadius: 14 }} />
+        </div>
+      </main>
     );
   }
 
@@ -547,7 +596,7 @@ export default function DashboardPremium() {
         >
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: COLORES_PIE[0], display: "grid", placeItems: "center" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, display: "grid", placeItems: "center", ...degradadoIcono(COLORES_PIE[0]) }}>
                 <DollarSign size={19} color="#fff" />
               </div>
               <p style={{ color: "var(--text-secondary)", fontSize: "12.5px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.ventas_hoy")}</p>
@@ -560,13 +609,20 @@ export default function DashboardPremium() {
 
           <div style={{ width: "100%", height: "70px", marginTop: 16 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dataLinea} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+              <AreaChart data={dataHoyPorHora} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="sparkHoy" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={COLORES_PIE[0]} stopOpacity={0.5} />
                     <stop offset="95%" stopColor={COLORES_PIE[0]} stopOpacity={0} />
                   </linearGradient>
                 </defs>
+                <XAxis dataKey="hora" hide />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                  labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                  itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  formatter={(valor) => formatoMoneda(Number(valor))}
+                />
                 <Area type="monotone" dataKey="monto" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkHoy)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -582,7 +638,7 @@ export default function DashboardPremium() {
             {/* Color fijo (ver comentario en la tarjeta "Productos en
                 catálogo" más abajo): COLORES_PIE[1] es pastel en varios
                 temas y el ícono blanco quedaba casi invisible encima. */}
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: "#3b82f6", display: "grid", placeItems: "center" }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, display: "grid", placeItems: "center", ...degradadoIcono("#3b82f6") }}>
               <CalendarDays size={18} color="#fff" />
             </div>
             <p style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.ventas_mes")}</p>
@@ -594,13 +650,21 @@ export default function DashboardPremium() {
 
           <div style={{ width: "100%", height: "40px", marginTop: 10 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dataLinea} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+              <AreaChart data={dataMesPorDia} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="sparkMes" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={COLORES_PIE[1]} stopOpacity={0.5} />
                     <stop offset="95%" stopColor={COLORES_PIE[1]} stopOpacity={0} />
                   </linearGradient>
                 </defs>
+                <XAxis dataKey="dia" hide />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                  labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                  itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  labelFormatter={(dia) => `${t("dashboard.dia_abrev")} ${dia}`}
+                  formatter={(valor) => formatoMoneda(Number(valor))}
+                />
                 <Area type="monotone" dataKey="monto" stroke={COLORES_PIE[1]} strokeWidth={2} fill="url(#sparkMes)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -617,7 +681,7 @@ export default function DashboardPremium() {
                 (green, purple, amber, slate, cyan, sunset...) el tercer
                 color de COLORES_PIE es un tono pastel muy claro, y el
                 ícono blanco encima quedaba casi invisible. */}
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: "#22c55e", display: "grid", placeItems: "center" }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, display: "grid", placeItems: "center", ...degradadoIcono("#22c55e") }}>
               <Package size={18} color="#fff" />
             </div>
             <p style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.productos_catalogo")}</p>
@@ -634,7 +698,7 @@ export default function DashboardPremium() {
           style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "20px" }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: alertasStockCount > 0 ? "#ef4444" : "#61667a", display: "grid", placeItems: "center" }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, display: "grid", placeItems: "center", ...degradadoIcono(alertasStockCount > 0 ? "#ef4444" : "#61667a") }}>
               <AlertTriangle size={18} color="#fff" />
             </div>
             <p style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", margin: 0 }}>{t("dashboard.alertas_stock")}</p>

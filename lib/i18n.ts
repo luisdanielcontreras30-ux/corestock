@@ -128,6 +128,7 @@ export const TRADUCCIONES: Diccionario = {
   "dashboard.ventas_hoy": { es: "Ventas de hoy", en: "Today's sales", pt: "Vendas de hoje", fr: "Ventes du jour", de: "Heutige Verkäufe", zh: "今日销售额", it: "Vendite di oggi" },
   "dashboard.tiempo_real": { es: "En tiempo real", en: "Real-time", pt: "Em tempo real", fr: "En temps réel", de: "In Echtzeit", zh: "实时", it: "In tempo reale" },
   "dashboard.ventas_mes": { es: "Ventas del mes", en: "This month's sales", pt: "Vendas do mês", fr: "Ventes du mois", de: "Verkäufe diesen Monat", zh: "本月销售额", it: "Vendite del mese" },
+  "dashboard.dia_abrev": { es: "Día", en: "Day", pt: "Dia", fr: "Jour", de: "Tag", zh: "第", it: "Giorno" },
   "dashboard.acumulado_bruto": { es: "Acumulado bruto", en: "Gross accumulated", pt: "Acumulado bruto", fr: "Cumul brut", de: "Bruttosumme", zh: "累计总额", it: "Totale lordo accumulato" },
   "dashboard.productos_catalogo": { es: "Productos en Catálogo", en: "Products in Catalog", pt: "Produtos no Catálogo", fr: "Produits au catalogue", de: "Produkte im Katalog", zh: "目录中的产品", it: "Prodotti nel catalogo" },
   "dashboard.items_activos": { es: "Items activos", en: "Active items", pt: "Itens ativos", fr: "Articles actifs", de: "Aktive Artikel", zh: "有效商品", it: "Articoli attivi" },

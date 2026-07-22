@@ -3344,6 +3344,22 @@ select optgroup {
 }
 
 /* ==========================================================================
+   ESQUELETOS DE CARGA (silueta del contenido real + brillo en barrido)
+   ========================================================================== */
+
+.skeleton {
+  background: linear-gradient(90deg, var(--card-bg) 25%, var(--card-hover) 50%, var(--card-bg) 75%);
+  background-size: 200% 100%;
+  animation: skeletonBarrido 1.6s ease-in-out infinite;
+  border: 1px solid var(--border);
+}
+
+@keyframes skeletonBarrido {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ==========================================================================
    DASHBOARD: GRID ASIMÉTRICO DE TARJETAS KPI
    ========================================================================== */
 
@@ -3357,20 +3373,40 @@ select optgroup {
   gap: 20px;
 }
 
+.dashboard-card-hero,
+.dashboard-card-mes,
+.dashboard-card-prod,
+.dashboard-card-alertas {
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  animation: fadeUp 0.4s ease both;
+}
+
+.dashboard-card-hero:hover,
+.dashboard-card-mes:hover,
+.dashboard-card-prod:hover,
+.dashboard-card-alertas:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--card-hover);
+}
+
 .dashboard-card-hero {
   grid-area: hero;
 }
 
 .dashboard-card-mes {
   grid-area: mes;
+  animation-delay: 0.05s;
 }
 
 .dashboard-card-prod {
   grid-area: prod;
+  animation-delay: 0.1s;
 }
 
 .dashboard-card-alertas {
   grid-area: alertas;
+  animation-delay: 0.15s;
 }
 
 @media (max-width: 1100px) {
