@@ -29,13 +29,23 @@ export async function marcarComoCobrado(ventaId: number) {
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase
+  // Con .select(): sin esto, si RLS bloquea el update (falta el
+  // permiso "editar_ventas" — ver supabase_permisos_miembros.sql) no
+  // se reporta ningún error ni fila afectada, y el código de abajo
+  // seguía como si hubiera tenido éxito — mostraba "cobrado" en verde
+  // y la venta reaparecía como pendiente al recargar.
+  const { data, error } = await supabase
     .from("ventas")
     .update({ cobrado: true })
     .eq("id", ventaId)
-    .eq("metodo_pago", "prestamo");
+    .eq("metodo_pago", "prestamo")
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error("NO_ACTUALIZADO");
   }
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { HandCoins, Check } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
@@ -16,9 +17,17 @@ import { formatoMoneda } from "../ventas/utils";
 export default function CuentasPorCobrarPage() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
+  // Marcar cobrado hace un update sobre "ventas", que RLS exige el
+  // permiso "editar_ventas" para tocar (ver
+  // supabase_permisos_miembros.sql) — sin este candado, un miembro sin
+  // ese permiso veía el botón activo, RLS bloqueaba el update en
+  // silencio (sin lanzar error), y la venta reaparecía como pendiente
+  // al recargar sin ninguna explicación.
+  const puedeCobrar = puede("editar_ventas");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -76,7 +85,7 @@ export default function CuentasPorCobrarPage() {
   const totalPendiente = useMemo(() => ventas.reduce((acc, v) => acc + v.total, 0), [ventas]);
 
   async function cobrar(venta: VentaFiada) {
-    if (cobrando !== null) return;
+    if (cobrando !== null || !puedeCobrar) return;
 
     if (
       !(await confirmar(
@@ -92,7 +101,10 @@ export default function CuentasPorCobrarPage() {
       mostrarToast(t("cuentas_por_cobrar.msg_cobrado"), "exito");
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle =
+        error instanceof Error && error.message === "NO_ACTUALIZADO"
+          ? t("permisos.sin_acceso_accion")
+          : mensajeErrorSeguro(error);
       mostrarToast(detalle || t("cuentas_por_cobrar.msg_error"), "error");
     } finally {
       setCobrando(null);
@@ -180,15 +192,19 @@ export default function CuentasPorCobrarPage() {
                       <td>{venta.cantidad}</td>
                       <td>{formatoMoneda(venta.total)}</td>
                       <td>
-                        <button
-                          className="btn-success"
-                          style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-                          disabled={cobrando === venta.id}
-                          onClick={() => cobrar(venta)}
-                        >
-                          <Check size={14} />
-                          {t("cuentas_por_cobrar.marcar_cobrado")}
-                        </button>
+                        {puedeCobrar ? (
+                          <button
+                            className="btn-success"
+                            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                            disabled={cobrando === venta.id}
+                            onClick={() => cobrar(venta)}
+                          >
+                            <Check size={14} />
+                            {t("cuentas_por_cobrar.marcar_cobrado")}
+                          </button>
+                        ) : (
+                          "—"
+                        )}
                       </td>
                     </tr>
                   ))}

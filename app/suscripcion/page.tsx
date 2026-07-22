@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Crown, Check, ExternalLink } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useSuscripcion } from "../../components/SuscripcionProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
@@ -46,9 +47,17 @@ export default function SuscripcionPage() {
 
 function SuscripcionInterna() {
   const { cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { t } = useIdioma();
   const { plan, esPlus, cargando, refrescar } = useSuscripcion();
   const searchParams = useSearchParams();
+  // Facturación es cosa de administración del negocio — el servidor
+  // (app/api/stripe/crear-sesion y /portal) ya exige el permiso
+  // "configuracion" para un miembro del equipo. Sin este candado en la
+  // interfaz, un miembro sin ese permiso veía el botón activo y solo
+  // se enteraba tras un viaje de ida y vuelta a Stripe que terminaba
+  // rechazado.
+  const puedeGestionar = puede("configuracion");
 
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState("");
@@ -62,7 +71,7 @@ function SuscripcionInterna() {
   }, []);
 
   async function alActualizarAPlus() {
-    if (procesando) return;
+    if (procesando || !puedeGestionar) return;
     setError("");
     setProcesando(true);
 
@@ -78,7 +87,7 @@ function SuscripcionInterna() {
   }
 
   async function alGestionarSuscripcion() {
-    if (procesando) return;
+    if (procesando || !puedeGestionar) return;
     setError("");
     setProcesando(true);
 
@@ -190,24 +199,38 @@ function SuscripcionInterna() {
           </ul>
 
           {esPlus ? (
-            <button
-              className="btn-primary"
-              style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-              onClick={alGestionarSuscripcion}
-              disabled={procesando}
-            >
-              <ExternalLink size={15} />
-              {procesando ? t("plus.procesando") : t("plus.boton_gestionar")}
-            </button>
+            <>
+              <button
+                className="btn-primary"
+                style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                onClick={alGestionarSuscripcion}
+                disabled={procesando || !puedeGestionar}
+              >
+                <ExternalLink size={15} />
+                {procesando ? t("plus.procesando") : t("plus.boton_gestionar")}
+              </button>
+              {!puedeGestionar && (
+                <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
+                  {t("permisos.sin_acceso_accion")}
+                </p>
+              )}
+            </>
           ) : BLOQUEO_PLUS_ACTIVO ? (
-            <button
-              className="btn-primary"
-              style={{ marginTop: "auto" }}
-              onClick={alActualizarAPlus}
-              disabled={procesando}
-            >
-              {procesando ? t("plus.procesando") : t("plus.boton_actualizar")}
-            </button>
+            <>
+              <button
+                className="btn-primary"
+                style={{ marginTop: "auto" }}
+                onClick={alActualizarAPlus}
+                disabled={procesando || !puedeGestionar}
+              >
+                {procesando ? t("plus.procesando") : t("plus.boton_actualizar")}
+              </button>
+              {!puedeGestionar && (
+                <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
+                  {t("permisos.sin_acceso_accion")}
+                </p>
+              )}
+            </>
           ) : (
             <span
               style={{

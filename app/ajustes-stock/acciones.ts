@@ -55,6 +55,13 @@ export async function registrarAjuste(
     throw new Error("Usuario no autenticado");
   }
 
+  // Se repite aquí la misma validación que ya hace el formulario —
+  // esta acción es exportada y podría llamarse directamente sin pasar
+  // por él, mismo patrón que Compras/Devoluciones/Fabricación.
+  if (!Number.isFinite(cantidadAjuste) || cantidadAjuste === 0 || !Number.isInteger(cantidadAjuste)) {
+    throw new Error("CANTIDAD_INVALIDA");
+  }
+
   const negocioId = await obtenerNegocioId(user.id);
 
   const { data: productoActual, error: errorProductoActual } = await supabase

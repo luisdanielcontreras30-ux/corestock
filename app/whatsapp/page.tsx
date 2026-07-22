@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MessageCircle, Send, Bot, User, Copy } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
@@ -31,8 +32,19 @@ export default function WhatsappPage() {
 function WhatsappContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
+  // Conectar el número escribe en empresa_config, que RLS exige el
+  // permiso "configuracion" para tocar (ver
+  // supabase_permisos_miembros.sql) — sin este candado en la interfaz,
+  // un miembro sin ese permiso vería el mismo error genérico de "falta
+  // configurar Empresa" que EMPRESA_NO_CONFIGURADA, aunque la causa
+  // real fuera falta de permiso (mismo bug ya corregido en
+  // catalogo-linea). Hoy es difícil de alcanzar (el módulo está en
+  // beta cerrada a una sola cuenta), pero se deja bien puesto para
+  // cuando se abra a más negocios con equipo.
+  const puedeConectar = puede("configuracion");
 
   const [pregunta, setPregunta] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -87,7 +99,7 @@ function WhatsappContenido() {
   }, [enfriamientoIA]);
 
   async function guardarNumero() {
-    if (guardandoNumero) return;
+    if (guardandoNumero || !puedeConectar) return;
 
     setGuardandoNumero(true);
     try {
@@ -197,16 +209,27 @@ function WhatsappContenido() {
             type="button"
             className="btn-primary"
             onClick={guardarNumero}
-            disabled={cargandoNumero || guardandoNumero || numeroWhatsApp.trim() === (numeroGuardado ?? "")}
+            disabled={
+              cargandoNumero ||
+              guardandoNumero ||
+              !puedeConectar ||
+              numeroWhatsApp.trim() === (numeroGuardado ?? "")
+            }
             style={{ flexShrink: 0 }}
           >
             {guardandoNumero ? t("compras.guardando") : t("whatsapp.numero_guardar")}
           </button>
         </div>
-        {numeroGuardado && (
-          <p style={{ color: "#22c55e", fontSize: 12.5, marginTop: 8, marginBottom: 0 }}>
-            {t("whatsapp.numero_conectado")}
+        {!puedeConectar ? (
+          <p style={{ color: "var(--text-muted)", fontSize: 12.5, marginTop: 8, marginBottom: 0 }}>
+            {t("permisos.sin_acceso_accion")}
           </p>
+        ) : (
+          numeroGuardado && (
+            <p style={{ color: "#22c55e", fontSize: 12.5, marginTop: 8, marginBottom: 0 }}>
+              {t("whatsapp.numero_conectado")}
+            </p>
+          )
         )}
       </div>
 

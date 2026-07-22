@@ -40,6 +40,8 @@ export default function AjustesStockPage() {
   function mensajeAjuste(error: unknown): string | null {
     if (!(error instanceof Error)) return null;
     switch (error.message) {
+      case "CANTIDAD_INVALIDA":
+        return t("ajustes_stock.msg_cantidad_mayor");
       case "SIN_STOCK":
         return t("ajustes_stock.msg_sin_stock");
       case "STOCK_CAMBIO":
