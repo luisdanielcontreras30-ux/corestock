@@ -64,6 +64,28 @@ export default function VentasPage() {
   // de negocio distintas que compartan el mismo navegador (ej. una
   // terminal de venta) verían y sobrescribirían el borrador de la otra.
   const claveBorrador = user ? `${CLAVE_BORRADOR}-${user.id}` : null;
+
+  // acciones.ts lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce; null si el error no es
+  // ninguno de los esperados (deja pasar a mensajeErrorSeguro/fallback).
+  function mensajeVenta(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "CLIENTE_OBLIGATORIO":
+        return t("ventas_rapidas.msg_cliente_obligatorio");
+      case "CANTIDAD_INVALIDA":
+        return t("ventas.msg_cantidad_mayor");
+      case "SIN_STOCK":
+        return t("ventas.msg_sin_stock");
+      case "PRECIO_INVALIDO":
+        return t("ventas.msg_precio_invalido");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      default:
+        return null;
+    }
+  }
   const [loading, setLoading] = useState(true);
   const [ticket, setTicket] = useState<TicketPendiente | null>(null);
 
@@ -233,7 +255,7 @@ export default function VentasPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeVenta(error) || mensajeErrorSeguro(error);
       mostrarToast(detalle || t("ventas.msg_error_registrar"), "error");
     } finally {
       setGuardando(false);
@@ -250,7 +272,7 @@ export default function VentasPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeVenta(error) || mensajeErrorSeguro(error);
       mostrarToast(`${t("ventas.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`, "error");
     }
   }

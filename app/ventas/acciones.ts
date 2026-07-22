@@ -110,7 +110,7 @@ export async function registrarVenta(
   // de "préstamo siempre necesita saber a quién se le fía" no puede
   // depender solo de que el formulario la respete.
   if (metodoPago === "prestamo" && nombreCliente.trim() === "") {
-    throw new Error("Para vender a préstamo debes indicar el nombre del cliente.");
+    throw new Error("CLIENTE_OBLIGATORIO");
   }
 
   let clienteId = cliente?.id ?? null;
@@ -160,18 +160,18 @@ export async function registrarVenta(
   }
 
   if (!Number.isFinite(cantidad) || cantidad <= 0) {
-    throw new Error("La cantidad debe ser mayor a 0.");
+    throw new Error("CANTIDAD_INVALIDA");
   }
 
   if (productoActual.stock < cantidad) {
-    throw new Error("No hay suficiente stock para esta venta.");
+    throw new Error("SIN_STOCK");
   }
 
   // >= 0, no > 0: una promoción de 100% de descuento (ver
   // lib/promociones.ts, sí se permite valor: 100) hace un producto
   // gratis a propósito — precio 0 es un caso válido, no un error.
   if (!Number.isFinite(precioUnitario) || precioUnitario < 0) {
-    throw new Error("El precio de venta no puede ser negativo.");
+    throw new Error("PRECIO_INVALIDO");
   }
 
   const total =
@@ -227,9 +227,7 @@ export async function registrarVenta(
 
   if (!actualizado || actualizado.length === 0) {
     await supabase.from("ventas").delete().eq("id", ventaCreada.id);
-    throw new Error(
-      "El stock de este producto cambió mientras se procesaba la venta. Intenta de nuevo."
-    );
+    throw new Error("STOCK_CAMBIO");
   }
 
   return { id: ventaCreada.id };
@@ -273,9 +271,7 @@ export async function eliminarVenta(
     );
 
     if (!exito) {
-      throw new Error(
-        "El stock de este producto cambió mientras se procesaba el borrado. Intenta de nuevo."
-      );
+      throw new Error("STOCK_CAMBIO");
     }
   }
 

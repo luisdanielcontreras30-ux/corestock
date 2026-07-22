@@ -68,7 +68,7 @@ export async function registrarCompra(
   const negocioId = await obtenerNegocioId(user.id);
 
   if (!Number.isFinite(cantidad) || cantidad <= 0) {
-    throw new Error("La cantidad debe ser mayor a 0.");
+    throw new Error("CANTIDAD_INVALIDA");
   }
 
   // A diferencia del precio de venta (donde 0 es válido: una promoción de
@@ -79,7 +79,7 @@ export async function registrarCompra(
   // en $0 hasta la siguiente compra real, arruinando el cálculo de
   // Ganancias en el Asistente en silencio.
   if (!Number.isFinite(costoUnitario) || costoUnitario <= 0) {
-    throw new Error("El costo debe ser mayor a 0.");
+    throw new Error("COSTO_INVALIDO");
   }
 
   // Releemos el stock justo antes de comprar, igual que en Ventas, para
@@ -138,9 +138,7 @@ export async function registrarCompra(
 
   if (!actualizado || actualizado.length === 0) {
     await supabase.from("compras").delete().eq("id", compraCreada.id);
-    throw new Error(
-      "El stock de este producto cambió mientras se procesaba la compra. Intenta de nuevo."
-    );
+    throw new Error("STOCK_CAMBIO");
   }
 }
 
@@ -177,9 +175,7 @@ export async function eliminarCompra(id: number) {
     );
 
     if (!exito) {
-      throw new Error(
-        "El stock de este producto cambió mientras se procesaba el borrado. Intenta de nuevo."
-      );
+      throw new Error("STOCK_CAMBIO");
     }
   }
 

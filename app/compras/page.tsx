@@ -45,6 +45,24 @@ function ComprasContenido() {
   const [guardando, setGuardando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
 
+  // acciones.ts lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce; null si el error no es
+  // ninguno de los esperados (deja pasar a mensajeErrorSeguro/fallback).
+  function mensajeCompra(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "CANTIDAD_INVALIDA":
+        return t("compras.msg_cantidad_mayor");
+      case "COSTO_INVALIDO":
+        return t("compras.msg_costo_invalido");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      default:
+        return null;
+    }
+  }
+
   async function obtenerDatos() {
     setLoading(true);
     try {
@@ -143,7 +161,7 @@ function ComprasContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeCompra(error) || mensajeErrorSeguro(error);
       mostrarToast(detalle || t("compras.msg_error_registrar"), "error");
     } finally {
       setGuardando(false);
@@ -158,7 +176,7 @@ function ComprasContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeCompra(error) || mensajeErrorSeguro(error);
       mostrarToast(`${t("compras.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`, "error");
     }
   }

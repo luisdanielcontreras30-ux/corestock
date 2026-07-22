@@ -33,6 +33,22 @@ export default function AjustesStockPage() {
   const [motivo, setMotivo] = useState("");
   const [guardando, setGuardando] = useState(false);
 
+  // acciones.ts lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce; null si el error no es
+  // ninguno de los esperados (deja pasar a mensajeErrorSeguro/fallback).
+  function mensajeAjuste(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "SIN_STOCK":
+        return t("ajustes_stock.msg_sin_stock");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      default:
+        return null;
+    }
+  }
+
   async function obtenerDatos() {
     setLoading(true);
     setError(false);
@@ -103,7 +119,7 @@ export default function AjustesStockPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeAjuste(error) || mensajeErrorSeguro(error);
       mostrarToast(detalle || t("ajustes_stock.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
@@ -118,7 +134,8 @@ export default function AjustesStockPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("ajustes_stock.msg_error_eliminar"), "error");
+      const detalle = mensajeAjuste(error) || mensajeErrorSeguro(error);
+      mostrarToast(`${t("ajustes_stock.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`, "error");
     }
   }
 

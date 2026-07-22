@@ -67,6 +67,29 @@ export default function VentasRapidasPage() {
   // terminal de venta) verían y sobrescribirían el carrito de la otra.
   const claveBorradorCarrito = user ? `${CLAVE_BORRADOR_CARRITO}-${user.id}` : null;
 
+  // ventas/acciones.ts (llamado por registrarVentaRapida) lanza sentinels
+  // sin traducir para los casos donde sí hay un mensaje pensado para
+  // mostrarse — ErrorCobroParcial conserva ese mismo .message (ver
+  // acciones.ts), así que el mapeo funciona igual aquí. null si el
+  // error no es ninguno de los esperados (deja pasar a mensajeErrorSeguro).
+  function mensajeVenta(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "CLIENTE_OBLIGATORIO":
+        return t("ventas_rapidas.msg_cliente_obligatorio");
+      case "CANTIDAD_INVALIDA":
+        return t("ventas.msg_cantidad_mayor");
+      case "SIN_STOCK":
+        return t("ventas.msg_sin_stock");
+      case "PRECIO_INVALIDO":
+        return t("ventas.msg_precio_invalido");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      default:
+        return null;
+    }
+  }
+
   const [loading, setLoading] = useState(true);
   const [ticket, setTicket] = useState<{
     folioId: number;
@@ -307,7 +330,7 @@ export default function VentasRapidasPage() {
       await obtenerDatos(false);
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeVenta(error) || mensajeErrorSeguro(error);
       mostrarToast(
         `${t("ventas_rapidas.msg_error_cobro")}${detalle ? ": " + detalle : ""}`,
         "error"

@@ -60,11 +60,11 @@ export async function registrarDevolucion(
   // el formulario — esta acción es exportada y podría llamarse
   // directamente sin pasar por él.
   if (!Number.isFinite(cantidad) || cantidad <= 0) {
-    throw new Error("La cantidad debe ser mayor a 0");
+    throw new Error("CANTIDAD_INVALIDA");
   }
 
   if (!Number.isFinite(montoReembolsado) || montoReembolsado < 0) {
-    throw new Error("El monto reembolsado no puede ser negativo");
+    throw new Error("MONTO_INVALIDO");
   }
 
   const negocioId = await obtenerNegocioId(user.id);
@@ -91,9 +91,7 @@ export async function registrarDevolucion(
       // real) — solo no se pudo reponer el stock automáticamente por
       // una condición de carrera persistente. Se avisa para ajustarlo
       // a mano en vez de perder silenciosamente esas unidades.
-      throw new Error(
-        "La devolución se registró, pero no se pudo reponer el stock automáticamente. Ajústalo desde Ajustes de Stock."
-      );
+      throw new Error("NO_SE_REPUSO_STOCK");
     }
   }
 }
@@ -119,9 +117,7 @@ export async function eliminarDevolucion(devolucion: Devolucion) {
     });
 
     if (!exito) {
-      throw new Error(
-        "El stock de este producto cambió mientras se procesaba el borrado. Intenta de nuevo."
-      );
+      throw new Error("STOCK_CAMBIO");
     }
   }
 

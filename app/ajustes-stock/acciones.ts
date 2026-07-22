@@ -70,7 +70,7 @@ export async function registrarAjuste(
   const stockNuevo = productoActual.stock + cantidadAjuste;
 
   if (stockNuevo < 0) {
-    throw new Error("No puedes quitar más stock del que hay disponible.");
+    throw new Error("SIN_STOCK");
   }
 
   const { data: ajusteCreado, error: errorAjuste } = await supabase
@@ -108,9 +108,7 @@ export async function registrarAjuste(
 
   if (!actualizado || actualizado.length === 0) {
     await supabase.from("ajustes_stock").delete().eq("id", ajusteCreado.id);
-    throw new Error(
-      "El stock de este producto cambió mientras se procesaba el ajuste. Intenta de nuevo."
-    );
+    throw new Error("STOCK_CAMBIO");
   }
 }
 
@@ -144,9 +142,7 @@ export async function eliminarAjuste(id: number) {
     });
 
     if (!exito) {
-      throw new Error(
-        "El stock de este producto cambió mientras se procesaba el borrado. Intenta de nuevo."
-      );
+      throw new Error("STOCK_CAMBIO");
     }
   }
 

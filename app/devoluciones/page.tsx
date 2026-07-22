@@ -33,6 +33,26 @@ export default function DevolucionesPage() {
   const [reponerStock, setReponerStock] = useState(true);
   const [guardando, setGuardando] = useState(false);
 
+  // acciones.ts lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce; null si el error no es
+  // ninguno de los esperados (deja pasar a mensajeErrorSeguro/fallback).
+  function mensajeDevolucion(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "CANTIDAD_INVALIDA":
+        return t("devoluciones.msg_cantidad_mayor");
+      case "MONTO_INVALIDO":
+        return t("devoluciones.msg_monto_invalido");
+      case "NO_SE_REPUSO_STOCK":
+        return t("devoluciones.msg_no_repuso_stock");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      default:
+        return null;
+    }
+  }
+
   async function obtenerDatos() {
     setLoading(true);
     setError(false);
@@ -104,7 +124,7 @@ export default function DevolucionesPage() {
       mostrarToast(t("devoluciones.msg_registrada"), "exito");
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeDevolucion(error) || mensajeErrorSeguro(error);
       mostrarToast(detalle || t("devoluciones.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
@@ -119,7 +139,7 @@ export default function DevolucionesPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeDevolucion(error) || mensajeErrorSeguro(error);
       mostrarToast(detalle || t("devoluciones.msg_error_eliminar"), "error");
     }
   }
