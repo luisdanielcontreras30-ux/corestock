@@ -45,7 +45,7 @@ export async function generarFacturaGlobal(
   // esta acción es exportada y podría llamarse directamente sin pasar
   // por él — mismo patrón que Compras/Devoluciones/Promociones.
   if (Number.isNaN(fechaInicio.getTime()) || Number.isNaN(fechaFin.getTime())) {
-    throw new Error("Rango de fechas inválido.");
+    throw new Error("RANGO_INVALIDO");
   }
 
   if (fechaInicio > fechaFin) {

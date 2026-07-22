@@ -59,6 +59,10 @@ function ProductosInterno() {
   const { user } = useAuth();
   const { puede } = useMiembroActivo();
   const router = useRouter();
+  // Sufijado con el id de quien tiene la sesión — sin esto, dos cuentas
+  // de negocio distintas que compartan el mismo navegador (ej. una
+  // terminal de venta) verían y sobrescribirían el borrador de la otra.
+  const claveBorrador = user ? `${CLAVE_BORRADOR}-${user.id}` : null;
   const searchParams = useSearchParams();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -173,6 +177,8 @@ function ProductosInterno() {
   // un borrador de edición dejaría el resto de los campos del
   // producto original sin cargar).
   useEffect(() => {
+    if (!claveBorrador) return;
+
     if (
       searchParams.get("nombre_sugerido") ||
       searchParams.get("categoria_sugerida") ||
@@ -181,7 +187,7 @@ function ProductosInterno() {
       return;
     }
 
-    const borrador = leerBorrador<BorradorProducto>(CLAVE_BORRADOR);
+    const borrador = leerBorrador<BorradorProducto>(claveBorrador);
     if (!borrador) return;
 
     setNombre(borrador.nombre);
@@ -204,23 +210,23 @@ function ProductosInterno() {
       setFormularioAbierto(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [claveBorrador]);
 
   // Guarda el borrador en cada cambio — solo mientras se está creando
   // un producto nuevo (no durante una edición, para no arriesgar mezclar
   // el borrador con los datos de un producto ya existente).
   useEffect(() => {
-    if (editando !== null) return;
+    if (!claveBorrador || editando !== null) return;
 
     const vacio =
       !nombre && !categoria && !precio && !costo && !stock && !stockMinimo && !descripcion;
 
     if (vacio) {
-      borrarBorrador(CLAVE_BORRADOR);
+      borrarBorrador(claveBorrador);
       return;
     }
 
-    guardarBorrador<BorradorProducto>(CLAVE_BORRADOR, {
+    guardarBorrador<BorradorProducto>(claveBorrador, {
       nombre,
       categoria,
       precio,
@@ -229,7 +235,7 @@ function ProductosInterno() {
       stockMinimo,
       descripcion,
     });
-  }, [nombre, categoria, precio, costo, stock, stockMinimo, descripcion, editando]);
+  }, [claveBorrador, nombre, categoria, precio, costo, stock, stockMinimo, descripcion, editando]);
 
   async function cargar() {
     if (!user) return;
@@ -449,7 +455,7 @@ function ProductosInterno() {
     setStock("");
     setStockMinimo("");
     setDescripcion("");
-    borrarBorrador(CLAVE_BORRADOR);
+    if (claveBorrador) borrarBorrador(claveBorrador);
     limpiarImagen();
     // Después de guardar o cancelar, vuelve a la lista en celular (ahí
     // es donde el formulario se cierra por completo; en escritorio no

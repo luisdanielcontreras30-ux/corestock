@@ -23,6 +23,7 @@ import {
   MetodoPago,
 } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useAuth } from "../../components/AuthProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
@@ -54,10 +55,15 @@ interface TicketPendiente {
 
 export default function VentasPage() {
   const { t } = useIdioma();
+  const { user } = useAuth();
   const { confirmar } = useConfirm();
   const { mostrarToast } = useToast();
   const { puede } = useMiembroActivo();
   const { esPlus } = useSuscripcion();
+  // Sufijado con el id de quien tiene la sesión — sin esto, dos cuentas
+  // de negocio distintas que compartan el mismo navegador (ej. una
+  // terminal de venta) verían y sobrescribirían el borrador de la otra.
+  const claveBorrador = user ? `${CLAVE_BORRADOR}-${user.id}` : null;
   const [loading, setLoading] = useState(true);
   const [ticket, setTicket] = useState<TicketPendiente | null>(null);
 
@@ -98,7 +104,9 @@ export default function VentasPage() {
   // Recupera lo que ya se había llenado del formulario de venta si la
   // página se recargó a medio capturar.
   useEffect(() => {
-    const borrador = leerBorrador<BorradorVenta>(CLAVE_BORRADOR);
+    if (!claveBorrador) return;
+
+    const borrador = leerBorrador<BorradorVenta>(claveBorrador);
     if (!borrador) return;
 
     setProductoId(borrador.productoId);
@@ -107,24 +115,26 @@ export default function VentasPage() {
     setCantidad(borrador.cantidad);
     setMetodoPago(borrador.metodoPago);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [claveBorrador]);
 
   useEffect(() => {
+    if (!claveBorrador) return;
+
     const vacio = !productoId && !clienteId && !clienteNombre && cantidad === 1 && metodoPago === "efectivo";
 
     if (vacio) {
-      borrarBorrador(CLAVE_BORRADOR);
+      borrarBorrador(claveBorrador);
       return;
     }
 
-    guardarBorrador<BorradorVenta>(CLAVE_BORRADOR, {
+    guardarBorrador<BorradorVenta>(claveBorrador, {
       productoId,
       clienteId,
       clienteNombre,
       cantidad,
       metodoPago,
     });
-  }, [productoId, clienteId, clienteNombre, cantidad, metodoPago]);
+  }, [claveBorrador, productoId, clienteId, clienteNombre, cantidad, metodoPago]);
 
   const producto = productos.find(
     (p) => p.id === Number(productoId)
@@ -217,7 +227,7 @@ export default function VentasPage() {
       setClienteNombre("");
       setCantidad(1);
       setMetodoPago("efectivo");
-      borrarBorrador(CLAVE_BORRADOR);
+      if (claveBorrador) borrarBorrador(claveBorrador);
 
       mostrarToast(t("ventas.msg_venta_registrada"), "exito");
       await obtenerDatos();

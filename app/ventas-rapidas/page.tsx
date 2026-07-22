@@ -62,6 +62,10 @@ export default function VentasRapidasPage() {
   const { confirmar } = useConfirm();
   const { puede } = useMiembroActivo();
   const { esPlus } = useSuscripcion();
+  // Sufijado con el id de quien tiene la sesión — sin esto, dos cuentas
+  // de negocio distintas que compartan el mismo navegador (ej. una
+  // terminal de venta) verían y sobrescribirían el carrito de la otra.
+  const claveBorradorCarrito = user ? `${CLAVE_BORRADOR_CARRITO}-${user.id}` : null;
 
   const [loading, setLoading] = useState(true);
   const [ticket, setTicket] = useState<{
@@ -94,20 +98,24 @@ export default function VentasRapidasPage() {
   // Map no es serializable directo, se guarda/lee como arreglo de
   // pares [id, cantidad].
   useEffect(() => {
-    const borrador = leerBorrador<[number, number][]>(CLAVE_BORRADOR_CARRITO);
+    if (!claveBorradorCarrito) return;
+
+    const borrador = leerBorrador<[number, number][]>(claveBorradorCarrito);
     if (borrador && borrador.length > 0) {
       setCarrito(new Map(borrador));
     }
-  }, []);
+  }, [claveBorradorCarrito]);
 
   useEffect(() => {
+    if (!claveBorradorCarrito) return;
+
     if (carrito.size === 0) {
-      borrarBorrador(CLAVE_BORRADOR_CARRITO);
+      borrarBorrador(claveBorradorCarrito);
       return;
     }
 
-    guardarBorrador(CLAVE_BORRADOR_CARRITO, Array.from(carrito.entries()));
-  }, [carrito]);
+    guardarBorrador(claveBorradorCarrito, Array.from(carrito.entries()));
+  }, [claveBorradorCarrito, carrito]);
 
   // mostrarCarga solo se apaga cuando se refresca en segundo plano
   // (después de cobrar) — si reusara el mismo "loading" de la carga
