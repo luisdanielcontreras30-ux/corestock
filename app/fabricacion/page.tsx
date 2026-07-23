@@ -256,7 +256,9 @@ function FabricacionContenido() {
     return suma + m.cantidad * (materiaPrima?.costo_unitario ?? 0);
   }, 0);
 
-  const costoManoObraNum = incluirManoObra ? Number(costoManoObraCotizacion) || 0 : 0;
+  // Number("-50") es un número válido (no NaN) — sin el Math.max, un
+  // costo de mano de obra negativo restaba del total en vez de sumarlo.
+  const costoManoObraNum = incluirManoObra ? Math.max(0, Number(costoManoObraCotizacion) || 0) : 0;
   const costoTotalCotizacion = costoMaterialesCotizacion + costoManoObraNum;
 
   const productoCotizacionSeleccionado = productos.find(
@@ -267,7 +269,11 @@ function FabricacionContenido() {
   // ya hay un precio de venta cargado, nunca por debajo de ese precio
   // actual + 15% — para que siempre se vea como una subida sugerida,
   // no un número que podría quedar más bajo que lo que ya cobra hoy.
-  const precioActualCotizacion = productoCotizacionSeleccionado?.precio_venta ?? 0;
+  // Solo aplica en modo "producto" — sin este chequeo, el precio del
+  // último producto visto en ese modo se quedaba pegado al cambiar a
+  // "manual", inflando la sugerencia con un precio que ya no aplica.
+  const precioActualCotizacion =
+    modoCotizacion === "producto" ? productoCotizacionSeleccionado?.precio_venta ?? 0 : 0;
   const precioSugeridoCotizacion =
     costoTotalCotizacion > 0
       ? Math.max(costoTotalCotizacion * 1.4, precioActualCotizacion * 1.15)
