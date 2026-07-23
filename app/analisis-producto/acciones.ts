@@ -39,8 +39,20 @@ export async function cargarDatosAnalisis(): Promise<{
   if (errorProductos) throw errorProductos;
   if (errorVentas) throw errorVentas;
 
+  // precio_venta/costo/cantidad/total son numeric en Postgres — Supabase
+  // los devuelve como string, no number. Sin convertir aquí, las sumas y
+  // promedios de estadisticas.ts (que usan +, no comparaciones) hacen
+  // concatenación de texto en vez de aritmética real.
   return {
-    productos: (productos ?? []) as ProductoCategoria[],
-    ventas: (ventas ?? []) as VentaCategoria[],
+    productos: (productos ?? []).map((p) => ({
+      ...p,
+      precio_venta: Number(p.precio_venta),
+      costo: p.costo == null ? null : Number(p.costo),
+    })) as ProductoCategoria[],
+    ventas: (ventas ?? []).map((v) => ({
+      ...v,
+      cantidad: Number(v.cantidad),
+      total: Number(v.total),
+    })) as VentaCategoria[],
   };
 }

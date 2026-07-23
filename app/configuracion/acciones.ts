@@ -106,6 +106,17 @@ export async function crearMiembro(
     .single();
 
   if (error) {
+    // 23505 = unique_violation. La interfaz ya revisa duplicados contra
+    // la lista cargada en el navegador, pero dos guardados casi
+    // simultáneos (dos pestañas/administradores) pueden pasar ese
+    // chequeo antes de que cualquiera vea el nuevo miembro del otro —
+    // el índice único de la base de datos (ver
+    // supabase_miembros_nombre_unico.sql) es el que de verdad lo
+    // impide; esto solo traduce ese rechazo al mismo sentinel que ya
+    // entiende la pantalla.
+    if (error.code === "23505") {
+      throw new Error("NOMBRE_DUPLICADO");
+    }
     throw error;
   }
 
@@ -124,6 +135,9 @@ export async function actualizarMiembro(
     .eq("id", id);
 
   if (error) {
+    if (error.code === "23505") {
+      throw new Error("NOMBRE_DUPLICADO");
+    }
     throw error;
   }
 }

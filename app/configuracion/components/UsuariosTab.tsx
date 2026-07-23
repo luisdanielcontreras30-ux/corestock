@@ -155,7 +155,16 @@ export default function UsuariosTab() {
       await refrescar();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("usuarios.msg_error_guardar_miembro"), "error");
+      // El chequeo de arriba solo ve la lista ya cargada en el
+      // navegador — dos guardados casi simultáneos pueden pasarlo
+      // igual; NOMBRE_DUPLICADO es lo que crearMiembro/actualizarMiembro
+      // lanzan cuando el índice único de la base de datos es quien de
+      // verdad lo bloquea (ver supabase_miembros_nombre_unico.sql).
+      const detalle =
+        error instanceof Error && error.message === "NOMBRE_DUPLICADO"
+          ? t("usuarios.msg_nombre_duplicado")
+          : t("usuarios.msg_error_guardar_miembro");
+      mostrarToast(detalle, "error");
     } finally {
       setGuardando(false);
     }
