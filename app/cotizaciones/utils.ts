@@ -6,9 +6,12 @@ export function exportarExcel(cotizaciones: Cotizacion[]) {
     Fecha: new Date(cotizacion.fecha).toLocaleString(),
     Cliente: cotizacion.cliente_nombre ?? "",
     Producto: cotizacion.producto,
-    Cantidad: cotizacion.cantidad,
-    "Precio unitario": cotizacion.precio_unitario,
-    Total: cotizacion.total,
+    Cantidad: Number(cotizacion.cantidad),
+    // precio_unitario/total son numeric en Postgres — Supabase los
+    // devuelve como string. Sin convertir, json_to_sheet los escribe
+    // como texto en la hoja y =SUMA(...) sobre esa columna da 0.
+    "Precio unitario": Number(cotizacion.precio_unitario),
+    Total: Number(cotizacion.total),
     Estado: cotizacion.estado,
     Nota: cotizacion.nota ?? "",
   }));

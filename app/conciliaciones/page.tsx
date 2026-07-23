@@ -38,6 +38,7 @@ function ConciliacionesContenido() {
   const [tipo, setTipo] = useState<TipoMovimientoConciliacion>("abono");
   const [monto, setMonto] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [alternandoId, setAlternandoId] = useState<number | null>(null);
 
   async function obtenerDatos() {
     setLoading(true);
@@ -108,12 +109,17 @@ function ConciliacionesContenido() {
   }
 
   async function alternar(mov: MovimientoConciliacion) {
+    if (alternandoId !== null) return;
+
     try {
+      setAlternandoId(mov.id);
       await alternarConciliado(mov.id, !mov.conciliado);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
       mostrarToast(t("conciliaciones.msg_error_estado"), "error");
+    } finally {
+      setAlternandoId(null);
     }
   }
 
@@ -258,6 +264,7 @@ function ConciliacionesContenido() {
                   <td>
                     <button
                       onClick={() => alternar(m)}
+                      disabled={alternandoId === m.id}
                       style={{
                         background: m.conciliado ? "rgba(16,185,129,0.12)" : "rgba(148,163,184,0.15)",
                         color: m.conciliado ? "#10b981" : "var(--text-secondary)",
@@ -266,7 +273,8 @@ function ConciliacionesContenido() {
                         padding: "4px 10px",
                         fontSize: 11.5,
                         fontWeight: 700,
-                        cursor: "pointer",
+                        cursor: alternandoId === m.id ? "default" : "pointer",
+                        opacity: alternandoId === m.id ? 0.6 : 1,
                       }}
                     >
                       {m.conciliado ? t("conciliaciones.conciliado") : t("conciliaciones.pendiente")}

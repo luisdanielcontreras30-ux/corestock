@@ -13,9 +13,12 @@ export function exportarExcel(ventas: Venta[]) {
   const datos = ventas.map((venta) => ({
     Fecha: new Date(venta.fecha).toLocaleString(),
     Producto: venta.producto,
-    Cantidad: venta.cantidad,
-    Precio: venta.precio,
-    Total: venta.total,
+    Cantidad: Number(venta.cantidad),
+    // precio/total son numeric en Postgres — Supabase los devuelve como
+    // string. Sin convertir, json_to_sheet los escribe como texto en la
+    // hoja y =SUMA(...) sobre esa columna da 0 en vez del total real.
+    Precio: Number(venta.precio),
+    Total: Number(venta.total),
     "Metodo de pago": venta.metodo_pago ?? "efectivo",
   }));
 

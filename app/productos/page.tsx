@@ -532,8 +532,11 @@ function ProductosInterno() {
     const datos = filtrados.map((p) => ({
       nombre: p.nombre,
       categoria: p.categoria,
-      precio_venta: p.precio_venta,
-      ...(puede("ver_ganancias") ? { costo: p.costo ?? 0 } : {}),
+      // precio_venta/costo son numeric en Postgres — Supabase los
+      // devuelve como string. Sin convertir, json_to_sheet los escribe
+      // como texto en la hoja y =SUMA(...) sobre esa columna da 0.
+      precio_venta: Number(p.precio_venta),
+      ...(puede("ver_ganancias") ? { costo: Number(p.costo ?? 0) } : {}),
       stock: p.stock,
       stock_minimo: p.stock_minimo ?? 5,
     }));

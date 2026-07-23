@@ -47,6 +47,7 @@ function PromocionesContenido() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [alternandoId, setAlternandoId] = useState<number | null>(null);
 
   async function obtenerDatos() {
     setLoading(true);
@@ -128,12 +129,17 @@ function PromocionesContenido() {
   }
 
   async function alternar(promo: Promocion) {
+    if (alternandoId !== null) return;
+
     try {
+      setAlternandoId(promo.id);
       await alternarActivaPromocion(promo.id, !promo.activa);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
       mostrarToast(t("promociones.msg_error_estado"), "error");
+    } finally {
+      setAlternandoId(null);
     }
   }
 
@@ -294,6 +300,7 @@ function PromocionesContenido() {
                   <td>
                     <button
                       onClick={() => alternar(promo)}
+                      disabled={alternandoId === promo.id}
                       style={{
                         background: promo.activa ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)",
                         color: promo.activa ? "#10b981" : "#ef4444",
@@ -302,7 +309,8 @@ function PromocionesContenido() {
                         padding: "4px 10px",
                         fontSize: 11.5,
                         fontWeight: 700,
-                        cursor: "pointer",
+                        cursor: alternandoId === promo.id ? "default" : "pointer",
+                        opacity: alternandoId === promo.id ? 0.6 : 1,
                       }}
                     >
                       {promo.activa ? t("usuarios.activo") : t("usuarios.inactivo")}

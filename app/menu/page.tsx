@@ -391,13 +391,13 @@ export default function DashboardPremium() {
         for (let i = 6; i >= 0; i--) {
           const d = new Date();
           d.setDate(ahora.getDate() - i);
-          const label = d.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+          const label = d.toLocaleDateString(LOCALES[idioma], { day: "numeric", month: "short" });
           mapaDias[label] = 0;
         }
 
         ventasTipadas.forEach((v) => {
           const f = new Date(v.fecha);
-          const label = f.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+          const label = f.toLocaleDateString(LOCALES[idioma], { day: "numeric", month: "short" });
           if (mapaDias[label] !== undefined) {
             mapaDias[label] += Number(v.total);
           }

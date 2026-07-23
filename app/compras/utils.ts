@@ -6,9 +6,13 @@ export function exportarExcel(compras: Compra[]) {
     Fecha: new Date(compra.fecha).toLocaleString(),
     Producto: compra.producto,
     Proveedor: compra.proveedor_nombre ?? "",
-    Cantidad: compra.cantidad,
-    "Costo unitario": compra.costo_unitario,
-    Total: compra.total,
+    Cantidad: Number(compra.cantidad),
+    // costo_unitario/total son numeric en Postgres — Supabase los
+    // devuelve como string. Sin convertir, json_to_sheet los escribe
+    // como texto en la hoja (alineados a la izquierda) y =SUMA(...)
+    // sobre esa columna da 0 en vez del total real.
+    "Costo unitario": Number(compra.costo_unitario),
+    Total: Number(compra.total),
     Nota: compra.nota ?? "",
   }));
 
