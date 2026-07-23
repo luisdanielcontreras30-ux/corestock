@@ -75,7 +75,12 @@ export default function CuentasPorCobrarPage() {
         ventas: [],
       };
 
-      actual.totalPendiente += venta.total;
+      // ventas.total es numeric en Postgres — PostgREST lo devuelve como
+      // string, no como number (a pesar de lo que dice VentaFiada). Sumar
+      // sin convertir concatenaba texto en vez de sumar ("0" + "150.00"),
+      // mismo motivo por el que el resto del código ya envuelve esto en
+      // Number(...) antes de acumular (ver Caja, Asistente, etc.).
+      actual.totalPendiente += Number(venta.total);
       actual.ventas.push(venta);
       porCliente.set(clave, actual);
     }
@@ -83,7 +88,7 @@ export default function CuentasPorCobrarPage() {
     return Array.from(porCliente.values()).sort((a, b) => b.totalPendiente - a.totalPendiente);
   }, [ventas, t]);
 
-  const totalPendiente = useMemo(() => ventas.reduce((acc, v) => acc + v.total, 0), [ventas]);
+  const totalPendiente = useMemo(() => ventas.reduce((acc, v) => acc + Number(v.total), 0), [ventas]);
 
   async function cobrar(venta: VentaFiada) {
     if (cobrando !== null || !puedeCobrar) return;
