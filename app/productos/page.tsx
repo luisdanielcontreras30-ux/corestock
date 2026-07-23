@@ -505,7 +505,8 @@ function ProductosInterno() {
     const mapa = new Map<string, typeof filtrados>();
 
     for (const p of filtrados) {
-      const etiqueta = p.categoria?.trim() ? p.categoria : sinCategoria;
+      const categoriaLimpia = p.categoria?.trim();
+      const etiqueta = categoriaLimpia ? categoriaLimpia : sinCategoria;
       const lista = mapa.get(etiqueta);
       if (lista) {
         lista.push(p);

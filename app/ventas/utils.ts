@@ -83,8 +83,13 @@ export function agruparPorFecha<T>(
   const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
   const inicioAyer = new Date(inicioHoy);
   inicioAyer.setDate(inicioAyer.getDate() - 1);
+  // "Hoy" y "Ayer" ya se separan en sus propios grupos — para que
+  // "Últimos 7 días" represente de verdad los últimos 7 días
+  // calendario (contando hoy), el corte va 6 días atrás, no 7. Con 7
+  // el rango combinado (hoy + ayer + este grupo) terminaba cubriendo 8
+  // días en vez de 7.
   const inicioUltimos7Dias = new Date(inicioHoy);
-  inicioUltimos7Dias.setDate(inicioUltimos7Dias.getDate() - 7);
+  inicioUltimos7Dias.setDate(inicioUltimos7Dias.getDate() - 6);
 
   const grupos: GrupoFecha<T>[] = [
     { etiqueta: etiquetas.hoy, items: [] },
