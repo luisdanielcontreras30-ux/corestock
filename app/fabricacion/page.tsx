@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Factory, Trash2, PackagePlus, Plus, ArrowRight, Package } from "lucide-react";
+import { Factory, Trash2, PackagePlus, Plus, ArrowRight, Package, Calculator, X } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -71,6 +71,19 @@ function FabricacionContenido() {
   const [productoProducirId, setProductoProducirId] = useState("");
   const [cantidadAProducir, setCantidadAProducir] = useState("");
   const [produciendo, setProduciendo] = useState(false);
+
+  // Cotización de costos (calculadora en pantalla — no se guarda en la
+  // base de datos, solo ayuda a decidir un precio con lo que ya se
+  // tiene cargado de materias primas/recetas).
+  const [modoCotizacion, setModoCotizacion] = useState<"producto" | "manual">("producto");
+  const [productoCotizacionId, setProductoCotizacionId] = useState("");
+  const [materialesManualCotizacion, setMaterialesManualCotizacion] = useState<
+    { materiaPrimaId: number; cantidad: number }[]
+  >([]);
+  const [materiaManualId, setMateriaManualId] = useState("");
+  const [cantidadManualCotizacion, setCantidadManualCotizacion] = useState("");
+  const [incluirManoObra, setIncluirManoObra] = useState(false);
+  const [costoManoObraCotizacion, setCostoManoObraCotizacion] = useState("");
 
   async function obtenerDatos() {
     setLoading(true);
@@ -226,6 +239,72 @@ function FabricacionContenido() {
   const productosConReceta = productos.filter((p) =>
     recetas.some((r) => r.producto_id === p.id)
   );
+
+  // Cotización de costos: en modo "producto" reusa la receta ya
+  // guardada; en modo "manual" arma el costo con la lista que se va
+  // agregando en pantalla — ninguno de los dos casos toca la base de
+  // datos, es solo una calculadora.
+  const materialesCotizacion: { materiaPrimaId: number; cantidad: number }[] =
+    modoCotizacion === "producto"
+      ? recetas
+          .filter((r) => r.producto_id === Number(productoCotizacionId))
+          .map((r) => ({ materiaPrimaId: r.materia_prima_id, cantidad: r.cantidad_por_unidad }))
+      : materialesManualCotizacion;
+
+  const costoMaterialesCotizacion = materialesCotizacion.reduce((suma, m) => {
+    const materiaPrima = materiasPrimas.find((mp) => mp.id === m.materiaPrimaId);
+    return suma + m.cantidad * (materiaPrima?.costo_unitario ?? 0);
+  }, 0);
+
+  const costoManoObraNum = incluirManoObra ? Number(costoManoObraCotizacion) || 0 : 0;
+  const costoTotalCotizacion = costoMaterialesCotizacion + costoManoObraNum;
+
+  const productoCotizacionSeleccionado = productos.find(
+    (p) => p.id === Number(productoCotizacionId)
+  );
+
+  // Sugerencia de referencia: costo + un margen orientativo (40%), y si
+  // ya hay un precio de venta cargado, nunca por debajo de ese precio
+  // actual + 15% — para que siempre se vea como una subida sugerida,
+  // no un número que podría quedar más bajo que lo que ya cobra hoy.
+  const precioActualCotizacion = productoCotizacionSeleccionado?.precio_venta ?? 0;
+  const precioSugeridoCotizacion =
+    costoTotalCotizacion > 0
+      ? Math.max(costoTotalCotizacion * 1.4, precioActualCotizacion * 1.15)
+      : 0;
+
+  function agregarMaterialManual() {
+    const materiaPrima = materiasPrimas.find((m) => m.id === Number(materiaManualId));
+    const cantidad = Number(cantidadManualCotizacion);
+
+    if (!materiaPrima) {
+      mostrarToast(t("fabricacion.msg_falta_seleccion"), "error");
+      return;
+    }
+
+    if (!Number.isFinite(cantidad) || cantidad <= 0) {
+      mostrarToast(t("fabricacion.msg_cantidad_invalida"), "error");
+      return;
+    }
+
+    if (materialesManualCotizacion.some((m) => m.materiaPrimaId === materiaPrima.id)) {
+      mostrarToast(t("fabricacion.cotizacion_material_duplicado"), "error");
+      return;
+    }
+
+    setMaterialesManualCotizacion((anteriores) => [
+      ...anteriores,
+      { materiaPrimaId: materiaPrima.id, cantidad },
+    ]);
+    setMateriaManualId("");
+    setCantidadManualCotizacion("");
+  }
+
+  function quitarMaterialManual(materiaPrimaId: number) {
+    setMaterialesManualCotizacion((anteriores) =>
+      anteriores.filter((m) => m.materiaPrimaId !== materiaPrimaId)
+    );
+  }
 
   const ingredientesAProducir = recetas.filter(
     (r) => r.producto_id === Number(productoProducirId)
@@ -614,6 +693,204 @@ function FabricacionContenido() {
               </button>
             </div>
           </>
+        )}
+      </div>
+
+      {/* COTIZACIÓN DE COSTOS */}
+      <div className="card">
+        <h2 style={{ marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+          <Calculator size={18} /> {t("fabricacion.cotizacion")}
+        </h2>
+        <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 16 }}>
+          {t("fabricacion.cotizacion_desc")}
+        </p>
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className={modoCotizacion === "producto" ? "btn-primary" : "btn-secondary"}
+            onClick={() => setModoCotizacion("producto")}
+          >
+            {t("fabricacion.cotizacion_modo_producto")}
+          </button>
+          <button
+            type="button"
+            className={modoCotizacion === "manual" ? "btn-primary" : "btn-secondary"}
+            onClick={() => setModoCotizacion("manual")}
+          >
+            {t("fabricacion.cotizacion_modo_manual")}
+          </button>
+        </div>
+
+        {modoCotizacion === "producto" ? (
+          <SelectorPersonalizado value={productoCotizacionId} onChange={setProductoCotizacionId}>
+            <OpcionSelector value="">{t("fabricacion.selecciona_producto_con_receta")}</OpcionSelector>
+            {productosConReceta.map((p) => (
+              <OpcionSelector key={p.id} value={p.id}>
+                {p.nombre}
+              </OpcionSelector>
+            ))}
+          </SelectorPersonalizado>
+        ) : (
+          <>
+            <div className="productos-grid">
+              <SelectorPersonalizado value={materiaManualId} onChange={setMateriaManualId}>
+                <OpcionSelector value="">{t("fabricacion.selecciona_materia_prima")}</OpcionSelector>
+                {materiasPrimas.map((m) => (
+                  <OpcionSelector key={m.id} value={m.id}>
+                    {m.nombre} ({m.unidad})
+                  </OpcionSelector>
+                ))}
+              </SelectorPersonalizado>
+
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={cantidadManualCotizacion}
+                onChange={(e) => setCantidadManualCotizacion(e.target.value)}
+                placeholder={t("fabricacion.cotizacion_cantidad_placeholder")}
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+              <button type="button" className="btn-secondary" onClick={agregarMaterialManual}>
+                {t("fabricacion.cotizacion_agregar_material")}
+              </button>
+            </div>
+          </>
+        )}
+
+        {modoCotizacion === "manual" && materialesCotizacion.length === 0 && (
+          <p style={{ color: "var(--text-secondary)", fontSize: 13, marginTop: 16 }}>
+            {t("fabricacion.cotizacion_sin_materiales")}
+          </p>
+        )}
+
+        {materialesCotizacion.length > 0 && (
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+            {materialesCotizacion.map((m) => {
+              const materiaPrima = materiasPrimas.find((mp) => mp.id === m.materiaPrimaId);
+              return (
+                <div
+                  key={m.materiaPrimaId}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: 12.5,
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {materiaPrima?.nombre ?? "—"} · {m.cantidad} {materiaPrima?.unidad}
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                    {formatoMoneda(m.cantidad * (materiaPrima?.costo_unitario ?? 0))}
+                    {modoCotizacion === "manual" && (
+                      <button
+                        type="button"
+                        className="btn-delete"
+                        aria-label={t("productos.eliminar")}
+                        onClick={() => quitarMaterialManual(m.materiaPrimaId)}
+                        style={{ width: 22, height: 22, padding: 0, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                      >
+                        <X size={11} />
+                      </button>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, fontSize: 13, cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={incluirManoObra}
+            onChange={(e) => setIncluirManoObra(e.target.checked)}
+            style={{ width: "auto" }}
+          />
+          {t("fabricacion.cotizacion_incluir_mano_obra")}
+        </label>
+
+        {incluirManoObra && (
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={costoManoObraCotizacion}
+            onChange={(e) => setCostoManoObraCotizacion(e.target.value)}
+            placeholder={t("fabricacion.cotizacion_costo_mano_obra_placeholder")}
+            style={{ marginTop: 8 }}
+          />
+        )}
+
+        {costoTotalCotizacion > 0 && (
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "10px 14px",
+                background: "rgba(234, 88, 12, 0.08)",
+                border: "1px solid rgba(234, 88, 12, 0.25)",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              <span>{t("fabricacion.cotizacion_costo_total")}</span>
+              <span>{formatoMoneda(costoTotalCotizacion)}</span>
+            </div>
+
+            {modoCotizacion === "producto" && precioActualCotizacion > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "0 14px",
+                  fontSize: 13,
+                }}
+              >
+                <span style={{ color: "var(--text-secondary)" }}>{t("fabricacion.cotizacion_precio_actual")}</span>
+                <span>{formatoMoneda(precioActualCotizacion)}</span>
+              </div>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                padding: "10px 14px",
+                background: "rgba(234, 88, 12, 0.12)",
+                border: "1px solid rgba(234, 88, 12, 0.4)",
+                borderRadius: 10,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#ea580c",
+                }}
+              >
+                <span>{t("fabricacion.cotizacion_precio_sugerido")}</span>
+                <span>{formatoMoneda(precioSugeridoCotizacion)}</span>
+              </div>
+              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                {t("fabricacion.cotizacion_precio_sugerido_nota")}
+              </span>
+            </div>
+          </div>
         )}
       </div>
 

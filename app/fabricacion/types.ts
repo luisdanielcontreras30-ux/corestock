@@ -2,6 +2,7 @@ export interface Producto {
   id: number;
   nombre: string;
   stock: number;
+  precio_venta: number;
 }
 
 export interface MateriaPrima {
