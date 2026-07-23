@@ -246,10 +246,27 @@ function FabricacionContenido() {
   // datos, es solo una calculadora.
   const materialesCotizacion: { materiaPrimaId: number; cantidad: number }[] =
     modoCotizacion === "producto"
-      ? recetas
-          .filter((r) => r.producto_id === Number(productoCotizacionId))
-          .map((r) => ({ materiaPrimaId: r.materia_prima_id, cantidad: r.cantidad_por_unidad }))
-      : materialesManualCotizacion;
+      ? // Suma por materia prima en vez de mapear directo — una receta
+        // guardada antes de que existiera el chequeo de duplicados en
+        // "Agregar a la receta" puede tener dos filas de la misma
+        // materia prima; sin sumarlas, la clave de React repetida hacía
+        // que solo se viera una fila mientras el total sí contaba las
+        // dos, y la lista no cuadraba con el costo mostrado.
+        Array.from(
+          recetas
+            .filter((r) => r.producto_id === Number(productoCotizacionId))
+            .reduce((mapa, r) => {
+              mapa.set(r.materia_prima_id, (mapa.get(r.materia_prima_id) ?? 0) + r.cantidad_por_unidad);
+              return mapa;
+            }, new Map<number, number>()),
+          ([materiaPrimaId, cantidad]) => ({ materiaPrimaId, cantidad })
+        )
+      : // Si una materia prima de la lista manual se borra en la sección
+        // de arriba mientras esta cotización sigue abierta, se filtra en
+        // vez de mostrarse como una fila rota con costo en $0.
+        materialesManualCotizacion.filter((m) =>
+          materiasPrimas.some((mp) => mp.id === m.materiaPrimaId)
+        );
 
   const costoMaterialesCotizacion = materialesCotizacion.reduce((suma, m) => {
     const materiaPrima = materiasPrimas.find((mp) => mp.id === m.materiaPrimaId);
@@ -293,15 +310,26 @@ function FabricacionContenido() {
       return;
     }
 
-    if (materialesManualCotizacion.some((m) => m.materiaPrimaId === materiaPrima.id)) {
+    // El chequeo de duplicado se repite dentro del actualizador de
+    // estado (no solo contra la variable de arriba) — un doble clic
+    // rápido dispara dos llamadas a esta función antes de que React
+    // vuelva a renderizar, y ambas leerían la misma lista "vieja" sin
+    // el material todavía agregado, dejando pasar la misma materia
+    // prima dos veces.
+    let duplicado = false;
+    setMaterialesManualCotizacion((anteriores) => {
+      if (anteriores.some((m) => m.materiaPrimaId === materiaPrima.id)) {
+        duplicado = true;
+        return anteriores;
+      }
+      return [...anteriores, { materiaPrimaId: materiaPrima.id, cantidad }];
+    });
+
+    if (duplicado) {
       mostrarToast(t("fabricacion.cotizacion_material_duplicado"), "error");
       return;
     }
 
-    setMaterialesManualCotizacion((anteriores) => [
-      ...anteriores,
-      { materiaPrimaId: materiaPrima.id, cantidad },
-    ]);
     setMateriaManualId("");
     setCantidadManualCotizacion("");
   }
