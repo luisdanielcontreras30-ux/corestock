@@ -171,10 +171,17 @@ export default function SelectorPersonalizado({
   useEffect(() => {
     if (!abierto) return;
     // Con el panel en un portal, su posición se calcula una sola vez al
-    // abrir (ver abrir()) — si la página se desplaza o cambia de
-    // tamaño mientras está abierto, cerrarlo es más simple y seguro
-    // que perseguir al botón con un recálculo continuo.
-    function cerrarPorScrollOResize() {
+    // abrir (ver abrir()) — si la PÁGINA se desplaza mientras está
+    // abierto, cerrarlo es más simple y seguro que perseguir al botón
+    // con un recálculo continuo. Pero "scroll" no burbujea — un
+    // listener en window con capture:true también recibe el scroll
+    // interno de la propia lista de opciones (.selector-personalizado-
+    // lista, que se desplaza con la rueda del mouse para ver más
+    // opciones), así que sin este chequeo, cualquier scroll DENTRO del
+    // panel también lo cerraba de inmediato en vez de dejar navegar la
+    // lista.
+    function cerrarPorScrollOResize(e: Event) {
+      if (e.type === "scroll" && panelRef.current?.contains(e.target as Node)) return;
       setAbierto(false);
     }
     window.addEventListener("scroll", cerrarPorScrollOResize, true);
