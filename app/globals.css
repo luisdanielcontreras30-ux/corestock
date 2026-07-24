@@ -5586,7 +5586,11 @@ select optgroup {
 
 .fabricacion-panel-produccion {
   display: grid;
-  grid-template-columns: 1fr 1.3fr 1fr 1fr;
+  /* minmax(0, ...) en vez de solo "1fr" — mismo patrón que
+     .productos-grid — evita que el ancho mínimo de contenido de una
+     columna (texto largo) fuerce la pista del grid más ancha que su
+     fracción. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -5852,13 +5856,17 @@ select optgroup {
 
 .fabricacion-insignia {
   display: inline-block;
-  width: fit-content;
+  max-width: 100%;
   font-size: 10.5px;
   font-weight: 600;
   color: #ea580c;
   background: rgba(234, 88, 12, 0.12);
   border-radius: 999px;
   padding: 2px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .fabricacion-punto-activo {

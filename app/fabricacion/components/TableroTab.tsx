@@ -65,7 +65,11 @@ export default function TableroTab({ productos, materiasPrimas, recetas, producc
 
   const productoSeleccionado = productos.find((p) => p.id === Number(productoProducirId));
   const ingredientesAProducir = recetas.filter((r) => r.producto_id === Number(productoProducirId));
-  const cantidadProducirNum = Number(cantidadAProducir) || 0;
+  // Math.max(0, ...) — el input tiene min="1" pero eso no bloquea
+  // escribir "-5" a mano; sin el clamp, "necesario" salía negativo y
+  // la tabla de ingredientes mostraba ✓ (negativo siempre es menor
+  // que el disponible) con cantidades sin sentido.
+  const cantidadProducirNum = Math.max(0, Number(cantidadAProducir) || 0);
 
   const costoTotalProduccion = ingredientesAProducir.reduce((suma, ing) => {
     const materiaPrima = materiasPrimas.find((m) => m.id === ing.materia_prima_id);
