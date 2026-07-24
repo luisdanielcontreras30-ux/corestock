@@ -42,6 +42,7 @@ export default function BienvenidaPage() {
             onChange={(v) => cambiarIdioma(v as Idioma)}
             aria-label={t("idioma.titulo")}
             style={{ width: "auto", maxWidth: 150 }}
+            panelClassName="landing-selector-panel"
           >
             {IDIOMAS_DISPONIBLES.map((op) => (
               <OpcionSelector key={op.valor} value={op.valor}>

@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Search } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
 import { normalizarTexto } from "../lib/normalizarTexto";
@@ -57,6 +58,12 @@ interface SelectorPersonalizadoProps {
   onChange: (valor: string) => void;
   children: ReactNode;
   className?: string;
+  // El panel se renderiza en un portal a document.body (ver abrir()),
+  // así que ya no es descendiente del elemento que recibe "className"
+  // — un override por ancestría CSS (ej. ".landing-nav .selector-...")
+  // ya no le llegaría. Esta prop es para esos casos: se aplica directo
+  // sobre el panel portado.
+  panelClassName?: string;
   style?: CSSProperties;
   disabled?: boolean;
   id?: string;
@@ -68,6 +75,13 @@ interface OpcionInterna {
   etiqueta: ReactNode;
   disabled: boolean;
   grupo?: string;
+}
+
+interface PosicionPanel {
+  left: number;
+  width: number;
+  top?: number;
+  bottom?: number;
 }
 
 // Extrae el texto visible de una opción (que puede combinar strings,
@@ -90,6 +104,7 @@ export default function SelectorPersonalizado({
   onChange,
   children,
   className,
+  panelClassName,
   style,
   disabled,
   id,
@@ -99,8 +114,9 @@ export default function SelectorPersonalizado({
   const [abierto, setAbierto] = useState(false);
   const [resaltado, setResaltado] = useState(0);
   const [busqueda, setBusqueda] = useState("");
-  const [abrirHaciaArriba, setAbrirHaciaArriba] = useState(false);
+  const [posicion, setPosicion] = useState<PosicionPanel | null>(null);
   const contenedorRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const listaRef = useRef<HTMLUListElement>(null);
   const busquedaRef = useRef<HTMLInputElement>(null);
   const botonRef = useRef<HTMLButtonElement>(null);
@@ -137,13 +153,37 @@ export default function SelectorPersonalizado({
 
   useEffect(() => {
     function alHacerClicFuera(e: MouseEvent) {
-      if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) {
+      const objetivo = e.target as Node;
+      // El panel ahora se renderiza en un portal fuera de contenedorRef
+      // (ver abrir()) — sin este segundo chequeo, cualquier clic dentro
+      // del panel (elegir una opción, escribir en el buscador) se
+      // interpretaba como "clic afuera" y lo cerraba de inmediato.
+      const dentroDelPanel = panelRef.current?.contains(objetivo);
+      const dentroDelBoton = contenedorRef.current?.contains(objetivo);
+      if (!dentroDelBoton && !dentroDelPanel) {
         setAbierto(false);
       }
     }
     document.addEventListener("mousedown", alHacerClicFuera);
     return () => document.removeEventListener("mousedown", alHacerClicFuera);
   }, []);
+
+  useEffect(() => {
+    if (!abierto) return;
+    // Con el panel en un portal, su posición se calcula una sola vez al
+    // abrir (ver abrir()) — si la página se desplaza o cambia de
+    // tamaño mientras está abierto, cerrarlo es más simple y seguro
+    // que perseguir al botón con un recálculo continuo.
+    function cerrarPorScrollOResize() {
+      setAbierto(false);
+    }
+    window.addEventListener("scroll", cerrarPorScrollOResize, true);
+    window.addEventListener("resize", cerrarPorScrollOResize);
+    return () => {
+      window.removeEventListener("scroll", cerrarPorScrollOResize, true);
+      window.removeEventListener("resize", cerrarPorScrollOResize);
+    };
+  }, [abierto]);
 
   useEffect(() => {
     if (!abierto) return;
@@ -168,15 +208,30 @@ export default function SelectorPersonalizado({
     const indiceEnFiltradas = opciones.findIndex((o) => o.valor === value);
     setResaltado(indiceEnFiltradas !== -1 ? indiceEnFiltradas : 0);
 
-    // Si no cabe hacia abajo pero sí hacia arriba, se abre hacia
-    // arriba — sin esto, un selector cerca del borde inferior de una
-    // tarjeta tapaba el encabezado de la tarjeta siguiente en vez de
-    // quedar completamente visible.
     const rect = contenedorRef.current?.getBoundingClientRect();
     if (rect) {
+      // El panel se renderiza en un portal a document.body (ver más
+      // abajo) en vez de como hijo directo de este selector — con
+      // position:absolute normal, cualquier tarjeta que viniera
+      // después en el mismo layout de flexbox de la página (todas las
+      // páginas usan <main style={{display:"flex", flexDirection:
+      // "column"}}>) terminaba pintándose ENCIMA del panel abierto,
+      // aunque su z-index fuera más alto: la spec de flexbox trata a
+      // cada tarjeta como si tuviera su propio contexto de apilamiento,
+      // así que el panel (aunque escapaba visualmente de su tarjeta)
+      // quedaba atrapado detrás de la tarjeta siguiente. Portal +
+      // position:fixed con coordenadas calculadas aquí evita el
+      // problema por completo: el panel deja de ser descendiente de
+      // ninguna tarjeta.
       const espacioAbajo = window.innerHeight - rect.bottom;
       const espacioArriba = rect.top;
-      setAbrirHaciaArriba(espacioAbajo < ALTURA_MAXIMA_PANEL && espacioArriba > espacioAbajo);
+      const abrirHaciaArriba = espacioAbajo < ALTURA_MAXIMA_PANEL && espacioArriba > espacioAbajo;
+
+      setPosicion(
+        abrirHaciaArriba
+          ? { left: rect.left, width: rect.width, bottom: window.innerHeight - rect.top + 6 }
+          : { left: rect.left, width: rect.width, top: rect.bottom + 6 }
+      );
     }
 
     setAbierto(true);
@@ -284,71 +339,82 @@ export default function SelectorPersonalizado({
         />
       </button>
 
-      {abierto && (
-        <div
-          className={`selector-personalizado-panel${abrirHaciaArriba ? " selector-personalizado-panel-arriba" : ""}`}
-        >
-          {mostrarBusqueda && (
-            <div className="selector-personalizado-busqueda-envoltura">
-              <Search size={14} className="selector-personalizado-busqueda-icono" />
-              <input
-                ref={busquedaRef}
-                type="text"
-                className="selector-personalizado-busqueda"
-                placeholder={t("comun.buscar")}
-                value={busqueda}
-                onChange={(e) => {
-                  // Al escribir, la opción resaltada anterior puede ya
-                  // no estar visible — sin este ajuste, Enter podía
-                  // "elegir" una opción que ni siquiera se veía.
-                  setBusqueda(e.target.value);
-                  setResaltado(0);
-                }}
-                onKeyDown={alPresionarTeclaBusqueda}
-              />
-            </div>
-          )}
-
-          <ul className="selector-personalizado-lista" role="listbox" ref={listaRef}>
-            {opcionesFiltradas.length === 0 ? (
-              <li className="selector-personalizado-sin-resultados">
-                {t("comun.sin_resultados")}
-              </li>
-            ) : (
-              opcionesFiltradas.map((opcion, i) => {
-                const mostrarEncabezado = opcion.grupo !== undefined && opcion.grupo !== grupoAnterior;
-                grupoAnterior = opcion.grupo;
-
-                return (
-                  <Fragment key={opcion.valor}>
-                    {mostrarEncabezado && (
-                      <li className="selector-personalizado-grupo" role="presentation">
-                        {opcion.grupo}
-                      </li>
-                    )}
-                    <li
-                      role="option"
-                      aria-selected={opcion.valor === value}
-                      className={[
-                        "selector-personalizado-opcion",
-                        opcion.valor === value ? "selector-personalizado-opcion-activa" : "",
-                        opcion.disabled ? "selector-personalizado-opcion-deshabilitada" : "",
-                        i === resaltado ? "selector-personalizado-opcion-resaltada" : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      onMouseEnter={() => setResaltado(i)}
-                      onClick={() => elegir(opcion)}
-                    >
-                      {opcion.etiqueta}
-                    </li>
-                  </Fragment>
-                );
-              })
+      {abierto &&
+        posicion &&
+        createPortal(
+          <div
+            ref={panelRef}
+            className={`selector-personalizado-panel${panelClassName ? ` ${panelClassName}` : ""}`}
+            style={{
+              position: "fixed",
+              left: posicion.left,
+              width: posicion.width,
+              top: posicion.top,
+              bottom: posicion.bottom,
+            }}
+          >
+            {mostrarBusqueda && (
+              <div className="selector-personalizado-busqueda-envoltura">
+                <Search size={14} className="selector-personalizado-busqueda-icono" />
+                <input
+                  ref={busquedaRef}
+                  type="text"
+                  className="selector-personalizado-busqueda"
+                  placeholder={t("comun.buscar")}
+                  value={busqueda}
+                  onChange={(e) => {
+                    // Al escribir, la opción resaltada anterior puede ya
+                    // no estar visible — sin este ajuste, Enter podía
+                    // "elegir" una opción que ni siquiera se veía.
+                    setBusqueda(e.target.value);
+                    setResaltado(0);
+                  }}
+                  onKeyDown={alPresionarTeclaBusqueda}
+                />
+              </div>
             )}
-          </ul>
-        </div>
-      )}
+
+            <ul className="selector-personalizado-lista" role="listbox" ref={listaRef}>
+              {opcionesFiltradas.length === 0 ? (
+                <li className="selector-personalizado-sin-resultados">
+                  {t("comun.sin_resultados")}
+                </li>
+              ) : (
+                opcionesFiltradas.map((opcion, i) => {
+                  const mostrarEncabezado = opcion.grupo !== undefined && opcion.grupo !== grupoAnterior;
+                  grupoAnterior = opcion.grupo;
+
+                  return (
+                    <Fragment key={opcion.valor}>
+                      {mostrarEncabezado && (
+                        <li className="selector-personalizado-grupo" role="presentation">
+                          {opcion.grupo}
+                        </li>
+                      )}
+                      <li
+                        role="option"
+                        aria-selected={opcion.valor === value}
+                        className={[
+                          "selector-personalizado-opcion",
+                          opcion.valor === value ? "selector-personalizado-opcion-activa" : "",
+                          opcion.disabled ? "selector-personalizado-opcion-deshabilitada" : "",
+                          i === resaltado ? "selector-personalizado-opcion-resaltada" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        onMouseEnter={() => setResaltado(i)}
+                        onClick={() => elegir(opcion)}
+                      >
+                        {opcion.etiqueta}
+                      </li>
+                    </Fragment>
+                  );
+                })
+              )}
+            </ul>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

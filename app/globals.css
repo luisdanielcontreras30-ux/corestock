@@ -634,11 +634,15 @@ select optgroup {
 }
 
 .selector-personalizado-panel {
-  position: absolute;
-  z-index: 40;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
+  /* position/top/bottom/left/width los pone SelectorPersonalizado.tsx
+     inline (position: fixed) — se renderiza en un portal a document.body
+     en vez de como hijo de la tarjeta, así ninguna tarjeta que venga
+     después en el <main style="display:flex"> de la página puede
+     pintarse encima (ver el comentario en abrir() del componente). Por
+     eso necesita más z-index que cualquier modal/overlay de la app
+     (el más alto es 800, el de "elegir modo" en el registro).
+  */
+  z-index: 1200;
   max-height: 320px;
   display: flex;
   flex-direction: column;
@@ -648,14 +652,6 @@ select optgroup {
   box-shadow: var(--shadow-lg);
   animation: overlayFade 0.15s ease;
   overflow: hidden;
-}
-
-/* Cuando no cabe hacia abajo (selector cerca del borde inferior de una
-   tarjeta), se abre hacia arriba en vez de taparle el contenido a lo
-   que sigue en la página. */
-.selector-personalizado-panel-arriba {
-  top: auto;
-  bottom: calc(100% + 6px);
 }
 
 .selector-personalizado-busqueda-envoltura {
@@ -2817,20 +2813,24 @@ select optgroup {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.landing-nav .selector-personalizado-panel {
+/* El panel de este selector se renderiza en un portal a document.body
+   (ver components/SelectorPersonalizado.tsx), así que ya no es
+   descendiente de .landing-nav — usa panelClassName="landing-selector-panel"
+   en vez de depender de la ancestría del DOM. */
+.landing-selector-panel {
   background: #14163a;
   border-color: rgba(255, 255, 255, 0.14);
 }
 
-.landing-nav .selector-personalizado-opcion {
+.landing-selector-panel .selector-personalizado-opcion {
   color: #fff;
 }
 
-.landing-nav .selector-personalizado-opcion-resaltada {
+.landing-selector-panel .selector-personalizado-opcion-resaltada {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.landing-nav .selector-personalizado-opcion-activa {
+.landing-selector-panel .selector-personalizado-opcion-activa {
   background: rgba(124, 108, 255, 0.25);
   color: #fff;
 }
