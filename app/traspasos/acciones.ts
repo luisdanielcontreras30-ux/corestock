@@ -220,6 +220,13 @@ export async function realizarTraspaso(
     await ajustarStockUbicacion(negocioId, producto.id, origenId, -cantidad);
   }
 
+  // Si el paso 2 (sumar al destino) llega a aplicarse y el paso 3
+  // (bitácora) es el que falla, el catch de abajo debe revertir TANTO el
+  // origen como el destino — antes solo revertía el origen sin importar
+  // en qué paso había fallado, dejando el destino con el stock ya sumado
+  // Y el origen restaurado: la cantidad quedaba duplicada de la nada.
+  let destinoAplicado = false;
+
   try {
     // Paso 2: sumar al destino.
     if (destinoId === null) {
@@ -247,6 +254,8 @@ export async function realizarTraspaso(
       await ajustarStockUbicacion(negocioId, producto.id, destinoId, cantidad);
     }
 
+    destinoAplicado = true;
+
     // Paso 3: bitácora.
     const { error: errorTraspaso } = await supabase.from("traspasos").insert({
       producto_id: producto.id,
@@ -262,10 +271,10 @@ export async function realizarTraspaso(
 
     if (errorTraspaso) throw errorTraspaso;
   } catch (error) {
-    // Revertir el paso 1 (mejor esfuerzo) si algo falló después. Con CAS
-    // (sumar de vuelta) en vez de pisar con el stock previo guardado, para
-    // no perder algún otro movimiento concurrente sobre ese mismo producto
-    // mientras este traspaso estaba en curso.
+    // Revertir los pasos que ya se aplicaron (mejor esfuerzo). Con CAS
+    // (sumar/restar de vuelta) en vez de pisar con el stock previo
+    // guardado, para no perder algún otro movimiento concurrente sobre
+    // ese mismo producto mientras este traspaso estaba en curso.
     if (origenId === null) {
       await ajustarStockConCas(producto.id, negocioId, cantidad).catch((errorRevertir) => {
         console.error(
@@ -280,6 +289,24 @@ export async function realizarTraspaso(
           errorRevertir
         );
       });
+    }
+
+    if (destinoAplicado) {
+      if (destinoId === null) {
+        await ajustarStockConCas(producto.id, negocioId, -cantidad).catch((errorRevertir) => {
+          console.error(
+            `No se pudo revertir el stock de producto_id=${producto.id} (destino) tras un fallo en el traspaso. Revisar manualmente.`,
+            errorRevertir
+          );
+        });
+      } else {
+        await ajustarStockUbicacion(negocioId, producto.id, destinoId, -cantidad).catch((errorRevertir) => {
+          console.error(
+            `No se pudo revertir el stock de ubicación (producto_id=${producto.id}, ubicacion_id=${destinoId}) tras un fallo en el traspaso. Revisar manualmente.`,
+            errorRevertir
+          );
+        });
+      }
     }
 
     throw error;

@@ -186,7 +186,7 @@ function ProveedoresContenido() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <EncabezadoModulo
           Icono={Truck}
-          color="#f59e0b"
+          color="#b45309"
           titulo={t("proveedores.titulo")}
           subtitulo={t("proveedores.subtitulo")}
         />

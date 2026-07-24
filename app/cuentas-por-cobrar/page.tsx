@@ -129,7 +129,7 @@ export default function CuentasPorCobrarPage() {
     <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <EncabezadoModulo
         Icono={HandCoins}
-        color="#eab308"
+        color="#facc15"
         titulo={t("sidebar.cuentas_por_cobrar")}
         subtitulo={t("cuentas_por_cobrar.subtitulo")}
       />

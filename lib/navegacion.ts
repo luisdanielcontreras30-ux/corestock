@@ -67,7 +67,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
     items: [
       { claveNombre: "sidebar.productos", href: "/productos", Icono: Package, colorMovil: "#22c55e" },
       { claveNombre: "sidebar.analisis_producto", href: "/analisis-producto", Icono: ScanSearch, colorMovil: "#c026d3" },
-      { claveNombre: "sidebar.proveedores", href: "/proveedores", Icono: Truck, colorMovil: "#f59e0b" },
+      { claveNombre: "sidebar.proveedores", href: "/proveedores", Icono: Truck, colorMovil: "#b45309" },
       { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell, colorMovil: "#ef4444" },
       { claveNombre: "sidebar.ajustes_stock", href: "/ajustes-stock", Icono: SlidersHorizontal, colorMovil: "#0ea5e9" },
       { claveNombre: "sidebar.traspasos", href: "/traspasos", Icono: ArrowRightLeft, colorMovil: "#8b5cf6" },
