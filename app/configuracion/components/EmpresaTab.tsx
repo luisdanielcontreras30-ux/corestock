@@ -227,7 +227,7 @@ export default function EmpresaTab() {
           <input
             value={empresa.direccion}
             onChange={(e) => actualizarCampo("direccion", e.target.value)}
-            placeholder="Calle, número, ciudad"
+            placeholder={t("empresa.direccion_placeholder")}
           />
         </div>
 

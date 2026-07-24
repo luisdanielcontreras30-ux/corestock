@@ -15,6 +15,7 @@ import {
   cargarHistorialCompras,
 } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
+import { normalizarTexto } from "../../lib/normalizarTexto";
 
 import {
   ClienteConResumen,
@@ -161,7 +162,7 @@ export default function ClientesPage() {
   }
 
   const clientesFiltrados = useMemo(
-    () => clientes.filter((c) => c.nombre.toLowerCase().includes(busqueda.toLowerCase())),
+    () => clientes.filter((c) => normalizarTexto(c.nombre).includes(normalizarTexto(busqueda))),
     [clientes, busqueda]
   );
 

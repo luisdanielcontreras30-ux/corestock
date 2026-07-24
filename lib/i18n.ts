@@ -310,6 +310,7 @@ export const TRADUCCIONES: Diccionario = {
   "empresa.correo": { es: "Correo electrónico", en: "Email", pt: "E-mail", fr: "E-mail", de: "E-Mail", zh: "电子邮箱", it: "Email" },
   "empresa.rfc": { es: "RFC / NIF", en: "Tax ID", pt: "CNPJ / CPF", fr: "Numéro fiscal", de: "Steuernummer", zh: "税号", it: "Partita IVA / Codice fiscale" },
   "empresa.rfc_placeholder": { es: "Según tu país", en: "Depends on your country", pt: "Depende do seu país", fr: "Selon votre pays", de: "Je nach Land", zh: "视您所在国家而定", it: "Secondo il tuo paese" },
+  "empresa.direccion_placeholder": { es: "Calle, número, ciudad", en: "Street, number, city", pt: "Rua, número, cidade", fr: "Rue, numéro, ville", de: "Straße, Hausnummer, Stadt", zh: "街道、门牌号、城市", it: "Via, numero, città" },
   "empresa.moneda": { es: "Moneda", en: "Currency", pt: "Moeda", fr: "Devise", de: "Währung", zh: "货币", it: "Valuta" },
   "empresa.zona_horaria": { es: "Zona horaria", en: "Time zone", pt: "Fuso horário", fr: "Fuseau horaire", de: "Zeitzone", zh: "时区", it: "Fuso orario" },
   "empresa.idioma_negocio": { es: "Idioma", en: "Language", pt: "Idioma", fr: "Langue", de: "Sprache", zh: "语言", it: "Lingua" },

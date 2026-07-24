@@ -8,6 +8,7 @@ import { subirImagenSegura } from "../../lib/uploads";
 import { redimensionarParaSubir } from "../../lib/imagenes";
 import { analizarProductoConIA, ErrorAnalisisIA } from "../../lib/iaAcciones";
 import { mensajeErrorSeguro } from "../../lib/errores";
+import { normalizarTexto } from "../../lib/normalizarTexto";
 import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
 import { ImagePlus, Package, Plus, Sparkles } from "lucide-react";
@@ -491,7 +492,7 @@ function ProductosInterno() {
     () =>
       productos.filter(
         (p) =>
-          (p.nombre ?? "").toLowerCase().includes(busqueda.toLowerCase()) &&
+          normalizarTexto(p.nombre ?? "").includes(normalizarTexto(busqueda)) &&
           (filtroCategoria === "" || p.categoria === filtroCategoria)
       ),
     [productos, busqueda, filtroCategoria]

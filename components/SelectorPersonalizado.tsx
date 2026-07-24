@@ -13,6 +13,7 @@ import {
 } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
+import { normalizarTexto } from "../lib/normalizarTexto";
 
 // En Android, un <select> nativo sin "size" abre el picker propio del
 // sistema operativo en vez de un dropdown dentro de la página — ese
@@ -113,13 +114,16 @@ export default function SelectorPersonalizado({
 
   const mostrarBusqueda = opciones.length > UMBRAL_BUSQUEDA;
 
-  const terminoBusqueda = busqueda.trim().toLowerCase();
+  // normalizarTexto ignora acentos — sin esto, buscar "cafe" no
+  // encontraba "Café" (muy común al escribir rápido o desde un
+  // teclado que no pone tildes fácil).
+  const terminoBusqueda = normalizarTexto(busqueda.trim());
   const opcionesFiltradas =
     mostrarBusqueda && terminoBusqueda
       ? opciones.filter(
           (o) =>
-            textoPlano(o.etiqueta).toLowerCase().includes(terminoBusqueda) ||
-            (o.grupo ?? "").toLowerCase().includes(terminoBusqueda)
+            normalizarTexto(textoPlano(o.etiqueta)).includes(terminoBusqueda) ||
+            normalizarTexto(o.grupo ?? "").includes(terminoBusqueda)
         )
       : opciones;
 

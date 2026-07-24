@@ -932,7 +932,7 @@ export default function DashboardPremium() {
                       <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>{venta.cantidad} {t("tabla.unidades_abrev")}</td>
                       <td style={{ padding: "14px 8px", fontWeight: "600", color: "#10b981" }}>{formatoMoneda(Number(venta.total))}</td>
                       <td style={{ padding: "14px 8px", color: "var(--text-secondary)" }}>
-                        {new Date(venta.fecha).toLocaleDateString("es-MX", { day: "numeric", month: "numeric" })}
+                        {new Date(venta.fecha).toLocaleDateString(LOCALES[idioma], { day: "numeric", month: "numeric" })}
                       </td>
                     </tr>
                   ))
