@@ -11,6 +11,13 @@
 -- No se otorga ningún permiso de lectura directo sobre "productos" ni
 -- "empresa_config" a usuarios anónimos: todo pasa por esta función,
 -- que decide qué columnas devolver.
+--
+-- IMPORTANTE: supabase_productos_descripcion.sql vuelve a definir esta
+-- misma función más abajo en el tiempo, agregando la columna de salida
+-- "producto_descripcion" (que app/catalogo/[userId]/acciones.ts ya
+-- espera recibir). En un proyecto de Supabase nuevo, corre ESTE
+-- archivo primero y luego ese, en ese orden — si solo se corre este,
+-- el catálogo público funciona pero nunca muestra descripción.
 
 alter table empresa_config add column if not exists catalogo_activo boolean not null default false;
 

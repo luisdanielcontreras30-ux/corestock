@@ -26,6 +26,14 @@ export default function RestablecerContrasena() {
 
   async function alEnviar(e: React.FormEvent) {
     e.preventDefault();
+
+    // El botón se deshabilita con "guardando", pero los campos de
+    // contraseña no — Enter dos veces rápido dentro de un input
+    // dispara este mismo onSubmit antes de que el primer
+    // setGuardando(true) alcance a re-renderizar (mismo bug ya
+    // corregido en app/login/page.tsx).
+    if (guardando) return;
+
     setError("");
 
     if (password.length < 6) {
