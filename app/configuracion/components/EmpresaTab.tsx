@@ -68,20 +68,29 @@ export default function EmpresaTab() {
     setSubiendoLogo(true);
     setMensaje(null);
 
-    const archivoParaSubir = await redimensionarParaSubir(archivo);
-    const { url, error } = await subirImagenSegura("productos", archivoParaSubir, "logo-");
+    try {
+      const archivoParaSubir = await redimensionarParaSubir(archivo);
+      const { url, error } = await subirImagenSegura("productos", archivoParaSubir, "logo-");
 
-    if (error === "tipo_invalido") {
-      setMensaje({ tipo: "error", texto: t("empresa.msg_logo_tipo_invalido") });
-    } else if (error === "muy_grande") {
-      setMensaje({ tipo: "error", texto: t("empresa.msg_logo_muy_grande") });
-    } else if (error || !url) {
+      if (error === "tipo_invalido") {
+        setMensaje({ tipo: "error", texto: t("empresa.msg_logo_tipo_invalido") });
+      } else if (error === "muy_grande") {
+        setMensaje({ tipo: "error", texto: t("empresa.msg_logo_muy_grande") });
+      } else if (error || !url) {
+        setMensaje({ tipo: "error", texto: t("empresa.msg_error_logo") });
+      } else {
+        actualizarCampo("logo_url", url);
+      }
+    } catch (error) {
+      // Sin este catch, un fallo inesperado (red caída a medio subir,
+      // etc.) dejaba el botón en "Subiendo..." deshabilitado para
+      // siempre, sin ningún mensaje — igual que ya se protege
+      // alGuardar() más abajo en este mismo archivo.
+      console.error(error);
       setMensaje({ tipo: "error", texto: t("empresa.msg_error_logo") });
-    } else {
-      actualizarCampo("logo_url", url);
+    } finally {
+      setSubiendoLogo(false);
     }
-
-    setSubiendoLogo(false);
   }
 
   async function alGuardar() {

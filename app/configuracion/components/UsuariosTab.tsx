@@ -39,6 +39,7 @@ export default function UsuariosTab() {
   const [cargando, setCargando] = useState(true);
   const [editando, setEditando] = useState<Miembro | null>(null);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [alternandoId, setAlternandoId] = useState<string | null>(null);
 
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
@@ -183,12 +184,17 @@ export default function UsuariosTab() {
   }
 
   async function alternarActivo(m: Miembro) {
+    if (alternandoId !== null) return;
+
+    setAlternandoId(m.id);
     try {
       await actualizarMiembro(m.id, { activo: !m.activo });
       await refrescar();
     } catch (error) {
       console.error(error);
       mostrarToast(t("usuarios.msg_error_guardar_miembro"), "error");
+    } finally {
+      setAlternandoId(null);
     }
   }
 
@@ -384,6 +390,7 @@ export default function UsuariosTab() {
                     <td>
                       <button
                         onClick={() => alternarActivo(m)}
+                        disabled={alternandoId !== null}
                         style={{
                           background: m.activo
                             ? "rgba(16,185,129,0.12)"
@@ -394,7 +401,8 @@ export default function UsuariosTab() {
                           padding: "4px 10px",
                           fontSize: 11.5,
                           fontWeight: 700,
-                          cursor: "pointer",
+                          cursor: alternandoId !== null ? "default" : "pointer",
+                          opacity: alternandoId !== null && alternandoId !== m.id ? 0.5 : 1,
                         }}
                       >
                         {m.activo ? t("usuarios.activo") : t("usuarios.inactivo")}

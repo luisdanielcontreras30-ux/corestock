@@ -515,7 +515,10 @@ export default function GraficasPage() {
           {t("graficas.productos_rendimiento")}
         </h2>
         <p style={{ color: "var(--text-secondary)", marginBottom: 20 }}>
-          {t("graficas.desempeno_7dias")}
+          {t("graficas.desempeno_periodo").replace(
+            "{periodo}",
+            t(PERIODOS.find((p) => p.valor === periodo)?.clave ?? "graficas.periodo_semanal")
+          )}
         </p>
 
         {productosRendimiento.length === 0 ? (
