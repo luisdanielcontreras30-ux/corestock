@@ -3,6 +3,7 @@ export interface Producto {
   nombre: string;
   stock: number;
   precio_venta: number;
+  categoria: string | null;
 }
 
 export interface Devolucion {

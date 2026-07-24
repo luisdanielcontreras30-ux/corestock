@@ -633,21 +633,68 @@ select optgroup {
   transition: transform var(--transition-fast);
 }
 
-.selector-personalizado-lista {
+.selector-personalizado-panel {
   position: absolute;
   z-index: 40;
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  max-height: 260px;
-  overflow-y: auto;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
+  animation: overlayFade 0.15s ease;
+  overflow: hidden;
+}
+
+.selector-personalizado-busqueda-envoltura {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.selector-personalizado-busqueda-icono {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.selector-personalizado-busqueda {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 4px 0;
+  font-size: 14.5px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.selector-personalizado-lista {
+  overflow-y: auto;
   padding: 6px;
   list-style: none;
-  animation: overlayFade 0.15s ease;
+}
+
+.selector-personalizado-grupo {
+  padding: 8px 12px 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.selector-personalizado-sin-resultados {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
 }
 
 .selector-personalizado-opcion {
@@ -2762,7 +2809,7 @@ select optgroup {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.landing-nav .selector-personalizado-lista {
+.landing-nav .selector-personalizado-panel {
   background: #14163a;
   border-color: rgba(255, 255, 255, 0.14);
 }

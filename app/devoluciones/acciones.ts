@@ -23,7 +23,7 @@ export async function cargarDatos() {
   ] = await Promise.all([
     supabase
       .from("productos")
-      .select("id, nombre, stock, precio_venta")
+      .select("id, nombre, stock, precio_venta, categoria")
       .eq("activo", true)
       .order("nombre"),
     supabase

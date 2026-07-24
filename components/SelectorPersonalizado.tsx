@@ -3,6 +3,7 @@
 import {
   Children,
   CSSProperties,
+  Fragment,
   KeyboardEvent,
   ReactNode,
   isValidElement,
@@ -10,7 +11,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
+import { useIdioma } from "./LanguageProvider";
 
 // En Android, un <select> nativo sin "size" abre el picker propio del
 // sistema operativo en vez de un dropdown dentro de la página — ese
@@ -22,10 +24,20 @@ import { ChevronDown } from "lucide-react";
 // etiqueta, pero renderiza su propio menú — siempre con la apariencia
 // del resto de la app, en cualquier dispositivo.
 
+// A partir de cuántas opciones vale la pena mostrar la caja de
+// búsqueda — selectores chicos (método de pago, sí/no, idioma) no la
+// necesitan y solo estorbarían.
+const UMBRAL_BUSQUEDA = 8;
+
 interface OpcionSelectorProps {
   value: string | number;
   children: ReactNode;
   disabled?: boolean;
+  // Agrupa visualmente esta opción bajo un encabezado (ej. la
+  // categoría del producto) — opciones consecutivas con el mismo
+  // grupo comparten un solo encabezado. Sin este prop la opción no
+  // lleva encabezado, igual que antes.
+  grupo?: string;
 }
 
 export function OpcionSelector({}: OpcionSelectorProps) {
@@ -50,6 +62,22 @@ interface OpcionInterna {
   valor: string;
   etiqueta: ReactNode;
   disabled: boolean;
+  grupo?: string;
+}
+
+// Extrae el texto visible de una opción (que puede combinar strings,
+// números y traducciones) para poder compararlo contra la búsqueda —
+// cubre los casos reales de uso en la app (texto plano o mezcla de
+// {variable} y texto), no JSX arbitrario con íconos.
+function textoPlano(nodo: ReactNode): string {
+  if (nodo === null || nodo === undefined || typeof nodo === "boolean") return "";
+  if (typeof nodo === "string" || typeof nodo === "number") return String(nodo);
+  if (Array.isArray(nodo)) return nodo.map(textoPlano).join(" ");
+  if (isValidElement(nodo)) {
+    const props = nodo.props as { children?: ReactNode };
+    return textoPlano(props.children);
+  }
+  return "";
 }
 
 export default function SelectorPersonalizado({
@@ -62,17 +90,37 @@ export default function SelectorPersonalizado({
   id,
   ...resto
 }: SelectorPersonalizadoProps) {
+  const { t } = useIdioma();
   const [abierto, setAbierto] = useState(false);
   const [resaltado, setResaltado] = useState(0);
+  const [busqueda, setBusqueda] = useState("");
   const contenedorRef = useRef<HTMLDivElement>(null);
   const listaRef = useRef<HTMLUListElement>(null);
+  const busquedaRef = useRef<HTMLInputElement>(null);
 
   const opciones: OpcionInterna[] = Children.toArray(children)
     .filter(isValidElement)
     .map((child) => {
       const props = child.props as OpcionSelectorProps;
-      return { valor: String(props.value), etiqueta: props.children, disabled: !!props.disabled };
+      return {
+        valor: String(props.value),
+        etiqueta: props.children,
+        disabled: !!props.disabled,
+        grupo: props.grupo,
+      };
     });
+
+  const mostrarBusqueda = opciones.length > UMBRAL_BUSQUEDA;
+
+  const terminoBusqueda = busqueda.trim().toLowerCase();
+  const opcionesFiltradas =
+    mostrarBusqueda && terminoBusqueda
+      ? opciones.filter(
+          (o) =>
+            textoPlano(o.etiqueta).toLowerCase().includes(terminoBusqueda) ||
+            (o.grupo ?? "").toLowerCase().includes(terminoBusqueda)
+        )
+      : opciones;
 
   const indiceSeleccionado = opciones.findIndex((o) => o.valor === value);
   const seleccionada = indiceSeleccionado !== -1 ? opciones[indiceSeleccionado] : null;
@@ -93,15 +141,53 @@ export default function SelectorPersonalizado({
     el?.scrollIntoView({ block: "nearest" });
   }, [abierto, resaltado]);
 
+  useEffect(() => {
+    if (abierto && mostrarBusqueda) {
+      busquedaRef.current?.focus();
+    }
+  }, [abierto, mostrarBusqueda]);
+
   function abrir() {
-    setResaltado(indiceSeleccionado !== -1 ? indiceSeleccionado : 0);
+    setBusqueda("");
+    const indiceEnFiltradas = opciones.findIndex((o) => o.valor === value);
+    setResaltado(indiceEnFiltradas !== -1 ? indiceEnFiltradas : 0);
     setAbierto(true);
+  }
+
+  function cerrar() {
+    setAbierto(false);
+    setBusqueda("");
   }
 
   function elegir(opcion: OpcionInterna) {
     if (opcion.disabled) return;
     onChange(opcion.valor);
-    setAbierto(false);
+    cerrar();
+  }
+
+  function manejarNavegacion(e: KeyboardEvent): boolean {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      cerrar();
+      return true;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setResaltado((i) => Math.min(opcionesFiltradas.length - 1, i + 1));
+      return true;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setResaltado((i) => Math.max(0, i - 1));
+      return true;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const opcion = opcionesFiltradas[resaltado];
+      if (opcion) elegir(opcion);
+      return true;
+    }
+    return false;
   }
 
   function alPresionarTecla(e: KeyboardEvent<HTMLButtonElement>) {
@@ -115,21 +201,21 @@ export default function SelectorPersonalizado({
       return;
     }
 
-    if (e.key === "Escape") {
+    if (e.key === " ") {
       e.preventDefault();
-      setAbierto(false);
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setResaltado((i) => Math.min(opciones.length - 1, i + 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setResaltado((i) => Math.max(0, i - 1));
-    } else if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      const opcion = opciones[resaltado];
+      const opcion = opcionesFiltradas[resaltado];
       if (opcion) elegir(opcion);
+      return;
     }
+
+    manejarNavegacion(e);
   }
+
+  function alPresionarTeclaBusqueda(e: KeyboardEvent<HTMLInputElement>) {
+    manejarNavegacion(e);
+  }
+
+  let grupoAnterior: string | undefined;
 
   return (
     <div
@@ -144,7 +230,7 @@ export default function SelectorPersonalizado({
         style={style}
         onClick={() => {
           if (disabled) return;
-          if (abierto) setAbierto(false);
+          if (abierto) cerrar();
           else abrir();
         }}
         onKeyDown={alPresionarTecla}
@@ -166,27 +252,67 @@ export default function SelectorPersonalizado({
       </button>
 
       {abierto && (
-        <ul className="selector-personalizado-lista" role="listbox" ref={listaRef}>
-          {opciones.map((opcion, i) => (
-            <li
-              key={opcion.valor}
-              role="option"
-              aria-selected={opcion.valor === value}
-              className={[
-                "selector-personalizado-opcion",
-                opcion.valor === value ? "selector-personalizado-opcion-activa" : "",
-                opcion.disabled ? "selector-personalizado-opcion-deshabilitada" : "",
-                i === resaltado ? "selector-personalizado-opcion-resaltada" : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              onMouseEnter={() => setResaltado(i)}
-              onClick={() => elegir(opcion)}
-            >
-              {opcion.etiqueta}
-            </li>
-          ))}
-        </ul>
+        <div className="selector-personalizado-panel">
+          {mostrarBusqueda && (
+            <div className="selector-personalizado-busqueda-envoltura">
+              <Search size={14} className="selector-personalizado-busqueda-icono" />
+              <input
+                ref={busquedaRef}
+                type="text"
+                className="selector-personalizado-busqueda"
+                placeholder={t("comun.buscar")}
+                value={busqueda}
+                onChange={(e) => {
+                  // Al escribir, la opción resaltada anterior puede ya
+                  // no estar visible — sin este ajuste, Enter podía
+                  // "elegir" una opción que ni siquiera se veía.
+                  setBusqueda(e.target.value);
+                  setResaltado(0);
+                }}
+                onKeyDown={alPresionarTeclaBusqueda}
+              />
+            </div>
+          )}
+
+          <ul className="selector-personalizado-lista" role="listbox" ref={listaRef}>
+            {opcionesFiltradas.length === 0 ? (
+              <li className="selector-personalizado-sin-resultados">
+                {t("comun.sin_resultados")}
+              </li>
+            ) : (
+              opcionesFiltradas.map((opcion, i) => {
+                const mostrarEncabezado = opcion.grupo !== undefined && opcion.grupo !== grupoAnterior;
+                grupoAnterior = opcion.grupo;
+
+                return (
+                  <Fragment key={opcion.valor}>
+                    {mostrarEncabezado && (
+                      <li className="selector-personalizado-grupo" role="presentation">
+                        {opcion.grupo}
+                      </li>
+                    )}
+                    <li
+                      role="option"
+                      aria-selected={opcion.valor === value}
+                      className={[
+                        "selector-personalizado-opcion",
+                        opcion.valor === value ? "selector-personalizado-opcion-activa" : "",
+                        opcion.disabled ? "selector-personalizado-opcion-deshabilitada" : "",
+                        i === resaltado ? "selector-personalizado-opcion-resaltada" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onMouseEnter={() => setResaltado(i)}
+                      onClick={() => elegir(opcion)}
+                    >
+                      {opcion.etiqueta}
+                    </li>
+                  </Fragment>
+                );
+              })
+            )}
+          </ul>
+        </div>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
@@ -13,6 +13,7 @@ import SelectorPersonalizado, { OpcionSelector } from "../../components/Selector
 import { Producto, AjusteStock } from "./types";
 import { cargarDatos, registrarAjuste, eliminarAjuste } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
+import { ordenarPorCategoria } from "../../lib/ordenarPorCategoria";
 
 type Tipo = "agregar" | "quitar";
 
@@ -78,6 +79,11 @@ export default function AjustesStockPage() {
 
     obtenerDatos();
   }, [cargandoAuth, user]);
+
+  const productosOrdenados = useMemo(
+    () => ordenarPorCategoria(productos, t("productos.sin_categoria")),
+    [productos, t]
+  );
 
   const producto = productos.find((p) => p.id === Number(productoId));
   const cantidadNum = Number(cantidad) || 0;
@@ -176,8 +182,8 @@ export default function AjustesStockPage() {
         <div className="productos-grid">
           <SelectorPersonalizado value={productoId} onChange={setProductoId}>
             <OpcionSelector value="">{t("ajustes_stock.selecciona_producto")}</OpcionSelector>
-            {productos.map((p) => (
-              <OpcionSelector key={p.id} value={p.id}>
+            {productosOrdenados.map((p) => (
+              <OpcionSelector key={p.id} value={p.id} grupo={p.categoria?.trim() || t("productos.sin_categoria")}>
                 {p.nombre} — {t("dashboard.stock_actual")}: {p.stock}
               </OpcionSelector>
             ))}

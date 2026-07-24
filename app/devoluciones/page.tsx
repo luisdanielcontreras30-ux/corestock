@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RotateCcw, Trash2 } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
@@ -14,6 +14,7 @@ import { Producto, Devolucion } from "./types";
 import { cargarDatos, registrarDevolucion, eliminarDevolucion } from "./acciones";
 import { formatoMoneda } from "../ventas/utils";
 import CargandoLista from "../../components/CargandoLista";
+import { ordenarPorCategoria } from "../../lib/ordenarPorCategoria";
 
 export default function DevolucionesPage() {
   const router = useRouter();
@@ -80,6 +81,11 @@ export default function DevolucionesPage() {
 
     obtenerDatos();
   }, [cargandoAuth, user]);
+
+  const productosOrdenados = useMemo(
+    () => ordenarPorCategoria(productos, t("productos.sin_categoria")),
+    [productos, t]
+  );
 
   const producto = productos.find((p) => p.id === Number(productoId));
   const cantidadNum = Number(cantidad) || 0;
@@ -179,8 +185,8 @@ export default function DevolucionesPage() {
         <div className="productos-grid">
           <SelectorPersonalizado value={productoId} onChange={setProductoId}>
             <OpcionSelector value="">{t("devoluciones.selecciona_producto")}</OpcionSelector>
-            {productos.map((p) => (
-              <OpcionSelector key={p.id} value={p.id}>
+            {productosOrdenados.map((p) => (
+              <OpcionSelector key={p.id} value={p.id} grupo={p.categoria?.trim() || t("productos.sin_categoria")}>
                 {p.nombre} — {t("dashboard.stock_actual")}: {p.stock}
               </OpcionSelector>
             ))}
