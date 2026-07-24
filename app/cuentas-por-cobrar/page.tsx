@@ -151,13 +151,13 @@ export default function CuentasPorCobrarPage() {
             width: 48,
             height: 48,
             borderRadius: 12,
-            background: "rgba(234, 179, 8, 0.15)",
+            background: "rgba(250, 204, 21, 0.15)",
             display: "grid",
             placeItems: "center",
             flexShrink: 0,
           }}
         >
-          <HandCoins size={24} color="#eab308" />
+          <HandCoins size={24} color="#facc15" />
         </span>
         <div>
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, margin: 0, textTransform: "uppercase", fontWeight: 600 }}>
@@ -176,7 +176,7 @@ export default function CuentasPorCobrarPage() {
           <div key={deuda.clienteId ?? deuda.nombre} className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
               <h3 style={{ margin: 0 }}>{deuda.nombre}</h3>
-              <span style={{ fontWeight: 700, color: "#eab308" }}>{formatoMoneda(deuda.totalPendiente)}</span>
+              <span style={{ fontWeight: 700, color: "#facc15" }}>{formatoMoneda(deuda.totalPendiente)}</span>
             </div>
 
             <div className="tabla">
