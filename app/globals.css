@@ -5595,6 +5595,13 @@ select optgroup {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  /* overflow:hidden (no solo min-width:0) es lo que realmente evita
+     que texto largo sin cortar (nombre de producto/materia prima)
+     fuerce esta columna del grid más ancha que su fracción — sin
+     esto, un nombre largo puede desbordar toda la fila de 4 columnas
+     y empujar la página entera a scroll horizontal, tapando el
+     sidebar. */
+  overflow: hidden;
 }
 
 .fabricacion-panel-placeholder {
@@ -5900,12 +5907,17 @@ select optgroup {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .fabricacion-resumen-nombre {
+  display: block;
   font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fabricacion-resumen-cantidad {

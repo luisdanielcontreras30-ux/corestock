@@ -244,7 +244,7 @@ export default function TableroTab({ productos, materiasPrimas, recetas, producc
                 <div className="fabricacion-resumen-icono">
                   <Package size={20} />
                 </div>
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <span className="fabricacion-resumen-nombre">{productoSeleccionado.nombre}</span>
                   <span className="fabricacion-resumen-cantidad">
                     {cantidadProducirNum} {t("tabla.unidades_abrev")}
@@ -258,9 +258,11 @@ export default function TableroTab({ productos, materiasPrimas, recetas, producc
                   const materiaPrima = materiasPrimas.find((m) => m.id === ing.materia_prima_id);
                   const necesario = ing.cantidad_por_unidad * cantidadProducirNum;
                   return (
-                    <div key={ing.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                      <span>{ing.materia_prima_nombre}</span>
-                      <span style={{ color: "var(--text-secondary)" }}>
+                    <div key={ing.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13 }}>
+                      <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {ing.materia_prima_nombre}
+                      </span>
+                      <span style={{ color: "var(--text-secondary)", flexShrink: 0 }}>
                         {Math.round(necesario * 100) / 100} {materiaPrima ? etiquetaUnidad(materiaPrima.unidad, t) : ""}
                       </span>
                     </div>
