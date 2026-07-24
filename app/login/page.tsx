@@ -34,6 +34,12 @@ function LoginInterno() {
   const { t } = useIdioma();
 
   async function iniciarSesion() {
+    // El botón de enviar ya se deshabilita con "cargando", pero los
+    // campos de texto no — Enter dentro de un input dispara el mismo
+    // onSubmit igual, así que un Enter doble entra dos veces aquí
+    // antes de que el primer setCargando(true) alcance a re-renderizar.
+    if (cargando) return;
+
     setError("");
     setMensaje("");
 
@@ -106,6 +112,8 @@ function LoginInterno() {
   }
 
   async function registrarse() {
+    if (cargando) return;
+
     setError("");
     setMensaje("");
 
@@ -149,6 +157,8 @@ function LoginInterno() {
   }
 
   async function enviarRecuperacion() {
+    if (cargando) return;
+
     setError("");
     setMensaje("");
 
@@ -184,7 +194,13 @@ function LoginInterno() {
     if (msg.includes("already registered")) {
       return t("login.error_ya_registrado");
     }
-    return msg;
+    // Cualquier otro error de Supabase Auth (límite de intentos,
+    // contraseña débil, etc.) no tiene traducción propia — mostrarlo
+    // tal cual dejaba texto en inglés crudo para las otras 6 idiomas
+    // que soporta la app. Se deja en consola para poder diagnosticar
+    // qué mensaje nuevo hizo falta mapear.
+    console.error("Error de auth sin traducción:", msg);
+    return t("login.error_generico");
   }
 
   function alEnviar(e: React.FormEvent) {

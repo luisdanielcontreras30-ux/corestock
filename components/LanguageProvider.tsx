@@ -7,7 +7,7 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import { Idioma, traducir } from "../lib/i18n";
+import { Idioma, IDIOMAS_DISPONIBLES, traducir } from "../lib/i18n";
 
 interface IdiomaContexto {
   idioma: Idioma;
@@ -39,7 +39,13 @@ export default function LanguageProvider({
       CLAVE_STORAGE
     ) as Idioma | null;
 
-    if (["es", "en", "pt", "fr", "de", "zh"].includes(guardado ?? "")) {
+    // Se deriva de IDIOMAS_DISPONIBLES (no una lista aparte a mano) para
+    // que un idioma nuevo agregado ahí no se quede fuera de esta
+    // lista de restauración — eso es justo lo que pasó con "it": se
+    // podía elegir en el selector, pero al recargar la página (o abrir
+    // una pestaña nueva) el idioma guardado no pasaba este chequeo y
+    // se perdía silenciosamente, volviendo siempre a español.
+    if (IDIOMAS_DISPONIBLES.some((i) => i.valor === guardado)) {
       setIdioma(guardado as Idioma);
     }
   }, []);
