@@ -5581,46 +5581,79 @@ select optgroup {
 }
 
 /* ==========================================================================
-   FABRICACIÓN — pestañas rediseñadas (Tablero, Recetas, Producción, Stock)
+   FABRICACIÓN — pestañas rediseñadas (Tablero, Recetas, Stock)
    ========================================================================== */
 
-.fabricacion-metricas-grid {
+.fabricacion-panel-produccion {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr 1.3fr 1fr 1fr;
   gap: 16px;
+  align-items: start;
 }
 
-.fabricacion-metrica {
+.fabricacion-panel-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fabricacion-panel-placeholder {
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+  padding: 28px 4px;
+}
+
+.fabricacion-usar-fila {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.fabricacion-celda-cantidad {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fabricacion-celda-cantidad small {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.fabricacion-panel-col .tabla td,
+.fabricacion-panel-col .tabla th {
+  padding: 10px 8px;
+  font-size: 12.5px;
+}
+
+.fabricacion-banner {
   display: flex;
   align-items: center;
-  gap: 14px;
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
-}
-
-.fabricacion-metrica-icono {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-
-.fabricacion-metrica span {
-  display: block;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.fabricacion-metrica h3 {
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
   font-size: 12.5px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-top: 2px;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.fabricacion-banner-exito {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.fabricacion-banner-alerta {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.fabricacion-tablero-inferior {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .fabricacion-stock-grid {
@@ -5842,74 +5875,6 @@ select optgroup {
   font-weight: 600;
 }
 
-/* Asistente de producción (4 pasos) */
-
-.fabricacion-pasos {
-  display: flex;
-  align-items: flex-start;
-}
-
-.fabricacion-paso-item {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-
-.fabricacion-paso-indicador {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.fabricacion-paso-circulo {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  font-size: 13.5px;
-  font-weight: 700;
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  border: 2px solid var(--border);
-}
-
-.fabricacion-paso-circulo-activo {
-  background: #ea580c;
-  border-color: #ea580c;
-  color: #fff;
-}
-
-.fabricacion-paso-circulo-hecho {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
-  color: #10b981;
-}
-
-.fabricacion-paso-texto {
-  display: none;
-  flex-direction: column;
-}
-
-.fabricacion-paso-titulo {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.fabricacion-paso-desc {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.fabricacion-paso-linea {
-  flex: 1;
-  height: 2px;
-  background: var(--border);
-  margin: 0 8px;
-}
-
 .fabricacion-resumen-producto {
   display: flex;
   align-items: center;
@@ -5948,9 +5913,9 @@ select optgroup {
   color: var(--text-secondary);
 }
 
-@media (min-width: 700px) {
-  .fabricacion-paso-texto {
-    display: flex;
+@media (max-width: 1100px) {
+  .fabricacion-panel-produccion {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -5959,7 +5924,11 @@ select optgroup {
     grid-template-columns: 1fr;
   }
 
-  .fabricacion-metricas-grid {
+  .fabricacion-panel-produccion {
+    grid-template-columns: 1fr;
+  }
+
+  .fabricacion-tablero-inferior {
     grid-template-columns: 1fr;
   }
 }

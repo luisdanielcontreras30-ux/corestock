@@ -16,7 +16,6 @@ import CargandoLista from "../../components/CargandoLista";
 import FabricacionTabs, { TabFabricacion } from "./components/FabricacionTabs";
 import TableroTab from "./components/TableroTab";
 import RecetasTab from "./components/RecetasTab";
-import AsistenteProduccion from "./components/AsistenteProduccion";
 import StockTab from "./components/StockTab";
 import CotizacionTab from "./components/CotizacionTab";
 
@@ -265,7 +264,13 @@ function FabricacionContenido() {
           <FabricacionTabs activa={tab} onCambiar={setTab} />
 
           {tab === "tablero" && (
-            <TableroTab materiasPrimas={materiasPrimas} producciones={producciones} totalRecetas={recetas.length} />
+            <TableroTab
+              productos={productos}
+              materiasPrimas={materiasPrimas}
+              recetas={recetas}
+              producciones={producciones}
+              onProducido={obtenerDatos}
+            />
           )}
 
           {tab === "recetas" && (
@@ -282,15 +287,6 @@ function FabricacionContenido() {
               guardandoIngrediente={guardandoIngrediente}
               onGuardarIngrediente={guardarIngrediente}
               onBorrarIngrediente={borrarIngrediente}
-            />
-          )}
-
-          {tab === "produccion" && (
-            <AsistenteProduccion
-              productos={productos}
-              materiasPrimas={materiasPrimas}
-              recetas={recetas}
-              onProducido={obtenerDatos}
             />
           )}
 

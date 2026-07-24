@@ -1,9 +1,9 @@
 "use client";
 
-import { LayoutGrid, BookOpen, PackagePlus, Boxes, Calculator, LucideIcon } from "lucide-react";
+import { LayoutGrid, BookOpen, Boxes, Calculator, LucideIcon } from "lucide-react";
 import { useIdioma } from "../../../components/LanguageProvider";
 
-export type TabFabricacion = "tablero" | "recetas" | "produccion" | "stock" | "cotizacion";
+export type TabFabricacion = "tablero" | "recetas" | "stock" | "cotizacion";
 
 interface Props {
   activa: TabFabricacion;
@@ -13,7 +13,6 @@ interface Props {
 const tabs: { id: TabFabricacion; clave: string; Icono: LucideIcon }[] = [
   { id: "tablero", clave: "fabricacion.tab_tablero", Icono: LayoutGrid },
   { id: "recetas", clave: "fabricacion.recetas", Icono: BookOpen },
-  { id: "produccion", clave: "fabricacion.tab_produccion", Icono: PackagePlus },
   { id: "stock", clave: "fabricacion.tab_stock", Icono: Boxes },
   { id: "cotizacion", clave: "fabricacion.cotizacion", Icono: Calculator },
 ];
