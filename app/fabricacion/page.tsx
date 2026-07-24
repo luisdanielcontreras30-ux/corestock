@@ -23,6 +23,7 @@ import {
 } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
 import { formatoMoneda } from "../ventas/utils";
+import { UNIDADES_MEDIDA, etiquetaUnidad } from "../../lib/unidadesMedida";
 
 export default function FabricacionPage() {
   return (
@@ -476,11 +477,14 @@ function FabricacionContenido() {
             onChange={(e) => setNombreMP(e.target.value)}
             placeholder={t("fabricacion.nombre_mp_placeholder")}
           />
-          <input
-            value={unidadMP}
-            onChange={(e) => setUnidadMP(e.target.value)}
-            placeholder={t("fabricacion.unidad_placeholder")}
-          />
+          <SelectorPersonalizado value={unidadMP} onChange={setUnidadMP}>
+            <OpcionSelector value="">{t("fabricacion.unidad_placeholder")}</OpcionSelector>
+            {UNIDADES_MEDIDA.map((u) => (
+              <OpcionSelector key={u} value={u}>
+                {t(`unidad.${u}`)}
+              </OpcionSelector>
+            ))}
+          </SelectorPersonalizado>
           <input
             type="number"
             min="0"
@@ -527,7 +531,7 @@ function FabricacionContenido() {
                 materiasPrimas.map((m) => (
                   <tr key={m.id}>
                     <td>{m.nombre}</td>
-                    <td>{m.unidad}</td>
+                    <td>{etiquetaUnidad(m.unidad, t)}</td>
                     <td>{m.stock}</td>
                     <td>{formatoMoneda(Number(m.costo_unitario))}</td>
                     <td>
@@ -724,7 +728,7 @@ function FabricacionContenido() {
                 <OpcionSelector value="">{t("fabricacion.selecciona_materia_prima")}</OpcionSelector>
                 {materiasPrimas.map((m) => (
                   <OpcionSelector key={m.id} value={m.id}>
-                    {m.nombre} ({m.unidad})
+                    {m.nombre} ({etiquetaUnidad(m.unidad, t)})
                   </OpcionSelector>
                 ))}
               </SelectorPersonalizado>
@@ -794,7 +798,7 @@ function FabricacionContenido() {
                 <OpcionSelector value="">{t("fabricacion.selecciona_materia_prima")}</OpcionSelector>
                 {materiasPrimas.map((m) => (
                   <OpcionSelector key={m.id} value={m.id}>
-                    {m.nombre} ({m.unidad})
+                    {m.nombre} ({etiquetaUnidad(m.unidad, t)})
                   </OpcionSelector>
                 ))}
               </SelectorPersonalizado>
@@ -840,7 +844,7 @@ function FabricacionContenido() {
                   }}
                 >
                   <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {materiaPrima?.nombre ?? "—"} · {m.cantidad} {materiaPrima?.unidad}
+                    {materiaPrima?.nombre ?? "—"} · {m.cantidad} {materiaPrima ? etiquetaUnidad(materiaPrima.unidad, t) : ""}
                   </span>
                   <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                     {formatoMoneda(m.cantidad * (materiaPrima?.costo_unitario ?? 0))}
@@ -1002,7 +1006,7 @@ function FabricacionContenido() {
                     {ing.materia_prima_nombre}
                   </span>
                   <span style={{ flexShrink: 0 }}>
-                    {Math.round(necesario * 100) / 100} / {disponible} {materiaPrima?.unidad}
+                    {Math.round(necesario * 100) / 100} / {disponible} {materiaPrima ? etiquetaUnidad(materiaPrima.unidad, t) : ""}
                   </span>
                 </div>
               );
