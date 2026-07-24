@@ -3,6 +3,22 @@ import { ajustarStockConCas } from "../../lib/stockCas";
 import { obtenerNegocioId } from "../../lib/negocioActual";
 import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "./types";
 
+// A diferencia de los demás sentinels de este archivo (mensaje fijo,
+// traducido por clave en page.tsx), este trae los números de la
+// materia prima faltante — page.tsx arma el mensaje combinando sus
+// claves i18n con estos campos, mismo patrón que el resto de la app ya
+// usa para pegar t("clave") con un valor dinámico.
+export class ErrorStockInsuficienteMateria extends Error {
+  constructor(
+    public materiaPrimaNombre: string,
+    public necesario: number,
+    public disponible: number
+  ) {
+    super("SIN_STOCK_MATERIA");
+    this.name = "ErrorStockInsuficienteMateria";
+  }
+}
+
 export async function cargarDatos() {
   const {
     data: { user },
@@ -175,11 +191,11 @@ export async function producir(
   const negocioId = await obtenerNegocioId(user.id);
 
   if (!Number.isFinite(cantidadAProducir) || cantidadAProducir <= 0) {
-    throw new Error("La cantidad a producir debe ser mayor a 0.");
+    throw new Error("CANTIDAD_INVALIDA");
   }
 
   if (ingredientes.length === 0) {
-    throw new Error("Este producto no tiene receta definida.");
+    throw new Error("SIN_RECETA");
   }
 
   const materiasIds = ingredientes.map((i) => i.materia_prima_id);
@@ -203,8 +219,10 @@ export async function producir(
       // Redondeado a 2 decimales: sumar/multiplicar cantidades con
       // decimales en JS puede dejar residuos de punto flotante (ej.
       // 0.30000000000000004) que se verían mal en este mensaje.
-      throw new Error(
-        `No hay suficiente "${ing.materia_prima_nombre}" — necesitas ${Math.round(necesario * 100) / 100}, tienes ${Math.round(disponible * 100) / 100}.`
+      throw new ErrorStockInsuficienteMateria(
+        ing.materia_prima_nombre,
+        Math.round(necesario * 100) / 100,
+        Math.round(disponible * 100) / 100
       );
     }
   }
@@ -227,9 +245,7 @@ export async function producir(
       if (error) throw error;
 
       if (!actualizado || actualizado.length === 0) {
-        throw new Error(
-          `El stock de "${ing.materia_prima_nombre}" cambió mientras se procesaba. Intenta de nuevo.`
-        );
+        throw new Error("STOCK_CAMBIO");
       }
 
       aplicados.push({ id: ing.materia_prima_id, necesario });
@@ -255,9 +271,7 @@ export async function producir(
     if (errorProducto) throw errorProducto;
 
     if (!actualizadoProducto || actualizadoProducto.length === 0) {
-      throw new Error(
-        "El stock del producto cambió mientras se procesaba la producción. Intenta de nuevo."
-      );
+      throw new Error("STOCK_CAMBIO");
     }
 
     const { error: errorLog } = await supabase.from("producciones").insert({

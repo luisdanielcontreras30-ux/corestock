@@ -19,6 +19,7 @@ import {
   agregarIngrediente,
   eliminarIngrediente,
   producir,
+  ErrorStockInsuficienteMateria,
 } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
 import { formatoMoneda } from "../ventas/utils";
@@ -84,6 +85,27 @@ function FabricacionContenido() {
   const [cantidadManualCotizacion, setCantidadManualCotizacion] = useState("");
   const [incluirManoObra, setIncluirManoObra] = useState(false);
   const [costoManoObraCotizacion, setCostoManoObraCotizacion] = useState("");
+
+  // producir() lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce; null si el error no es
+  // ninguno de los esperados (deja pasar a mensajeErrorSeguro/fallback).
+  function mensajeProducir(error: unknown): string | null {
+    if (error instanceof ErrorStockInsuficienteMateria) {
+      return `${t("fabricacion.msg_stock_insuficiente_materia")} "${error.materiaPrimaNombre}" — ${t("fabricacion.necesitas")} ${error.necesario}, ${t("fabricacion.disponible_actual")} ${error.disponible}.`;
+    }
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "CANTIDAD_INVALIDA":
+        return t("fabricacion.msg_cantidad_invalida");
+      case "SIN_RECETA":
+        return t("fabricacion.sin_receta");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      default:
+        return null;
+    }
+  }
 
   async function obtenerDatos() {
     setLoading(true);
@@ -379,7 +401,7 @@ function FabricacionContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = mensajeErrorSeguro(error);
+      const detalle = mensajeProducir(error) || mensajeErrorSeguro(error);
       mostrarToast(detalle || t("fabricacion.msg_error_producir"), "error");
     } finally {
       setProduciendo(false);

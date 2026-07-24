@@ -97,6 +97,7 @@ export default function SelectorPersonalizado({
   const contenedorRef = useRef<HTMLDivElement>(null);
   const listaRef = useRef<HTMLUListElement>(null);
   const busquedaRef = useRef<HTMLInputElement>(null);
+  const botonRef = useRef<HTMLButtonElement>(null);
 
   const opciones: OpcionInterna[] = Children.toArray(children)
     .filter(isValidElement)
@@ -137,7 +138,13 @@ export default function SelectorPersonalizado({
 
   useEffect(() => {
     if (!abierto) return;
-    const el = listaRef.current?.children[resaltado] as HTMLElement | undefined;
+    // No se puede indexar listaRef.current.children[resaltado] directo:
+    // los encabezados de grupo son <li> intercalados en el mismo <ul>,
+    // así que el índice del DOM ya no coincide con el índice dentro de
+    // opcionesFiltradas en cuanto hay más de un grupo.
+    const el = listaRef.current?.querySelectorAll(".selector-personalizado-opcion")[
+      resaltado
+    ] as HTMLElement | undefined;
     el?.scrollIntoView({ block: "nearest" });
   }, [abierto, resaltado]);
 
@@ -157,6 +164,10 @@ export default function SelectorPersonalizado({
   function cerrar() {
     setAbierto(false);
     setBusqueda("");
+    // El buscador (cuando está presente) se lleva el foco al abrir —
+    // sin esto, Escape o elegir una opción por teclado lo dejaban en
+    // <body>, rompiendo el orden de tabulación del resto del formulario.
+    botonRef.current?.focus();
   }
 
   function elegir(opcion: OpcionInterna) {
@@ -224,6 +235,7 @@ export default function SelectorPersonalizado({
       style={style}
     >
       <button
+        ref={botonRef}
         type="button"
         id={id}
         className="selector-personalizado-boton"
