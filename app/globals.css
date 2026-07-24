@@ -650,6 +650,14 @@ select optgroup {
   overflow: hidden;
 }
 
+/* Cuando no cabe hacia abajo (selector cerca del borde inferior de una
+   tarjeta), se abre hacia arriba en vez de taparle el contenido a lo
+   que sigue en la página. */
+.selector-personalizado-panel-arriba {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
 .selector-personalizado-busqueda-envoltura {
   display: flex;
   align-items: center;

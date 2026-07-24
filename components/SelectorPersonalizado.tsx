@@ -30,6 +30,10 @@ import { normalizarTexto } from "../lib/normalizarTexto";
 // necesitan y solo estorbarían.
 const UMBRAL_BUSQUEDA = 8;
 
+// Debe coincidir con el max-height de .selector-personalizado-panel en
+// globals.css — se usa para decidir si abrir hacia arriba.
+const ALTURA_MAXIMA_PANEL = 320;
+
 interface OpcionSelectorProps {
   value: string | number;
   children: ReactNode;
@@ -95,6 +99,7 @@ export default function SelectorPersonalizado({
   const [abierto, setAbierto] = useState(false);
   const [resaltado, setResaltado] = useState(0);
   const [busqueda, setBusqueda] = useState("");
+  const [abrirHaciaArriba, setAbrirHaciaArriba] = useState(false);
   const contenedorRef = useRef<HTMLDivElement>(null);
   const listaRef = useRef<HTMLUListElement>(null);
   const busquedaRef = useRef<HTMLInputElement>(null);
@@ -162,6 +167,18 @@ export default function SelectorPersonalizado({
     setBusqueda("");
     const indiceEnFiltradas = opciones.findIndex((o) => o.valor === value);
     setResaltado(indiceEnFiltradas !== -1 ? indiceEnFiltradas : 0);
+
+    // Si no cabe hacia abajo pero sí hacia arriba, se abre hacia
+    // arriba — sin esto, un selector cerca del borde inferior de una
+    // tarjeta tapaba el encabezado de la tarjeta siguiente en vez de
+    // quedar completamente visible.
+    const rect = contenedorRef.current?.getBoundingClientRect();
+    if (rect) {
+      const espacioAbajo = window.innerHeight - rect.bottom;
+      const espacioArriba = rect.top;
+      setAbrirHaciaArriba(espacioAbajo < ALTURA_MAXIMA_PANEL && espacioArriba > espacioAbajo);
+    }
+
     setAbierto(true);
   }
 
@@ -268,7 +285,9 @@ export default function SelectorPersonalizado({
       </button>
 
       {abierto && (
-        <div className="selector-personalizado-panel">
+        <div
+          className={`selector-personalizado-panel${abrirHaciaArriba ? " selector-personalizado-panel-arriba" : ""}`}
+        >
           {mostrarBusqueda && (
             <div className="selector-personalizado-busqueda-envoltura">
               <Search size={14} className="selector-personalizado-busqueda-icono" />
