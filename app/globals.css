@@ -5851,13 +5851,6 @@ select optgroup {
   text-align: right;
 }
 
-.fabricacion-recetas-layout {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 20px;
-  align-items: start;
-}
-
 .fabricacion-buscador {
   display: flex;
   align-items: center;
@@ -6022,10 +6015,6 @@ select optgroup {
 }
 
 @media (max-width: 900px) {
-  .fabricacion-recetas-layout {
-    grid-template-columns: 1fr;
-  }
-
   .fabricacion-panel-produccion {
     grid-template-columns: 1fr;
   }
