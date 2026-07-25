@@ -38,6 +38,23 @@ alter table recetas add column if not exists materia_prima_nombre text;
 alter table recetas add column if not exists cantidad_por_unidad numeric not null default 0;
 alter table recetas add column if not exists created_at timestamptz not null default now();
 
+-- La tabla "recetas" ya existía en tu base con una columna "cantidad"
+-- (distinta de "cantidad_por_unidad", la que sí usa este módulo) que
+-- había quedado como NOT NULL sin valor por defecto, de algún uso
+-- anterior. La app nunca la llena, así que cualquier insert de una
+-- receta nueva fallaba con "null value in column cantidad violates
+-- not-null constraint". Se le quita esa restricción si la columna
+-- existe (no se toca si nunca existió, en una base creada desde cero).
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'recetas' and column_name = 'cantidad'
+  ) then
+    alter table recetas alter column cantidad drop not null;
+  end if;
+end $$;
+
 alter table recetas enable row level security;
 drop policy if exists "recetas_por_dueno" on recetas;
 create policy "recetas_por_dueno" on recetas
