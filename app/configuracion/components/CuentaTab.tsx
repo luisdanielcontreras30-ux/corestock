@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { LogOut, MessageCircle } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { supabase } from "../../../lib/supabase";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useAuth } from "../../../components/AuthProvider";
 import { useMiembroActivo } from "../../../components/MiembroActivoProvider";
 import { LOCALES } from "../../../lib/i18n";
-import { ENLACE_SOPORTE_WHATSAPP } from "../../../lib/soporte";
 import CargandoLista from "../../../components/CargandoLista";
 
 export default function CuentaTab() {
@@ -45,7 +44,6 @@ export default function CuentaTab() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
     <div className="card" style={{ maxWidth: 480 }}>
       <h2 style={{ marginBottom: 6 }}>{t("cuenta.titulo")}</h2>
       <p
@@ -134,23 +132,6 @@ export default function CuentaTab() {
         <LogOut size={15} />
         {cerrando ? t("cuenta.cerrando") : t("header.cerrar_sesion")}
       </button>
-    </div>
-
-    <div className="card" style={{ maxWidth: 480 }}>
-      <h2 style={{ marginBottom: 6 }}>{t("soporte.titulo")}</h2>
-      <p style={{ color: "var(--text-secondary)", marginBottom: 16, fontSize: 13 }}>
-        {t("soporte.texto")}
-      </p>
-      <a
-        href={ENLACE_SOPORTE_WHATSAPP}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-primary"
-        style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}
-      >
-        <MessageCircle size={15} /> {t("soporte.boton")}
-      </a>
-    </div>
     </div>
   );
 }

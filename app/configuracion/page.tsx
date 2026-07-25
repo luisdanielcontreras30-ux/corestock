@@ -14,6 +14,7 @@ import EmpresaTab from "./components/EmpresaTab";
 import UsuariosTab from "./components/UsuariosTab";
 import CuentaTab from "./components/CuentaTab";
 import IdiomaTab from "./components/IdiomaTab";
+import AyudaTab from "./components/AyudaTab";
 import CargandoLista from "../../components/CargandoLista";
 
 export default function ConfiguracionPage() {
@@ -55,6 +56,7 @@ export default function ConfiguracionPage() {
       {tab === "usuarios" && (puede("configuracion") ? <UsuariosTab /> : <SinPermiso />)}
       {tab === "cuenta" && <CuentaTab />}
       {tab === "idioma" && <IdiomaTab />}
+      {tab === "ayuda" && <AyudaTab />}
     </main>
   );
 }
