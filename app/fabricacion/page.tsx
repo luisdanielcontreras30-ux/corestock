@@ -49,8 +49,12 @@ function FabricacionContenido() {
   const [costoMP, setCostoMP] = useState("");
   const [guardandoMP, setGuardandoMP] = useState(false);
 
-  // Recetas
-  const [productoRecetaId, setProductoRecetaId] = useState("");
+  // Receta/producto seleccionado — un solo estado compartido entre
+  // Producción y Recetas (antes cada uno tenía su propia lista
+  // "Selecciona una receta", duplicada e independiente; ahora eligen
+  // el mismo producto desde el mismo selector, arriba).
+  const [productoSeleccionadoId, setProductoSeleccionadoId] = useState("");
+  const [busquedaProducto, setBusquedaProducto] = useState("");
   const [materiaRecetaId, setMateriaRecetaId] = useState("");
   const [cantidadPorUnidad, setCantidadPorUnidad] = useState("");
   const [guardandoIngrediente, setGuardandoIngrediente] = useState(false);
@@ -142,7 +146,7 @@ function FabricacionContenido() {
   async function guardarIngrediente() {
     if (guardandoIngrediente) return;
 
-    const producto = productos.find((p) => p.id === Number(productoRecetaId));
+    const producto = productos.find((p) => p.id === Number(productoSeleccionadoId));
     const materiaPrima = materiasPrimas.find((m) => m.id === Number(materiaRecetaId));
     const cantidad = Number(cantidadPorUnidad);
 
@@ -161,7 +165,7 @@ function FabricacionContenido() {
     // separado contra el mismo stock disponible, en vez de contra la
     // suma real que hace falta — puede reportar "alcanza" cuando en
     // realidad no alcanza.
-    const recetaActual = recetas.filter((r) => r.producto_id === Number(productoRecetaId));
+    const recetaActual = recetas.filter((r) => r.producto_id === Number(productoSeleccionadoId));
     if (recetaActual.some((r) => r.materia_prima_id === materiaPrima.id)) {
       mostrarToast(t("fabricacion.msg_ingrediente_duplicado"), "error");
       return;
@@ -282,6 +286,10 @@ function FabricacionContenido() {
               recetas={recetas}
               producciones={producciones}
               onProducido={obtenerDatos}
+              productoSeleccionadoId={productoSeleccionadoId}
+              onSeleccionarProducto={setProductoSeleccionadoId}
+              busqueda={busquedaProducto}
+              onCambiarBusqueda={setBusquedaProducto}
             />
           </section>
 
@@ -293,8 +301,7 @@ function FabricacionContenido() {
               productos={productos}
               materiasPrimas={materiasPrimas}
               recetas={recetas}
-              productoRecetaId={productoRecetaId}
-              onSeleccionarProducto={setProductoRecetaId}
+              productoRecetaId={productoSeleccionadoId}
               materiaRecetaId={materiaRecetaId}
               onSeleccionarMateria={setMateriaRecetaId}
               cantidadPorUnidad={cantidadPorUnidad}

@@ -18,16 +18,28 @@ interface Props {
   recetas: IngredienteReceta[];
   producciones: Produccion[];
   onProducido: () => Promise<void>;
+  productoSeleccionadoId: string;
+  onSeleccionarProducto: (id: string) => void;
+  busqueda: string;
+  onCambiarBusqueda: (valor: string) => void;
 }
 
 const ACCESOS_RAPIDOS = [10, 50, 100, 500];
 
-export default function TableroTab({ productos, materiasPrimas, recetas, producciones, onProducido }: Props) {
+export default function TableroTab({
+  productos,
+  materiasPrimas,
+  recetas,
+  producciones,
+  onProducido,
+  productoSeleccionadoId,
+  onSeleccionarProducto,
+  busqueda,
+  onCambiarBusqueda,
+}: Props) {
   const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
 
-  const [busqueda, setBusqueda] = useState("");
-  const [productoProducirId, setProductoProducirId] = useState("");
   const [cantidadAProducir, setCantidadAProducir] = useState("");
   const [produciendo, setProduciendo] = useState(false);
 
@@ -52,19 +64,14 @@ export default function TableroTab({ productos, materiasPrimas, recetas, producc
     }
   }
 
-  const productosConReceta = useMemo(
-    () => productos.filter((p) => recetas.some((r) => r.producto_id === p.id)),
-    [productos, recetas]
-  );
-
   const productosFiltrados = useMemo(() => {
     const termino = normalizarTexto(busqueda.trim());
-    if (!termino) return productosConReceta;
-    return productosConReceta.filter((p) => normalizarTexto(p.nombre).includes(termino));
-  }, [productosConReceta, busqueda]);
+    if (!termino) return productos;
+    return productos.filter((p) => normalizarTexto(p.nombre).includes(termino));
+  }, [productos, busqueda]);
 
-  const productoSeleccionado = productos.find((p) => p.id === Number(productoProducirId));
-  const ingredientesAProducir = recetas.filter((r) => r.producto_id === Number(productoProducirId));
+  const productoSeleccionado = productos.find((p) => p.id === Number(productoSeleccionadoId));
+  const ingredientesAProducir = recetas.filter((r) => r.producto_id === Number(productoSeleccionadoId));
   // Math.max(0, ...) — el input tiene min="1" pero eso no bloquea
   // escribir "-5" a mano; sin el clamp, "necesario" salía negativo y
   // la tabla de ingredientes mostraba ✓ (negativo siempre es menor
@@ -98,7 +105,7 @@ export default function TableroTab({ productos, materiasPrimas, recetas, producc
       setProduciendo(true);
       await producir(productoSeleccionado, cantidadProducirNum, ingredientesAProducir);
       mostrarToast(t("fabricacion.msg_produccion_confirmada"), "exito");
-      setProductoProducirId("");
+      onSeleccionarProducto("");
       setCantidadAProducir("");
       await onProducido();
     } catch (error) {
@@ -119,30 +126,32 @@ export default function TableroTab({ productos, materiasPrimas, recetas, producc
           <h2 style={{ marginBottom: 12 }}>{t("fabricacion.selecciona_receta")}</h2>
           <div className="fabricacion-buscador">
             <Search size={15} className="fabricacion-buscador-icono" />
-            <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder={t("comun.buscar")} />
+            <input value={busqueda} onChange={(e) => onCambiarBusqueda(e.target.value)} placeholder={t("comun.buscar")} />
           </div>
           <div className="fabricacion-lista-productos">
             {productosFiltrados.length === 0 ? (
-              <p className="fabricacion-panel-placeholder">
-                {productosConReceta.length === 0 ? t("fabricacion.sin_recetas_disponibles") : t("comun.sin_resultados")}
-              </p>
+              <p className="fabricacion-panel-placeholder">{t("comun.sin_resultados")}</p>
             ) : (
-              productosFiltrados.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`fabricacion-item-producto${p.id === Number(productoProducirId) ? " fabricacion-item-producto-activo" : ""}`}
-                  onClick={() => setProductoProducirId(String(p.id))}
-                >
-                  <div className="fabricacion-item-producto-icono">
-                    <Package size={16} />
-                  </div>
-                  <div className="fabricacion-item-producto-texto">
-                    <span className="fabricacion-item-producto-nombre">{p.nombre}</span>
-                    <span className="fabricacion-insignia">{p.categoria?.trim() || t("productos.sin_categoria")}</span>
-                  </div>
-                </button>
-              ))
+              productosFiltrados.map((p) => {
+                const tieneReceta = recetas.some((r) => r.producto_id === p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`fabricacion-item-producto${p.id === Number(productoSeleccionadoId) ? " fabricacion-item-producto-activo" : ""}`}
+                    onClick={() => onSeleccionarProducto(String(p.id))}
+                  >
+                    <div className="fabricacion-item-producto-icono">
+                      <Package size={16} />
+                    </div>
+                    <div className="fabricacion-item-producto-texto">
+                      <span className="fabricacion-item-producto-nombre">{p.nombre}</span>
+                      <span className="fabricacion-insignia">{p.categoria?.trim() || t("productos.sin_categoria")}</span>
+                    </div>
+                    {tieneReceta && <span className="fabricacion-punto-activo" aria-hidden="true" />}
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
@@ -151,6 +160,8 @@ export default function TableroTab({ productos, materiasPrimas, recetas, producc
           <h2 style={{ marginBottom: 12 }}>{t("fabricacion.ingredientes_de_receta")}</h2>
           {!productoSeleccionado ? (
             <p className="fabricacion-panel-placeholder">{t("fabricacion.selecciona_producto")}</p>
+          ) : ingredientesAProducir.length === 0 ? (
+            <p className="fabricacion-panel-placeholder">{t("fabricacion.sin_receta")}</p>
           ) : (
             <>
               <div className="tabla">
