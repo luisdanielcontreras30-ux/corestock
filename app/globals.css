@@ -6014,8 +6014,40 @@ select optgroup {
   color: var(--text-secondary);
 }
 
+/* Botones "Atrás"/"Siguiente" al final de cada columna del panel de
+   Producción — solo tienen sentido en celular (ahí las columnas se
+   ven de a una, ver .fabricacion-paso-inactivo-movil abajo); en
+   computadora las 4 se ven a la vez, así que quedan ocultos. */
+.fabricacion-paso-nav-movil {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .fabricacion-panel-produccion {
     grid-template-columns: 1fr;
+  }
+
+  /* En celular, el panel de Producción se recorre como asistente de
+     pasos: una sola columna visible a la vez (controlado por
+     pasoMovil en TableroTab.tsx) en vez de las 4 apiladas una debajo
+     de la otra — evita el scroll larguísimo de ver Receta, Materias
+     primas, Producción y Resumen todas juntas en una pantalla chica. */
+  .fabricacion-paso-inactivo-movil {
+    display: none;
+  }
+
+  .fabricacion-paso-nav-movil {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 16px;
+    /* En una tarjeta corta (pocos ingredientes, por ejemplo) este
+       botón puede terminar quedando justo donde vive la barra de
+       navegación fija de abajo (72px + su padding, ver .mobile-tabbar)
+       — el padding-bottom de .main-content no alcanza a despejarlo
+       porque ahí no hay nada que scrollear todavía. Este margen
+       extra sí lo garantiza siempre, sin depender de qué tan larga
+       sea la página. */
+    margin-bottom: 80px;
   }
 }

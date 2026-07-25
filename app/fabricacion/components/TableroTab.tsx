@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Package, Check, AlertTriangle, PackagePlus, Trash2 } from "lucide-react";
+import { Search, Package, Check, AlertTriangle, PackagePlus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
 import { mensajeErrorSeguro } from "../../../lib/errores";
@@ -57,6 +57,29 @@ export default function TableroTab({
 
   const [cantidadAProducir, setCantidadAProducir] = useState("");
   const [produciendo, setProduciendo] = useState(false);
+  // Solo tiene efecto visual en celular (ver .fabricacion-paso-inactivo-movil
+  // en globals.css, dentro de @media max-width:900px) — en computadora las
+  // 4 columnas siempre están visibles a la vez, así que este estado no
+  // cambia nada ahí. En celular, en cambio, muestra una columna a la vez
+  // y usa este número para decidir cuál.
+  const [pasoMovil, setPasoMovil] = useState<1 | 2 | 3 | 4>(1);
+
+  function seleccionarProducto(id: string) {
+    onSeleccionarProducto(id);
+    setPasoMovil(2);
+  }
+
+  function avanzarAResumen() {
+    if (!Number.isFinite(cantidadProducirNum) || cantidadProducirNum <= 0) {
+      mostrarToast(t("fabricacion.msg_cantidad_invalida"), "error");
+      return;
+    }
+    if (!Number.isInteger(cantidadProducirNum)) {
+      mostrarToast(t("comun.msg_cantidad_entera"), "error");
+      return;
+    }
+    setPasoMovil(4);
+  }
 
   // producir() lanza sentinels sin traducir (ver comentario en
   // lib/errores.ts) para los casos donde sí hay un mensaje pensado para
@@ -127,6 +150,7 @@ export default function TableroTab({
       mostrarToast(t("fabricacion.msg_produccion_confirmada"), "exito");
       onSeleccionarProducto("");
       setCantidadAProducir("");
+      setPasoMovil(1);
       await onProducido();
     } catch (error) {
       console.error(error);
@@ -142,7 +166,7 @@ export default function TableroTab({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div className="fabricacion-panel-produccion">
-        <div className="card fabricacion-panel-col">
+        <div className={`card fabricacion-panel-col${pasoMovil !== 1 ? " fabricacion-paso-inactivo-movil" : ""}`}>
           <h2 style={{ marginBottom: 12 }}>{t("fabricacion.selecciona_receta")}</h2>
           <div className="fabricacion-buscador">
             <Search size={15} className="fabricacion-buscador-icono" />
@@ -159,7 +183,7 @@ export default function TableroTab({
                     key={p.id}
                     type="button"
                     className={`fabricacion-item-producto${p.id === Number(productoSeleccionadoId) ? " fabricacion-item-producto-activo" : ""}`}
-                    onClick={() => onSeleccionarProducto(String(p.id))}
+                    onClick={() => seleccionarProducto(String(p.id))}
                   >
                     <div className="fabricacion-item-producto-icono">
                       <Package size={16} />
@@ -176,7 +200,7 @@ export default function TableroTab({
           </div>
         </div>
 
-        <div className="card fabricacion-panel-col">
+        <div className={`card fabricacion-panel-col${pasoMovil !== 2 ? " fabricacion-paso-inactivo-movil" : ""}`}>
           <h2 style={{ marginBottom: 12 }}>{t("fabricacion.ingredientes_de_receta")}</h2>
           {!productoSeleccionado ? (
             <p className="fabricacion-panel-placeholder">{t("fabricacion.selecciona_producto")}</p>
@@ -264,11 +288,20 @@ export default function TableroTab({
                   {t("fabricacion.agregar_ingrediente")}
                 </button>
               </div>
+
+              <div className="fabricacion-paso-nav-movil">
+                <button type="button" className="btn-secondary" onClick={() => setPasoMovil(1)}>
+                  <ChevronLeft size={15} /> {t("comun.atras")}
+                </button>
+                <button type="button" className="btn-primary" onClick={() => setPasoMovil(3)}>
+                  {t("comun.siguiente")} <ChevronRight size={15} />
+                </button>
+              </div>
             </>
           )}
         </div>
 
-        <div className="card fabricacion-panel-col">
+        <div className={`card fabricacion-panel-col${pasoMovil !== 3 ? " fabricacion-paso-inactivo-movil" : ""}`}>
           <h2 style={{ marginBottom: 12 }}>{t("fabricacion.cantidad_a_producir")}</h2>
           {!productoSeleccionado ? (
             <p className="fabricacion-panel-placeholder">{t("fabricacion.selecciona_producto")}</p>
@@ -298,11 +331,20 @@ export default function TableroTab({
                   </span>
                 </div>
               )}
+
+              <div className="fabricacion-paso-nav-movil">
+                <button type="button" className="btn-secondary" onClick={() => setPasoMovil(2)}>
+                  <ChevronLeft size={15} /> {t("comun.atras")}
+                </button>
+                <button type="button" className="btn-primary" onClick={avanzarAResumen}>
+                  {t("comun.siguiente")} <ChevronRight size={15} />
+                </button>
+              </div>
             </>
           )}
         </div>
 
-        <div className="card fabricacion-panel-col">
+        <div className={`card fabricacion-panel-col${pasoMovil !== 4 ? " fabricacion-paso-inactivo-movil" : ""}`}>
           <h2 style={{ marginBottom: 12 }}>{t("fabricacion.resumen_produccion")}</h2>
           {!productoSeleccionado || cantidadProducirNum <= 0 ? (
             <p className="fabricacion-panel-placeholder">{t("fabricacion.resumen_placeholder")}</p>
@@ -357,6 +399,12 @@ export default function TableroTab({
                 <PackagePlus size={16} />
                 {produciendo ? t("compras.guardando") : t("fabricacion.confirmar_produccion")}
               </button>
+
+              <div className="fabricacion-paso-nav-movil">
+                <button type="button" className="btn-secondary" onClick={() => setPasoMovil(3)}>
+                  <ChevronLeft size={15} /> {t("comun.atras")}
+                </button>
+              </div>
             </>
           )}
         </div>
