@@ -138,8 +138,11 @@ export async function eliminarAjuste(id: number) {
     throw errorAjuste;
   }
 
+  let negocioId: string | null = null;
+  let stockRevertido = false;
+
   if (ajuste.producto_id) {
-    const negocioId = await obtenerNegocioId(user.id);
+    negocioId = await obtenerNegocioId(user.id);
 
     // CAS con reintentos (igual que Ventas/Compras/registrarAjuste) en vez
     // de leer-y-escribir sin candado: si el producto no existe ya no hay
@@ -151,14 +154,32 @@ export async function eliminarAjuste(id: number) {
     if (!exito) {
       throw new Error("STOCK_CAMBIO");
     }
+
+    stockRevertido = true;
   }
 
-  const { error: errorEliminar } = await supabase
-    .from("ajustes_stock")
-    .delete()
-    .eq("id", id);
+  try {
+    const { error: errorEliminar } = await supabase
+      .from("ajustes_stock")
+      .delete()
+      .eq("id", id);
 
-  if (errorEliminar) {
-    throw errorEliminar;
+    if (errorEliminar) {
+      throw errorEliminar;
+    }
+  } catch (error) {
+    // Si el borrado falla justo después de haber revertido el stock, hay
+    // que deshacer esa reversión — si no, el ajuste sigue existiendo y un
+    // reintento del usuario lo revertiría una segunda vez.
+    if (stockRevertido && ajuste.producto_id && negocioId) {
+      const deshecho = await ajustarStockConCas(ajuste.producto_id, negocioId, ajuste.cantidad_ajuste);
+      if (!deshecho) {
+        console.error(
+          "No se pudo deshacer la reversión de stock tras un fallo al eliminar el ajuste. Revisar manualmente producto_id=" +
+            ajuste.producto_id
+        );
+      }
+    }
+    throw error;
   }
 }

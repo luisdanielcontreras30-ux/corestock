@@ -435,8 +435,15 @@ export async function analizarVentasMes(idioma: Idioma): Promise<string> {
   const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
 
+  // La comparación es "en lo que va del mes", así que el mes pasado se
+  // corta en el mismo punto (misma duración transcurrida desde su
+  // inicio) — no en el mes pasado completo, que exageraría la caída/alza
+  // en los primeros días de cada mes.
+  const msTranscurridos = hoy.getTime() - inicioMes.getTime();
+  const finMesAnteriorComparable = new Date(inicioMesAnterior.getTime() + msTranscurridos);
+
   const mesActual = ventasEnRango(ventas, inicioMes, hoy);
-  const mesAnterior = ventasEnRango(ventas, inicioMesAnterior, inicioMes);
+  const mesAnterior = ventasEnRango(ventas, inicioMesAnterior, finMesAnteriorComparable);
 
   const totalActual = mesActual.reduce((sum, v) => sum + Number(v.total), 0);
   const totalAnterior = mesAnterior.reduce((sum, v) => sum + Number(v.total), 0);

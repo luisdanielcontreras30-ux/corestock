@@ -110,8 +110,11 @@ export async function eliminarDevolucion(devolucion: Devolucion) {
   // tuvo éxito se borra la fila. Así, si el CAS falla tras sus
   // reintentos, la devolución sigue existiendo y el usuario puede
   // reintentar en vez de perder silenciosamente el ajuste de stock.
+  let negocioId: string | null = null;
+  let stockRevertido = false;
+
   if (devolucion.repuso_stock && devolucion.producto_id) {
-    const negocioId = await obtenerNegocioId(user.id);
+    negocioId = await obtenerNegocioId(user.id);
     const exito = await ajustarStockConCas(devolucion.producto_id, negocioId, -devolucion.cantidad, {
       minimoCero: true,
     });
@@ -119,14 +122,32 @@ export async function eliminarDevolucion(devolucion: Devolucion) {
     if (!exito) {
       throw new Error("STOCK_CAMBIO");
     }
+
+    stockRevertido = true;
   }
 
-  const { error } = await supabase
-    .from("devoluciones")
-    .delete()
-    .eq("id", devolucion.id);
+  try {
+    const { error } = await supabase
+      .from("devoluciones")
+      .delete()
+      .eq("id", devolucion.id);
 
-  if (error) {
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    // Si el borrado falla justo después de haber revertido el stock, hay
+    // que deshacer esa reversión — si no, la devolución sigue existiendo
+    // y un reintento del usuario la revertiría una segunda vez.
+    if (stockRevertido && devolucion.producto_id && negocioId) {
+      const deshecho = await ajustarStockConCas(devolucion.producto_id, negocioId, devolucion.cantidad);
+      if (!deshecho) {
+        console.error(
+          "No se pudo deshacer la reversión de stock tras un fallo al eliminar la devolución. Revisar manualmente producto_id=" +
+            devolucion.producto_id
+        );
+      }
+    }
     throw error;
   }
 }

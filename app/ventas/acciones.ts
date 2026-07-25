@@ -258,8 +258,11 @@ export async function eliminarVenta(
     throw errorVenta;
   }
 
+  let negocioId: string | null = null;
+  let stockRevertido = false;
+
   if (venta.producto_id) {
-    const negocioId = await obtenerNegocioId(user.id);
+    negocioId = await obtenerNegocioId(user.id);
 
     // Compare-and-swap, igual que al registrar: si otra venta/compra
     // concurrente sobre el mismo producto cambia el stock justo en este
@@ -273,16 +276,35 @@ export async function eliminarVenta(
     if (!exito) {
       throw new Error("STOCK_CAMBIO");
     }
+
+    stockRevertido = true;
   }
 
-  const {
-    error: errorEliminar,
-  } = await supabase
-    .from("ventas")
-    .delete()
-    .eq("id", id);
+  try {
+    const {
+      error: errorEliminar,
+    } = await supabase
+      .from("ventas")
+      .delete()
+      .eq("id", id);
 
-  if (errorEliminar) {
-    throw errorEliminar;
+    if (errorEliminar) {
+      throw errorEliminar;
+    }
+  } catch (error) {
+    // Si el borrado falla justo después de haber revertido el stock, hay
+    // que deshacer esa reversión — si no, la venta sigue existiendo y un
+    // reintento del usuario volvería a devolver el mismo stock una
+    // segunda vez.
+    if (stockRevertido && venta.producto_id && negocioId) {
+      const deshecho = await ajustarStockConCas(venta.producto_id, negocioId, -venta.cantidad);
+      if (!deshecho) {
+        console.error(
+          "No se pudo deshacer la reversión de stock tras un fallo al eliminar la venta. Revisar manualmente producto_id=" +
+            venta.producto_id
+        );
+      }
+    }
+    throw error;
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { obtenerSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { asegurarAuthUserId, correoSinteticoMiembro } from "../../../../lib/identidadMiembro";
+import { excedeLimiteIntentos } from "../../../../lib/rateLimit";
 
 type Razon = "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta";
 
@@ -48,6 +49,20 @@ export async function POST(request: Request) {
 
   if (!correo || typeof nombre !== "string" || typeof password !== "string" || !nombre.trim()) {
     return NextResponse.json({ error: "Faltan datos." }, { status: 400 });
+  }
+
+  // Esta ruta valida su propia contraseña (la del miembro, no la de
+  // Supabase Auth) y no tiene sesión previa, así que no hereda el
+  // throttling que Auth aplica a signInWithPassword — sin este límite,
+  // cualquiera podría probar contraseñas cortas de un miembro sin freno.
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "desconocida";
+  const claveLimite = `${ip}:${correo.trim().toLowerCase()}`;
+
+  if (excedeLimiteIntentos(claveLimite, 10, 5 * 60 * 1000)) {
+    return NextResponse.json(
+      { error: "Demasiados intentos. Espera unos minutos e intenta de nuevo." },
+      { status: 429 }
+    );
   }
 
   try {

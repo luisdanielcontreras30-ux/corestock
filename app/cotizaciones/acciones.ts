@@ -121,7 +121,7 @@ export async function cambiarEstadoCotizacion(
 // precio cotizado (no el precio actual del producto, que pudo cambiar
 // desde entonces). Descuenta stock con el mismo candado
 // compare-and-swap que usa el resto de la app.
-export async function convertirEnVenta(cotizacion: Cotizacion) {
+export async function convertirEnVenta(cotizacionParam: Cotizacion) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -129,6 +129,17 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
   if (!user) {
     throw new Error("Usuario no autenticado");
   }
+
+  // Se relee de la base en vez de confiar en el objeto que trae el
+  // cliente: si otra pestaña (o un doble clic) ya convirtió esta misma
+  // cotización, el estado que tiene el navegador puede estar obsoleto.
+  const { data: cotizacion, error: errorCotizacion } = await supabase
+    .from("cotizaciones")
+    .select("*")
+    .eq("id", cotizacionParam.id)
+    .single();
+
+  if (errorCotizacion) throw errorCotizacion;
 
   if (cotizacion.estado !== "aceptada") {
     throw new Error("NO_ACEPTADA");
@@ -225,12 +236,23 @@ export async function convertirEnVenta(cotizacion: Cotizacion) {
 
     stockDescontado = true;
 
-    const { error: errorActualizarCotizacion } = await supabase
+    // Guardado con el mismo candado compare-and-swap: solo se marca
+    // convertida si sigue "aceptada" y sin venta_id — si otra pestaña
+    // ganó la carrera entre la lectura fresca de arriba y este punto,
+    // aquí no actualiza ninguna fila y se revierte todo en el catch.
+    const { data: cotizacionActualizada, error: errorActualizarCotizacion } = await supabase
       .from("cotizaciones")
       .update({ venta_id: ventaCreada.id })
-      .eq("id", cotizacion.id);
+      .eq("id", cotizacion.id)
+      .eq("estado", "aceptada")
+      .is("venta_id", null)
+      .select("id");
 
     if (errorActualizarCotizacion) throw errorActualizarCotizacion;
+
+    if (!cotizacionActualizada || cotizacionActualizada.length === 0) {
+      throw new Error("YA_CONVERTIDA");
+    }
   } catch (error) {
     // Si el stock ya se había descontado antes de que fallara el paso
     // siguiente, hay que devolverlo — de lo contrario queda reducido
