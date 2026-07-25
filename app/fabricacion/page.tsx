@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Factory, Plus, BookOpen, Boxes, Calculator } from "lucide-react";
+import { Factory, Plus, Boxes, Calculator } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -14,7 +14,6 @@ import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "./types";
 import { cargarDatos, crearMateriaPrima, eliminarMateriaPrima, agregarIngrediente, eliminarIngrediente } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
 import TableroTab from "./components/TableroTab";
-import RecetasTab from "./components/RecetasTab";
 import StockTab from "./components/StockTab";
 import CotizacionTab from "./components/CotizacionTab";
 
@@ -290,18 +289,6 @@ function FabricacionContenido() {
               onSeleccionarProducto={setProductoSeleccionadoId}
               busqueda={busquedaProducto}
               onCambiarBusqueda={setBusquedaProducto}
-            />
-          </section>
-
-          <section className="fabricacion-seccion">
-            <h2 className="fabricacion-seccion-titulo">
-              <BookOpen size={17} /> {t("fabricacion.recetas")}
-            </h2>
-            <RecetasTab
-              productos={productos}
-              materiasPrimas={materiasPrimas}
-              recetas={recetas}
-              productoRecetaId={productoSeleccionadoId}
               materiaRecetaId={materiaRecetaId}
               onSeleccionarMateria={setMateriaRecetaId}
               cantidadPorUnidad={cantidadPorUnidad}

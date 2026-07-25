@@ -5727,25 +5727,6 @@ select optgroup {
   padding: 28px 4px;
 }
 
-.fabricacion-usar-fila {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.fabricacion-celda-cantidad {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.fabricacion-celda-cantidad small {
-  font-size: 10.5px;
-  font-weight: 400;
-  color: var(--text-muted);
-}
-
 .fabricacion-panel-col .tabla td,
 .fabricacion-panel-col .tabla th {
   padding: 10px 8px;

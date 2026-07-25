@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Package, Check, AlertTriangle, PackagePlus } from "lucide-react";
+import { Search, Package, Check, AlertTriangle, PackagePlus, Trash2 } from "lucide-react";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
 import { mensajeErrorSeguro } from "../../../lib/errores";
@@ -9,6 +9,7 @@ import { normalizarTexto } from "../../../lib/normalizarTexto";
 import { etiquetaUnidad } from "../../../lib/unidadesMedida";
 import { formatoMoneda } from "../../ventas/utils";
 import { LOCALES } from "../../../lib/i18n";
+import SelectorPersonalizado, { OpcionSelector } from "../../../components/SelectorPersonalizado";
 import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "../types";
 import { producir, ErrorStockInsuficienteMateria } from "../acciones";
 
@@ -22,6 +23,13 @@ interface Props {
   onSeleccionarProducto: (id: string) => void;
   busqueda: string;
   onCambiarBusqueda: (valor: string) => void;
+  materiaRecetaId: string;
+  onSeleccionarMateria: (id: string) => void;
+  cantidadPorUnidad: string;
+  onCambiarCantidad: (valor: string) => void;
+  guardandoIngrediente: boolean;
+  onGuardarIngrediente: () => void;
+  onBorrarIngrediente: (id: number) => void;
 }
 
 const ACCESOS_RAPIDOS = [10, 50, 100, 500];
@@ -36,6 +44,13 @@ export default function TableroTab({
   onSeleccionarProducto,
   busqueda,
   onCambiarBusqueda,
+  materiaRecetaId,
+  onSeleccionarMateria,
+  cantidadPorUnidad,
+  onCambiarCantidad,
+  guardandoIngrediente,
+  onGuardarIngrediente,
+  onBorrarIngrediente,
 }: Props) {
   const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
@@ -88,6 +103,11 @@ export default function TableroTab({
     const necesario = ing.cantidad_por_unidad * cantidadProducirNum;
     return (materiaPrima?.stock ?? 0) >= necesario;
   });
+
+  const costoPorUnidadReceta = ingredientesAProducir.reduce((suma, r) => {
+    const materiaPrima = materiasPrimas.find((m) => m.id === r.materia_prima_id);
+    return suma + r.cantidad_por_unidad * (materiaPrima?.costo_unitario ?? 0);
+  }, 0);
 
   async function confirmarProduccion() {
     if (produciendo || !productoSeleccionado) return;
@@ -160,8 +180,6 @@ export default function TableroTab({
           <h2 style={{ marginBottom: 12 }}>{t("fabricacion.ingredientes_de_receta")}</h2>
           {!productoSeleccionado ? (
             <p className="fabricacion-panel-placeholder">{t("fabricacion.selecciona_producto")}</p>
-          ) : ingredientesAProducir.length === 0 ? (
-            <p className="fabricacion-panel-placeholder">{t("fabricacion.sin_receta")}</p>
           ) : (
             <>
               <div className="tabla">
@@ -169,41 +187,50 @@ export default function TableroTab({
                   <thead>
                     <tr>
                       <th>{t("fabricacion.selecciona_materia_prima")}</th>
-                      <th>{t("fabricacion.disponible")}</th>
-                      <th>{t("fabricacion.col_necesario")}</th>
+                      <th>{t("fabricacion.cantidad_por_unidad")}</th>
+                      <th>{t("productos.col_acciones")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {ingredientesAProducir.map((ing) => {
-                      const materiaPrima = materiasPrimas.find((m) => m.id === ing.materia_prima_id);
-                      const necesario = ing.cantidad_por_unidad * cantidadProducirNum;
-                      const disponible = materiaPrima?.stock ?? 0;
-                      const alcanza = disponible >= necesario;
-                      const unidad = materiaPrima ? etiquetaUnidad(materiaPrima.unidad, t) : "";
-                      return (
-                        <tr key={ing.id}>
-                          <td>{ing.materia_prima_nombre}</td>
-                          <td>
-                            <span className="fabricacion-celda-cantidad">
-                              <strong>{disponible}</strong>
-                              <small>{unidad}</small>
-                            </span>
-                          </td>
-                          <td>
-                            <span className="fabricacion-usar-fila">
-                              <span className="fabricacion-celda-cantidad">
-                                <strong>{Math.round(necesario * 100) / 100}</strong>
-                                <small>{unidad}</small>
-                              </span>
-                              {alcanza ? <Check size={14} color="#10b981" /> : <AlertTriangle size={14} color="#ef4444" />}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {ingredientesAProducir.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} style={{ textAlign: "center", padding: 24, color: "var(--text-secondary)" }}>
+                          {t("fabricacion.sin_receta")}
+                        </td>
+                      </tr>
+                    ) : (
+                      ingredientesAProducir.map((ing) => {
+                        const materiaPrima = materiasPrimas.find((m) => m.id === ing.materia_prima_id);
+                        const unidad = materiaPrima ? etiquetaUnidad(materiaPrima.unidad, t) : "";
+                        return (
+                          <tr key={ing.id}>
+                            <td>{ing.materia_prima_nombre}</td>
+                            <td>
+                              {ing.cantidad_por_unidad} {unidad}
+                            </td>
+                            <td>
+                              <button
+                                className="btn-delete"
+                                aria-label={t("productos.eliminar")}
+                                onClick={() => onBorrarIngrediente(ing.id)}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
+
+              {ingredientesAProducir.length > 0 && (
+                <div className="fabricacion-costo-chip" style={{ marginTop: 12 }}>
+                  <span>{t("fabricacion.costo_por_unidad")}</span>
+                  <span>{formatoMoneda(costoPorUnidadReceta)}</span>
+                </div>
+              )}
 
               {ingredientesAProducir.length > 0 && cantidadProducirNum > 0 && (
                 <div className={`fabricacion-banner ${todoAlcanza ? "fabricacion-banner-exito" : "fabricacion-banner-alerta"}`}>
@@ -211,6 +238,32 @@ export default function TableroTab({
                   {todoAlcanza ? t("fabricacion.todos_disponibles") : t("fabricacion.msg_stock_insuficiente_general")}
                 </div>
               )}
+
+              <div className="productos-grid" style={{ marginTop: 16 }}>
+                <SelectorPersonalizado value={materiaRecetaId} onChange={onSeleccionarMateria}>
+                  <OpcionSelector value="">{t("fabricacion.selecciona_materia_prima")}</OpcionSelector>
+                  {materiasPrimas.map((m) => (
+                    <OpcionSelector key={m.id} value={m.id}>
+                      {m.nombre} ({etiquetaUnidad(m.unidad, t)})
+                    </OpcionSelector>
+                  ))}
+                </SelectorPersonalizado>
+
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={cantidadPorUnidad}
+                  onChange={(e) => onCambiarCantidad(e.target.value)}
+                  placeholder={t("fabricacion.cantidad_por_unidad")}
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                <button className="btn-secondary" onClick={onGuardarIngrediente} disabled={guardandoIngrediente}>
+                  {t("fabricacion.agregar_ingrediente")}
+                </button>
+              </div>
             </>
           )}
         </div>
