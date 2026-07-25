@@ -30,6 +30,8 @@ interface Props {
   guardandoIngrediente: boolean;
   onGuardarIngrediente: () => void;
   onBorrarIngrediente: (id: number) => void;
+  pasoMovil: 1 | 2 | 3 | 4;
+  onCambiarPasoMovil: (paso: 1 | 2 | 3 | 4) => void;
 }
 
 const ACCESOS_RAPIDOS = [10, 50, 100, 500];
@@ -51,22 +53,18 @@ export default function TableroTab({
   guardandoIngrediente,
   onGuardarIngrediente,
   onBorrarIngrediente,
+  pasoMovil,
+  onCambiarPasoMovil,
 }: Props) {
   const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
 
   const [cantidadAProducir, setCantidadAProducir] = useState("");
   const [produciendo, setProduciendo] = useState(false);
-  // Solo tiene efecto visual en celular (ver .fabricacion-paso-inactivo-movil
-  // en globals.css, dentro de @media max-width:900px) — en computadora las
-  // 4 columnas siempre están visibles a la vez, así que este estado no
-  // cambia nada ahí. En celular, en cambio, muestra una columna a la vez
-  // y usa este número para decidir cuál.
-  const [pasoMovil, setPasoMovil] = useState<1 | 2 | 3 | 4>(1);
 
   function seleccionarProducto(id: string) {
     onSeleccionarProducto(id);
-    setPasoMovil(2);
+    onCambiarPasoMovil(2);
   }
 
   function avanzarAResumen() {
@@ -78,7 +76,7 @@ export default function TableroTab({
       mostrarToast(t("comun.msg_cantidad_entera"), "error");
       return;
     }
-    setPasoMovil(4);
+    onCambiarPasoMovil(4);
   }
 
   // producir() lanza sentinels sin traducir (ver comentario en
@@ -150,7 +148,7 @@ export default function TableroTab({
       mostrarToast(t("fabricacion.msg_produccion_confirmada"), "exito");
       onSeleccionarProducto("");
       setCantidadAProducir("");
-      setPasoMovil(1);
+      onCambiarPasoMovil(1);
       await onProducido();
     } catch (error) {
       console.error(error);
@@ -290,10 +288,10 @@ export default function TableroTab({
               </div>
 
               <div className="fabricacion-paso-nav-movil">
-                <button type="button" className="btn-secondary" onClick={() => setPasoMovil(1)}>
+                <button type="button" className="btn-secondary" onClick={() => onCambiarPasoMovil(1)}>
                   <ChevronLeft size={15} /> {t("comun.atras")}
                 </button>
-                <button type="button" className="btn-primary" onClick={() => setPasoMovil(3)}>
+                <button type="button" className="btn-primary" onClick={() => onCambiarPasoMovil(3)}>
                   {t("comun.siguiente")} <ChevronRight size={15} />
                 </button>
               </div>
@@ -333,7 +331,7 @@ export default function TableroTab({
               )}
 
               <div className="fabricacion-paso-nav-movil">
-                <button type="button" className="btn-secondary" onClick={() => setPasoMovil(2)}>
+                <button type="button" className="btn-secondary" onClick={() => onCambiarPasoMovil(2)}>
                   <ChevronLeft size={15} /> {t("comun.atras")}
                 </button>
                 <button type="button" className="btn-primary" onClick={avanzarAResumen}>
@@ -401,7 +399,7 @@ export default function TableroTab({
               </button>
 
               <div className="fabricacion-paso-nav-movil">
-                <button type="button" className="btn-secondary" onClick={() => setPasoMovil(3)}>
+                <button type="button" className="btn-secondary" onClick={() => onCambiarPasoMovil(3)}>
                   <ChevronLeft size={15} /> {t("comun.atras")}
                 </button>
               </div>

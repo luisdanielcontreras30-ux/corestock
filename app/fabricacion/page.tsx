@@ -57,6 +57,11 @@ function FabricacionContenido() {
   const [materiaRecetaId, setMateriaRecetaId] = useState("");
   const [cantidadPorUnidad, setCantidadPorUnidad] = useState("");
   const [guardandoIngrediente, setGuardandoIngrediente] = useState(false);
+  // Solo cambia algo visible en celular (TableroTab muestra una sola
+  // columna a la vez ahí) — en computadora las 4 se ven siempre, pero
+  // igual sirve para que el indicador de pasos de aquí arriba resalte
+  // el número correcto en vez de quedarse siempre marcando el 1.
+  const [pasoMovil, setPasoMovil] = useState<1 | 2 | 3 | 4>(1);
 
   async function obtenerDatos() {
     setLoading(true);
@@ -267,7 +272,7 @@ function FabricacionContenido() {
               ].map((paso, i) => (
                 <div key={paso.titulo} style={{ display: "contents" }}>
                   <div className="fabricacion-paso">
-                    <div className={`fabricacion-paso-circulo ${i === 0 ? "fabricacion-paso-circulo-primero" : "fabricacion-paso-circulo-resto"}`}>
+                    <div className={`fabricacion-paso-circulo ${i + 1 === pasoMovil ? "fabricacion-paso-circulo-primero" : "fabricacion-paso-circulo-resto"}`}>
                       {i + 1}
                     </div>
                     <div className="fabricacion-paso-texto">
@@ -296,6 +301,8 @@ function FabricacionContenido() {
               guardandoIngrediente={guardandoIngrediente}
               onGuardarIngrediente={guardarIngrediente}
               onBorrarIngrediente={borrarIngrediente}
+              pasoMovil={pasoMovil}
+              onCambiarPasoMovil={setPasoMovil}
             />
           </section>
 
