@@ -5581,8 +5581,37 @@ select optgroup {
 }
 
 /* ==========================================================================
-   FABRICACIÓN — pestañas rediseñadas (Tablero, Recetas, Stock)
+   FABRICACIÓN — una sola página con todas las secciones apiladas
+   (Producción, Recetas, Materias primas, Cotización), sin pestañas.
    ========================================================================== */
+
+.fabricacion-secciones {
+  display: flex;
+  flex-direction: column;
+  /* Separación grande entre secciones — antes vivían cada una en su
+     propia pestaña con toda la pantalla para respirar; ahora que están
+     todas apiladas en una sola página necesitan más aire entre ellas
+     para no verse amontonadas. */
+  gap: 48px;
+}
+
+.fabricacion-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fabricacion-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #ea580c;
+  margin: 0;
+}
 
 .fabricacion-panel-produccion {
   display: grid;
@@ -5661,16 +5690,11 @@ select optgroup {
   color: #ef4444;
 }
 
-.fabricacion-tablero-inferior {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
 
 .fabricacion-stock-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .fabricacion-stock-card {
@@ -5720,7 +5744,7 @@ select optgroup {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 4px;
+  padding: 12px 6px;
   border-bottom: 1px solid var(--border);
   font-size: 13px;
 }
@@ -5798,7 +5822,7 @@ select optgroup {
 .fabricacion-lista-productos {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin-top: 12px;
   max-height: 480px;
   overflow-y: auto;
@@ -5945,10 +5969,6 @@ select optgroup {
   }
 
   .fabricacion-panel-produccion {
-    grid-template-columns: 1fr;
-  }
-
-  .fabricacion-tablero-inferior {
     grid-template-columns: 1fr;
   }
 }

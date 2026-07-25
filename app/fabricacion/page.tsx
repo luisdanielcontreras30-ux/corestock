@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Factory, Plus } from "lucide-react";
+import { Factory, Plus, BookOpen, Boxes, Calculator } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -13,7 +13,6 @@ import RequierePlus from "../../components/RequierePlus";
 import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "./types";
 import { cargarDatos, crearMateriaPrima, eliminarMateriaPrima, agregarIngrediente, eliminarIngrediente } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
-import FabricacionTabs, { TabFabricacion } from "./components/FabricacionTabs";
 import TableroTab from "./components/TableroTab";
 import RecetasTab from "./components/RecetasTab";
 import StockTab from "./components/StockTab";
@@ -41,19 +40,16 @@ function FabricacionContenido() {
   const [recetas, setRecetas] = useState<IngredienteReceta[]>([]);
   const [producciones, setProducciones] = useState<Produccion[]>([]);
 
-  const [tab, setTab] = useState<TabFabricacion>("tablero");
   const nombreMpRef = useRef<HTMLInputElement>(null);
 
-  // Materias primas (pestaña Stock) — se queda en la página porque el
-  // estado vacío de abajo necesita enfocar el campo al cambiar de
-  // pestaña.
+  // Materias primas
   const [nombreMP, setNombreMP] = useState("");
   const [unidadMP, setUnidadMP] = useState("");
   const [stockMP, setStockMP] = useState("");
   const [costoMP, setCostoMP] = useState("");
   const [guardandoMP, setGuardandoMP] = useState(false);
 
-  // Recetas (pestaña Recetas)
+  // Recetas
   const [productoRecetaId, setProductoRecetaId] = useState("");
   const [materiaRecetaId, setMateriaRecetaId] = useState("");
   const [cantidadPorUnidad, setCantidadPorUnidad] = useState("");
@@ -89,13 +85,10 @@ function FabricacionContenido() {
   }, [cargandoAuth, user]);
 
   function irACrearFabricacion() {
-    setTab("stock");
-    // El campo vive en otra pestaña — hay que esperar a que se monte
-    // antes de poder enfocarlo.
-    requestAnimationFrame(() => {
-      nombreMpRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      nombreMpRef.current?.focus();
-    });
+    // Con todo en una sola página, el campo ya está montado — no hace
+    // falta esperar un frame extra como cuando vivía en otra pestaña.
+    nombreMpRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    nombreMpRef.current?.focus();
   }
 
   async function guardarMateriaPrima() {
@@ -231,7 +224,7 @@ function FabricacionContenido() {
           </button>
         </div>
       ) : (
-        <>
+        <div className="fabricacion-secciones">
           {materiasPrimas.length === 0 && recetas.length === 0 && (
             <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
               <div
@@ -261,9 +254,10 @@ function FabricacionContenido() {
             </div>
           )}
 
-          <FabricacionTabs activa={tab} onCambiar={setTab} />
-
-          {tab === "tablero" && (
+          <section className="fabricacion-seccion">
+            <h2 className="fabricacion-seccion-titulo">
+              <Factory size={17} /> {t("fabricacion.producir")}
+            </h2>
             <TableroTab
               productos={productos}
               materiasPrimas={materiasPrimas}
@@ -271,9 +265,12 @@ function FabricacionContenido() {
               producciones={producciones}
               onProducido={obtenerDatos}
             />
-          )}
+          </section>
 
-          {tab === "recetas" && (
+          <section className="fabricacion-seccion">
+            <h2 className="fabricacion-seccion-titulo">
+              <BookOpen size={17} /> {t("fabricacion.recetas")}
+            </h2>
             <RecetasTab
               productos={productos}
               materiasPrimas={materiasPrimas}
@@ -288,9 +285,12 @@ function FabricacionContenido() {
               onGuardarIngrediente={guardarIngrediente}
               onBorrarIngrediente={borrarIngrediente}
             />
-          )}
+          </section>
 
-          {tab === "stock" && (
+          <section className="fabricacion-seccion">
+            <h2 className="fabricacion-seccion-titulo">
+              <Boxes size={17} /> {t("fabricacion.materias_primas")}
+            </h2>
             <StockTab
               materiasPrimas={materiasPrimas}
               nombreMpRef={nombreMpRef}
@@ -306,12 +306,15 @@ function FabricacionContenido() {
               onGuardar={guardarMateriaPrima}
               onBorrar={borrarMateriaPrima}
             />
-          )}
+          </section>
 
-          {tab === "cotizacion" && (
+          <section className="fabricacion-seccion">
+            <h2 className="fabricacion-seccion-titulo">
+              <Calculator size={17} /> {t("fabricacion.cotizacion")}
+            </h2>
             <CotizacionTab productos={productos} materiasPrimas={materiasPrimas} recetas={recetas} />
-          )}
-        </>
+          </section>
+        </div>
       )}
     </main>
   );

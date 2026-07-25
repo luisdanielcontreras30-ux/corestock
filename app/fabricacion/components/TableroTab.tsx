@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Package, Check, AlertTriangle, PackagePlus, Boxes } from "lucide-react";
+import { Search, Package, Check, AlertTriangle, PackagePlus } from "lucide-react";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
 import { mensajeErrorSeguro } from "../../../lib/errores";
@@ -298,50 +298,26 @@ export default function TableroTab({ productos, materiasPrimas, recetas, producc
         </div>
       </div>
 
-      <div className="fabricacion-tablero-inferior">
-        <div className="card">
-          <h2 style={{ marginBottom: 16 }}>{t("fabricacion.stock_disponible")}</h2>
-          {materiasPrimas.length === 0 ? (
-            <p style={{ color: "var(--text-secondary)", fontSize: 13.5 }}>{t("fabricacion.sin_materias_primas")}</p>
-          ) : (
-            <div className="fabricacion-stock-grid">
-              {materiasPrimas.map((m) => (
-                <div key={m.id} className="fabricacion-stock-card">
-                  <div className="fabricacion-stock-card-icono">
-                    <Boxes size={18} />
-                  </div>
-                  <span className="fabricacion-stock-card-nombre">{m.nombre}</span>
-                  <span className="fabricacion-stock-card-cantidad">
-                    {m.stock} {etiquetaUnidad(m.unidad, t)}
-                  </span>
-                  <span className="fabricacion-stock-card-etiqueta">{t("fabricacion.disponible")}</span>
+      <div className="card">
+        <h2 style={{ marginBottom: 16 }}>{t("fabricacion.actividad_reciente")}</h2>
+        {actividadReciente.length === 0 ? (
+          <p style={{ color: "var(--text-secondary)", fontSize: 13.5 }}>{t("fabricacion.sin_producciones")}</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {actividadReciente.map((p) => (
+              <div key={p.id} className="fabricacion-actividad-fila">
+                <div className="fabricacion-actividad-icono">
+                  <PackagePlus size={15} />
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="card">
-          <h2 style={{ marginBottom: 16 }}>{t("fabricacion.actividad_reciente")}</h2>
-          {actividadReciente.length === 0 ? (
-            <p style={{ color: "var(--text-secondary)", fontSize: 13.5 }}>{t("fabricacion.sin_producciones")}</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {actividadReciente.map((p) => (
-                <div key={p.id} className="fabricacion-actividad-fila">
-                  <div className="fabricacion-actividad-icono">
-                    <PackagePlus size={15} />
-                  </div>
-                  <span className="fabricacion-actividad-nombre">{p.producto_nombre}</span>
-                  <span className="fabricacion-actividad-cantidad">{p.cantidad}</span>
-                  <span className="fabricacion-actividad-fecha">
-                    {new Date(p.fecha).toLocaleDateString(LOCALES[idioma], { day: "numeric", month: "short" })}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                <span className="fabricacion-actividad-nombre">{p.producto_nombre}</span>
+                <span className="fabricacion-actividad-cantidad">{p.cantidad}</span>
+                <span className="fabricacion-actividad-fecha">
+                  {new Date(p.fecha).toLocaleDateString(LOCALES[idioma], { day: "numeric", month: "short" })}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
