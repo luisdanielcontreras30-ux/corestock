@@ -9,11 +9,13 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import IaNoDisponible from "../../components/IaNoDisponible";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { probarVendedorIA, ErrorVendedorIA } from "../../lib/whatsappVendedor";
 import { cargarNumeroWhatsApp, guardarNumeroWhatsApp } from "./acciones";
 import { copiarAlPortapapeles } from "../../lib/portapapeles";
 import { tieneAccesoBeta } from "../../lib/betaAcceso";
+import { IA_DISPONIBLE } from "../../lib/soporte";
 import CargandoLista from "../../components/CargandoLista";
 
 interface Intercambio {
@@ -234,6 +236,9 @@ function WhatsappContenido() {
         )}
       </div>
 
+      {!IA_DISPONIBLE ? (
+        <IaNoDisponible />
+      ) : (
       <div className="card">
         <h2 style={{ marginBottom: 4 }}>{t("whatsapp.prueba_titulo")}</h2>
         <p style={{ color: "var(--text-secondary)", fontSize: 13.5, marginBottom: 18 }}>
@@ -372,6 +377,7 @@ function WhatsappContenido() {
           </button>
         </div>
       </div>
+      )}
     </main>
   );
 }

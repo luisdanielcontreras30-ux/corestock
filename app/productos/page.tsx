@@ -7,6 +7,7 @@ import { obtenerNegocioId } from "../../lib/negocioActual";
 import { subirImagenSegura } from "../../lib/uploads";
 import { redimensionarParaSubir } from "../../lib/imagenes";
 import { analizarProductoConIA, ErrorAnalisisIA } from "../../lib/iaAcciones";
+import { IA_DISPONIBLE } from "../../lib/soporte";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { normalizarTexto } from "../../lib/normalizarTexto";
 import { formatoMoneda } from "../ventas/utils";
@@ -379,6 +380,11 @@ function ProductosInterno() {
   }
 
   async function analizarConIA(archivoOverride?: File) {
+    if (!IA_DISPONIBLE) {
+      mostrarToast(t("ia_no_disponible.mensaje_corto"), "info");
+      return;
+    }
+
     const archivo = archivoOverride ?? imagen;
     if (analizandoIA) return;
 

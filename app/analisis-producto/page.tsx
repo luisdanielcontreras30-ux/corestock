@@ -18,8 +18,10 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import RequierePlus from "../../components/RequierePlus";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import IaNoDisponible from "../../components/IaNoDisponible";
 import { analizarProductoConIA } from "../../lib/iaAcciones";
 import { mensajeErrorSeguro } from "../../lib/errores";
+import { IA_DISPONIBLE } from "../../lib/soporte";
 import { formatoMoneda } from "../ventas/utils";
 import { EstadisticasCategoria, ProductoCategoria, ResultadoIA, VentaCategoria } from "./types";
 import { cargarDatosAnalisis } from "./acciones";
@@ -39,7 +41,7 @@ function AnalisisProductoContenido() {
   const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
 
-  const [cargandoDatos, setCargandoDatos] = useState(true);
+  const [cargandoDatos, setCargandoDatos] = useState(IA_DISPONIBLE);
   const [productos, setProductos] = useState<ProductoCategoria[]>([]);
   const [ventas, setVentas] = useState<VentaCategoria[]>([]);
 
@@ -58,6 +60,8 @@ function AnalisisProductoContenido() {
       router.push("/login");
       return;
     }
+
+    if (!IA_DISPONIBLE) return;
 
     (async () => {
       try {
@@ -142,90 +146,96 @@ function AnalisisProductoContenido() {
         subtitulo={t("analisis.subtitulo")}
       />
 
-      <div className="card" style={{ maxWidth: 480 }}>
-        <div
-          className="upload-box"
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            const file = e.dataTransfer.files?.[0];
-            if (file) manejarArchivo(file);
-          }}
-        >
-          {!preview ? (
-            <>
-              <ImagePlus size={34} color="var(--text-muted)" />
-              <p>{t("analisis.subir_foto")}</p>
-              <p className="upload-box-subtexto">{t("productos.subir_imagen_subtexto")}</p>
-            </>
-          ) : (
-            <img src={preview} alt={t("analisis.subir_foto")} className="upload-box-preview" />
-          )}
-        </div>
+      {!IA_DISPONIBLE ? (
+        <IaNoDisponible />
+      ) : (
+        <>
+          <div className="card" style={{ maxWidth: 480 }}>
+            <div
+              className="upload-box"
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files?.[0];
+                if (file) manejarArchivo(file);
+              }}
+            >
+              {!preview ? (
+                <>
+                  <ImagePlus size={34} color="var(--text-muted)" />
+                  <p>{t("analisis.subir_foto")}</p>
+                  <p className="upload-box-subtexto">{t("productos.subir_imagen_subtexto")}</p>
+                </>
+              ) : (
+                <img src={preview} alt={t("analisis.subir_foto")} className="upload-box-preview" />
+              )}
+            </div>
 
-        <input
-          hidden
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) manejarArchivo(file);
-          }}
-        />
+            <input
+              hidden
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) manejarArchivo(file);
+              }}
+            />
 
-        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-          <button
-            type="button"
-            className="btn-primary"
-            disabled={!imagen || analizando || cargandoDatos}
-            onClick={analizar}
-          >
-            {analizando ? t("analisis.analizando") : t("analisis.boton_analizar")}
-          </button>
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={!imagen || analizando || cargandoDatos}
+                onClick={analizar}
+              >
+                {analizando ? t("analisis.analizando") : t("analisis.boton_analizar")}
+              </button>
 
-          {(preview || resultadoIA) && (
-            <button type="button" className="btn-secondary" onClick={analizarOtra} disabled={analizando}>
-              {t("analisis.analizar_otra")}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {resultadoIA && (
-        <div className="card fade-up">
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
-            <h2 style={{ margin: 0, fontSize: 20 }}>{resultadoIA.nombre}</h2>
-            {resultadoIA.categoria && (
-              <span className="analisis-badge-categoria">{resultadoIA.categoria}</span>
-            )}
+              {(preview || resultadoIA) && (
+                <button type="button" className="btn-secondary" onClick={analizarOtra} disabled={analizando}>
+                  {t("analisis.analizar_otra")}
+                </button>
+              )}
+            </div>
           </div>
-          <p style={{ color: "var(--text-secondary)", margin: 0 }}>{resultadoIA.descripcion}</p>
 
-          {estadisticas?.tieneProductos ? (
-            <ResultadoEstadisticas estadisticas={estadisticas} t={t} />
-          ) : (
-            <div className="analisis-vacio">
-              <p>{t("analisis.msg_categoria_nueva")}</p>
+          {resultadoIA && (
+            <div className="card fade-up">
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
+                <h2 style={{ margin: 0, fontSize: 20 }}>{resultadoIA.nombre}</h2>
+                {resultadoIA.categoria && (
+                  <span className="analisis-badge-categoria">{resultadoIA.categoria}</span>
+                )}
+              </div>
+              <p style={{ color: "var(--text-secondary)", margin: 0 }}>{resultadoIA.descripcion}</p>
+
+              {estadisticas?.tieneProductos ? (
+                <ResultadoEstadisticas estadisticas={estadisticas} t={t} />
+              ) : (
+                <div className="analisis-vacio">
+                  <p>{t("analisis.msg_categoria_nueva")}</p>
+                </div>
+              )}
+
+              <Link
+                href={{
+                  pathname: "/productos",
+                  query: {
+                    nombre_sugerido: resultadoIA.nombre,
+                    categoria_sugerida: resultadoIA.categoria,
+                    descripcion_sugerida: resultadoIA.descripcion,
+                  },
+                }}
+                className="btn-secondary"
+                style={{ display: "inline-block", marginTop: 16, textDecoration: "none", textAlign: "center" }}
+              >
+                {t("analisis.agregar_al_inventario")}
+              </Link>
             </div>
           )}
-
-          <Link
-            href={{
-              pathname: "/productos",
-              query: {
-                nombre_sugerido: resultadoIA.nombre,
-                categoria_sugerida: resultadoIA.categoria,
-                descripcion_sugerida: resultadoIA.descripcion,
-              },
-            }}
-            className="btn-secondary"
-            style={{ display: "inline-block", marginTop: 16, textDecoration: "none", textAlign: "center" }}
-          >
-            {t("analisis.agregar_al_inventario")}
-          </Link>
-        </div>
+        </>
       )}
     </main>
   );

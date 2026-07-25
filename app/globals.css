@@ -4488,6 +4488,25 @@ select optgroup {
   text-decoration: underline;
 }
 
+/* Tarjeta de "esta función de IA no está disponible" — a diferencia
+   de .plus-requerido-card (página completa centrada), esta vive
+   embebida dentro del layout normal de cada página (ver
+   components/IaNoDisponible.tsx), así que no fuerza min-height ni
+   centrado de página. */
+.ia-no-disponible-card {
+  max-width: 480px;
+}
+
+.ia-no-disponible-icono {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(139, 92, 246, 0.12);
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+}
+
 /* ==========================================================================
    CATÁLOGO PÚBLICO: vertical entre categorías, horizontal entre productos
    ========================================================================== */
