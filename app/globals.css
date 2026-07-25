@@ -5613,6 +5613,89 @@ select optgroup {
   margin: 0;
 }
 
+/* Indicador de 4 pasos sobre el panel de Producción — puramente
+   orientativo (los 4 pasos se ven todos a la vez, no hay que hacer
+   clic para avanzar), solo para que quede claro qué columna
+   corresponde a qué parte del flujo. */
+.fabricacion-pasos {
+  display: flex;
+  align-items: center;
+}
+
+.fabricacion-paso {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.fabricacion-paso-linea {
+  flex: 0 1 64px;
+  height: 2px;
+  background: var(--border);
+  margin: 0 12px;
+}
+
+.fabricacion-paso-circulo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.fabricacion-paso-circulo-primero {
+  background: #ea580c;
+  color: #fff;
+}
+
+.fabricacion-paso-circulo-resto {
+  background: transparent;
+  border: 2px solid #ea580c;
+  color: #ea580c;
+}
+
+.fabricacion-paso-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fabricacion-paso-titulo {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.fabricacion-paso-subtitulo {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 900px) {
+  .fabricacion-pasos {
+    flex-wrap: wrap;
+    row-gap: 16px;
+  }
+  .fabricacion-paso {
+    flex: 1 1 45%;
+  }
+  .fabricacion-paso-linea {
+    display: none;
+  }
+  .fabricacion-paso-subtitulo {
+    white-space: normal;
+  }
+}
+
 .fabricacion-panel-produccion {
   display: grid;
   /* minmax(0, ...) en vez de solo "1fr" — mismo patrón que

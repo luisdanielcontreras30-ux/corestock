@@ -255,9 +255,27 @@ function FabricacionContenido() {
           )}
 
           <section className="fabricacion-seccion">
-            <h2 className="fabricacion-seccion-titulo">
-              <Factory size={17} /> {t("fabricacion.producir")}
-            </h2>
+            <div className="fabricacion-pasos">
+              {[
+                { titulo: t("fabricacion.paso1_titulo"), subtitulo: t("fabricacion.paso1_subtitulo") },
+                { titulo: t("fabricacion.paso2_titulo"), subtitulo: t("fabricacion.paso2_subtitulo") },
+                { titulo: t("fabricacion.paso3_titulo"), subtitulo: t("fabricacion.paso3_subtitulo") },
+                { titulo: t("fabricacion.paso4_titulo"), subtitulo: t("fabricacion.paso4_subtitulo") },
+              ].map((paso, i) => (
+                <div key={paso.titulo} style={{ display: "contents" }}>
+                  <div className="fabricacion-paso">
+                    <div className={`fabricacion-paso-circulo ${i === 0 ? "fabricacion-paso-circulo-primero" : "fabricacion-paso-circulo-resto"}`}>
+                      {i + 1}
+                    </div>
+                    <div className="fabricacion-paso-texto">
+                      <span className="fabricacion-paso-titulo">{paso.titulo}</span>
+                      <span className="fabricacion-paso-subtitulo">{paso.subtitulo}</span>
+                    </div>
+                  </div>
+                  {i < 3 && <div className="fabricacion-paso-linea" />}
+                </div>
+              ))}
+            </div>
             <TableroTab
               productos={productos}
               materiasPrimas={materiasPrimas}

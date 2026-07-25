@@ -730,6 +730,14 @@ export const TRADUCCIONES: Diccionario = {
   "fabricacion.resumen_placeholder": { es: "Elige una receta y una cantidad para ver el resumen.", en: "Choose a recipe and a quantity to see the summary.", pt: "Escolha uma receita e uma quantidade para ver o resumo.", fr: "Choisissez une recette et une quantité pour voir le résumé.", de: "Wähle ein Rezept und eine Menge, um die Zusammenfassung zu sehen.", zh: "选择配方和数量以查看摘要。", it: "Scegli una ricetta e una quantità per vedere il riepilogo." },
   "fabricacion.todos_disponibles": { es: "Todos los ingredientes disponibles", en: "All ingredients available", pt: "Todos os ingredientes disponíveis", fr: "Tous les ingrédients disponibles", de: "Alle Zutaten verfügbar", zh: "所有原料均可用", it: "Tutti gli ingredienti disponibili" },
   "fabricacion.rendimiento_estimado": { es: "Rendimiento estimado", en: "Estimated yield", pt: "Rendimento estimado", fr: "Rendement estimé", de: "Geschätzte Ausbeute", zh: "预计产量", it: "Resa stimata" },
+  "fabricacion.paso1_titulo": { es: "Receta", en: "Recipe", pt: "Receita", fr: "Recette", de: "Rezept", zh: "配方", it: "Ricetta" },
+  "fabricacion.paso1_subtitulo": { es: "Selecciona la receta", en: "Select the recipe", pt: "Selecione a receita", fr: "Sélectionnez la recette", de: "Rezept auswählen", zh: "选择配方", it: "Seleziona la ricetta" },
+  "fabricacion.paso2_titulo": { es: "Materias primas", en: "Raw materials", pt: "Matérias-primas", fr: "Matières premières", de: "Rohstoffe", zh: "原材料", it: "Materie prime" },
+  "fabricacion.paso2_subtitulo": { es: "Revisa las cantidades", en: "Check the quantities", pt: "Revise as quantidades", fr: "Vérifiez les quantités", de: "Mengen prüfen", zh: "核对数量", it: "Controlla le quantità" },
+  "fabricacion.paso3_titulo": { es: "Producción", en: "Production", pt: "Produção", fr: "Production", de: "Produktion", zh: "生产", it: "Produzione" },
+  "fabricacion.paso3_subtitulo": { es: "Cantidad a producir", en: "Quantity to produce", pt: "Quantidade a produzir", fr: "Quantité à produire", de: "Zu produzierende Menge", zh: "生产数量", it: "Quantità da produrre" },
+  "fabricacion.paso4_titulo": { es: "Resumen", en: "Summary", pt: "Resumo", fr: "Résumé", de: "Zusammenfassung", zh: "摘要", it: "Riepilogo" },
+  "fabricacion.paso4_subtitulo": { es: "Revisa y confirma", en: "Review and confirm", pt: "Revise e confirme", fr: "Vérifiez et confirmez", de: "Prüfen und bestätigen", zh: "查看并确认", it: "Rivedi e conferma" },
 
   // Conciliaciones
   "conciliaciones.subtitulo": { es: "Concilia tus movimientos contra tu estado de cuenta.", en: "Reconcile your movements against your bank statement.", pt: "Concilie seus movimentos com seu extrato bancário.", fr: "Rapprochez vos mouvements avec votre relevé bancaire.", de: "Gleiche deine Bewegungen mit deinem Kontoauszug ab.", zh: "将您的往来账目与银行对账单核对。", it: "Riconcilia i tuoi movimenti con il tuo estratto conto." },
