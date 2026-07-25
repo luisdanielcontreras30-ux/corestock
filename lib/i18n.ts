@@ -54,7 +54,7 @@ export const TRADUCCIONES: Diccionario = {
   "sidebar.configuracion": { es: "Configuración", en: "Settings", pt: "Configurações", fr: "Paramètres", de: "Einstellungen", zh: "设置", it: "Impostazioni" },
   "sidebar.suscripcion": { es: "Suscripción", en: "Subscription", pt: "Assinatura", fr: "Abonnement", de: "Abonnement", zh: "订阅", it: "Abbonamento" },
   "sidebar.empleados_ia": { es: "Empleados IA", en: "AI Employees", pt: "Funcionários IA", fr: "Employés IA", de: "KI-Mitarbeiter", zh: "AI员工", it: "Dipendenti IA" },
-  "sidebar.tutoriales": { es: "Videos Tutoriales", en: "Tutorial Videos", pt: "Vídeos Tutoriais", fr: "Vidéos tutorielles", de: "Tutorial-Videos", zh: "教程视频", it: "Video tutorial" },
+  "sidebar.tutoriales": { es: "Tutoriales", en: "Tutorials", pt: "Tutoriais", fr: "Tutoriels", de: "Anleitungen", zh: "教程", it: "Tutorial" },
 
   // Página "Más" (móvil) y páginas "Próximamente"
   "mas.subtitulo": { es: "Todo lo demás que puedes hacer en CoreStock.", en: "Everything else you can do in CoreStock.", pt: "Tudo o mais que você pode fazer no CoreStock.", fr: "Tout le reste que vous pouvez faire dans CoreStock.", de: "Alles andere, was du in CoreStock tun kannst.", zh: "CoreStock 中您可以做的其他所有事情。", it: "Tutto il resto che puoi fare in CoreStock." },
