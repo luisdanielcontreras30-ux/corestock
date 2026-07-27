@@ -20,6 +20,25 @@ import {
   analizarVentasMes,
   analizarCategoriaTop,
 } from "./acciones";
+import { detectarIntencion, IntencionDatos } from "./deteccion";
+import { TEMAS_CONOCIMIENTO } from "./conocimiento";
+
+// Une la intención detectada con la función que consulta los datos.
+// Estar en un mapa (y no en la cadena de if de antes) permite que
+// deteccion.ts no sepa nada de acciones.ts: solo devuelve un nombre.
+const FUNCIONES_DATOS: Record<IntencionDatos, (idioma: Idioma) => Promise<string>> = {
+  que_comprar: analizarQueComprar,
+  ganancias: analizarGanancias,
+  baja_ventas: analizarBajaVentas,
+  resumen_semana: analizarResumenSemana,
+  ventas_hoy: analizarVentasHoy,
+  producto_top: analizarProductoTop,
+  agotados: analizarAgotados,
+  inventario: analizarInventario,
+  mejor_cliente: analizarMejorCliente,
+  ventas_mes: analizarVentasMes,
+  categoria_top: analizarCategoriaTop,
+};
 
 interface Mensaje {
   id: number;
@@ -131,142 +150,57 @@ function AsistenteContenido() {
     }
   }
 
-  function detectarFuncion(texto: string) {
-    const t = texto.toLowerCase().trim();
-
-    // Las intenciones de negocio van primero: un mensaje como "hey,
-    // ¿cuánto vendí hoy?" o "gracias, ¿cómo va mi inventario?" debe
-    // resolver la pregunta real, no quedarse en el saludo/despedida.
-    const palabrasGanancia = ["ganan", "gané", "gane", "ganad", "ganand", "gano", "profit", "margen", "lucro", "utilidad"];
-    const mencionaGanancia = palabrasGanancia.some((s) => t.includes(s));
-
-    if (
-      (t.includes("compr") || t.includes("buy") || t.includes("reabastec") || t.includes("surtir") || t.includes("restock")) &&
-      !mencionaGanancia
-    ) {
-      return analizarQueComprar;
-    }
-    if (mencionaGanancia) {
-      return analizarGanancias;
-    }
-    if (
-      (t.includes("baj") || t.includes("cay") || t.includes("caíd") || t.includes("caid") || t.includes("down") || t.includes("drop") || t.includes("menos vent")) &&
-      (t.includes("venta") || t.includes("sale"))
-    ) {
-      return analizarBajaVentas;
-    }
-    // El mes va antes que la semana/genérico: "resumen de ventas del
-    // mes" contiene "resum", así que si no se revisa "mes" primero
-    // siempre caería en el resumen semanal.
-    if ((t.includes("mes") || t.includes("month")) && (t.includes("vent") || t.includes("resum") || t.includes("sale") || t.includes("summary"))) {
-      return analizarVentasMes;
-    }
-    if (t.includes("resum") || t.includes("summary") || (t.includes("semana") && (t.includes("venta") || t.includes("vend"))) || t.includes("week")) {
-      return analizarResumenSemana;
-    }
-    if ((t.includes("hoy") || t.includes("today")) && (t.includes("vend") || t.includes("sold") || t.includes("sale"))) {
-      return analizarVentasHoy;
-    }
-    if (
-      t.includes("más vendido") ||
-      t.includes("mas vendido") ||
-      t.includes("vende más") ||
-      t.includes("vende mas") ||
-      t.includes("se vende más") ||
-      t.includes("se vende mas") ||
-      t.includes("best sell") ||
-      t.includes("estrella") ||
-      t.includes("top product")
-    ) {
-      return analizarProductoTop;
-    }
-    if (
-      t.includes("categoría") ||
-      t.includes("categoria") ||
-      t.includes("category")
-    ) {
-      return analizarCategoriaTop;
-    }
-    if (t.includes("agotad") || t.includes("out of stock") || t.includes("sin stock") || t.includes("se acab")) {
-      return analizarAgotados;
-    }
-    if (t.includes("inventario") || t.includes("catálogo") || t.includes("catalogo") || t.includes("cuántos productos") || t.includes("cuantos productos") || t.includes("stock total") || t.includes("valor del inventario") || t.includes("valor de mi inventario")) {
-      return analizarInventario;
-    }
-    if (t.includes("mejor cliente") || t.includes("mejores clientes") || t.includes("best customer") || t.includes("top cliente") || t.includes("top client") || t.includes("quién más me compra") || t.includes("quien mas me compra") || t.includes("quién me compra más") || t.includes("quien me compra mas")) {
-      return analizarMejorCliente;
-    }
-
-    // Saludos y small talk solo si no hay ninguna intención de negocio.
-    const saludos = ["hola", "hi", "hello", "hey", "buenas", "buenos días", "buenos dias", "buenas tardes", "buenas noches", "qué tal", "que tal", "oi", "olá", "salut", "hallo", "你好"];
-    if (saludos.some((s) => t === s || t.startsWith(s + " ") || t.startsWith(s + "!") || t.startsWith(s + ","))) {
-      return "saludo" as const;
-    }
-
-    const despedidas = ["gracias", "thanks", "thank you", "adiós", "adios", "bye", "nos vemos", "obrigado", "merci", "danke", "谢谢"];
-    if (despedidas.some((s) => t.includes(s))) {
-      return "despedida" as const;
-    }
-
-    const ayuda = ["ayuda", "help", "qué puedes hacer", "que puedes hacer", "qué sabes hacer", "aide", "hilfe", "帮助"];
-    if (ayuda.some((s) => t.includes(s))) {
-      return "ayuda" as const;
-    }
-
-    return null;
+  // Responde de inmediato, sin la pausa de "pensando": estos casos no
+  // consultan la base de datos, así que fingir un cálculo se sentiría
+  // artificial.
+  function responderDirecto(textoUsuario: string, respuesta: string) {
+    // El id se deriva del último mensaje en vez de Date.now(): así la
+    // función es pura (nada de relojes) y los ids siguen siendo únicos
+    // y crecientes aunque se mezclen con los que genera enviarPregunta.
+    setMensajes((prev) => {
+      const id = (prev.length > 0 ? prev[prev.length - 1].id : 0) + 1;
+      return [
+        ...prev,
+        { id, autor: "usuario", texto: textoUsuario },
+        { id: id + 1, autor: "asistente", texto: respuesta },
+      ];
+    });
+    setEntrada("");
   }
 
   async function alEnviarLibre() {
     const texto = entrada.trim();
-    if (!texto) return;
+    if (!texto || pensando) return;
 
-    const resultado = detectarFuncion(texto);
-
-    if (resultado === "saludo") {
-      setMensajes((prev) => [
-        ...prev,
-        { id: Date.now(), autor: "usuario", texto },
-        { id: Date.now() + 1, autor: "asistente", texto: t("asistente.saludo_respuesta") },
-      ]);
-      setEntrada("");
-      return;
-    }
-
-    if (resultado === "despedida") {
-      setMensajes((prev) => [
-        ...prev,
-        { id: Date.now(), autor: "usuario", texto },
-        { id: Date.now() + 1, autor: "asistente", texto: t("asistente.despedida_respuesta") },
-      ]);
-      setEntrada("");
-      return;
-    }
-
-    if (resultado === "ayuda") {
-      setMensajes((prev) => [
-        ...prev,
-        { id: Date.now(), autor: "usuario", texto },
-        { id: Date.now() + 1, autor: "asistente", texto: t("asistente.ayuda_respuesta") },
-      ]);
-      setEntrada("");
-      return;
-    }
+    const resultado = detectarIntencion(texto);
 
     if (!resultado) {
-      setMensajes((prev) => [
-        ...prev,
-        { id: Date.now(), autor: "usuario", texto },
-        {
-          id: Date.now() + 1,
-          autor: "asistente",
-          texto: t("asistente.no_entendi"),
-        },
-      ]);
-      setEntrada("");
+      responderDirecto(texto, t("asistente.no_entendi"));
       return;
     }
 
-    await enviarPregunta(texto, resultado);
+    if (resultado.tipo === "saludo") {
+      responderDirecto(texto, t("asistente.saludo_respuesta"));
+      return;
+    }
+
+    if (resultado.tipo === "despedida") {
+      responderDirecto(texto, t("asistente.despedida_respuesta"));
+      return;
+    }
+
+    if (resultado.tipo === "ayuda") {
+      responderDirecto(texto, t("asistente.ayuda_respuesta"));
+      return;
+    }
+
+    if (resultado.tipo === "conocimiento") {
+      const tema = TEMAS_CONOCIMIENTO.find((x) => x.id === resultado.temaId);
+      responderDirecto(texto, tema ? tema.respuesta[idioma] : t("asistente.no_entendi"));
+      return;
+    }
+
+    await enviarPregunta(texto, FUNCIONES_DATOS[resultado.intencion]);
   }
 
   return (
