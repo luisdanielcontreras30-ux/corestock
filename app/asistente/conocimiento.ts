@@ -21,6 +21,14 @@ export interface TemaConocimiento {
   // es el margen" coinciden con la misma lista.
   palabras: string[];
   respuesta: Record<Idioma, string>;
+  // Nombre corto para poder nombrar el tema en la conversación: al
+  // sugerir temas relacionados y al preguntar "¿te referías a...?"
+  // cuando no hubo una coincidencia clara.
+  titulo?: Record<Idioma, string>;
+  // Ids de otros temas que suelen interesar a quien preguntó este. Es
+  // lo que convierte respuestas sueltas en una conversación que sigue
+  // hacia algún lado en vez de terminar en cada mensaje.
+  relacionados?: string[];
 }
 
 export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
@@ -29,6 +37,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "margen",
+    titulo: { es: "Margen de ganancia", en: "Profit margin", pt: "Margem de lucro", fr: "Marge bénéficiaire", de: "Gewinnmarge", zh: "Margine di profitto", it: "利润率" },
+    relacionados: ["markup_vs_margen", "poner_precio", "descuentos"],
     palabras: [
       "que es el margen", "que es margen", "margen de ganancia", "margen de utilidad",
       "como se calcula el margen", "como calculo el margen", "significa margen",
@@ -47,6 +57,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "markup_vs_margen",
+    titulo: { es: "Markup vs. margen", en: "Markup vs. margin", pt: "Markup vs. margem", fr: "Markup vs. marge", de: "Markup vs. Marge", zh: "Markup vs. margine", it: "加成与利润率" },
+    relacionados: ["margen", "poner_precio"],
     palabras: [
       "markup", "mark up", "diferencia entre margen y markup", "sobre el costo o sobre el precio",
       "aumentar sobre el costo", "porcentaje sobre costo", "marcaje",
@@ -63,6 +75,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "poner_precio",
+    titulo: { es: "Cómo poner precio", en: "How to set prices", pt: "Como definir preços", fr: "Fixer ses prix", de: "Preise festlegen", zh: "Come fissare i prezzi", it: "如何定价" },
+    relacionados: ["margen", "costos_fijos_variables", "subir_precios"],
     palabras: [
       "como pongo precio", "como poner precio", "como fijo el precio", "en cuanto vendo",
       "en cuanto deberia vender", "a que precio vendo", "como calcular el precio de venta",
@@ -81,6 +95,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "subir_precios",
+    titulo: { es: "Subir precios", en: "Raising prices", pt: "Aumentar preços", fr: "Augmenter les prix", de: "Preise erhöhen", zh: "Alzare i prezzi", it: "涨价" },
+    relacionados: ["poner_precio", "inflacion", "competencia"],
     palabras: [
       "subir precios", "subir el precio", "aumentar precios", "aumentar el precio",
       "sin perder clientes", "raise prices", "aumentar precos", "augmenter les prix",
@@ -102,6 +118,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "costos_fijos_variables",
+    titulo: { es: "Costos fijos y variables", en: "Fixed and variable costs", pt: "Custos fixos e variáveis", fr: "Coûts fixes et variables", de: "Fixe und variable Kosten", zh: "Costi fissi e variabili", it: "固定与变动成本" },
+    relacionados: ["punto_equilibrio", "poner_precio"],
     palabras: [
       "costos fijos", "costo fijo", "costos variables", "costo variable",
       "diferencia entre costos", "gastos fijos", "fixed costs", "variable costs",
@@ -119,6 +137,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "punto_equilibrio",
+    titulo: { es: "Punto de equilibrio", en: "Break-even point", pt: "Ponto de equilíbrio", fr: "Seuil de rentabilité", de: "Gewinnschwelle", zh: "Punto di pareggio", it: "盈亏平衡点" },
+    relacionados: ["costos_fijos_variables", "margen", "indicadores"],
     palabras: [
       "punto de equilibrio", "break even", "breakeven", "cuanto necesito vender",
       "cuanto tengo que vender", "para no perder", "ni gano ni pierdo",
@@ -137,6 +157,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "merma",
+    titulo: { es: "Merma y desperdicio", en: "Shrinkage and waste", pt: "Perdas e desperdício", fr: "Démarque et gaspillage", de: "Schwund und Verderb", zh: "Sfridi e sprechi", it: "损耗与浪费" },
+    relacionados: ["cuanto_inventario", "inventario_muerto"],
     palabras: [
       "merma", "desperdicio", "producto caducado", "caducidad", "se echa a perder",
       "producto danado", "robo hormiga", "shrinkage", "waste", "perda", "gaspillage",
@@ -158,6 +180,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "flujo_caja",
+    titulo: { es: "Flujo de caja", en: "Cash flow", pt: "Fluxo de caixa", fr: "Flux de trésorerie", de: "Cashflow", zh: "Flusso di cassa", it: "现金流" },
+    relacionados: ["capital_trabajo", "fiado_credito", "separar_finanzas"],
     palabras: [
       "flujo de caja", "flujo de efectivo", "cash flow", "no tengo dinero pero vendo",
       "vendo mucho pero no tengo", "liquidez", "fluxo de caixa", "flux de tresorerie",
@@ -175,6 +199,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "capital_trabajo",
+    titulo: { es: "Capital de trabajo", en: "Working capital", pt: "Capital de giro", fr: "Fonds de roulement", de: "Betriebskapital", zh: "Capitale circolante", it: "营运资金" },
+    relacionados: ["flujo_caja", "cuanto_inventario", "reinvertir"],
     palabras: [
       "capital de trabajo", "cuanto dinero necesito para operar", "working capital",
       "capital de giro", "fonds de roulement", "betriebskapital", "capitale circolante",
@@ -192,6 +218,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "separar_finanzas",
+    titulo: { es: "Separar tu dinero del negocio", en: "Separating personal and business money", pt: "Separar dinheiro pessoal", fr: "Séparer argent perso et pro", de: "Privat- und Geschäftsgeld trennen", zh: "Separare i soldi personali", it: "公私账目分开" },
+    relacionados: ["flujo_caja", "activos_pasivos"],
     palabras: [
       "separar dinero personal", "dinero personal del negocio", "mezclar dinero", "separar mi dinero", "separar el dinero", "dinero del negocio",
       "cuanto me puedo pagar", "sueldo del dueno", "mi sueldo", "sacar dinero del negocio",
@@ -214,6 +242,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "rotacion_inventario",
+    titulo: { es: "Rotación de inventario", en: "Inventory turnover", pt: "Giro do estoque", fr: "Rotation des stocks", de: "Lagerumschlag", zh: "Rotazione di magazzino", it: "库存周转" },
+    relacionados: ["inventario_muerto", "cuanto_inventario", "indicadores"],
     palabras: [
       "rotacion de inventario", "rotacion del inventario", "que tan rapido se vende",
       "inventory turnover", "giro de inventario", "giro do estoque", "rotation des stocks",
@@ -231,6 +261,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "cuanto_inventario",
+    titulo: { es: "Cuánto inventario tener", en: "How much stock to hold", pt: "Quanto estoque ter", fr: "Combien de stock garder", de: "Wie viel Bestand halten", zh: "Quanto magazzino tenere", it: "该备多少库存" },
+    relacionados: ["rotacion_inventario", "proveedores", "merma"],
     palabras: [
       "cuanto inventario", "cuanto stock debo tener", "cuanto debo comprar",
       "stock de seguridad", "stock minimo", "no quedarme sin producto",
@@ -249,6 +281,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "inventario_muerto",
+    titulo: { es: "Inventario muerto", en: "Dead stock", pt: "Estoque parado", fr: "Stock mort", de: "Ladenhüter", zh: "Giacenza morta", it: "滞销库存" },
+    relacionados: ["rotacion_inventario", "descuentos", "merma"],
     palabras: [
       "inventario muerto", "producto que no se vende", "no se vende nada",
       "mercancia parada", "producto estancado", "dead stock", "slow moving",
@@ -270,6 +304,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "ticket_promedio",
+    titulo: { es: "Ticket promedio", en: "Average ticket", pt: "Ticket médio", fr: "Panier moyen", de: "Durchschnittsbon", zh: "Scontrino medio", it: "客单价" },
+    relacionados: ["cliente_nuevo_vs_recurrente", "descuentos", "indicadores"],
     palabras: [
       "ticket promedio", "venta promedio", "como vender mas a cada cliente",
       "subir el ticket", "average ticket", "average order value", "ticket medio",
@@ -287,6 +323,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "cliente_nuevo_vs_recurrente",
+    titulo: { es: "Clientes nuevos vs. recurrentes", en: "New vs. repeat customers", pt: "Clientes novos vs. recorrentes", fr: "Clients nouveaux vs. fidèles", de: "Neu- vs. Stammkunden", zh: "Clienti nuovi e abituali", it: "新客与回头客" },
+    relacionados: ["ticket_promedio", "largo_plazo", "competencia"],
     palabras: [
       "cliente nuevo o recurrente", "clientes frecuentes", "fidelizar", "fidelidad",
       "retener clientes", "que vuelvan", "clientes que regresan", "costo de adquisicion",
@@ -305,6 +343,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "fiado_credito",
+    titulo: { es: "Fiado y crédito a clientes", en: "Selling on credit", pt: "Vender fiado", fr: "Vente à crédit", de: "Kundenkredit", zh: "Vendere a credito", it: "赊账" },
+    relacionados: ["flujo_caja", "prestamos_intereses"],
     palabras: [
       "fiado", "fiar", "fiarle", "dar credito", "vender a credito", "prestar mercancia", "debo fiar",
       "me deben", "cobrar a clientes", "cuentas por cobrar", "morosos",
@@ -323,6 +363,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "descuentos",
+    titulo: { es: "Descuentos y promociones", en: "Discounts and promotions", pt: "Descontos e promoções", fr: "Remises et promotions", de: "Rabatte und Aktionen", zh: "Sconti e promozioni", it: "折扣与促销" },
+    relacionados: ["margen", "ticket_promedio", "inventario_muerto"],
     palabras: [
       "descuento", "descuentos", "promocion", "promociones", "rebaja", "oferta",
       "cuanto descuento puedo dar", "conviene el descuento", "discount", "desconto",
@@ -344,6 +386,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "roi",
+    titulo: { es: "Retorno de inversión (ROI)", en: "Return on investment (ROI)", pt: "Retorno do investimento", fr: "Retour sur investissement", de: "Kapitalrendite (ROI)", zh: "Ritorno sull'investimento", it: "投资回报率" },
+    relacionados: ["reinvertir", "prestamos_intereses"],
     palabras: [
       "roi", "retorno de inversion", "retorno de la inversion", "vale la pena invertir",
       "conviene invertir", "return on investment", "retorno do investimento",
@@ -361,6 +405,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "reinvertir",
+    titulo: { es: "Reinvertir y crecer", en: "Reinvesting and growing", pt: "Reinvestir e crescer", fr: "Réinvestir et grandir", de: "Reinvestieren und wachsen", zh: "Reinvestire e crescere", it: "再投资与扩张" },
+    relacionados: ["roi", "capital_trabajo", "riesgo_ruina"],
     palabras: [
       "reinvertir", "reinversion", "crecer el negocio", "expandir", "abrir otra sucursal",
       "cuanto reinvertir", "meter mas dinero", "reinvest", "reinvestir",
@@ -378,6 +424,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "prestamos_intereses",
+    titulo: { es: "Préstamos e intereses", en: "Loans and interest", pt: "Empréstimos e juros", fr: "Prêts et intérêts", de: "Kredite und Zinsen", zh: "Prestiti e interessi", it: "贷款与利息" },
+    relacionados: ["flujo_caja", "roi", "defenderse_manipulacion"],
     palabras: [
       "prestamo", "credito bancario", "pedir prestado", "interes", "intereses", "tasa",
       "cat", "financiamiento", "endeudarme", "conviene un prestamo", "loan",
@@ -396,6 +444,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "inflacion",
+    titulo: { es: "Inflación", en: "Inflation", pt: "Inflação", fr: "Inflation", de: "Inflation", zh: "Inflazione", it: "通货膨胀" },
+    relacionados: ["subir_precios", "poner_precio"],
     palabras: [
       "inflacion", "todo sube", "suben los costos", "el dinero vale menos",
       "carestia", "devaluacion", "tipo de cambio", "inflation", "inflacao",
@@ -413,6 +463,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "estacionalidad",
+    titulo: { es: "Temporadas y estacionalidad", en: "Seasons and seasonality", pt: "Sazonalidade", fr: "Saisonnalité", de: "Saisonalität", zh: "Stagionalità", it: "淡旺季" },
+    relacionados: ["flujo_caja", "cuanto_inventario"],
     palabras: [
       "temporada", "temporadas", "estacionalidad", "temporada baja", "temporada alta",
       "meses malos", "mes flojo", "ventas por temporada", "seasonality", "sazonalidade",
@@ -430,6 +482,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "competencia",
+    titulo: { es: "Competencia y guerra de precios", en: "Competition and price wars", pt: "Concorrência", fr: "Concurrence", de: "Wettbewerb", zh: "Concorrenza", it: "竞争与价格战" },
+    relacionados: ["subir_precios", "cliente_nuevo_vs_recurrente", "largo_plazo"],
     palabras: [
       "competencia", "competidor", "competir", "compito", "me copian", "guerra de precios", "vender mas barato", "bajar precios", "sin bajar precios",
       "el de enfrente", "diferenciarme", "competition", "price war", "concorrencia",
@@ -447,6 +501,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "proveedores",
+    titulo: { es: "Negociar con proveedores", en: "Negotiating with suppliers", pt: "Negociar com fornecedores", fr: "Négocier avec les fournisseurs", de: "Mit Lieferanten verhandeln", zh: "Trattare con i fornitori", it: "与供应商谈判" },
+    relacionados: ["cuanto_inventario", "defenderse_manipulacion", "riesgo_ruina"],
     palabras: [
       "proveedor", "proveedores", "negociar con proveedor", "mejor precio de compra",
       "conseguir descuento del proveedor", "supplier", "fornecedor", "fournisseur",
@@ -464,6 +520,8 @@ export const TEMAS_CONOCIMIENTO: TemaConocimiento[] = [
   },
   {
     id: "indicadores",
+    titulo: { es: "Indicadores clave", en: "Key metrics", pt: "Indicadores-chave", fr: "Indicateurs clés", de: "Kennzahlen", zh: "Indicatori chiave", it: "关键指标" },
+    relacionados: ["punto_equilibrio", "ticket_promedio", "rotacion_inventario"],
     palabras: [
       "que numeros debo revisar", "indicadores", "kpi", "kpis", "metricas",
       "que medir", "como se si voy bien", "salud del negocio", "metrics",

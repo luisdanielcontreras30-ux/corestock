@@ -20,9 +20,8 @@ import {
   analizarVentasMes,
   analizarCategoriaTop,
 } from "./acciones";
-import { detectarIntencion, IntencionDatos } from "./deteccion";
-import { TEMAS_CONOCIMIENTO } from "./conocimiento";
-import { TEMAS_FILOSOFIA } from "./filosofia";
+import { detectarIntencion, IntencionDatos, TODOS_LOS_TEMAS } from "./deteccion";
+import { TemaConocimiento } from "./conocimiento";
 
 // Une la intención detectada con la función que consulta los datos.
 // Estar en un mapa (y no en la cadena de if de antes) permite que
@@ -87,6 +86,9 @@ function AsistenteContenido() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [entrada, setEntrada] = useState("");
   const [pensando, setPensando] = useState(false);
+  // Memoria mínima de la conversación: sobre qué se habló al final,
+  // para que "cuéntame más" o "dame un ejemplo" tengan a qué referirse.
+  const [ultimoTema, setUltimoTema] = useState<string | null>(null);
   const finRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -151,6 +153,23 @@ function AsistenteContenido() {
     }
   }
 
+  function buscarTema(id: string) {
+    return TODOS_LOS_TEMAS.find((x) => x.id === id) ?? null;
+  }
+
+  // Añade al final de la respuesta los temas relacionados. Es lo que
+  // convierte respuestas sueltas en una conversación: la persona ve
+  // hacia dónde puede seguir en vez de quedarse sin saber qué preguntar.
+  function conRelacionados(respuesta: string, tema: TemaConocimiento): string {
+    const nombres = (tema.relacionados ?? [])
+      .map((id) => buscarTema(id)?.titulo?.[idioma])
+      .filter((n): n is string => !!n);
+
+    if (nombres.length === 0) return respuesta;
+
+    return `${respuesta}\n\n${t("asistente.tambien_te_sirve")} ${nombres.join(" · ")}`;
+  }
+
   // Responde de inmediato, sin la pausa de "pensando": estos casos no
   // consultan la base de datos, así que fingir un cálculo se sentiría
   // artificial.
@@ -195,9 +214,51 @@ function AsistenteContenido() {
       return;
     }
 
+    if (resultado.tipo === "identidad") {
+      responderDirecto(texto, t("asistente.identidad_respuesta"));
+      return;
+    }
+
+    if (resultado.tipo === "estado_animo") {
+      responderDirecto(texto, t("asistente.animo_respuesta"));
+      return;
+    }
+
+    // "Cuéntame más" solo significa algo si hay un tema anterior. Si no
+    // lo hay, se responde con la ayuda en vez de con un "no entendí"
+    // que dejaría a la persona sin saber qué hacer.
+    if (resultado.tipo === "seguimiento") {
+      const anterior = ultimoTema ? buscarTema(ultimoTema) : null;
+      if (!anterior) {
+        responderDirecto(texto, t("asistente.ayuda_respuesta"));
+        return;
+      }
+      responderDirecto(texto, conRelacionados(anterior.respuesta[idioma], anterior));
+      return;
+    }
+
+    if (resultado.tipo === "sugerencia") {
+      const nombres = resultado.temaIds
+        .map((id) => buscarTema(id)?.titulo?.[idioma])
+        .filter((n): n is string => !!n);
+
+      responderDirecto(
+        texto,
+        nombres.length > 0
+          ? `${t("asistente.quizas_te_referias")}\n\n${nombres.map((n) => `• ${n}`).join("\n")}`
+          : t("asistente.no_entendi")
+      );
+      return;
+    }
+
     if (resultado.tipo === "conocimiento") {
-      const tema = [...TEMAS_CONOCIMIENTO, ...TEMAS_FILOSOFIA].find((x) => x.id === resultado.temaId);
-      responderDirecto(texto, tema ? tema.respuesta[idioma] : t("asistente.no_entendi"));
+      const tema = buscarTema(resultado.temaId);
+      if (!tema) {
+        responderDirecto(texto, t("asistente.no_entendi"));
+        return;
+      }
+      setUltimoTema(tema.id);
+      responderDirecto(texto, conRelacionados(tema.respuesta[idioma], tema));
       return;
     }
 

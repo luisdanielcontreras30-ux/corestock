@@ -21,6 +21,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "activos_pasivos",
+    titulo: { es: "Activos y pasivos", en: "Assets and liabilities", pt: "Ativos e passivos", fr: "Actifs et passifs", de: "Vermögen und Schulden", zh: "Attivi e passivi", it: "资产与负债" },
+    relacionados: ["cuadrante_flujo", "educacion_financiera", "separar_finanzas"],
     palabras: [
       "activo", "activos", "pasivo", "pasivos", "activos y pasivos",
       "padre rico", "padre rico padre pobre", "kiyosaki", "rich dad",
@@ -39,6 +41,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "cuadrante_flujo",
+    titulo: { es: "El cuadrante del flujo de dinero", en: "The cashflow quadrant", pt: "Quadrante do fluxo de dinheiro", fr: "Le quadrant du cashflow", de: "Das Cashflow-Quadrant", zh: "Il quadrante del cashflow", it: "现金流四象限" },
+    relacionados: ["activos_pasivos", "reinvertir", "ego_fracaso"],
     palabras: [
       "cuadrante", "cuadrante del flujo", "cuadrante del dinero", "empleado autoempleado",
       "dueno de negocio inversionista", "cashflow quadrant", "quadrante",
@@ -56,6 +60,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "educacion_financiera",
+    titulo: { es: "Educación financiera", en: "Financial literacy", pt: "Educação financeira", fr: "Éducation financière", de: "Finanzbildung", zh: "Educazione finanziaria", it: "财务素养" },
+    relacionados: ["activos_pasivos", "indicadores", "separar_finanzas"],
     palabras: [
       "educacion financiera", "los ricos no trabajan por dinero", "mentalidad de rico",
       "mentalidad financiera", "libertad financiera", "ingresos pasivos",
@@ -78,6 +84,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "leyes_poder",
+    titulo: { es: "Las 48 Leyes del Poder", en: "The 48 Laws of Power", pt: "As 48 Leis do Poder", fr: "Les 48 lois du pouvoir", de: "Die 48 Gesetze der Macht", zh: "Le 48 leggi del potere", it: "权力的48条法则" },
+    relacionados: ["leyes_peligrosas", "psicologia_oscura", "largo_plazo"],
     palabras: [
       "48 leyes del poder", "leyes del poder", "las 48 leyes", "robert greene",
       "48 laws of power", "leis do poder", "lois du pouvoir", "gesetze der macht",
@@ -95,6 +103,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "leyes_peligrosas",
+    titulo: { es: "Leyes del poder que te destruyen", en: "Power laws that destroy you", pt: "Leis do poder perigosas", fr: "Lois du pouvoir dangereuses", de: "Gefährliche Machtgesetze", zh: "Leggi del potere pericolose", it: "危险的权力法则" },
+    relacionados: ["leyes_poder", "largo_plazo", "manipular_clientes"],
     palabras: [
       "leyes peligrosas", "leyes del poder son peligrosas", "leyes que no debo usar", "cuales leyes evitar", "aplastar al enemigo",
       "manipular socios", "traicionar", "cuales leyes son malas",
@@ -117,6 +127,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "psicologia_oscura",
+    titulo: { es: "Psicología oscura", en: "Dark psychology", pt: "Psicologia sombria", fr: "Psychologie noire", de: "Dunkle Psychologie", zh: "Psicologia oscura", it: "黑暗心理学" },
+    relacionados: ["defenderse_manipulacion", "manipular_clientes", "leyes_poder"],
     palabras: [
       "filosofia oscura", "psicologia oscura", "manipulacion", "manipular",
       "triada oscura", "maquiavelo", "maquiavelico", "persuasion oscura",
@@ -135,6 +147,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "defenderse_manipulacion",
+    titulo: { es: "Defenderte de la manipulación", en: "Defending against manipulation", pt: "Defender-se da manipulação", fr: "Se défendre de la manipulation", de: "Sich vor Manipulation schützen", zh: "Difendersi dalla manipolazione", it: "防范操纵" },
+    relacionados: ["psicologia_oscura", "proveedores", "prestamos_intereses"],
     palabras: [
       "como me defiendo de la manipulacion", "defenderme de la manipulacion",
       "no me manipulen", "me quieren ver la cara", "me estan enganando",
@@ -154,6 +168,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "manipular_clientes",
+    titulo: { es: "Por qué no manipular clientes", en: "Why not to manipulate customers", pt: "Por que não manipular clientes", fr: "Pourquoi ne pas manipuler les clients", de: "Warum Kunden nicht manipulieren", zh: "Perché non manipolare i clienti", it: "为何不该操纵客户" },
+    relacionados: ["cliente_nuevo_vs_recurrente", "largo_plazo", "psicologia_oscura"],
     palabras: [
       "manipular clientes", "manipular al cliente", "convencer a como de lugar",
       "vender a la fuerza", "presionar al cliente", "trucos para vender",
@@ -176,6 +192,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "estoicismo",
+    titulo: { es: "Estoicismo para emprender", en: "Stoicism in business", pt: "Estoicismo nos negócios", fr: "Le stoïcisme en affaires", de: "Stoizismus im Geschäft", zh: "Stoicismo negli affari", it: "经商中的斯多葛" },
+    relacionados: ["ego_fracaso", "riesgo_ruina", "largo_plazo"],
     palabras: [
       "estoicismo", "estoico", "marco aurelio", "seneca", "filosofia para emprender",
       "mentalidad", "como manejar el estres", "ansiedad", "estres", "angustia",
@@ -194,6 +212,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "largo_plazo",
+    titulo: { es: "Pensar a largo plazo", en: "Long-term thinking", pt: "Pensar a longo prazo", fr: "Penser à long terme", de: "Langfristig denken", zh: "Pensare a lungo termine", it: "长期思维" },
+    relacionados: ["cliente_nuevo_vs_recurrente", "estoicismo", "leyes_peligrosas"],
     palabras: [
       "largo plazo", "corto plazo", "pensar a largo plazo", "paciencia",
       "interes compuesto", "juego infinito", "vision de negocio", "sostenible",
@@ -211,6 +231,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "riesgo_ruina",
+    titulo: { es: "Riesgo y ruina", en: "Risk and ruin", pt: "Risco e ruína", fr: "Risque et ruine", de: "Risiko und Ruin", zh: "Rischio e rovina", it: "风险与破产" },
+    relacionados: ["reinvertir", "estoicismo", "proveedores"],
     palabras: [
       "riesgo", "arriesgar", "apostar todo", "riesgo de ruina", "quebrar",
       "todo o nada", "hasta cuanto arriesgar", "antifragil", "cisne negro",
@@ -228,6 +250,8 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "ego_fracaso",
+    titulo: { es: "Por qué fracasan los negocios", en: "Why businesses fail", pt: "Por que negócios fracassam", fr: "Pourquoi les entreprises échouent", de: "Warum Betriebe scheitern", zh: "Perché le imprese falliscono", it: "生意为何失败" },
+    relacionados: ["estoicismo", "flujo_caja", "riesgo_ruina"],
     palabras: [
       "ego", "por que fracasan los negocios", "fracaso", "cerre mi negocio",
       "errores de emprendedores", "orgullo", "necedad", "aprender del error",

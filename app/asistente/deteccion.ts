@@ -1,11 +1,12 @@
 import { normalizarTexto } from "../../lib/normalizarTexto";
 import { TEMAS_CONOCIMIENTO } from "./conocimiento";
 import { TEMAS_FILOSOFIA } from "./filosofia";
+import { TEMAS_LIBROS } from "./libros";
 
 // Los dos bloques de conocimiento se tratan igual: el de finanzas y
 // operación (conocimiento.ts) y el de filosofía de negocio, libros y
 // psicología oscura (filosofia.ts). Están separados solo por tamaño.
-const TODOS_LOS_TEMAS = [...TEMAS_CONOCIMIENTO, ...TEMAS_FILOSOFIA];
+export const TODOS_LOS_TEMAS = [...TEMAS_CONOCIMIENTO, ...TEMAS_FILOSOFIA, ...TEMAS_LIBROS];
 
 // Motor de detección de intención del Asistente.
 //
@@ -39,6 +40,16 @@ export type Resultado =
   | { tipo: "saludo" }
   | { tipo: "despedida" }
   | { tipo: "ayuda" }
+  | { tipo: "identidad" }
+  | { tipo: "estado_animo" }
+  // Se refiere al tema anterior ("cuéntame más", "y eso cómo lo aplico"):
+  // sin memoria de la conversación esto no significaba nada y caía en
+  // "no entendí", que es lo que rompía la sensación de estar hablando
+  // con alguien.
+  | { tipo: "seguimiento" }
+  // Nada coincidió con claridad, pero hay temas parecidos que ofrecer
+  // en vez de un "no entendí" seco.
+  | { tipo: "sugerencia"; temaIds: string[] }
   | null;
 
 // Palabras que delatan que la persona pregunta por SU negocio (quiere
@@ -167,6 +178,31 @@ const CANDIDATOS_DATOS: Candidato[] = [
 
 const CANDIDATOS_CHARLA: Candidato[] = [
   {
+    resultado: { tipo: "identidad" },
+    palabras: [
+      "quien eres", "que eres", "eres una ia", "eres un robot", "eres humano",
+      "como te llamas", "quien te hizo", "who are you", "are you ai",
+      "quem e voce", "qui es tu", "wer bist du", "chi sei", "你是谁",
+    ],
+  },
+  {
+    resultado: { tipo: "estado_animo" },
+    palabras: [
+      "como estas", "como te va", "que tal estas", "how are you",
+      "como voce esta", "comment vas tu", "wie geht es dir", "come stai", "你好吗",
+    ],
+  },
+  {
+    resultado: { tipo: "seguimiento" },
+    palabras: [
+      "cuentame mas", "dime mas", "mas informacion", "profundiza", "sigue",
+      "y eso", "un ejemplo", "dame un ejemplo", "por ejemplo", "como lo aplico",
+      "no entiendi", "no entendi", "explicalo mas simple", "mas sencillo",
+      "tell me more", "an example", "mais um exemplo", "un exemple",
+      "mehr dazu", "un esempio", "再多说点", "举个例子",
+    ],
+  },
+  {
     resultado: { tipo: "ayuda" },
     palabras: [
       "ayuda", "que puedes hacer", "que sabes hacer", "en que me puedes ayudar",
@@ -276,7 +312,36 @@ export function detectarIntencion(entrada: string): Resultado {
   // "¡hola!", que es lo que hacía antes al revisarlo primero.
   if (!mejor && esSaludoSuelto(texto)) return { tipo: "saludo" };
 
+  // Nada superó el umbral, pero antes de rendirse: ¿hay temas que
+  // comparten alguna palabra con lo que escribió? Ofrecerlos es mucho
+  // más útil que un "no entendí" seco, y es lo que hace que la persona
+  // descubra de qué más se puede hablar.
+  if (!mejor) {
+    const sugerencias = temasParecidos(texto);
+    if (sugerencias.length > 0) return { tipo: "sugerencia", temaIds: sugerencias };
+  }
+
   return mejor;
+}
+
+// Busca temas que compartan alguna palabra significativa con el texto,
+// con un listón mucho más bajo que la detección normal. Solo se usa
+// para sugerir, nunca para responder como si se hubiera entendido.
+function temasParecidos(texto: string): string[] {
+  const palabrasTexto = texto.split(/[^a-z0-9]+/).filter((p) => p.length >= 4);
+  if (palabrasTexto.length === 0) return [];
+
+  const puntuados = TODOS_LOS_TEMAS.map((tema) => {
+    let p = 0;
+    for (const palabra of palabrasTexto) {
+      if (tema.palabras.some((k) => k.includes(palabra))) p++;
+    }
+    return { id: tema.id, p };
+  })
+    .filter((x) => x.p > 0)
+    .sort((a, b) => b.p - a.p);
+
+  return puntuados.slice(0, 3).map((x) => x.id);
 }
 
 // Lista de temas disponibles, para armar el mensaje de "no entendí" con
