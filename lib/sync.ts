@@ -1,4 +1,4 @@
-import { db, VentaPendiente, CajaPendiente } from "./db";
+import { db, VentaPendiente, CajaPendiente, esFalloDeRed } from "./db";
 import { registrarVenta } from "../app/ventas/acciones";
 import { registrarMovimiento } from "../app/caja/acciones";
 import { mensajeErrorSeguro } from "./errores";
@@ -20,6 +20,9 @@ export interface ResultadoSincronizacion {
   ventasConError: number;
   cajaSincronizada: number;
   cajaConError: number;
+  // true cuando la tanda se cortó porque volvió a caerse la red. Lo que
+  // quedó sigue en "pendiente", listo para el siguiente intento.
+  interrumpidaPorRed: boolean;
 }
 
 export async function sincronizarPendientes(
@@ -30,6 +33,7 @@ export async function sincronizarPendientes(
     ventasConError: 0,
     cajaSincronizada: 0,
     cajaConError: 0,
+    interrumpidaPorRed: false,
   };
 
   const ventasPendientes = await db.ventas_pendientes
@@ -68,10 +72,23 @@ export async function sincronizarPendientes(
       });
       resultado.ventasSincronizadas++;
     } catch (error) {
-      // No se descarta: queda marcada "error" para que la interfaz la
-      // muestre y alguien decida qué hacer (ej. ya no hay stock porque
-      // otro dispositivo vendió el último mientras ambos estaban sin
-      // conexión — eso es preferible a inventar stock que no existe).
+      // Si solo se volvió a caer la red, la venta NO es un error: sigue
+      // siendo válida y debe quedarse "pendiente" para el próximo
+      // intento. Marcarla "error" aquí (como se hacía antes) mandaba al
+      // panel de revisión manual toda la cola restante cada vez que la
+      // conexión se cortaba a media tanda, que es justo lo que la cola
+      // offline existe para evitar. Se corta la tanda porque las que
+      // siguen fallarían igual, cada una gastando su plazo de espera.
+      if (esFalloDeRed(error)) {
+        resultado.interrumpidaPorRed = true;
+        break;
+      }
+
+      // Rechazo real del servidor (sin stock, etc.): no se descarta,
+      // queda marcada "error" para que la interfaz la muestre y alguien
+      // decida qué hacer (ej. ya no hay stock porque otro dispositivo
+      // vendió el último mientras ambos estaban sin conexión — eso es
+      // preferible a inventar stock que no existe).
       const mensaje = mensajeErrorSeguro(error) || "Error de sincronización.";
       await db.ventas_pendientes.update(venta.uuid, {
         estado: "error",
@@ -79,6 +96,13 @@ export async function sincronizarPendientes(
       });
       resultado.ventasConError++;
     }
+  }
+
+  // Si ya se cayó la red drenando ventas, no tiene caso intentar la
+  // caja: cada movimiento se comería su plazo de espera para fallar
+  // igual. Queda todo pendiente para el siguiente intento.
+  if (resultado.interrumpidaPorRed) {
+    return resultado;
   }
 
   const cajaPendientes = await db.caja_pendientes
@@ -106,6 +130,13 @@ export async function sincronizarPendientes(
       });
       resultado.cajaSincronizada++;
     } catch (error) {
+      // Igual que con las ventas: una caída de red deja el movimiento
+      // "pendiente", no lo manda a revisión manual.
+      if (esFalloDeRed(error)) {
+        resultado.interrumpidaPorRed = true;
+        break;
+      }
+
       const mensaje = mensajeErrorSeguro(error) || "Error de sincronización.";
       await db.caja_pendientes.update(mov.uuid, {
         estado: "error",
