@@ -22,6 +22,7 @@ import {
 } from "./acciones";
 import { detectarIntencion, IntencionDatos } from "./deteccion";
 import { TEMAS_CONOCIMIENTO } from "./conocimiento";
+import { TEMAS_FILOSOFIA } from "./filosofia";
 
 // Une la intención detectada con la función que consulta los datos.
 // Estar en un mapa (y no en la cadena de if de antes) permite que
@@ -195,7 +196,7 @@ function AsistenteContenido() {
     }
 
     if (resultado.tipo === "conocimiento") {
-      const tema = TEMAS_CONOCIMIENTO.find((x) => x.id === resultado.temaId);
+      const tema = [...TEMAS_CONOCIMIENTO, ...TEMAS_FILOSOFIA].find((x) => x.id === resultado.temaId);
       responderDirecto(texto, tema ? tema.respuesta[idioma] : t("asistente.no_entendi"));
       return;
     }

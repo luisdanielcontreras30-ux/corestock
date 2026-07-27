@@ -1,5 +1,11 @@
 import { normalizarTexto } from "../../lib/normalizarTexto";
 import { TEMAS_CONOCIMIENTO } from "./conocimiento";
+import { TEMAS_FILOSOFIA } from "./filosofia";
+
+// Los dos bloques de conocimiento se tratan igual: el de finanzas y
+// operación (conocimiento.ts) y el de filosofía de negocio, libros y
+// psicología oscura (filosofia.ts). Están separados solo por tamaño.
+const TODOS_LOS_TEMAS = [...TEMAS_CONOCIMIENTO, ...TEMAS_FILOSOFIA];
 
 // Motor de detección de intención del Asistente.
 //
@@ -260,7 +266,7 @@ export function detectarIntencion(entrada: string): Resultado {
     considerar(puntuar(texto, c.palabras), sesgo, c.resultado);
   }
 
-  for (const tema of TEMAS_CONOCIMIENTO) {
+  for (const tema of TODOS_LOS_TEMAS) {
     const sesgo = preguntaConcepto ? 1.4 : preguntaDatos ? 0.6 : 1;
     considerar(puntuar(texto, tema.palabras), sesgo, { tipo: "conocimiento", temaId: tema.id });
   }
@@ -277,5 +283,5 @@ export function detectarIntencion(entrada: string): Resultado {
 // sugerencias reales en vez de un texto fijo que se queda viejo cada
 // vez que se agrega un tema.
 export function idsTemasConocimiento(): string[] {
-  return TEMAS_CONOCIMIENTO.map((t) => t.id);
+  return TODOS_LOS_TEMAS.map((t) => t.id);
 }
