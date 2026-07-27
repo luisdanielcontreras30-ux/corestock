@@ -35,7 +35,14 @@ export async function POST(request: Request) {
 
   try {
     switch (evento.type) {
-      case "checkout.session.completed": {
+      // async_payment_succeeded va junto a completed a propósito: con
+      // los métodos de pago diferido (OXXO, transferencia SPEI, débito
+      // bancario — muy usados justo en el mercado de esta app), Stripe
+      // manda completed con payment_status "unpaid" en cuanto se genera
+      // el comprobante, y solo días después manda este otro evento si
+      // el pago de verdad llegó.
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
         const session = evento.data.object as Stripe.Checkout.Session;
         const userId = session.client_reference_id;
         const customerId =
@@ -45,23 +52,49 @@ export async function POST(request: Request) {
             ? session.subscription
             : session.subscription?.id;
 
+        // Antes se daba Plus+ con solo ver el evento completed, sin
+        // mirar si el pago se había cobrado: quien iniciaba un checkout
+        // con OXXO obtenía el plan de inmediato con solo imprimir el
+        // comprobante, aunque nunca fuera a pagarlo.
+        const pagada =
+          session.payment_status === "paid" ||
+          session.payment_status === "no_payment_required";
+
         if (userId && customerId) {
           // upsert (no update): si el negocio todavía no había guardado
           // nada en Configuración → Empresa, no existe fila en
           // empresa_config para este usuario todavía — un update no
           // crea la fila y el pago se perdería en silencio.
-          await admin
+          //
+          // Cuando todavía no está pagada se guarda igual el
+          // stripe_customer_id (sin tocar plan ni estado, que en una
+          // fila nueva quedan en el 'free' por defecto): así los eventos
+          // customer.subscription.* que lleguen después ya encuentran la
+          // fila por customer_id, que es el desajuste de orden que
+          // documenta el caso de abajo.
+          const fila: Record<string, unknown> = {
+            user_id: userId,
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId ?? null,
+          };
+
+          if (pagada) {
+            fila.plan = "plus";
+            fila.suscripcion_estado = "active";
+          }
+
+          const { error: errorUpsert } = await admin
             .from("empresa_config")
-            .upsert(
-              {
-                user_id: userId,
-                plan: "plus",
-                stripe_customer_id: customerId,
-                stripe_subscription_id: subscriptionId ?? null,
-                suscripcion_estado: "active",
-              },
-              { onConflict: "user_id" }
+            .upsert(fila, { onConflict: "user_id" });
+
+          // Sin esto, un fallo al escribir dejaba a alguien que ya pagó
+          // sin su plan y sin ningún rastro de por qué.
+          if (errorUpsert) {
+            console.error(
+              `Webhook Stripe ${evento.type}: no se pudo guardar la suscripción de user_id=${userId}:`,
+              errorUpsert
             );
+          }
         }
 
         break;
