@@ -2,9 +2,17 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { obtenerSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { asegurarAuthUserId, correoSinteticoMiembro } from "../../../../lib/identidadMiembro";
-import { excedeLimiteIntentos } from "../../../../lib/rateLimit";
+import {
+  excedeLimiteIntentos,
+  limiteAlcanzado,
+  olvidarIntentos,
+} from "../../../../lib/rateLimit";
 
-type Razon = "no_encontrado" | "sin_contrasena" | "contrasena_incorrecta";
+type Razon =
+  | "no_encontrado"
+  | "sin_contrasena"
+  | "contrasena_incorrecta"
+  | "demasiados_intentos";
 
 // generateLink({ type: "magiclink" }) NO es de solo lectura: si el
 // correo no tiene cuenta todavía, la Admin API la crea de una — así lo
@@ -57,13 +65,21 @@ export async function POST(request: Request) {
   // cualquiera podría probar contraseñas cortas de un miembro sin freno.
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "desconocida";
   const claveLimite = `${ip}:${correo.trim().toLowerCase()}`;
+  const MAX_INTENTOS = 10;
+  const VENTANA_MS = 5 * 60 * 1000;
 
-  if (excedeLimiteIntentos(claveLimite, 10, 5 * 60 * 1000)) {
-    return NextResponse.json(
-      { error: "Demasiados intentos. Espera unos minutos e intenta de nuevo." },
-      { status: 429 }
-    );
+  // Solo se cuentan los intentos FALLIDOS (más abajo): quien entra bien
+  // no gasta cupo, así que un mostrador donde varios turnos entran
+  // seguido no termina bloqueado como si estuviera adivinando.
+  // Se devuelve como una "razón" más (con 200) en vez de un 429 crudo,
+  // para que el login lo muestre traducido igual que "contraseña
+  // incorrecta" — con un 429 el cliente lanzaba y caía en el mensaje de
+  // error genérico, que no le dice a la persona que solo debe esperar.
+  if (limiteAlcanzado(claveLimite, MAX_INTENTOS)) {
+    return NextResponse.json({ ok: false, razon: "demasiados_intentos" as Razon });
   }
+
+  const registrarFallo = () => excedeLimiteIntentos(claveLimite, MAX_INTENTOS, VENTANA_MS);
 
   try {
     const admin = obtenerSupabaseAdmin();
@@ -76,6 +92,7 @@ export async function POST(request: Request) {
     // haber iniciado sesión) comprobar si un correo tiene cuenta en
     // CoreStock probando aquí.
     if (!duenoExistente) {
+      registrarFallo();
       return NextResponse.json({ ok: false, razon: "no_encontrado" as Razon });
     }
 
@@ -95,6 +112,7 @@ export async function POST(request: Request) {
     );
 
     if (!miembro) {
+      registrarFallo();
       return NextResponse.json({ ok: false, razon: "no_encontrado" as Razon });
     }
 
@@ -105,8 +123,13 @@ export async function POST(request: Request) {
     const coincide = await bcrypt.compare(password, miembro.password_hash as string);
 
     if (!coincide) {
+      registrarFallo();
       return NextResponse.json({ ok: false, razon: "contrasena_incorrecta" as Razon });
     }
+
+    // Entró bien: se limpia el historial para que los fallos previos
+    // (un dedazo antes de acertar) no se acumulen contra esta persona.
+    olvidarIntentos(claveLimite);
 
     const authUserId = await asegurarAuthUserId(
       miembro.id as string,

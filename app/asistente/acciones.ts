@@ -439,8 +439,15 @@ export async function analizarVentasMes(idioma: Idioma): Promise<string> {
   // corta en el mismo punto (misma duración transcurrida desde su
   // inicio) — no en el mes pasado completo, que exageraría la caída/alza
   // en los primeros días de cada mes.
+  //
+  // El tope en inicioMes importa cuando el mes pasado es más corto que
+  // lo que va del actual (ej. hoy 31 de marzo: febrero + 30 días caería
+  // en el 3 de marzo), porque si no el rango "mes anterior" se metería
+  // dentro del mes actual y contaría esas ventas en los dos lados.
   const msTranscurridos = hoy.getTime() - inicioMes.getTime();
-  const finMesAnteriorComparable = new Date(inicioMesAnterior.getTime() + msTranscurridos);
+  const finMesAnteriorComparable = new Date(
+    Math.min(inicioMesAnterior.getTime() + msTranscurridos, inicioMes.getTime())
+  );
 
   const mesActual = ventasEnRango(ventas, inicioMes, hoy);
   const mesAnterior = ventasEnRango(ventas, inicioMesAnterior, finMesAnteriorComparable);

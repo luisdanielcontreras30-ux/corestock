@@ -108,6 +108,7 @@ function LoginInterno() {
   function traducirRazonLoginMiembro(razon: RazonLoginMiembro): string {
     if (razon === "no_encontrado") return t("login.razon_no_encontrado");
     if (razon === "sin_contrasena") return t("login.razon_sin_contrasena");
+    if (razon === "demasiados_intentos") return t("login.razon_demasiados_intentos");
     return t("login.razon_incorrecto");
   }
 

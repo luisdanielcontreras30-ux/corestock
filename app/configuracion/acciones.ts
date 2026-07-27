@@ -157,7 +157,8 @@ async function obtenerAccessToken(): Promise<string> {
 export type RazonLoginMiembro =
   | "no_encontrado"
   | "sin_contrasena"
-  | "contrasena_incorrecta";
+  | "contrasena_incorrecta"
+  | "demasiados_intentos";
 
 export type ResultadoLoginMiembro =
   | { ok: true; userId: string; negocioId: string; tokenHash: string; miembro: Miembro }
