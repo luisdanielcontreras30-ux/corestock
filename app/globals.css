@@ -1012,6 +1012,12 @@ select optgroup {
 .productos-actions {
   display: flex;
   gap: 8px;
+  /* En celular estos botones se salían de la celda y obligaban a
+     arrastrar la tabla de lado para alcanzar el último (con tres
+     acciones ni siquiera se adivinaba que existía). Envolviendo, se
+     acomodan en varias líneas dentro de la fila; en escritorio sobra
+     ancho, así que nunca llega a envolver y se ve igual que antes. */
+  flex-wrap: wrap;
 }
 
 /* Distinta de .productos-grid (genérica, reusada por otros módulos) —

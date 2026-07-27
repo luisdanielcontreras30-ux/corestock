@@ -155,6 +155,47 @@ export async function eliminarCliente(id: number) {
   }
 }
 
+// Cambia el token del enlace del Portal de Clientes por uno nuevo. El
+// enlace anterior deja de funcionar al instante: es la única forma de
+// revocar un link que se filtró (se reenvió a quien no debía, quedó en
+// un chat de grupo, etc.), porque el portal no pide contraseña — quien
+// tiene el enlace ve el historial de compras de esa persona.
+//
+// El uuid se genera aquí y no en la base para poder devolverlo y que la
+// pantalla muestre el enlace nuevo sin recargar. La columna tiene
+// índice único, así que una colisión (imposible en la práctica con
+// uuid v4) fallaría con error en vez de pisar el token de otro cliente.
+export async function regenerarTokenPortal(id: number): Promise<string> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Usuario no autenticado");
+  }
+
+  const nuevoToken = crypto.randomUUID();
+
+  const { data, error } = await supabase
+    .from("clientes")
+    .update({ token: nuevoToken })
+    .eq("id", id)
+    .select("token");
+
+  if (error) {
+    throw error;
+  }
+
+  // Sin filas actualizadas = RLS lo rechazó (cliente de otro negocio, o
+  // un miembro sin acceso). Se avisa en vez de devolver un token nuevo
+  // que en realidad nunca se guardó.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_REGENERAR");
+  }
+
+  return data[0].token as string;
+}
+
 export async function cargarHistorialCompras(
   clienteId: number
 ) {
