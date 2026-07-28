@@ -18,7 +18,7 @@ export const NUMERO_SOPORTE_VISIBLE = "+52 833 660 1161";
 // components/IaNoDisponible.tsx en vez de un botón que falla.
 //
 // Está en true porque el servidor ya sabe hablar con dos proveedores
-// (OpenRouter y Google AI Studio, ver lib/openrouter.ts y
+// (Groq y Google AI Studio, ver lib/groq.ts y
 // lib/googleAI.ts) y basta con que UNO tenga su llave puesta.
 //
 // Esto es una constante y no una lectura del entorno a propósito: son

@@ -1,6 +1,6 @@
 import { supabase } from "../../lib/supabase";
 
-// Puente del navegador con /api/ia/asistente. La llave de OpenRouter
+// Puente del navegador con /api/ia/asistente. La llave de Groq
 // vive SOLO en el servidor: aquí nunca se ve ni se toca.
 //
 // La regla de este archivo es una sola: nunca lanza. Devuelve el texto

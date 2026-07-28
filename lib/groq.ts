@@ -6,24 +6,31 @@ import {
   ProductoParaVendedor,
 } from "./promptsIA";
 
-// Cliente para OpenRouter (chat). Uso EXCLUSIVO en código de servidor
-// (app/api/**) — OPENROUTER_API_KEY nunca debe llegar al navegador.
+// Cliente para Groq (chat). Uso EXCLUSIVO en código de servidor
+// (app/api/**) — GROQ_API_KEY nunca debe llegar al navegador.
 //
 // Es lo que convierte al Asistente en una IA de verdad en vez de un
 // motor de reglas: aquí la respuesta la escribe un modelo, no una tabla
 // de palabras clave. El motor de reglas sigue existiendo y se usa como
 // respaldo cuando esto falla (ver app/asistente/page.tsx).
+//
+// Groq expone una API compatible con la de OpenAI, así que el cuerpo de
+// la petición es el estándar de "chat completions": lo único propio es
+// la URL y la llave.
 
-// Barato, rápido y bueno en español, que es lo que pide este caso: un
-// mostrador preguntando cosas cortas muchas veces al día. Se puede
-// cambiar sin tocar código con OPENROUTER_MODEL.
-const MODELO_POR_DEFECTO = "anthropic/claude-3.5-haiku";
+const URL_GROQ = "https://api.groq.com/openai/v1/chat/completions";
 
-// Analizar la foto de un producto necesita un modelo que sepa VER. No
-// todos los de OpenRouter lo hacen, así que va en su propia variable:
-// si se cambia OPENROUTER_MODEL por uno más barato solo de texto, el
-// análisis de fotos no se rompe con él.
-const MODELO_VISION_POR_DEFECTO = "anthropic/claude-3.5-haiku";
+// Groq renueva y retira modelos con bastante frecuencia, así que estos
+// son solo un punto de partida razonable: se cambian con GROQ_MODEL y
+// GROQ_MODELO_VISION sin tocar código. Si el que está puesto ya no
+// existe, la prueba de Configuración → Ayuda lo dice tal cual
+// ("model not found") en vez de dejar el Asistente mudo sin explicar.
+const MODELO_POR_DEFECTO = "llama-3.3-70b-versatile";
+
+// Analizar la foto de un producto necesita un modelo que sepa VER, y
+// esos son pocos. Va en su propia variable para que abaratar o cambiar
+// el modelo de texto no rompa el análisis de fotos.
+const MODELO_VISION_POR_DEFECTO = "meta-llama/llama-4-scout-17b-16e-instruct";
 
 // Un asistente de negocio no necesita ensayos: respuestas largas
 // cuestan más, tardan más y se leen peor en un celular tras el
@@ -40,11 +47,11 @@ const NOMBRE_IDIOMA: Record<string, string> = {
   it: "italiano",
 };
 
-// true cuando el servidor tiene con qué hablarle a OpenRouter. Las
+// true cuando el servidor tiene con qué hablarle a Groq. Las
 // rutas lo usan para decidir el proveedor sin tener que atrapar un
 // error primero.
-export function hayOpenRouter(): boolean {
-  return !!process.env.OPENROUTER_API_KEY;
+export function hayGroq(): boolean {
+  return !!process.env.GROQ_API_KEY;
 }
 
 export interface MensajeChat {
@@ -69,11 +76,11 @@ export interface ContextoNegocio {
   mejorCliente: string | null;
 }
 
-export class ErrorOpenRouter extends Error {
+export class ErrorGroq extends Error {
   status: number;
   constructor(message: string, status: number) {
     super(message);
-    this.name = "ErrorOpenRouter";
+    this.name = "ErrorGroq";
     this.status = status;
   }
 }
@@ -129,16 +136,16 @@ export async function generarRespuestaAsistente(
   contexto: ContextoNegocio,
   idioma: string
 ): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
     // 401 y no 500: no es una falla transitoria, reintentar nunca lo va
     // a arreglar. Quien llama lo usa para caer al motor de reglas sin
     // molestar a la persona con un error.
-    throw new ErrorOpenRouter("Falta configurar OPENROUTER_API_KEY en el servidor.", 401);
+    throw new ErrorGroq("Falta configurar GROQ_API_KEY en el servidor.", 401);
   }
 
-  const modelo = process.env.OPENROUTER_MODEL || MODELO_POR_DEFECTO;
+  const modelo = process.env.GROQ_MODEL || MODELO_POR_DEFECTO;
 
   const mensajes = [
     { role: "system", content: construirSistema(contexto, idioma) },
@@ -161,7 +168,7 @@ export async function generarRespuestaAsistente(
 
 // ---------------------------------------------------------------------
 // Las otras dos funciones de IA de la app, servidas también por
-// OpenRouter para que una sola llave encienda todo: el análisis de
+// Groq para que una sola llave encienda todo: el análisis de
 // fotos de producto y el vendedor de WhatsApp. Los prompts y el parseo
 // son los mismos que usa Google (lib/promptsIA.ts) — lo único que
 // cambia es a quién se le pregunta.
@@ -175,10 +182,10 @@ async function pedirTexto(
   mensajes: unknown[],
   opciones: { temperatura: number; maxTokens: number; plazoMs: number }
 ): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
-    throw new ErrorOpenRouter("Falta configurar OPENROUTER_API_KEY en el servidor.", 401);
+    throw new ErrorGroq("Falta configurar GROQ_API_KEY en el servidor.", 401);
   }
 
   // Sin plazo, una respuesta lenta deja la pantalla colgada y en un
@@ -190,13 +197,11 @@ async function pedirTexto(
   let respuesta: Response;
 
   try {
-    respuesta = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    respuesta = await fetch(URL_GROQ, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://corestock.app",
-        "X-Title": "CoreStock",
       },
       body: JSON.stringify({
         model: modelo,
@@ -218,34 +223,34 @@ async function pedirTexto(
     } catch {
       // sin cuerpo JSON legible, se deja el detalle genérico
     }
-    throw new ErrorOpenRouter(detalle, respuesta.status);
+    throw new ErrorGroq(detalle, respuesta.status);
   }
 
   const datos = await respuesta.json();
 
   if (datos?.error) {
-    throw new ErrorOpenRouter(datos.error.message || "Error de OpenRouter.", 502);
+    throw new ErrorGroq(datos.error.message || "Error de Groq.", 502);
   }
 
   const texto = datos?.choices?.[0]?.message?.content;
 
   if (typeof texto !== "string" || !texto.trim()) {
-    throw new ErrorOpenRouter("OpenRouter no devolvió una respuesta utilizable.", 502);
+    throw new ErrorGroq("Groq no devolvió una respuesta utilizable.", 502);
   }
 
   return texto.trim();
 }
 
-export async function analizarImagenProductoOpenRouter(
+export async function analizarImagenProductoGroq(
   imagenBase64: string,
   mimeType: string,
   idioma: string,
   categoriasExistentes: string[] = []
 ): Promise<ResultadoAnalisisProducto> {
-  const modelo = process.env.OPENROUTER_MODEL_VISION || MODELO_VISION_POR_DEFECTO;
+  const modelo = process.env.GROQ_MODELO_VISION || MODELO_VISION_POR_DEFECTO;
 
-  // OpenRouter recibe la imagen como data URI dentro del propio
-  // mensaje, en el formato de partes de contenido de la API de chat.
+  // La imagen viaja como data URI dentro del propio mensaje, en el
+  // formato de partes de contenido de la API de chat.
   const texto = await pedirTexto(
     modelo,
     [
@@ -263,12 +268,12 @@ export async function analizarImagenProductoOpenRouter(
   return extraerResultadoProducto(texto);
 }
 
-export async function generarRespuestaVendedorOpenRouter(
+export async function generarRespuestaVendedorGroq(
   pregunta: string,
   productos: ProductoParaVendedor[],
   idioma: string
 ): Promise<string> {
-  const modelo = process.env.OPENROUTER_MODEL || MODELO_POR_DEFECTO;
+  const modelo = process.env.GROQ_MODEL || MODELO_POR_DEFECTO;
 
   return pedirTexto(
     modelo,

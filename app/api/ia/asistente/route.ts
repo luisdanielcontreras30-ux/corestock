@@ -4,11 +4,11 @@ import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 import { excedeLimiteIntentos } from "../../../../lib/rateLimit";
 import {
   generarRespuestaAsistente,
-  ErrorOpenRouter,
-  hayOpenRouter,
+  ErrorGroq,
+  hayGroq,
   ContextoNegocio,
   MensajeChat,
-} from "../../../../lib/openrouter";
+} from "../../../../lib/groq";
 
 const LARGO_MAXIMO_PREGUNTA = 1000;
 
@@ -20,7 +20,7 @@ const LARGO_MAXIMO_PREGUNTA = 1000;
 const MAX_MENSAJES_HISTORIAL = 8;
 
 // Cada llamada cuesta dinero real. Sin tope, una sola pestaña con un
-// bucle (o alguien curioso) puede vaciar el saldo de OpenRouter en una
+// bucle (o alguien curioso) puede vaciar el saldo de Groq en una
 // tarde. El límite es por usuario y por hora.
 const MAX_PREGUNTAS_POR_HORA = 60;
 const VENTANA_MS = 60 * 60 * 1000;
@@ -154,7 +154,7 @@ async function construirContexto(
 // se ven exactamente igual.
 //
 // Nunca devuelve la llave, solo si existe. El mensaje de error de
-// OpenRouter sí se devuelve tal cual (dice cosas como "sin saldo" o
+// Groq sí se devuelve tal cual (dice cosas como "sin saldo" o
 // "modelo no encontrado") porque es justo el dato que hace falta, y va
 // detrás de sesión válida como el resto de la ruta.
 export async function GET(request: Request) {
@@ -164,13 +164,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: mensaje("no_autenticado", "es") }, { status: 401 });
   }
 
-  const configurada = hayOpenRouter();
+  const configurada = hayGroq();
 
   if (!configurada) {
     return NextResponse.json({
       configurada: false,
       motivo: "sin_llave",
-      detalle: "No hay OPENROUTER_API_KEY en el servidor.",
+      detalle: "No hay GROQ_API_KEY en el servidor.",
     });
   }
 
@@ -200,10 +200,10 @@ export async function GET(request: Request) {
     return NextResponse.json({
       configurada: true,
       motivo: "ok",
-      modelo: process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-haiku (por defecto)",
+      modelo: process.env.GROQ_MODEL || "llama-3.3-70b-versatile (por defecto)",
     });
   } catch (error) {
-    const status = error instanceof ErrorOpenRouter ? error.status : 0;
+    const status = error instanceof ErrorGroq ? error.status : 0;
     const detalle = error instanceof Error ? error.message : String(error);
 
     return NextResponse.json({
@@ -217,7 +217,7 @@ export async function GET(request: Request) {
               ? "limite_proveedor"
               : "fallo",
       detalle,
-      modelo: process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-haiku (por defecto)",
+      modelo: process.env.GROQ_MODEL || "llama-3.3-70b-versatile (por defecto)",
     });
   }
 }
@@ -295,7 +295,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Asistente IA:", error);
 
-    if (error instanceof ErrorOpenRouter) {
+    if (error instanceof ErrorGroq) {
       // 503 = "esto no va a funcionar ahora": sin llave, sin saldo o
       // modelo mal configurado. El navegador lo usa como señal para
       // caer al motor de reglas EN SILENCIO, sin enseñar un error:

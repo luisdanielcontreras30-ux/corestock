@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 import { analizarImagenProducto, ErrorGoogleAI } from "../../../../lib/googleAI";
-import { analizarImagenProductoOpenRouter, ErrorOpenRouter, hayOpenRouter } from "../../../../lib/openrouter";
+import { analizarImagenProductoGroq, ErrorGroq, hayGroq } from "../../../../lib/groq";
 
 // El cliente ya redimensiona la foto antes de mandarla (ver
 // lib/iaAcciones.ts), así que en el caso normal esto pesa muy poco.
@@ -78,15 +78,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Se prefiere OpenRouter cuando su llave está puesta: es la que
+    // Se prefiere Groq cuando su llave está puesta: es la que
     // enciende TODAS las funciones de IA de la app con una sola cuenta.
     // Google queda como alternativa para quien ya venía usando su llave
     // de AI Studio.
     //
-    // Ojo: el modelo de OpenRouter tiene que saber VER. Va en su propia
-    // variable (OPENROUTER_MODEL_VISION) justo por eso.
-    const resultado = hayOpenRouter()
-      ? await analizarImagenProductoOpenRouter(imagenBase64, mimeType, idioma, categoriasExistentes)
+    // Ojo: el modelo de Groq tiene que saber VER. Va en su propia
+    // variable (GROQ_MODELO_VISION) justo por eso.
+    const resultado = hayGroq()
+      ? await analizarImagenProductoGroq(imagenBase64, mimeType, idioma, categoriasExistentes)
       : await analizarImagenProducto(imagenBase64, mimeType, idioma, categoriasExistentes);
 
     return NextResponse.json(resultado);
@@ -100,13 +100,14 @@ export async function POST(request: Request) {
     // Los dos proveedores lanzan un error con .status, así que el
     // mismo manejo (429 = sin cuota, 401/403 = mal configurado)
     // sirve para ambos sin duplicarlo.
-    if (error instanceof ErrorGoogleAI || error instanceof ErrorOpenRouter) {
+    if (error instanceof ErrorGoogleAI || error instanceof ErrorGroq) {
       if (error.status === 429) {
         return NextResponse.json({ error: mensaje("cuota_excedida", idioma) }, { status: 429 });
       }
-      // 402 es el "sin saldo" de OpenRouter. Reintentar tampoco lo
-      // arregla, así que va con los de configuración y no con los
-      // transitorios: hay que recargar la cuenta.
+      // 402 es "hace falta pagar" (plan agotado). Va con los de
+      // configuración y no con los transitorios porque reintentar no lo
+      // arregla. Ojo: en la capa gratuita de Groq lo normal NO es este,
+      // es el 429 de arriba — ahí sí conviene esperar y reintentar.
       if (error.status === 401 || error.status === 402 || error.status === 403) {
         return NextResponse.json({ error: mensaje("configuracion_invalida", idioma) }, { status: 500 });
       }

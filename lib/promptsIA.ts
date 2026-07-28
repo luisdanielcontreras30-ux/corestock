@@ -1,5 +1,5 @@
 // Prompts y parseo compartidos por los dos proveedores de IA
-// (lib/googleAI.ts y lib/openrouter.ts). Vive aparte porque el texto
+// (lib/googleAI.ts y lib/groq.ts). Vive aparte porque el texto
 // del prompt y —sobre todo— la reparación del JSON que devuelve el
 // modelo son lo mismo sin importar quién conteste, y tenerlo duplicado
 // garantizaba que un arreglo se aplicara solo en uno de los dos.

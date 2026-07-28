@@ -11,7 +11,7 @@ import {
 } from "./promptsIA";
 
 // Los prompts y la reparación del JSON que devuelve el modelo viven en
-// lib/promptsIA.ts: son idénticos para Google y para OpenRouter, y
+// lib/promptsIA.ts: son idénticos para Google y para Groq, y
 // tenerlos duplicados garantizaba que un arreglo se aplicara en uno
 // solo de los dos.
 export type { ResultadoAnalisisProducto, ProductoParaVendedor };

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 import { generarRespuestaVendedor, ErrorGoogleAI, ProductoParaVendedor } from "../../../../lib/googleAI";
-import { generarRespuestaVendedorOpenRouter, ErrorOpenRouter, hayOpenRouter } from "../../../../lib/openrouter";
+import { generarRespuestaVendedorGroq, ErrorGroq, hayGroq } from "../../../../lib/groq";
 import { tieneAccesoBeta } from "../../../../lib/betaAcceso";
 
 // Tope generoso para una pregunta de cliente por WhatsApp — evita
@@ -83,14 +83,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Se prefiere OpenRouter cuando su llave está puesta: es la que
+    // Se prefiere Groq cuando su llave está puesta: es la que
     // enciende TODAS las funciones de IA de la app con una sola cuenta.
     // Google queda como alternativa para quien ya venía usando su llave
     // de AI Studio.
     const lista = (productos ?? []) as ProductoParaVendedor[];
 
-    const respuestaTexto = hayOpenRouter()
-      ? await generarRespuestaVendedorOpenRouter(pregunta, lista, idioma)
+    const respuestaTexto = hayGroq()
+      ? await generarRespuestaVendedorGroq(pregunta, lista, idioma)
       : await generarRespuestaVendedor(pregunta, lista, idioma);
 
     return NextResponse.json({ respuesta: respuestaTexto });
@@ -100,13 +100,14 @@ export async function POST(request: Request) {
     // Los dos proveedores lanzan un error con .status, así que el
     // mismo manejo (429 = sin cuota, 401/403 = mal configurado)
     // sirve para ambos sin duplicarlo.
-    if (error instanceof ErrorGoogleAI || error instanceof ErrorOpenRouter) {
+    if (error instanceof ErrorGoogleAI || error instanceof ErrorGroq) {
       if (error.status === 429) {
         return NextResponse.json({ error: mensaje("cuota_excedida", idioma) }, { status: 429 });
       }
-      // 402 es el "sin saldo" de OpenRouter. Reintentar tampoco lo
-      // arregla, así que va con los de configuración y no con los
-      // transitorios: hay que recargar la cuenta.
+      // 402 es "hace falta pagar" (plan agotado). Va con los de
+      // configuración y no con los transitorios porque reintentar no lo
+      // arregla. Ojo: en la capa gratuita de Groq lo normal NO es este,
+      // es el 429 de arriba — ahí sí conviene esperar y reintentar.
       if (error.status === 401 || error.status === 402 || error.status === 403) {
         return NextResponse.json({ error: mensaje("configuracion_invalida", idioma) }, { status: 500 });
       }
