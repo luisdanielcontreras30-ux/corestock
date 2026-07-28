@@ -24,6 +24,9 @@ interface EstadoIA {
   configurada: boolean;
   texto?: ResultadoModelo;
   vision?: ResultadoModelo;
+  // Los modelos que la cuenta tiene disponibles ahora, consultados a
+  // Groq. Solo vienen cuando algo falló, que es cuando sirven.
+  modelosDisponibles?: string[];
   // Solo cuando el fallo es del navegador y ni se llegó a preguntar.
   motivo?: string;
 }
@@ -134,6 +137,42 @@ export default function AyudaTab() {
 
         {estadoIA?.vision && (
           <Fila etiqueta={t("ayuda.ia_parte_vision")} resultado={estadoIA.vision} t={t} />
+        )}
+
+        {/* Cualquier lista de modelos escrita a mano queda vieja en
+            cuanto Groq rota su catálogo. Esta se pide a la cuenta en el
+            momento, así que siempre es la de verdad. */}
+        {estadoIA?.modelosDisponibles && estadoIA.modelosDisponibles.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <p style={{ margin: "0 0 8px 0", fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.55 }}>
+              {t("ayuda.ia_modelos_disponibles")}
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 6,
+                maxHeight: 180,
+                overflowY: "auto",
+              }}
+            >
+              {estadoIA.modelosDisponibles.map((m) => (
+                <code
+                  key={m}
+                  style={{
+                    fontSize: 11.5,
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                    background: "var(--card-hover)",
+                    color: "var(--text-primary)",
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {m}
+                </code>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 

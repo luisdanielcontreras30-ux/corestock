@@ -5,6 +5,7 @@ import { excedeLimiteIntentos } from "../../../../lib/rateLimit";
 import {
   generarRespuestaAsistente,
   probarVisionGroq,
+  listarModelosGroq,
   ErrorGroq,
   hayGroq,
   ContextoNegocio,
@@ -230,7 +231,13 @@ export async function GET(request: Request) {
       .catch((error) => ({ ...clasificar(error), modelo: modeloVision })),
   ]);
 
-  return NextResponse.json({ configurada: true, texto, vision });
+  // La lista real solo hace falta cuando hay algo que arreglar. Pedirla
+  // siempre sería una llamada de más en el caso normal, que es que todo
+  // funcione.
+  const algoFallo = texto.motivo !== "ok" || vision.motivo !== "ok";
+  const modelosDisponibles = algoFallo ? await listarModelosGroq() : [];
+
+  return NextResponse.json({ configurada: true, texto, vision, modelosDisponibles });
 }
 
 export async function POST(request: Request) {

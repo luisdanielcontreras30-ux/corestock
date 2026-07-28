@@ -310,3 +310,43 @@ export async function probarVisionGroq(): Promise<void> {
     { temperatura: 0, maxTokens: 5, plazoMs: 30000 }
   );
 }
+
+// Lista los modelos que la cuenta tiene disponibles AHORA. Groq expone
+// esto en su API, así que es la única fuente que no envejece: cualquier
+// lista escrita a mano en el código o en la documentación queda vieja
+// en cuanto Groq rota su catálogo, que lo hace seguido.
+//
+// Se usa en el diagnóstico de Configuración → Ayuda para que, cuando el
+// modelo configurado ya no exista, se pueda elegir uno de la lista real
+// en vez de adivinar.
+//
+// Devuelve [] si algo falla: es información de apoyo, y no vale la pena
+// que un fallo aquí tumbe el diagnóstico entero, que es lo importante.
+export async function listarModelosGroq(): Promise<string[]> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return [];
+
+  const control = new AbortController();
+  const plazo = setTimeout(() => control.abort(), 15000);
+
+  try {
+    const respuesta = await fetch("https://api.groq.com/openai/v1/models", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: control.signal,
+    });
+
+    if (!respuesta.ok) return [];
+
+    const datos = await respuesta.json();
+    const lista = Array.isArray(datos?.data) ? datos.data : [];
+
+    return lista
+      .map((m: { id?: unknown }) => (typeof m?.id === "string" ? m.id : null))
+      .filter((id: string | null): id is string => !!id)
+      .sort();
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(plazo);
+  }
+}
