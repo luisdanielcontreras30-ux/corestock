@@ -5,6 +5,7 @@ import { excedeLimiteIntentos } from "../../../../lib/rateLimit";
 import {
   generarRespuestaAsistente,
   ErrorOpenRouter,
+  hayOpenRouter,
   ContextoNegocio,
   MensajeChat,
 } from "../../../../lib/openrouter";
@@ -142,6 +143,83 @@ async function construirContexto(
     productoTop: mayor(porProducto),
     mejorCliente: clienteTop !== null ? nombreCliente.get(clienteTop) ?? null : null,
   };
+}
+
+
+// Diagnóstico de configuración. Existe por un motivo concreto: cuando la
+// IA falla, el Asistente cae al motor de reglas EN SILENCIO — que es lo
+// correcto para quien está atendiendo el mostrador, pero deja a quien
+// instala la app sin ninguna forma de saber si su llave quedó bien
+// puesta. Sin esto, "no funciona" y "funciona pero se cayó al respaldo"
+// se ven exactamente igual.
+//
+// Nunca devuelve la llave, solo si existe. El mensaje de error de
+// OpenRouter sí se devuelve tal cual (dice cosas como "sin saldo" o
+// "modelo no encontrado") porque es justo el dato que hace falta, y va
+// detrás de sesión válida como el resto de la ruta.
+export async function GET(request: Request) {
+  const user = await verificarUsuarioApi(request);
+
+  if (!user) {
+    return NextResponse.json({ error: mensaje("no_autenticado", "es") }, { status: 401 });
+  }
+
+  const configurada = hayOpenRouter();
+
+  if (!configurada) {
+    return NextResponse.json({
+      configurada: false,
+      motivo: "sin_llave",
+      detalle: "No hay OPENROUTER_API_KEY en el servidor.",
+    });
+  }
+
+  // Con la llave puesta, se prueba de verdad: tener la variable no
+  // garantiza que sirva. Es una llamada mínima (dos palabras, 5 tokens)
+  // para que comprobar no cueste prácticamente nada.
+  try {
+    await generarRespuestaAsistente(
+      "Responde solo: ok",
+      [],
+      {
+        nombreNegocio: null,
+        moneda: "$",
+        productosActivos: 0,
+        valorInventario: 0,
+        agotados: [],
+        bajoStock: [],
+        ventasHoy: 0,
+        ventasSemana: 0,
+        ventasMes: 0,
+        productoTop: null,
+        mejorCliente: null,
+      },
+      "es"
+    );
+
+    return NextResponse.json({
+      configurada: true,
+      motivo: "ok",
+      modelo: process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-haiku (por defecto)",
+    });
+  } catch (error) {
+    const status = error instanceof ErrorOpenRouter ? error.status : 0;
+    const detalle = error instanceof Error ? error.message : String(error);
+
+    return NextResponse.json({
+      configurada: true,
+      motivo:
+        status === 401 || status === 403
+          ? "llave_invalida"
+          : status === 402
+            ? "sin_saldo"
+            : status === 429
+              ? "limite_proveedor"
+              : "fallo",
+      detalle,
+      modelo: process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-haiku (por defecto)",
+    });
+  }
 }
 
 export async function POST(request: Request) {
