@@ -549,6 +549,7 @@ export const TRADUCCIONES: Diccionario = {
   "facturas.ir_a_vender": { es: "Ir a Venta Rápida", en: "Go to Quick Sale", pt: "Ir para Venda Rápida", fr: "Aller à la Vente Rapide", de: "Zum Schnellverkauf", zh: "前往快速销售", it: "Vai a Vendita Rapida" },
 
   // Cotizaciones
+  "cotizaciones.importe_trabajo": { es: "Importe del trabajo", en: "Labour amount", pt: "Valor do trabalho", fr: "Montant du travail", de: "Betrag der Arbeit", zh: "工时费用", it: "Importo del lavoro" },
   "cotizaciones.tipo_producto": { es: "Producto", en: "Product", pt: "Produto", fr: "Produit", de: "Produkt", zh: "商品", it: "Prodotto" },
   "cotizaciones.tipo_servicio": { es: "Servicio", en: "Service", pt: "Serviço", fr: "Service", de: "Dienstleistung", zh: "服务", it: "Servizio" },
   "cotizaciones.tipo_mano_obra": { es: "Mano de obra", en: "Labour", pt: "Mão de obra", fr: "Main-d'œuvre", de: "Arbeitszeit", zh: "工时", it: "Manodopera" },

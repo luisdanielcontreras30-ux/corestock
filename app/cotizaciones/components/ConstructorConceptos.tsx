@@ -17,6 +17,17 @@ export const ESTILO_TIPO: Record<TipoItem, { color: string; Icono: typeof Packag
   mano_obra: { color: "#f59e0b", Icono: Wrench },
 };
 
+// El renglón chico bajo el nombre del concepto. En mano de obra no hay
+// nada que poner: su cantidad siempre es 1 y el importe ya se ve a la
+// derecha, así que un "1 × $1,800" solo sería ruido.
+export function detalleLinea(
+  item: { tipo: TipoItem; cantidad: number; precio_unitario: number },
+  formato: (valor: number) => string
+): string | null {
+  if (item.tipo === "mano_obra") return null;
+  return `${item.cantidad} × ${formato(item.precio_unitario)}`;
+}
+
 interface Props {
   productos: Producto[];
   items: ItemNuevo[];
@@ -33,7 +44,13 @@ export default function ConstructorConceptos({ productos, items, onChange }: Pro
   const [precio, setPrecio] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const cantidadNum = Number(cantidad);
+  // La mano de obra no se cuenta, se cobra: es un importe por el trabajo
+  // ("pintura y hojalatería: $1,800"), no "1.5 unidades de mano de obra".
+  // Por eso no lleva campo de cantidad y siempre vale 1 — así el importe
+  // que se escribe es exactamente lo que suma al total.
+  const llevaCantidad = tipo !== "mano_obra";
+
+  const cantidadNum = llevaCantidad ? Number(cantidad) : 1;
   const precioNum = Number(precio);
 
   function cambiarTipo(nuevo: TipoItem) {
@@ -44,6 +61,7 @@ export default function ConstructorConceptos({ productos, items, onChange }: Pro
     setProductoId("");
     setDescripcion("");
     setPrecio("");
+    setCantidad("1");
   }
 
   function alElegirProducto(id: string) {
@@ -69,6 +87,14 @@ export default function ConstructorConceptos({ productos, items, onChange }: Pro
 
     if (!Number.isFinite(cantidadNum) || cantidadNum <= 0) {
       setError(t("cotizaciones.msg_cantidad_mayor"));
+      return;
+    }
+
+    // Ni los productos ni los servicios se cotizan por fracciones: "1.5
+    // lavados" no significa nada, igual que "1.5 unidades". Si hace
+    // falta cobrar medio trabajo, eso es mano de obra con su importe.
+    if (!Number.isInteger(cantidadNum)) {
+      setError(t("comun.msg_cantidad_entera"));
       return;
     }
 
@@ -128,7 +154,7 @@ export default function ConstructorConceptos({ productos, items, onChange }: Pro
         })}
       </div>
 
-      <div className="cot-campos">
+      <div className={`cot-campos${llevaCantidad ? "" : " cot-campos-sin-cantidad"}`}>
         {tipo === "producto" ? (
           <SelectorPersonalizado value={productoId} onChange={alElegirProducto}>
             <OpcionSelector value="">{t("cotizaciones.selecciona_producto")}</OpcionSelector>
@@ -150,18 +176,17 @@ export default function ConstructorConceptos({ productos, items, onChange }: Pro
           />
         )}
 
-        <input
-          type="number"
-          min="0"
-          // Los servicios se cobran por fracciones (1.5 horas de mano de
-          // obra), así que la cantidad no puede estar limitada a enteros
-          // como en el resto de la app.
-          step={tipo === "producto" ? "1" : "0.5"}
-          value={cantidad}
-          onChange={(e) => setCantidad(e.target.value)}
-          placeholder={t("tabla.cantidad")}
-          aria-label={t("tabla.cantidad")}
-        />
+        {llevaCantidad && (
+          <input
+            type="number"
+            min="1"
+            step="1"
+            value={cantidad}
+            onChange={(e) => setCantidad(e.target.value)}
+            placeholder={t("tabla.cantidad")}
+            aria-label={t("tabla.cantidad")}
+          />
+        )}
 
         <input
           type="number"
@@ -169,8 +194,15 @@ export default function ConstructorConceptos({ productos, items, onChange }: Pro
           step="0.01"
           value={precio}
           onChange={(e) => setPrecio(e.target.value)}
-          placeholder={t("cotizaciones.precio_unitario")}
-          aria-label={t("cotizaciones.precio_unitario")}
+          // En mano de obra el campo NO es un precio unitario: es el
+          // importe total del trabajo. Llamarlo igual que en las otras
+          // líneas confundiría sobre qué se está escribiendo.
+          placeholder={
+            llevaCantidad ? t("cotizaciones.precio_unitario") : t("cotizaciones.importe_trabajo")
+          }
+          aria-label={
+            llevaCantidad ? t("cotizaciones.precio_unitario") : t("cotizaciones.importe_trabajo")
+          }
         />
 
         <button type="button" className="btn-secondary cot-btn-agregar" onClick={agregar}>
@@ -197,9 +229,9 @@ export default function ConstructorConceptos({ productos, items, onChange }: Pro
 
                 <div className="cot-linea-texto">
                   <strong>{item.descripcion}</strong>
-                  <small>
-                    {item.cantidad} × {formatoMoneda(item.precio_unitario)}
-                  </small>
+                  {detalleLinea(item, formatoMoneda) && (
+                    <small>{detalleLinea(item, formatoMoneda)}</small>
+                  )}
                 </div>
 
                 <span className="cot-linea-total">

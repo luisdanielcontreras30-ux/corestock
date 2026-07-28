@@ -6190,6 +6190,12 @@ select optgroup {
   align-items: stretch;
 }
 
+.cot-campos-sin-cantidad {
+  /* Mano de obra no lleva cantidad: sin esto, las tres columnas
+     restantes heredaban el ancho pensado para cuatro. */
+  grid-template-columns: 2fr 1fr auto;
+}
+
 .cot-btn-agregar {
   display: inline-flex;
   align-items: center;
@@ -6445,6 +6451,11 @@ select optgroup {
   .cot-campos > *:first-child,
   .cot-btn-agregar {
     grid-column: 1 / -1;
+  }
+
+  /* Sin cantidad, el importe ya ocupa su propia fila completa. */
+  .cot-campos-sin-cantidad {
+    grid-template-columns: 1fr;
   }
 
   .cot-cliente {

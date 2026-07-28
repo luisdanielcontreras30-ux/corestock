@@ -13,7 +13,7 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import CotizacionCompartirModal from "./components/CotizacionCompartirModal";
-import ConstructorConceptos, { ESTILO_TIPO } from "./components/ConstructorConceptos";
+import ConstructorConceptos, { ESTILO_TIPO, detalleLinea } from "./components/ConstructorConceptos";
 import { Producto, Cliente, Cotizacion, EstadoCotizacion, ItemNuevo } from "./types";
 import {
   cargarDatos,
@@ -390,9 +390,9 @@ function CotizacionesContenido() {
 
                         <div className="cot-linea-texto">
                           <strong>{item.descripcion}</strong>
-                          <small>
-                            {item.cantidad} × {formatoMoneda(item.precio_unitario)}
-                          </small>
+                          {detalleLinea(item, formatoMoneda) && (
+                            <small>{detalleLinea(item, formatoMoneda)}</small>
+                          )}
                         </div>
 
                         <span className="cot-linea-total">

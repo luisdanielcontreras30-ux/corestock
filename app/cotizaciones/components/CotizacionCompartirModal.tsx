@@ -31,12 +31,13 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
     // es lo que de verdad lee el cliente, y mandarle una línea de una
     // cotización de tres es lo que provoca el reclamo al cobrar.
     cotizacion.items
-      .map(
-        (item) =>
-          `• ${item.descripcion} x${item.cantidad} — ${formatoMoneda(
-            Number(item.cantidad) * Number(item.precio_unitario)
-          )}`
-      )
+      .map((item) => {
+        const importe = formatoMoneda(Number(item.cantidad) * Number(item.precio_unitario));
+        // La mano de obra va sin "x1": es un importe por el trabajo.
+        return item.tipo === "mano_obra"
+          ? `• ${item.descripcion} — ${importe}`
+          : `• ${item.descripcion} x${item.cantidad} — ${importe}`;
+      })
       .join("\n") +
     `\n\n${t("tabla.total")}: ${formatoMoneda(Number(cotizacion.total))}\n\n` +
     (cotizacion.nota ? `${cotizacion.nota}\n\n` : "") +
@@ -158,8 +159,15 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
               {cotizacion.items.map((item) => (
                 <tr key={item.id}>
                   <td>{item.descripcion}</td>
-                  <td>{item.cantidad}</td>
-                  <td>{formatoMoneda(Number(item.precio_unitario))}</td>
+                  {/* La mano de obra es un importe cerrado por el trabajo:
+                      poner "1" y repetir la cifra en dos columnas le da al
+                      cliente la impresión de que puede pedir "solo media". */}
+                  <td>{item.tipo === "mano_obra" ? "—" : item.cantidad}</td>
+                  <td>
+                    {item.tipo === "mano_obra"
+                      ? "—"
+                      : formatoMoneda(Number(item.precio_unitario))}
+                  </td>
                   <td>{formatoMoneda(Number(item.cantidad) * Number(item.precio_unitario))}</td>
                 </tr>
               ))}
