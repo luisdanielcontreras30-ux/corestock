@@ -83,6 +83,21 @@ export async function registrarMovimiento(
     throw new Error("Usuario no autenticado");
   }
 
+  // Mismo contrato que registrar_movimiento_caja en
+  // supabase_caja_atomico.sql (permite 0, rechaza negativos): la
+  // función SQL ya valida esto, pero el camino de respaldo de abajo
+  // —el que corre mientras esa migración no está aplicada— insertaba
+  // sin mirar. Y registrarMovimiento no solo se llama desde el
+  // formulario, que sí valida: lib/sync.ts la usa para drenar la cola
+  // offline con valores que vienen de IndexedDB.
+  //
+  // Un monto negativo no da error, hace algo peor: el saldo se calcula
+  // restando las salidas, así que una "salida" de -500 SUMA 500 a la
+  // caja. Y un NaN envenena el saldo de forma permanente.
+  if (!Number.isFinite(monto) || monto < 0) {
+    throw new Error("MONTO_INVALIDO");
+  }
+
   const { error } = await supabase.rpc("registrar_movimiento_caja", {
     p_tipo: tipo,
     p_monto: monto,

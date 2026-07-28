@@ -190,8 +190,14 @@ export default function CajaPage() {
       }
     } catch (error) {
       console.error(error);
-      const sinSaldo = error instanceof Error && error.message === "SALDO_INSUFICIENTE";
-      mostrarToast(sinSaldo ? t("caja.msg_sin_saldo") : t("caja.msg_error_movimiento"), "error");
+      const mensaje = error instanceof Error ? error.message : "";
+      const clave =
+        mensaje === "SALDO_INSUFICIENTE"
+          ? "caja.msg_sin_saldo"
+          : mensaje === "MONTO_INVALIDO"
+          ? "caja.msg_monto_invalido"
+          : "caja.msg_error_movimiento";
+      mostrarToast(t(clave), "error");
     } finally {
       setProcesando(false);
     }

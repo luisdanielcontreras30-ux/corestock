@@ -139,14 +139,16 @@ function AsistenteContenido() {
   ) {
     if (!user || pensando) return;
 
-    // eslint-disable-next-line react-hooks/purity -- id de mensaje generado en un manejador de clic, no durante el render
-    const idUsuario = Date.now();
-    setMensajes((prev) => [
-      ...prev,
-      { id: idUsuario, autor: "usuario", texto },
-    ]);
+    agregarMensaje("usuario", texto);
     setEntrada("");
     setPensando(true);
+
+    // Los botones de preguntas rápidas también cambian de qué se está
+    // hablando. Sin esto, preguntar "¿qué es el margen?", tocar luego
+    // un botón de datos y escribir "cuéntame más" seguía respondiendo
+    // sobre el margen — el mismo fallo que ya se arregló para el texto
+    // libre, pero por la otra entrada.
+    setUltimoTema(null);
 
     try {
       // Pequeña pausa artificial: hace tangible que "está pensando",
@@ -156,16 +158,10 @@ function AsistenteContenido() {
         new Promise((r) => setTimeout(r, 450)),
       ]);
 
-      setMensajes((prev) => [
-        ...prev,
-        { id: idUsuario + 1, autor: "asistente", texto: respuesta },
-      ]);
+      agregarMensaje("asistente", respuesta);
     } catch (error) {
       console.error(error);
-      setMensajes((prev) => [
-        ...prev,
-        { id: idUsuario + 1, autor: "asistente", texto: t("asistente.msg_error") },
-      ]);
+      agregarMensaje("asistente", t("asistente.msg_error"));
     } finally {
       setPensando(false);
     }
