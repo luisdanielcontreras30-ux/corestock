@@ -149,63 +149,14 @@ export async function generarRespuestaAsistente(
     { role: "user", content: pregunta },
   ];
 
-  // Sin plazo, una respuesta lenta deja la pantalla colgada y en un
-  // host serverless consume el tiempo de la función hasta que la corta
-  // de golpe, sin dar oportunidad de caer al respaldo.
-  const control = new AbortController();
-  const plazo = setTimeout(() => control.abort(), 30000);
-
-  let respuesta: Response;
-
-  try {
-    respuesta = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        // OpenRouter los usa para atribuir el tráfico. No son secretos.
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://corestock.app",
-        "X-Title": "CoreStock",
-      },
-      body: JSON.stringify({
-        model: modelo,
-        messages: mensajes,
-        max_tokens: MAX_TOKENS_RESPUESTA,
-        temperature: 0.6,
-      }),
-      signal: control.signal,
-    });
-  } finally {
-    clearTimeout(plazo);
-  }
-
-  if (!respuesta.ok) {
-    let detalle = `HTTP ${respuesta.status}`;
-    try {
-      const cuerpo = await respuesta.json();
-      detalle = cuerpo?.error?.message || detalle;
-    } catch {
-      // sin cuerpo JSON legible, se deja el detalle genérico
-    }
-    throw new ErrorOpenRouter(detalle, respuesta.status);
-  }
-
-  const datos = await respuesta.json();
-
-  // OpenRouter puede devolver 200 con un error adentro (por ejemplo
-  // cuando el modelo elegido no existe), así que un status 200 no basta
-  // para dar la respuesta por buena.
-  if (datos?.error) {
-    throw new ErrorOpenRouter(datos.error.message || "Error de OpenRouter.", 502);
-  }
-
-  const texto = datos?.choices?.[0]?.message?.content;
-
-  if (typeof texto !== "string" || !texto.trim()) {
-    throw new ErrorOpenRouter("OpenRouter no devolvió una respuesta utilizable.", 502);
-  }
-
-  return texto.trim();
+  return pedirTexto(modelo, mensajes, {
+    temperatura: 0.6,
+    maxTokens: MAX_TOKENS_RESPUESTA,
+    // Menos plazo que analizar una foto: una respuesta de chat que tarda
+    // más de medio minuto ya no sirve, y cortar antes deja tiempo de
+    // caer al motor de reglas dentro del límite de la función.
+    plazoMs: 30000,
+  });
 }
 
 // ---------------------------------------------------------------------
@@ -222,7 +173,7 @@ export async function generarRespuestaAsistente(
 async function pedirTexto(
   modelo: string,
   mensajes: unknown[],
-  opciones: { temperatura: number; maxTokens: number }
+  opciones: { temperatura: number; maxTokens: number; plazoMs: number }
 ): Promise<string> {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
@@ -230,8 +181,11 @@ async function pedirTexto(
     throw new ErrorOpenRouter("Falta configurar OPENROUTER_API_KEY en el servidor.", 401);
   }
 
+  // Sin plazo, una respuesta lenta deja la pantalla colgada y en un
+  // host serverless consume el tiempo de la función hasta que la corta
+  // de golpe, sin dar oportunidad de caer al respaldo.
   const control = new AbortController();
-  const plazo = setTimeout(() => control.abort(), 45000);
+  const plazo = setTimeout(() => control.abort(), opciones.plazoMs);
 
   let respuesta: Response;
 
@@ -303,7 +257,7 @@ export async function analizarImagenProductoOpenRouter(
         ],
       },
     ],
-    { temperatura: 0.4, maxTokens: 500 }
+    { temperatura: 0.4, maxTokens: 500, plazoMs: 45000 }
   );
 
   return extraerResultadoProducto(texto);
@@ -319,6 +273,6 @@ export async function generarRespuestaVendedorOpenRouter(
   return pedirTexto(
     modelo,
     [{ role: "user", content: construirPromptVendedor(pregunta, productos, idioma) }],
-    { temperatura: 0.5, maxTokens: 400 }
+    { temperatura: 0.5, maxTokens: 400, plazoMs: 30000 }
   );
 }

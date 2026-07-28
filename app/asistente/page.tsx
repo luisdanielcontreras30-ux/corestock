@@ -23,6 +23,8 @@ import {
 import type { IntencionDatos } from "./deteccion";
 import type { TemaConocimiento } from "./conocimiento";
 import { preguntarAIa, MensajeIA } from "./ia";
+import { interpretarCalculo } from "./calculadora";
+import { normalizarTexto } from "../../lib/normalizarTexto";
 
 // La base de conocimiento son ~350 KB de texto (48 temas × 7 idiomas) y
 // vivía en el bundle inicial de esta pantalla: todo el mundo la
@@ -244,9 +246,32 @@ function AsistenteContenido() {
     setPensando(true);
 
     try {
-      // Primero la IA de verdad. Recibe los últimos mensajes para que
-      // "cuéntame más" signifique algo, y del lado del servidor se le
-      // suman los números reales del negocio.
+      // Las CUENTAS van antes que la IA, y a propósito.
+      //
+      // Un modelo de lenguaje no calcula: predice el texto que suele
+      // seguir, y con eso se equivoca en aritmética cada tanto — casi
+      // siempre por poco, que es lo peor, porque un "18% de 4,350 =
+      // 792" se ve razonable y nadie lo revisa. Aquí se está hablando
+      // de precios y márgenes: un número casi correcto es un número
+      // mal cobrado.
+      //
+      // La calculadora (calculadora.ts) opera de verdad, así que su
+      // resultado es exacto siempre. Además responde al instante y sin
+      // gastar saldo. Cuando no reconoce la frase devuelve null y la
+      // pregunta sigue su camino normal hacia la IA.
+      const calculo = interpretarCalculo(normalizarTexto(texto).trim());
+
+      if (calculo) {
+        agregarMensaje(
+          "asistente",
+          rellenarPlantilla(t(calculo.clave), calculo.valores, idioma)
+        );
+        return;
+      }
+
+      // Después sí, la IA de verdad. Recibe los últimos mensajes para
+      // que "cuéntame más" signifique algo, y del lado del servidor se
+      // le suman los números reales del negocio.
       //
       // preguntarAIa() nunca lanza: devuelve null cuando no hay llave,
       // se acabó el saldo, falló la red o el modelo no respondió. Ese
