@@ -281,3 +281,32 @@ export async function generarRespuestaVendedorGroq(
     { temperatura: 0.5, maxTokens: 400, plazoMs: 30000 }
   );
 }
+
+// Prueba mínima de que el modelo de visión existe y acepta imágenes.
+//
+// Deliberadamente NO usa analizarImagenProductoGroq: esa función exige
+// que la respuesta sea el JSON del catálogo, y ante una imagen de
+// prueba (un pixel transparente) un modelo perfectamente sano puede
+// contestar cualquier cosa. Eso daría un "no funciona" falso justo
+// cuando sí funciona. Aquí solo importa que la llamada no reviente.
+export async function probarVisionGroq(): Promise<void> {
+  const modelo = process.env.GROQ_MODELO_VISION || MODELO_VISION_POR_DEFECTO;
+
+  // PNG de 1x1 transparente: lo más chico que se puede mandar.
+  const pixel =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+  await pedirTexto(
+    modelo,
+    [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Responde solo: ok" },
+          { type: "image_url", image_url: { url: `data:image/png;base64,${pixel}` } },
+        ],
+      },
+    ],
+    { temperatura: 0, maxTokens: 5, plazoMs: 30000 }
+  );
+}

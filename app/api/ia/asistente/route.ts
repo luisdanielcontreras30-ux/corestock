@@ -4,6 +4,7 @@ import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 import { excedeLimiteIntentos } from "../../../../lib/rateLimit";
 import {
   generarRespuestaAsistente,
+  probarVisionGroq,
   ErrorGroq,
   hayGroq,
   ContextoNegocio,
@@ -157,6 +158,26 @@ async function construirContexto(
 // Groq sí se devuelve tal cual (dice cosas como "sin saldo" o
 // "modelo no encontrado") porque es justo el dato que hace falta, y va
 // detrás de sesión válida como el resto de la ruta.
+function clasificar(error: unknown): { motivo: string; detalle: string } {
+  const status = error instanceof ErrorGroq ? error.status : 0;
+  const detalle = error instanceof Error ? error.message : String(error);
+
+  // Un modelo retirado devuelve 404, o un 400 que menciona el modelo.
+  // Merece su propio motivo: es el fallo MÁS común con Groq, que renueva
+  // su catálogo seguido, y el único que se arregla sin tocar nada más
+  // que una variable de entorno. Meterlo en el saco de "falló, intenta
+  // de nuevo" manda a la persona a reintentar algo que nunca va a
+  // funcionar.
+  const pareceModelo =
+    status === 404 || (status === 400 && /model|decommission|not found/i.test(detalle));
+
+  if (pareceModelo) return { motivo: "modelo_invalido", detalle };
+  if (status === 401 || status === 403) return { motivo: "llave_invalida", detalle };
+  if (status === 402) return { motivo: "sin_saldo", detalle };
+  if (status === 429) return { motivo: "limite_proveedor", detalle };
+  return { motivo: "fallo", detalle };
+}
+
 export async function GET(request: Request) {
   const user = await verificarUsuarioApi(request);
 
@@ -164,21 +185,26 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: mensaje("no_autenticado", "es") }, { status: 401 });
   }
 
-  const configurada = hayGroq();
+  const modeloTexto = process.env.GROQ_MODEL || "llama-3.3-70b-versatile (por defecto)";
+  const modeloVision =
+    process.env.GROQ_MODELO_VISION || "meta-llama/llama-4-scout-17b-16e-instruct (por defecto)";
 
-  if (!configurada) {
+  if (!hayGroq()) {
     return NextResponse.json({
       configurada: false,
-      motivo: "sin_llave",
-      detalle: "No hay GROQ_API_KEY en el servidor.",
+      texto: { motivo: "sin_llave", modelo: modeloTexto },
+      vision: { motivo: "sin_llave", modelo: modeloVision },
     });
   }
 
-  // Con la llave puesta, se prueba de verdad: tener la variable no
-  // garantiza que sirva. Es una llamada mínima (dos palabras, 5 tokens)
-  // para que comprobar no cueste prácticamente nada.
-  try {
-    await generarRespuestaAsistente(
+  // Se prueban los DOS modelos, por separado y de verdad. Son modelos
+  // distintos y fallan por separado: probar solo el de texto es lo que
+  // dejaba "el chat funciona pero las fotos no" sin ninguna explicación.
+  //
+  // En paralelo porque son independientes, y con llamadas mínimas para
+  // que comprobar no consuma cuota apreciable.
+  const [texto, vision] = await Promise.all([
+    generarRespuestaAsistente(
       "Responde solo: ok",
       [],
       {
@@ -195,31 +221,16 @@ export async function GET(request: Request) {
         mejorCliente: null,
       },
       "es"
-    );
+    )
+      .then(() => ({ motivo: "ok", modelo: modeloTexto }))
+      .catch((error) => ({ ...clasificar(error), modelo: modeloTexto })),
 
-    return NextResponse.json({
-      configurada: true,
-      motivo: "ok",
-      modelo: process.env.GROQ_MODEL || "llama-3.3-70b-versatile (por defecto)",
-    });
-  } catch (error) {
-    const status = error instanceof ErrorGroq ? error.status : 0;
-    const detalle = error instanceof Error ? error.message : String(error);
+    probarVisionGroq()
+      .then(() => ({ motivo: "ok", modelo: modeloVision }))
+      .catch((error) => ({ ...clasificar(error), modelo: modeloVision })),
+  ]);
 
-    return NextResponse.json({
-      configurada: true,
-      motivo:
-        status === 401 || status === 403
-          ? "llave_invalida"
-          : status === 402
-            ? "sin_saldo"
-            : status === 429
-              ? "limite_proveedor"
-              : "fallo",
-      detalle,
-      modelo: process.env.GROQ_MODEL || "llama-3.3-70b-versatile (por defecto)",
-    });
-  }
+  return NextResponse.json({ configurada: true, texto, vision });
 }
 
 export async function POST(request: Request) {

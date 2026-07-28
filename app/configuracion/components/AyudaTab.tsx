@@ -10,12 +10,22 @@ import {
   NUMERO_SOPORTE_VISIBLE,
 } from "../../../lib/soporte";
 
-// Lo que responde el diagnóstico de /api/ia/asistente.
-interface EstadoIA {
-  configurada: boolean;
+// Lo que responde el diagnóstico de /api/ia/asistente. Texto e imágenes
+// van por separado a propósito: son modelos distintos y fallan por
+// separado. Reportarlos juntos fue lo que dejó "el chat funciona pero
+// las fotos no" sin ninguna explicación.
+interface ResultadoModelo {
   motivo: string;
   detalle?: string;
   modelo?: string;
+}
+
+interface EstadoIA {
+  configurada: boolean;
+  texto?: ResultadoModelo;
+  vision?: ResultadoModelo;
+  // Solo cuando el fallo es del navegador y ni se llegó a preguntar.
+  motivo?: string;
 }
 
 export default function AyudaTab() {
@@ -53,8 +63,6 @@ export default function AyudaTab() {
       setProbando(false);
     }
   }
-
-  const iaBien = estadoIA?.motivo === "ok";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -116,54 +124,16 @@ export default function AyudaTab() {
           <Sparkles size={15} /> {probando ? t("ayuda.ia_probando") : t("ayuda.ia_boton")}
         </button>
 
-        {estadoIA && (
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              alignItems: "flex-start",
-              marginTop: 16,
-              padding: "12px 14px",
-              borderRadius: 10,
-              background: iaBien ? "rgba(16, 185, 129, 0.1)" : "rgba(245, 158, 11, 0.12)",
-              border: `1px solid ${iaBien ? "rgba(16, 185, 129, 0.35)" : "rgba(245, 158, 11, 0.35)"}`,
-            }}
-          >
-            {iaBien ? (
-              <CheckCircle2 size={17} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
-            ) : (
-              <XCircle size={17} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
-            )}
+        {estadoIA?.motivo && (
+          <Fila etiqueta="" resultado={{ motivo: estadoIA.motivo }} t={t} />
+        )}
 
-            <div style={{ minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "var(--text-primary)" }}>
-                {t(`ayuda.ia_estado_${estadoIA.motivo}`)}
-              </p>
+        {estadoIA?.texto && (
+          <Fila etiqueta={t("ayuda.ia_parte_texto")} resultado={estadoIA.texto} t={t} />
+        )}
 
-              {/* El texto crudo del proveedor ("Insufficient credits",
-                  "model not found") no se traduce a propósito: es lo que
-                  hay que buscar o pegarle a soporte tal cual. */}
-              {estadoIA.detalle && !iaBien && (
-                <p
-                  style={{
-                    margin: "8px 0 0 0",
-                    fontSize: 11.5,
-                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-                    color: "var(--text-secondary)",
-                    overflowWrap: "anywhere",
-                  }}
-                >
-                  {estadoIA.detalle}
-                </p>
-              )}
-
-              {estadoIA.modelo && (
-                <p style={{ margin: "8px 0 0 0", fontSize: 11.5, color: "var(--text-secondary)" }}>
-                  {t("ayuda.ia_modelo")} {estadoIA.modelo}
-                </p>
-              )}
-            </div>
-          </div>
+        {estadoIA?.vision && (
+          <Fila etiqueta={t("ayuda.ia_parte_vision")} resultado={estadoIA.vision} t={t} />
         )}
       </div>
 
@@ -181,6 +151,76 @@ export default function AyudaTab() {
         >
           <PlayCircle size={15} /> {t("ayuda.tutoriales_boton")}
         </Link>
+      </div>
+    </div>
+  );
+}
+
+// Una parte del diagnóstico (texto o imágenes). Vive aparte porque se
+// dibuja igual dos veces y la diferencia es solo qué modelo se probó.
+function Fila({
+  etiqueta,
+  resultado,
+  t,
+}: {
+  etiqueta: string;
+  resultado: ResultadoModelo;
+  t: (clave: string) => string;
+}) {
+  const bien = resultado.motivo === "ok";
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 10,
+        alignItems: "flex-start",
+        marginTop: 12,
+        padding: "12px 14px",
+        borderRadius: 10,
+        background: bien ? "rgba(16, 185, 129, 0.1)" : "rgba(245, 158, 11, 0.12)",
+        border: `1px solid ${bien ? "rgba(16, 185, 129, 0.35)" : "rgba(245, 158, 11, 0.35)"}`,
+      }}
+    >
+      {bien ? (
+        <CheckCircle2 size={17} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
+      ) : (
+        <XCircle size={17} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+      )}
+
+      <div style={{ minWidth: 0 }}>
+        {etiqueta && (
+          <p style={{ margin: "0 0 3px 0", fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>
+            {etiqueta}
+          </p>
+        )}
+
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "var(--text-primary)" }}>
+          {t(`ayuda.ia_estado_${resultado.motivo}`)}
+        </p>
+
+        {/* El texto crudo del proveedor ("model not found", "rate limit
+            exceeded") no se traduce a propósito: es lo que hay que
+            buscar en la documentación o pegarle a soporte tal cual. */}
+        {resultado.detalle && !bien && (
+          <p
+            style={{
+              margin: "8px 0 0 0",
+              fontSize: 11.5,
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+              color: "var(--text-secondary)",
+              overflowWrap: "anywhere",
+            }}
+          >
+            {resultado.detalle}
+          </p>
+        )}
+
+        {resultado.modelo && (
+          <p style={{ margin: "8px 0 0 0", fontSize: 11.5, color: "var(--text-secondary)" }}>
+            {t("ayuda.ia_modelo")} {resultado.modelo}
+          </p>
+        )}
       </div>
     </div>
   );
