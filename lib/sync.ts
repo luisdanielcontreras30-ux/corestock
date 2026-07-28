@@ -66,10 +66,13 @@ export async function sincronizarPendientes(
         venta.uuid
       );
 
-      await db.ventas_pendientes.update(venta.uuid, {
-        estado: "sincronizado",
-        error: null,
-      });
+      // Se borra la fila local en vez de marcarla "sincronizado": una
+      // vez que Supabase la aceptó, esa copia en IndexedDB ya no la lee
+      // nadie (ni los contadores, que solo miran "pendiente"/"error",
+      // ni el panel de errores). Dejarlas acumuladas hacía crecer la
+      // base local sin límite en un dispositivo que se usa a diario, y
+      // cada barrido de la cola las recorría todas para descartarlas.
+      await db.ventas_pendientes.delete(venta.uuid);
       resultado.ventasSincronizadas++;
     } catch (error) {
       // Si solo se volvió a caer la red, la venta NO es un error: sigue
@@ -124,10 +127,9 @@ export async function sincronizarPendientes(
         mov.uuid
       );
 
-      await db.caja_pendientes.update(mov.uuid, {
-        estado: "sincronizado",
-        error: null,
-      });
+      // Igual que con las ventas: aceptada por Supabase, la copia local
+      // ya no sirve para nada.
+      await db.caja_pendientes.delete(mov.uuid);
       resultado.cajaSincronizada++;
     } catch (error) {
       // Igual que con las ventas: una caída de red deja el movimiento
@@ -147,6 +149,26 @@ export async function sincronizarPendientes(
   }
 
   return resultado;
+}
+
+// Barre las filas que quedaron marcadas "sincronizado" antes de que
+// sincronizarPendientes() pasara a borrarlas al terminar. Sin esto, un
+// dispositivo que ya venía usando la app se queda con esa acumulación
+// para siempre: nadie las lee, pero cada consulta de la cola las
+// recorre igual. Se llama una vez al arrancar (ver SyncProvider).
+export async function limpiarSincronizados(userId: string): Promise<void> {
+  await Promise.all([
+    db.ventas_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((v) => v.estado === "sincronizado")
+      .delete(),
+    db.caja_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((c) => c.estado === "sincronizado")
+      .delete(),
+  ]);
 }
 
 export async function contarPendientes(userId: string): Promise<number> {

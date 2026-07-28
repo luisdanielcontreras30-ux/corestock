@@ -60,6 +60,8 @@ function ComprasContenido() {
         return t("compras.msg_costo_invalido");
       case "STOCK_CAMBIO":
         return t("comun.msg_stock_cambio");
+      case "YA_ELIMINADA":
+        return t("comun.msg_ya_eliminado");
       default:
         return null;
     }

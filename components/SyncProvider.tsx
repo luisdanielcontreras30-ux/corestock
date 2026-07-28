@@ -10,7 +10,12 @@ import React, {
   ReactNode,
 } from "react";
 import { useAuth } from "./AuthProvider";
-import { sincronizarPendientes, contarPendientes, contarConError } from "../lib/sync";
+import {
+  sincronizarPendientes,
+  contarPendientes,
+  contarConError,
+  limpiarSincronizados,
+} from "../lib/sync";
 
 export type EstadoSync = "sin_conexion" | "sincronizando" | "conectado" | "todo_sincronizado";
 
@@ -50,9 +55,22 @@ export default function SyncProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const [p, e] = await Promise.all([contarPendientes(user.id), contarConError(user.id)]);
-    setPendientes(p);
-    setConError(e);
+    // Leer IndexedDB puede fallar por completo: Safari en navegación
+    // privada, un webview que bloquea el almacenamiento (abrir la app
+    // desde un enlace de WhatsApp o Facebook), o la cuota llena. Sin
+    // este try el rechazo se quedaba sin dueño — ni el efecto de abajo
+    // ni sincronizarAhora() (que llama aquí desde su finally, y a su
+    // vez se dispara desde el evento "online" y desde el setInterval)
+    // atrapan nada. Si no se puede leer la cola, los contadores se
+    // quedan como están y el resto de la app sigue funcionando en
+    // línea, que es el caso normal.
+    try {
+      const [p, e] = await Promise.all([contarPendientes(user.id), contarConError(user.id)]);
+      setPendientes(p);
+      setConError(e);
+    } catch (error) {
+      console.error("No se pudo leer la cola offline:", error);
+    }
   }, [user]);
 
   const sincronizarAhora = useCallback(async () => {
@@ -111,6 +129,16 @@ export default function SyncProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refrescarContadores();
   }, [refrescarContadores]);
+
+  // Limpieza de arranque: borra las filas ya sincronizadas que dejó la
+  // versión anterior del motor de sincronización. Es de una sola vez
+  // por sesión y no bloquea nada — si falla, se ignora.
+  useEffect(() => {
+    if (!user) return;
+    limpiarSincronizados(user.id).catch((error) => {
+      console.error("No se pudo limpiar la cola offline ya sincronizada:", error);
+    });
+  }, [user]);
 
   // Red de seguridad: algunos navegadores (sobre todo iOS en segundo
   // plano) no disparan el evento "online" de forma confiable — se

@@ -185,13 +185,25 @@ export async function eliminarCompra(id: number) {
   }
 
   try {
-    const { error: errorEliminar } = await supabase
+    // .select("id") no es cosmético: sin él, un DELETE que no borra
+    // ninguna fila (porque otro dispositivo ya la borró, o porque RLS
+    // lo rechaza en silencio) devuelve error null y este código lo da
+    // por bueno — con el stock YA revertido más arriba. La compra
+    // seguiría en la lista, y cada intento de borrarla volvería a
+    // quitar el mismo stock. Al exigir la fila borrada, el catch de
+    // abajo deshace la reversión y la persona ve un error de verdad.
+    const { data: eliminada, error: errorEliminar } = await supabase
       .from("compras")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .select("id");
 
     if (errorEliminar) {
       throw errorEliminar;
+    }
+
+    if (!eliminada || eliminada.length === 0) {
+      throw new Error("YA_ELIMINADA");
     }
   } catch (error) {
     // Si el borrado falla justo después de haber revertido el stock, hay

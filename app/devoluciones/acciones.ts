@@ -127,13 +127,22 @@ export async function eliminarDevolucion(devolucion: Devolucion) {
   }
 
   try {
-    const { error } = await supabase
+    // Mismo motivo que en Compras: sin .select("id"), un DELETE que no
+    // borra nada (otro dispositivo se adelantó, o RLS lo rechaza sin
+    // error) se daría por bueno con el stock ya revertido, y cada
+    // reintento volvería a revertirlo.
+    const { data: eliminada, error } = await supabase
       .from("devoluciones")
       .delete()
-      .eq("id", devolucion.id);
+      .eq("id", devolucion.id)
+      .select("id");
 
     if (error) {
       throw error;
+    }
+
+    if (!eliminada || eliminada.length === 0) {
+      throw new Error("YA_ELIMINADA");
     }
   } catch (error) {
     // Si el borrado falla justo después de haber revertido el stock, hay

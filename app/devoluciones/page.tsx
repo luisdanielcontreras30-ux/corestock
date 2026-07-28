@@ -50,6 +50,8 @@ export default function DevolucionesPage() {
         return t("devoluciones.msg_no_repuso_stock");
       case "STOCK_CAMBIO":
         return t("comun.msg_stock_cambio");
+      case "YA_ELIMINADA":
+        return t("comun.msg_ya_eliminado");
       default:
         return null;
     }

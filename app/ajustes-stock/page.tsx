@@ -48,6 +48,8 @@ export default function AjustesStockPage() {
         return t("ajustes_stock.msg_sin_stock");
       case "STOCK_CAMBIO":
         return t("comun.msg_stock_cambio");
+      case "YA_ELIMINADA":
+        return t("comun.msg_ya_eliminado");
       default:
         return null;
     }
