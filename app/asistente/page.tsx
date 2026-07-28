@@ -190,119 +190,143 @@ function AsistenteContenido() {
     return `${respuesta}\n\n${t("asistente.tambien_te_sirve")} ${nombres.join(" · ")}`;
   }
 
-  // Responde de inmediato, sin la pausa de "pensando": estos casos no
-  // consultan la base de datos, así que fingir un cálculo se sentiría
-  // artificial.
-  function responderDirecto(textoUsuario: string, respuesta: string) {
-    // El id se deriva del último mensaje en vez de Date.now(): así la
-    // función es pura (nada de relojes) y los ids siguen siendo únicos
-    // y crecientes aunque se mezclen con los que genera enviarPregunta.
+  // El id se deriva del último mensaje en vez de Date.now(): así la
+  // función es pura (nada de relojes) y los ids siguen siendo únicos y
+  // crecientes aunque se mezclen con los que genera enviarPregunta.
+  function agregarMensaje(autor: "usuario" | "asistente", texto: string) {
     setMensajes((prev) => {
       const id = (prev.length > 0 ? prev[prev.length - 1].id : 0) + 1;
-      return [
-        ...prev,
-        { id, autor: "usuario", texto: textoUsuario },
-        { id: id + 1, autor: "asistente", texto: respuesta },
-      ];
+      return [...prev, { id, autor, texto }];
     });
-    setEntrada("");
   }
 
   async function alEnviarLibre() {
     const texto = entrada.trim();
     if (!texto || pensando) return;
 
-    const { detectarIntencion, TODOS_LOS_TEMAS } = await cargarConocimiento();
-    const resultado = detectarIntencion(texto);
+    // El mensaje se muestra y la caja se limpia ANTES de nada más: la
+    // base de conocimiento se descarga bajo demanda y en una conexión
+    // lenta eso tarda, así que sin esto la persona escribía, pulsaba
+    // enviar y no pasaba nada visible durante segundos. Además,
+    // "pensando" bloquea el segundo envío, que antes sí pasaba porque
+    // durante la descarga la guarda de arriba no se activaba.
+    agregarMensaje("usuario", texto);
+    setEntrada("");
+    setPensando(true);
 
-    if (!resultado) {
-      responderDirecto(texto, t("asistente.no_entendi"));
-      return;
-    }
-
-    if (resultado.tipo === "saludo") {
-      responderDirecto(texto, t("asistente.saludo_respuesta"));
-      return;
-    }
-
-    if (resultado.tipo === "despedida") {
-      responderDirecto(texto, t("asistente.despedida_respuesta"));
-      return;
-    }
-
-    if (resultado.tipo === "ayuda") {
-      responderDirecto(texto, t("asistente.ayuda_respuesta"));
-      return;
-    }
-
-    if (resultado.tipo === "identidad") {
-      responderDirecto(texto, t("asistente.identidad_respuesta"));
-      return;
-    }
-
-    if (resultado.tipo === "estado_animo") {
-      responderDirecto(texto, t("asistente.animo_respuesta"));
-      return;
-    }
-
-    // "Cuéntame más" solo significa algo si hay un tema anterior. Si no
-    // lo hay, se responde con la ayuda en vez de con un "no entendí"
-    // que dejaría a la persona sin saber qué hacer.
-    if (resultado.tipo === "seguimiento") {
-      const anterior = ultimoTema ? buscarTema(TODOS_LOS_TEMAS, ultimoTema) : null;
-      if (!anterior) {
-        responderDirecto(texto, t("asistente.ayuda_respuesta"));
+    try {
+      let modulo;
+      try {
+        modulo = await cargarConocimiento();
+      } catch (error) {
+        // Un chunk que no carga es un caso real, no teórico: tras cada
+        // despliegue las rutas viejas dejan de existir, y esta app se
+        // queda abierta como PWA durante días. Sin este aviso la
+        // persona pulsaba enviar y no ocurría absolutamente nada.
+        console.error(error);
+        agregarMensaje("asistente", t("asistente.msg_error_carga"));
         return;
       }
 
-      // Antes esto reenviaba la MISMA respuesta palabra por palabra:
-      // pedir "cuéntame más" y recibir el párrafo idéntico se siente
-      // roto. Ahora se ofrecen los caminos por los que sí hay más que
-      // contar, que es lo que la persona está pidiendo.
-      const nombres = nombresRelacionados(TODOS_LOS_TEMAS, anterior);
-      const titulo = anterior.titulo?.[idioma] ?? "";
+      const { detectarIntencion, TODOS_LOS_TEMAS } = modulo;
+      const resultado = detectarIntencion(texto);
 
-      responderDirecto(
-        texto,
-        nombres.length > 0
-          ? `${t("asistente.seguimiento_respuesta").replace("{tema}", titulo)}\n\n${nombres
-              .map((n) => `• ${n}`)
-              .join("\n")}`
-          : t("asistente.seguimiento_sin_mas").replace("{tema}", titulo)
-      );
-      return;
-    }
-
-    if (resultado.tipo === "sugerencia") {
-      const nombres = resultado.temaIds
-        .map((id) => buscarTema(TODOS_LOS_TEMAS, id)?.titulo?.[idioma])
-        .filter((n): n is string => !!n);
-
-      responderDirecto(
-        texto,
-        nombres.length > 0
-          ? `${t("asistente.quizas_te_referias")}\n\n${nombres.map((n) => `• ${n}`).join("\n")}`
-          : t("asistente.no_entendi")
-      );
-      return;
-    }
-
-    if (resultado.tipo === "conocimiento") {
-      const tema = buscarTema(TODOS_LOS_TEMAS, resultado.temaId);
-      if (!tema) {
-        responderDirecto(texto, t("asistente.no_entendi"));
+      if (!resultado) {
+        agregarMensaje("asistente", t("asistente.no_entendi"));
         return;
       }
-      setUltimoTema(tema.id);
-      responderDirecto(texto, conRelacionados(TODOS_LOS_TEMAS, tema.respuesta[idioma], tema));
-      return;
-    }
 
-    // Una pregunta sobre los datos cambia de qué se está hablando: si no
-    // se limpiara, un "cuéntame más" posterior seguiría respondiendo
-    // sobre el último tema teórico, que ya no viene a cuento.
-    setUltimoTema(null);
-    await enviarPregunta(texto, FUNCIONES_DATOS[resultado.intencion]);
+      if (resultado.tipo === "saludo") {
+        agregarMensaje("asistente", t("asistente.saludo_respuesta"));
+        return;
+      }
+
+      if (resultado.tipo === "despedida") {
+        agregarMensaje("asistente", t("asistente.despedida_respuesta"));
+        return;
+      }
+
+      if (resultado.tipo === "ayuda") {
+        agregarMensaje("asistente", t("asistente.ayuda_respuesta"));
+        return;
+      }
+
+      if (resultado.tipo === "identidad") {
+        agregarMensaje("asistente", t("asistente.identidad_respuesta"));
+        return;
+      }
+
+      if (resultado.tipo === "estado_animo") {
+        agregarMensaje("asistente", t("asistente.animo_respuesta"));
+        return;
+      }
+
+      // "Cuéntame más" solo significa algo si hay un tema anterior. Si
+      // no lo hay, se responde con la ayuda en vez de con un "no
+      // entendí" que dejaría a la persona sin saber qué hacer.
+      if (resultado.tipo === "seguimiento") {
+        const anterior = ultimoTema ? buscarTema(TODOS_LOS_TEMAS, ultimoTema) : null;
+        if (!anterior) {
+          agregarMensaje("asistente", t("asistente.ayuda_respuesta"));
+          return;
+        }
+
+        // Reenviar la MISMA respuesta palabra por palabra se sentía
+        // roto: se ofrecen los caminos por los que sí hay más que
+        // contar, que es lo que la persona está pidiendo.
+        const nombres = nombresRelacionados(TODOS_LOS_TEMAS, anterior);
+        const titulo = anterior.titulo?.[idioma] ?? "";
+
+        agregarMensaje(
+          "asistente",
+          nombres.length > 0
+            ? `${t("asistente.seguimiento_respuesta").replace("{tema}", titulo)}\n\n${nombres
+                .map((n) => `• ${n}`)
+                .join("\n")}`
+            : t("asistente.seguimiento_sin_mas").replace("{tema}", titulo)
+        );
+        return;
+      }
+
+      if (resultado.tipo === "sugerencia") {
+        const nombres = resultado.temaIds
+          .map((id) => buscarTema(TODOS_LOS_TEMAS, id)?.titulo?.[idioma])
+          .filter((n): n is string => !!n);
+
+        agregarMensaje(
+          "asistente",
+          nombres.length > 0
+            ? `${t("asistente.quizas_te_referias")}\n\n${nombres.map((n) => `• ${n}`).join("\n")}`
+            : t("asistente.no_entendi")
+        );
+        return;
+      }
+
+      if (resultado.tipo === "conocimiento") {
+        const tema = buscarTema(TODOS_LOS_TEMAS, resultado.temaId);
+        if (!tema) {
+          agregarMensaje("asistente", t("asistente.no_entendi"));
+          return;
+        }
+        setUltimoTema(tema.id);
+        agregarMensaje("asistente", conRelacionados(TODOS_LOS_TEMAS, tema.respuesta[idioma], tema));
+        return;
+      }
+
+      // Una pregunta sobre los datos cambia de qué se está hablando: si
+      // no se limpiara, un "cuéntame más" posterior seguiría
+      // respondiendo sobre el último tema teórico.
+      setUltimoTema(null);
+
+      try {
+        agregarMensaje("asistente", await FUNCIONES_DATOS[resultado.intencion](idioma));
+      } catch (error) {
+        console.error(error);
+        agregarMensaje("asistente", t("asistente.msg_error"));
+      }
+    } finally {
+      setPensando(false);
+    }
   }
 
   return (
