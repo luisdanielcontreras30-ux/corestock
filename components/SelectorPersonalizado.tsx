@@ -170,25 +170,50 @@ export default function SelectorPersonalizado({
 
   useEffect(() => {
     if (!abierto) return;
-    // Con el panel en un portal, su posición se calcula una sola vez al
-    // abrir (ver abrir()) — si la PÁGINA se desplaza mientras está
-    // abierto, cerrarlo es más simple y seguro que perseguir al botón
-    // con un recálculo continuo. Pero "scroll" no burbujea — un
-    // listener en window con capture:true también recibe el scroll
-    // interno de la propia lista de opciones (.selector-personalizado-
-    // lista, que se desplaza con la rueda del mouse para ver más
-    // opciones), así que sin este chequeo, cualquier scroll DENTRO del
-    // panel también lo cerraba de inmediato en vez de dejar navegar la
-    // lista.
-    function cerrarPorScrollOResize(e: Event) {
+
+    // Antes esto CERRABA el panel ante cualquier scroll o resize, y en
+    // un celular eso lo volvía inutilizable: el panel se abría y se
+    // cerraba solo, sin que la persona tocara nada.
+    //
+    // Pasaban dos cosas, las dos fuera de su control:
+    //
+    //  • Con más de 8 opciones el panel enfoca su buscador al abrir.
+    //    Eso levanta el teclado del sistema, el teclado cambia el alto
+    //    de la ventana, y ese cambio dispara "resize". El selector de
+    //    producto de Cotizaciones cae justo ahí en cuanto el negocio
+    //    tiene más de 8 productos.
+    //  • Al tocar cerca del borde, el navegador móvil esconde o muestra
+    //    su barra de direcciones. Eso mueve la página y dispara
+    //    "scroll", aunque el dedo no haya arrastrado nada.
+    //
+    // Ahora en vez de cerrar se RECALCULA la posición, que es lo que la
+    // persona espera: el panel sigue al botón. Solo se cierra si el
+    // botón se fue de la pantalla, donde el panel ya no tiene a qué
+    // quedarse pegado.
+    //
+    // "scroll" no burbujea, así que el listener va con capture:true —
+    // pero eso también captura el scroll INTERNO de la lista de
+    // opciones, que no debe mover nada.
+    function alMoverse(e: Event) {
       if (e.type === "scroll" && panelRef.current?.contains(e.target as Node)) return;
-      setAbierto(false);
+
+      const rect = contenedorRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const fueraDeVista = rect.bottom < 0 || rect.top > window.innerHeight;
+      if (fueraDeVista) {
+        setAbierto(false);
+        return;
+      }
+
+      setPosicion(calcularPosicion(rect));
     }
-    window.addEventListener("scroll", cerrarPorScrollOResize, true);
-    window.addEventListener("resize", cerrarPorScrollOResize);
+
+    window.addEventListener("scroll", alMoverse, true);
+    window.addEventListener("resize", alMoverse);
     return () => {
-      window.removeEventListener("scroll", cerrarPorScrollOResize, true);
-      window.removeEventListener("resize", cerrarPorScrollOResize);
+      window.removeEventListener("scroll", alMoverse, true);
+      window.removeEventListener("resize", alMoverse);
     };
   }, [abierto]);
 
@@ -205,10 +230,42 @@ export default function SelectorPersonalizado({
   }, [abierto, resaltado]);
 
   useEffect(() => {
-    if (abierto && mostrarBusqueda) {
-      busquedaRef.current?.focus();
-    }
+    if (!abierto || !mostrarBusqueda) return;
+
+    // En una computadora, enfocar el buscador al abrir es lo correcto:
+    // se abre el selector y ya se puede escribir.
+    //
+    // En un celular es justo lo contrario. Enfocar levanta el teclado
+    // del sistema, el teclado tapa media pantalla —normalmente incluida
+    // la lista que se acaba de abrir— y encima cambia el alto de la
+    // ventana, que es lo que hacía que el panel se cerrara solo apenas
+    // se abría. Con el dedo, además, deslizar una lista de opciones es
+    // más rápido que escribir.
+    //
+    // "pointer: coarse" es dedo (celular, tablet); "fine" es ratón o
+    // lápiz. Es la pregunta correcta: no importa el tamaño de la
+    // pantalla, importa con qué se está apuntando.
+    const conDedo =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches;
+
+    if (conDedo) return;
+
+    busquedaRef.current?.focus();
   }, [abierto, mostrarBusqueda]);
+
+  // Dónde cae el panel respecto al botón. Vive fuera de abrir() porque
+  // también se usa al recolocarlo cuando la página se mueve.
+  function calcularPosicion(rect: DOMRect): PosicionPanel {
+    const espacioAbajo = window.innerHeight - rect.bottom;
+    const espacioArriba = rect.top;
+    const abrirHaciaArriba = espacioAbajo < ALTURA_MAXIMA_PANEL && espacioArriba > espacioAbajo;
+
+    return abrirHaciaArriba
+      ? { left: rect.left, width: rect.width, bottom: window.innerHeight - rect.top + 6 }
+      : { left: rect.left, width: rect.width, top: rect.bottom + 6 };
+  }
 
   function abrir() {
     setBusqueda("");
@@ -230,15 +287,7 @@ export default function SelectorPersonalizado({
       // position:fixed con coordenadas calculadas aquí evita el
       // problema por completo: el panel deja de ser descendiente de
       // ninguna tarjeta.
-      const espacioAbajo = window.innerHeight - rect.bottom;
-      const espacioArriba = rect.top;
-      const abrirHaciaArriba = espacioAbajo < ALTURA_MAXIMA_PANEL && espacioArriba > espacioAbajo;
-
-      setPosicion(
-        abrirHaciaArriba
-          ? { left: rect.left, width: rect.width, bottom: window.innerHeight - rect.top + 6 }
-          : { left: rect.left, width: rect.width, top: rect.bottom + 6 }
-      );
+      setPosicion(calcularPosicion(rect));
     }
 
     setAbierto(true);

@@ -39,6 +39,18 @@ Solo es necesaria para el botón "Analizar foto con IA" en Productos. Sin ella, 
 
 Recuerda ejecutar `supabase_productos_descripcion.sql` en el SQL Editor de Supabase — sin esa migración la columna `descripcion` no existe y guardar el producto falla después de analizarlo.
 
+### Asistente con IA (OpenRouter, opcional)
+
+Hace que el Asistente responda como una IA de verdad —conversación abierta, cualquier tema— en vez de solo con su motor de reglas.
+
+- `OPENROUTER_API_KEY` — API key de OpenRouter (https://openrouter.ai/keys). **Nunca** la expongas con prefijo `NEXT_PUBLIC_`: solo la usa el servidor, en `app/api/ia/asistente`. Si llegara al navegador, cualquiera que abra la app podría leerla y gastar el saldo.
+- `OPENROUTER_MODEL` — opcional, modelo a usar (por defecto `anthropic/claude-3.5-haiku`). Lista y precios en https://openrouter.ai/models.
+- `NEXT_PUBLIC_SITE_URL` — opcional, solo para que OpenRouter atribuya el tráfico en su panel.
+
+**Sin esta variable el Asistente no se rompe.** Cae a su motor de reglas: 65 temas de negocio, finanzas y libros en 7 idiomas, calculadora en lenguaje natural y consultas a los datos reales del negocio. Lo mismo pasa si se acaba el saldo o si OpenRouter falla — el respaldo entra solo, sin mostrar ningún error.
+
+Cuando la IA sí está activa, la ruta le pasa como contexto un resumen de los números reales del negocio (ventas del día/semana/mes, valor del inventario, agotados, producto y cliente top), leído con el JWT de quien pregunta, así que RLS decide qué puede ver cada quien. Hay un tope de 60 preguntas por hora y por usuario, para que un bucle accidental no vacíe el saldo.
+
 ## Desarrollo
 
 ```bash

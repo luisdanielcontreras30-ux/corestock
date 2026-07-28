@@ -22,6 +22,7 @@ import {
 } from "./acciones";
 import type { IntencionDatos } from "./deteccion";
 import type { TemaConocimiento } from "./conocimiento";
+import { preguntarAIa, MensajeIA } from "./ia";
 
 // La base de conocimiento son ~350 KB de texto (48 temas × 7 idiomas) y
 // vivía en el bundle inicial de esta pantalla: todo el mundo la
@@ -243,6 +244,29 @@ function AsistenteContenido() {
     setPensando(true);
 
     try {
+      // Primero la IA de verdad. Recibe los últimos mensajes para que
+      // "cuéntame más" signifique algo, y del lado del servidor se le
+      // suman los números reales del negocio.
+      //
+      // preguntarAIa() nunca lanza: devuelve null cuando no hay llave,
+      // se acabó el saldo, falló la red o el modelo no respondió. Ese
+      // null cae al motor de reglas de abajo, que es gratis y funciona
+      // sin conexión al servicio. Así el Asistente nunca se queda mudo
+      // por un problema de la IA.
+      const historialIA: MensajeIA[] = mensajes
+        .filter((m) => !m.claveTexto)
+        .map((m) => ({ rol: m.autor, texto: m.texto }));
+
+      const respuestaIA = await preguntarAIa(texto, historialIA, idioma);
+
+      if (respuestaIA) {
+        // La IA lleva su propio hilo en el historial, así que el tema
+        // recordado del motor de reglas dejaría de tener sentido.
+        setUltimoTema(null);
+        agregarMensaje("asistente", respuestaIA);
+        return;
+      }
+
       let modulo;
       try {
         modulo = await cargarConocimiento();
