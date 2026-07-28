@@ -27,8 +27,18 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
     `🧾 *${nombreNegocio} — ${t("cotizaciones.hoja_subtitulo")} ${folio}*\n\n` +
     `${t("factura.facturado_a")}: ${nombreCliente}\n` +
     `${fecha}\n\n` +
-    `${cotizacion.producto} x${cotizacion.cantidad}\n` +
-    `${t("tabla.total")}: ${formatoMoneda(Number(cotizacion.total))}\n\n` +
+    // Todos los conceptos, no solo el resumen: el mensaje de WhatsApp
+    // es lo que de verdad lee el cliente, y mandarle una línea de una
+    // cotización de tres es lo que provoca el reclamo al cobrar.
+    cotizacion.items
+      .map(
+        (item) =>
+          `• ${item.descripcion} x${item.cantidad} — ${formatoMoneda(
+            Number(item.cantidad) * Number(item.precio_unitario)
+          )}`
+      )
+      .join("\n") +
+    `\n\n${t("tabla.total")}: ${formatoMoneda(Number(cotizacion.total))}\n\n` +
     (cotizacion.nota ? `${cotizacion.nota}\n\n` : "") +
     `${t("factura.gracias")}`;
 
@@ -142,12 +152,17 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
             </thead>
 
             <tbody>
-              <tr>
-                <td>{cotizacion.producto}</td>
-                <td>{cotizacion.cantidad}</td>
-                <td>{formatoMoneda(Number(cotizacion.precio_unitario))}</td>
-                <td>{formatoMoneda(Number(cotizacion.total))}</td>
-              </tr>
+              {/* Una fila por concepto. Antes se imprimía solo el resumen
+                  de la cotización, así que una hoja con tres conceptos
+                  llegaba al cliente mostrando uno y cobrando los tres. */}
+              {cotizacion.items.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.descripcion}</td>
+                  <td>{item.cantidad}</td>
+                  <td>{formatoMoneda(Number(item.precio_unitario))}</td>
+                  <td>{formatoMoneda(Number(item.cantidad) * Number(item.precio_unitario))}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
 

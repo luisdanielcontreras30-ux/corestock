@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Check, X, Trash2, ShoppingCart, Share2 } from "lucide-react";
+import { FileText, Check, X, Trash2, ShoppingCart, Share2, AlertTriangle } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
@@ -13,7 +13,8 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import CotizacionCompartirModal from "./components/CotizacionCompartirModal";
-import { Producto, Cliente, Cotizacion, EstadoCotizacion } from "./types";
+import ConstructorConceptos, { ESTILO_TIPO } from "./components/ConstructorConceptos";
+import { Producto, Cliente, Cotizacion, EstadoCotizacion, ItemNuevo } from "./types";
 import {
   cargarDatos,
   crearCotizacion,
@@ -30,6 +31,13 @@ const COLOR_ESTADO: Record<EstadoCotizacion, string> = {
   aceptada: "#10b981",
   rechazada: "#ef4444",
 };
+
+// El folio es lo que convierte una fila de base de datos en un
+// documento: le da a la cotización algo que el cliente puede citar por
+// teléfono ("la COT-000042").
+function folioDe(id: number): string {
+  return `COT-${String(id).padStart(6, "0")}`;
+}
 
 export default function CotizacionesPage() {
   return (
@@ -51,12 +59,11 @@ function CotizacionesContenido() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [cotizaciones, setCotizaciones] = useState<Cotizacion[]>([]);
+  const [soportaItems, setSoportaItems] = useState(true);
 
-  const [productoId, setProductoId] = useState("");
   const [clienteId, setClienteId] = useState("");
   const [clienteNombre, setClienteNombre] = useState("");
-  const [cantidad, setCantidad] = useState(1);
-  const [precioUnitario, setPrecioUnitario] = useState("");
+  const [items, setItems] = useState<ItemNuevo[]>([]);
   const [nota, setNota] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [convirtiendoId, setConvirtiendoId] = useState<number | null>(null);
@@ -75,14 +82,22 @@ function CotizacionesContenido() {
         return t("cotizaciones.msg_cantidad_mayor");
       case "PRECIO_INVALIDO":
         return t("cotizaciones.msg_precio_invalido");
+      case "DESCRIPCION_VACIA":
+        return t("cotizaciones.msg_descripcion_vacia");
+      case "SIN_CONCEPTOS":
+        return t("cotizaciones.msg_sin_conceptos");
+      case "FALTA_MIGRACION_ITEMS":
+        return t("cotizaciones.msg_falta_migracion");
       case "NO_ACEPTADA":
         return t("cotizaciones.msg_no_aceptada");
       case "YA_CONVERTIDA":
         return t("cotizaciones.msg_ya_convertida");
+      case "YA_ELIMINADA":
+        return t("comun.msg_ya_eliminado");
       case "PRODUCTO_NO_EXISTE":
         return t("cotizaciones.msg_producto_no_existe");
       case "STOCK_INSUFICIENTE_CONVERSION":
-        return t("cotizaciones.msg_stock_insuficiente_conversion");
+        return t("cotizaciones.msg_stock_insuficiente");
       case "STOCK_CAMBIO":
         return t("comun.msg_stock_cambio");
       default:
@@ -97,6 +112,7 @@ function CotizacionesContenido() {
       setProductos(datos.productos);
       setClientes(datos.clientes);
       setCotizaciones(datos.cotizaciones);
+      setSoportaItems(datos.soportaItems);
     } catch (error) {
       console.error(error);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
@@ -116,9 +132,7 @@ function CotizacionesContenido() {
     obtenerDatos();
   }, [cargandoAuth, user]);
 
-  const producto = productos.find((p) => p.id === Number(productoId));
-  const precioNum = Number(precioUnitario) || 0;
-  const total = precioNum * cantidad;
+  const totalNuevo = items.reduce((suma, i) => suma + i.cantidad * i.precio_unitario, 0);
 
   function alCambiarClienteNombre(nombre: string) {
     setClienteNombre(nombre);
@@ -130,60 +144,28 @@ function CotizacionesContenido() {
     setClienteId(encontrado ? String(encontrado.id) : "");
   }
 
-  function alElegirProducto(id: string) {
-    setProductoId(id);
-
-    const p = productos.find((x) => x.id === Number(id));
-    if (p) {
-      setPrecioUnitario(String(p.precio_venta));
-    }
-  }
-
   function limpiar() {
-    setProductoId("");
     setClienteId("");
     setClienteNombre("");
-    setCantidad(1);
-    setPrecioUnitario("");
+    setItems([]);
     setNota("");
   }
 
   async function guardar() {
     if (guardando) return;
 
-    if (!producto) {
-      mostrarToast(t("cotizaciones.msg_selecciona_producto"), "error");
-      return;
-    }
-
-    if (!Number.isFinite(cantidad) || cantidad <= 0) {
-      mostrarToast(t("cotizaciones.msg_cantidad_mayor"), "error");
-      return;
-    }
-
-    if (!Number.isInteger(cantidad)) {
-      mostrarToast(t("comun.msg_cantidad_entera"), "error");
-      return;
-    }
-
-    if (!Number.isFinite(precioNum) || precioNum < 0) {
-      mostrarToast(t("cotizaciones.msg_precio_invalido"), "error");
+    if (items.length === 0) {
+      mostrarToast(t("cotizaciones.msg_sin_conceptos"), "error");
       return;
     }
 
     try {
       setGuardando(true);
-      await crearCotizacion(
-        producto,
-        clienteId ? Number(clienteId) : null,
-        clienteNombre,
-        cantidad,
-        precioNum,
-        nota
-      );
+      await crearCotizacion(clienteId ? Number(clienteId) : null, clienteNombre, items, nota);
 
       limpiar();
       await obtenerDatos();
+      mostrarToast(t("cotizaciones.msg_creada"), "exito");
     } catch (error) {
       console.error(error);
       const detalle = mensajeCotizacion(error) || mensajeErrorSeguro(error);
@@ -201,7 +183,8 @@ function CotizacionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("cotizaciones.msg_error_estado"), "error");
+      const detalle = mensajeCotizacion(error) || mensajeErrorSeguro(error);
+      mostrarToast(detalle || t("cotizaciones.msg_error_estado"), "error");
     }
   }
 
@@ -213,7 +196,8 @@ function CotizacionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("cotizaciones.msg_error_eliminar"), "error");
+      const detalle = mensajeCotizacion(error) || mensajeErrorSeguro(error);
+      mostrarToast(detalle || t("cotizaciones.msg_error_eliminar"), "error");
     }
   }
 
@@ -243,7 +227,15 @@ function CotizacionesContenido() {
         if (!termino) return true;
 
         const nombreCliente = (c.cliente_nombre ?? t("ventas.cliente_general")).toLowerCase();
-        return nombreCliente.includes(termino) || c.producto.toLowerCase().includes(termino);
+
+        return (
+          nombreCliente.includes(termino) ||
+          folioDe(c.id).toLowerCase().includes(termino) ||
+          // Se busca en TODOS los conceptos, no solo en el resumen: con
+          // varias líneas, buscar "cera" tiene que encontrar la
+          // cotización aunque el resumen diga "detallado de interior".
+          c.items.some((i) => i.descripcion.toLowerCase().includes(termino))
+        );
       }),
     [cotizaciones, filtroEstado, busqueda, t]
   );
@@ -265,24 +257,29 @@ function CotizacionesContenido() {
         subtitulo={t("cotizaciones.subtitulo")}
       />
 
-      <div className="card">
-        <h2 style={{ marginBottom: 16 }}>{t("cotizaciones.registrar")}</h2>
+      {!soportaItems && (
+        <div className="cot-aviso">
+          <AlertTriangle size={17} />
+          <span>{t("cotizaciones.aviso_migracion")}</span>
+        </div>
+      )}
 
-        <div className="productos-grid">
-          <SelectorPersonalizado value={productoId} onChange={alElegirProducto}>
-            <OpcionSelector value="">{t("cotizaciones.selecciona_producto")}</OpcionSelector>
-            {productos.map((p) => (
-              <OpcionSelector key={p.id} value={p.id}>
-                {p.nombre}
-              </OpcionSelector>
-            ))}
-          </SelectorPersonalizado>
+      {/* NUEVA COTIZACIÓN — con forma de hoja, no de formulario suelto */}
+      <div className="card cot-nueva">
+        <div className="cot-nueva-cabecera">
+          <div>
+            <h2>{t("cotizaciones.registrar")}</h2>
+            <p>{t("cotizaciones.nueva_ayuda")}</p>
+          </div>
+          <span className="cot-folio cot-folio-nuevo">{t("cotizaciones.folio_nuevo")}</span>
+        </div>
 
+        <div className="cot-cliente">
           <input
             list="lista-clientes-cotizaciones"
             value={clienteNombre}
             onChange={(e) => alCambiarClienteNombre(e.target.value)}
-            placeholder={t("ventas.cliente")}
+            placeholder={t("cotizaciones.para_cliente")}
           />
           <datalist id="lista-clientes-cotizaciones">
             {clientes.map((c) => (
@@ -291,46 +288,24 @@ function CotizacionesContenido() {
           </datalist>
 
           <input
-            type="number"
-            min="1"
-            step="1"
-            value={cantidad}
-            onChange={(e) => setCantidad(Number(e.target.value))}
-            placeholder={t("tabla.cantidad")}
-          />
-
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={precioUnitario}
-            onChange={(e) => setPrecioUnitario(e.target.value)}
-            placeholder={t("cotizaciones.precio_unitario")}
+            value={nota}
+            onChange={(e) => setNota(e.target.value)}
+            placeholder={t("compras.nota_placeholder")}
           />
         </div>
 
-        <input
-          style={{ marginTop: 12 }}
-          value={nota}
-          onChange={(e) => setNota(e.target.value)}
-          placeholder={t("compras.nota_placeholder")}
-        />
+        <ConstructorConceptos productos={productos} items={items} onChange={setItems} />
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 16,
-            flexWrap: "wrap",
-            gap: 12,
-          }}
-        >
-          <span style={{ fontSize: 15, fontWeight: 700 }}>
-            {t("tabla.total")}: {formatoMoneda(total)}
+        <div className="cot-nueva-pie">
+          <span className="cot-nueva-total">
+            {t("tabla.total")}: <strong>{formatoMoneda(totalNuevo)}</strong>
           </span>
 
-          <button className="btn-primary" onClick={guardar} disabled={guardando}>
+          <button
+            className="btn-primary"
+            onClick={guardar}
+            disabled={guardando || items.length === 0}
+          >
             {guardando ? t("compras.guardando") : t("cotizaciones.registrar")}
           </button>
         </div>
@@ -364,110 +339,129 @@ function CotizacionesContenido() {
 
       {loading ? (
         <CargandoLista />
+      ) : cotizacionesFiltradas.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", padding: 40, color: "var(--text-secondary)" }}>
+          {cotizaciones.length === 0
+            ? t("cotizaciones.sin_cotizaciones")
+            : t("cotizaciones.sin_resultados_busqueda")}
+        </div>
       ) : (
-      <div className="tabla">
-        <table>
-          <thead>
-            <tr>
-              <th>{t("tabla.fecha")}</th>
-              <th>{t("ventas.cliente")}</th>
-              <th>{t("tabla.producto")}</th>
-              <th>{t("tabla.cantidad")}</th>
-              <th>{t("tabla.total")}</th>
-              <th>{t("cotizaciones.col_estado")}</th>
-              <th>{t("productos.col_acciones")}</th>
-            </tr>
-          </thead>
+        <div className="cot-hojas">
+          {cotizacionesFiltradas.map((c) => {
+            const color = COLOR_ESTADO[c.estado];
 
-          <tbody>
-            {cotizacionesFiltradas.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
-                  {cotizaciones.length === 0 ? t("cotizaciones.sin_cotizaciones") : t("cotizaciones.sin_resultados_busqueda")}
-                </td>
-              </tr>
-            ) : (
-              cotizacionesFiltradas.map((c) => (
-                <tr key={c.id}>
-                  <td>{new Date(c.fecha).toLocaleDateString()}</td>
-                  <td>{c.cliente_nombre || t("ventas.cliente_general")}</td>
-                  <td>{c.producto}</td>
-                  <td>{c.cantidad}</td>
-                  <td>{formatoMoneda(Number(c.total))}</td>
-                  <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
-                      <span
-                        style={{
-                          background: `${COLOR_ESTADO[c.estado]}1a`,
-                          color: COLOR_ESTADO[c.estado],
-                          padding: "4px 10px",
-                          borderRadius: 6,
-                          fontSize: 11.5,
-                          fontWeight: 700,
-                        }}
-                      >
-                        {t(`cotizaciones.estado_${c.estado}`)}
+            return (
+              <article key={c.id} className="cot-hoja" style={{ ["--cot-acento" as string]: color }}>
+                <header className="cot-hoja-cabecera">
+                  <div>
+                    <span className="cot-folio">{folioDe(c.id)}</span>
+                    <time>{new Date(c.fecha).toLocaleDateString()}</time>
+                  </div>
+
+                  <div className="cot-hoja-estado">
+                    <span className="cot-badge" style={{ background: `${color}1a`, color }}>
+                      {t(`cotizaciones.estado_${c.estado}`)}
+                    </span>
+                    {c.venta_id && (
+                      <span className="cot-badge cot-badge-convertida">
+                        {t("cotizaciones.convertida_badge")}
                       </span>
-                      {c.venta_id && (
-                        <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-                          {t("cotizaciones.convertida_badge")}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      <button
-                        className="btn-edit"
-                        aria-label={t("cotizaciones.compartir")}
-                        onClick={() => setCompartiendo(c)}
-                      >
-                        <Share2 size={14} />
-                      </button>
-                      {c.estado === "pendiente" && (
-                        <>
-                          <button
-                            className="btn-success"
-                            aria-label={t("cotizaciones.estado_aceptada")}
-                            onClick={() => alCambiarEstado(c.id, "aceptada")}
-                          >
-                            <Check size={14} />
-                          </button>
-                          <button
-                            className="btn-delete"
-                            aria-label={t("cotizaciones.estado_rechazada")}
-                            onClick={() => alCambiarEstado(c.id, "rechazada")}
-                          >
-                            <X size={14} />
-                          </button>
-                        </>
-                      )}
-                      {c.estado === "aceptada" && !c.venta_id && puede("registrar_ventas") && (
-                        <button
-                          className="btn-primary"
-                          style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px" }}
-                          aria-label={t("cotizaciones.convertir_venta")}
-                          onClick={() => alConvertirEnVenta(c)}
-                          disabled={convirtiendoId === c.id}
+                    )}
+                  </div>
+                </header>
+
+                <p className="cot-hoja-cliente">
+                  {c.cliente_nombre || t("ventas.cliente_general")}
+                </p>
+
+                <div className="cot-hoja-lineas">
+                  {c.items.map((item) => {
+                    const { color: colorTipo, Icono } = ESTILO_TIPO[item.tipo];
+
+                    return (
+                      <div key={item.id} className="cot-linea">
+                        <span
+                          className="cot-linea-icono"
+                          style={{ background: `${colorTipo}1a`, color: colorTipo }}
+                          title={t(`cotizaciones.tipo_${item.tipo}`)}
                         >
-                          <ShoppingCart size={14} /> {t("cotizaciones.convertir_venta")}
+                          <Icono size={13} />
+                        </span>
+
+                        <div className="cot-linea-texto">
+                          <strong>{item.descripcion}</strong>
+                          <small>
+                            {item.cantidad} × {formatoMoneda(item.precio_unitario)}
+                          </small>
+                        </div>
+
+                        <span className="cot-linea-total">
+                          {formatoMoneda(item.cantidad * item.precio_unitario)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {c.nota && <p className="cot-hoja-nota">{c.nota}</p>}
+
+                <footer className="cot-hoja-pie">
+                  <span className="cot-hoja-total">
+                    {t("tabla.total")} <strong>{formatoMoneda(Number(c.total))}</strong>
+                  </span>
+
+                  <div className="cot-hoja-acciones">
+                    <button
+                      className="btn-edit"
+                      aria-label={t("cotizaciones.compartir")}
+                      onClick={() => setCompartiendo(c)}
+                    >
+                      <Share2 size={14} />
+                    </button>
+
+                    {c.estado === "pendiente" && (
+                      <>
+                        <button
+                          className="btn-success"
+                          aria-label={t("cotizaciones.estado_aceptada")}
+                          onClick={() => alCambiarEstado(c.id, "aceptada")}
+                        >
+                          <Check size={14} />
                         </button>
-                      )}
+                        <button
+                          className="btn-delete"
+                          aria-label={t("cotizaciones.estado_rechazada")}
+                          onClick={() => alCambiarEstado(c.id, "rechazada")}
+                        >
+                          <X size={14} />
+                        </button>
+                      </>
+                    )}
+
+                    {c.estado === "aceptada" && !c.venta_id && puede("registrar_ventas") && (
                       <button
-                        className="btn-delete"
-                        aria-label={t("productos.eliminar")}
-                        onClick={() => borrar(c.id)}
+                        className="btn-primary"
+                        style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px" }}
+                        onClick={() => alConvertirEnVenta(c)}
+                        disabled={convirtiendoId === c.id}
                       >
-                        <Trash2 size={14} />
+                        <ShoppingCart size={14} /> {t("cotizaciones.convertir_venta")}
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                    )}
+
+                    <button
+                      className="btn-delete"
+                      aria-label={t("productos.eliminar")}
+                      onClick={() => borrar(c.id)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </footer>
+              </article>
+            );
+          })}
+        </div>
       )}
 
       {compartiendo && (
