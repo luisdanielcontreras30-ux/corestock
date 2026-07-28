@@ -1,3 +1,11 @@
+import {
+  construirPromptProducto,
+  construirPromptVendedor,
+  extraerResultadoProducto,
+  ResultadoAnalisisProducto,
+  ProductoParaVendedor,
+} from "./promptsIA";
+
 // Cliente para OpenRouter (chat). Uso EXCLUSIVO en código de servidor
 // (app/api/**) — OPENROUTER_API_KEY nunca debe llegar al navegador.
 //
@@ -10,6 +18,12 @@
 // mostrador preguntando cosas cortas muchas veces al día. Se puede
 // cambiar sin tocar código con OPENROUTER_MODEL.
 const MODELO_POR_DEFECTO = "anthropic/claude-3.5-haiku";
+
+// Analizar la foto de un producto necesita un modelo que sepa VER. No
+// todos los de OpenRouter lo hacen, así que va en su propia variable:
+// si se cambia OPENROUTER_MODEL por uno más barato solo de texto, el
+// análisis de fotos no se rompe con él.
+const MODELO_VISION_POR_DEFECTO = "anthropic/claude-3.5-haiku";
 
 // Un asistente de negocio no necesita ensayos: respuestas largas
 // cuestan más, tardan más y se leen peor en un celular tras el
@@ -25,6 +39,13 @@ const NOMBRE_IDIOMA: Record<string, string> = {
   zh: "chino",
   it: "italiano",
 };
+
+// true cuando el servidor tiene con qué hablarle a OpenRouter. Las
+// rutas lo usan para decidir el proveedor sin tener que atrapar un
+// error primero.
+export function hayOpenRouter(): boolean {
+  return !!process.env.OPENROUTER_API_KEY;
+}
 
 export interface MensajeChat {
   rol: "usuario" | "asistente";
@@ -185,4 +206,119 @@ export async function generarRespuestaAsistente(
   }
 
   return texto.trim();
+}
+
+// ---------------------------------------------------------------------
+// Las otras dos funciones de IA de la app, servidas también por
+// OpenRouter para que una sola llave encienda todo: el análisis de
+// fotos de producto y el vendedor de WhatsApp. Los prompts y el parseo
+// son los mismos que usa Google (lib/promptsIA.ts) — lo único que
+// cambia es a quién se le pregunta.
+// ---------------------------------------------------------------------
+
+// Núcleo compartido: manda mensajes y devuelve el texto de la
+// respuesta. Todo lo delicado (plazo, errores en un 200, respuesta
+// vacía) vive aquí una sola vez.
+async function pedirTexto(
+  modelo: string,
+  mensajes: unknown[],
+  opciones: { temperatura: number; maxTokens: number }
+): Promise<string> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    throw new ErrorOpenRouter("Falta configurar OPENROUTER_API_KEY en el servidor.", 401);
+  }
+
+  const control = new AbortController();
+  const plazo = setTimeout(() => control.abort(), 45000);
+
+  let respuesta: Response;
+
+  try {
+    respuesta = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://corestock.app",
+        "X-Title": "CoreStock",
+      },
+      body: JSON.stringify({
+        model: modelo,
+        messages: mensajes,
+        max_tokens: opciones.maxTokens,
+        temperature: opciones.temperatura,
+      }),
+      signal: control.signal,
+    });
+  } finally {
+    clearTimeout(plazo);
+  }
+
+  if (!respuesta.ok) {
+    let detalle = `HTTP ${respuesta.status}`;
+    try {
+      const cuerpo = await respuesta.json();
+      detalle = cuerpo?.error?.message || detalle;
+    } catch {
+      // sin cuerpo JSON legible, se deja el detalle genérico
+    }
+    throw new ErrorOpenRouter(detalle, respuesta.status);
+  }
+
+  const datos = await respuesta.json();
+
+  if (datos?.error) {
+    throw new ErrorOpenRouter(datos.error.message || "Error de OpenRouter.", 502);
+  }
+
+  const texto = datos?.choices?.[0]?.message?.content;
+
+  if (typeof texto !== "string" || !texto.trim()) {
+    throw new ErrorOpenRouter("OpenRouter no devolvió una respuesta utilizable.", 502);
+  }
+
+  return texto.trim();
+}
+
+export async function analizarImagenProductoOpenRouter(
+  imagenBase64: string,
+  mimeType: string,
+  idioma: string,
+  categoriasExistentes: string[] = []
+): Promise<ResultadoAnalisisProducto> {
+  const modelo = process.env.OPENROUTER_MODEL_VISION || MODELO_VISION_POR_DEFECTO;
+
+  // OpenRouter recibe la imagen como data URI dentro del propio
+  // mensaje, en el formato de partes de contenido de la API de chat.
+  const texto = await pedirTexto(
+    modelo,
+    [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: construirPromptProducto(idioma, categoriasExistentes) },
+          { type: "image_url", image_url: { url: `data:${mimeType};base64,${imagenBase64}` } },
+        ],
+      },
+    ],
+    { temperatura: 0.4, maxTokens: 500 }
+  );
+
+  return extraerResultadoProducto(texto);
+}
+
+export async function generarRespuestaVendedorOpenRouter(
+  pregunta: string,
+  productos: ProductoParaVendedor[],
+  idioma: string
+): Promise<string> {
+  const modelo = process.env.OPENROUTER_MODEL || MODELO_POR_DEFECTO;
+
+  return pedirTexto(
+    modelo,
+    [{ role: "user", content: construirPromptVendedor(pregunta, productos, idioma) }],
+    { temperatura: 0.5, maxTokens: 400 }
+  );
 }

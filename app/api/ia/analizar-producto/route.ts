@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 import { analizarImagenProducto, ErrorGoogleAI } from "../../../../lib/googleAI";
+import { analizarImagenProductoOpenRouter, ErrorOpenRouter, hayOpenRouter } from "../../../../lib/openrouter";
 
 // El cliente ya redimensiona la foto antes de mandarla (ver
 // lib/iaAcciones.ts), así que en el caso normal esto pesa muy poco.
@@ -77,7 +78,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    const resultado = await analizarImagenProducto(imagenBase64, mimeType, idioma, categoriasExistentes);
+    // Se prefiere OpenRouter cuando su llave está puesta: es la que
+    // enciende TODAS las funciones de IA de la app con una sola cuenta.
+    // Google queda como alternativa para quien ya venía usando su llave
+    // de AI Studio.
+    //
+    // Ojo: el modelo de OpenRouter tiene que saber VER. Va en su propia
+    // variable (OPENROUTER_MODEL_VISION) justo por eso.
+    const resultado = hayOpenRouter()
+      ? await analizarImagenProductoOpenRouter(imagenBase64, mimeType, idioma, categoriasExistentes)
+      : await analizarImagenProducto(imagenBase64, mimeType, idioma, categoriasExistentes);
+
     return NextResponse.json(resultado);
   } catch (error) {
     // El detalle técnico (a veces en inglés, a veces mencionando la
@@ -86,11 +97,17 @@ export async function POST(request: Request) {
     // traducido, no el texto crudo del proveedor.
     console.error(error);
 
-    if (error instanceof ErrorGoogleAI) {
+    // Los dos proveedores lanzan un error con .status, así que el
+    // mismo manejo (429 = sin cuota, 401/403 = mal configurado)
+    // sirve para ambos sin duplicarlo.
+    if (error instanceof ErrorGoogleAI || error instanceof ErrorOpenRouter) {
       if (error.status === 429) {
         return NextResponse.json({ error: mensaje("cuota_excedida", idioma) }, { status: 429 });
       }
-      if (error.status === 401 || error.status === 403) {
+      // 402 es el "sin saldo" de OpenRouter. Reintentar tampoco lo
+      // arregla, así que va con los de configuración y no con los
+      // transitorios: hay que recargar la cuenta.
+      if (error.status === 401 || error.status === 402 || error.status === 403) {
         return NextResponse.json({ error: mensaje("configuracion_invalida", idioma) }, { status: 500 });
       }
     }

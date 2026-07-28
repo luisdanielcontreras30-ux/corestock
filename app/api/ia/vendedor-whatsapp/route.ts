@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 import { generarRespuestaVendedor, ErrorGoogleAI, ProductoParaVendedor } from "../../../../lib/googleAI";
+import { generarRespuestaVendedorOpenRouter, ErrorOpenRouter, hayOpenRouter } from "../../../../lib/openrouter";
 import { tieneAccesoBeta } from "../../../../lib/betaAcceso";
 
 // Tope generoso para una pregunta de cliente por WhatsApp — evita
@@ -82,20 +83,31 @@ export async function POST(request: Request) {
   }
 
   try {
-    const respuestaTexto = await generarRespuestaVendedor(
-      pregunta,
-      (productos ?? []) as ProductoParaVendedor[],
-      idioma
-    );
+    // Se prefiere OpenRouter cuando su llave está puesta: es la que
+    // enciende TODAS las funciones de IA de la app con una sola cuenta.
+    // Google queda como alternativa para quien ya venía usando su llave
+    // de AI Studio.
+    const lista = (productos ?? []) as ProductoParaVendedor[];
+
+    const respuestaTexto = hayOpenRouter()
+      ? await generarRespuestaVendedorOpenRouter(pregunta, lista, idioma)
+      : await generarRespuestaVendedor(pregunta, lista, idioma);
+
     return NextResponse.json({ respuesta: respuestaTexto });
   } catch (error) {
     console.error(error);
 
-    if (error instanceof ErrorGoogleAI) {
+    // Los dos proveedores lanzan un error con .status, así que el
+    // mismo manejo (429 = sin cuota, 401/403 = mal configurado)
+    // sirve para ambos sin duplicarlo.
+    if (error instanceof ErrorGoogleAI || error instanceof ErrorOpenRouter) {
       if (error.status === 429) {
         return NextResponse.json({ error: mensaje("cuota_excedida", idioma) }, { status: 429 });
       }
-      if (error.status === 401 || error.status === 403) {
+      // 402 es el "sin saldo" de OpenRouter. Reintentar tampoco lo
+      // arregla, así que va con los de configuración y no con los
+      // transitorios: hay que recargar la cuenta.
+      if (error.status === 401 || error.status === 402 || error.status === 403) {
         return NextResponse.json({ error: mensaje("configuracion_invalida", idioma) }, { status: 500 });
       }
     }

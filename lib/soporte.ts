@@ -12,10 +12,20 @@ export const ENLACE_SOPORTE_WHATSAPP = `https://wa.me/${NUMERO_SOPORTE_WHATSAPP}
 // teléfono sin depender de que el enlace funcione.
 export const NUMERO_SOPORTE_VISIBLE = "+52 833 660 1161";
 
-// Apaga las funciones que dependen de la API de Google AI (Análisis
-// de producto, el botón "Analizar con IA" de Productos, y la prueba
-// del vendedor de WhatsApp) mientras no haya una llave configurada en
-// el servidor — en vez de dejar que cada una falle con un error crudo
-// al llamarla, muestran el aviso de components/IaNoDisponible.tsx.
-// Para reactivarlas cuando sí haya llave, basta con volver esto true.
-export const IA_DISPONIBLE = false;
+// Enciende las funciones de IA con pantalla propia: Análisis de
+// producto, el botón "Analizar con IA" de Productos y la prueba del
+// vendedor de WhatsApp. En falso muestran el aviso de
+// components/IaNoDisponible.tsx en vez de un botón que falla.
+//
+// Está en true porque el servidor ya sabe hablar con dos proveedores
+// (OpenRouter y Google AI Studio, ver lib/openrouter.ts y
+// lib/googleAI.ts) y basta con que UNO tenga su llave puesta.
+//
+// Esto es una constante y no una lectura del entorno a propósito: son
+// componentes de navegador, y la llave vive solo en el servidor —
+// preguntarle al servidor si la tiene costaría una petición extra en
+// cada carga de pantalla. El precio de esa simplicidad es que si se
+// despliega SIN ninguna llave, los botones aparecen y responden con el
+// mensaje traducido de "no disponible, contacta a soporte" en vez de
+// estar ocultos. Si se prefiere ocultarlos, volver esto a false.
+export const IA_DISPONIBLE = true;

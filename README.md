@@ -41,13 +41,16 @@ Recuerda ejecutar `supabase_productos_descripcion.sql` en el SQL Editor de Supab
 
 ### Asistente con IA (OpenRouter, opcional)
 
-Hace que el Asistente responda como una IA de verdad —conversación abierta, cualquier tema— en vez de solo con su motor de reglas.
+Con una sola llave enciende **las tres** funciones de IA de la app: el Asistente (conversación abierta sobre cualquier tema), el análisis de fotos de producto y el vendedor de WhatsApp. Si también existe `GOOGLE_AI_API_KEY`, OpenRouter tiene preferencia.
 
 - `OPENROUTER_API_KEY` — API key de OpenRouter (https://openrouter.ai/keys). **Nunca** la expongas con prefijo `NEXT_PUBLIC_`: solo la usa el servidor, en `app/api/ia/asistente`. Si llegara al navegador, cualquiera que abra la app podría leerla y gastar el saldo.
-- `OPENROUTER_MODEL` — opcional, modelo a usar (por defecto `anthropic/claude-3.5-haiku`). Lista y precios en https://openrouter.ai/models.
+- `OPENROUTER_MODEL` — opcional, modelo de texto (por defecto `anthropic/claude-3.5-haiku`). Lista y precios en https://openrouter.ai/models.
+- `OPENROUTER_MODEL_VISION` — opcional, modelo para analizar fotos de producto (mismo valor por defecto). Va aparte porque tiene que **saber ver imágenes**: así puedes abaratar `OPENROUTER_MODEL` con uno de solo texto sin romper el análisis de fotos.
 - `NEXT_PUBLIC_SITE_URL` — opcional, solo para que OpenRouter atribuya el tráfico en su panel.
 
-**Sin esta variable el Asistente no se rompe.** Cae a su motor de reglas: 65 temas de negocio, finanzas y libros en 7 idiomas, calculadora en lenguaje natural y consultas a los datos reales del negocio. Lo mismo pasa si se acaba el saldo o si OpenRouter falla — el respaldo entra solo, sin mostrar ningún error.
+El interruptor `IA_DISPONIBLE` en `lib/soporte.ts` controla si el análisis de fotos y el vendedor de WhatsApp muestran sus botones. Está en `true`; si despliegas sin ninguna llave, esos botones aparecen y responden "no disponible, contacta a soporte" — ponlo en `false` si prefieres ocultarlos.
+
+**Sin ninguna llave el Asistente no se rompe.** Cae a su motor de reglas: 65 temas de negocio, finanzas y libros en 7 idiomas, calculadora en lenguaje natural y consultas a los datos reales del negocio. Lo mismo pasa si se acaba el saldo o si OpenRouter falla — el respaldo entra solo, sin mostrar ningún error.
 
 Cuando la IA sí está activa, la ruta le pasa como contexto un resumen de los números reales del negocio (ventas del día/semana/mes, valor del inventario, agotados, producto y cliente top), leído con el JWT de quien pregunta, así que RLS decide qué puede ver cada quien. Hay un tope de 60 preguntas por hora y por usuario, para que un bucle accidental no vacíe el saldo.
 
