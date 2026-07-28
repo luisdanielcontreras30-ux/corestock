@@ -2,11 +2,22 @@ import { normalizarTexto } from "../../lib/normalizarTexto";
 import { TEMAS_CONOCIMIENTO } from "./conocimiento";
 import { TEMAS_FILOSOFIA } from "./filosofia";
 import { TEMAS_LIBROS } from "./libros";
+import { TEMAS_GENERAL } from "./general";
+import { TEMAS_VIDA } from "./vida";
+import { interpretarCalculo } from "./calculadora";
 
-// Los dos bloques de conocimiento se tratan igual: el de finanzas y
-// operación (conocimiento.ts) y el de filosofía de negocio, libros y
-// psicología oscura (filosofia.ts). Están separados solo por tamaño.
-export const TODOS_LOS_TEMAS = [...TEMAS_CONOCIMIENTO, ...TEMAS_FILOSOFIA, ...TEMAS_LIBROS];
+// Los cinco bloques de conocimiento se tratan igual; están separados
+// solo por tamaño y por tema: finanzas y operación (conocimiento.ts),
+// filosofía de negocio y psicología oscura (filosofia.ts), libros
+// (libros.ts), dinero y trámites del mundo real (general.ts), y el
+// lado humano —clientes, salud, socios, familia— (vida.ts).
+export const TODOS_LOS_TEMAS = [
+  ...TEMAS_CONOCIMIENTO,
+  ...TEMAS_FILOSOFIA,
+  ...TEMAS_LIBROS,
+  ...TEMAS_GENERAL,
+  ...TEMAS_VIDA,
+];
 
 // Motor de detección de intención del Asistente.
 //
@@ -37,11 +48,24 @@ export type IntencionDatos =
 export type Resultado =
   | { tipo: "datos"; intencion: IntencionDatos }
   | { tipo: "conocimiento"; temaId: string }
+  // Una cuenta resuelta al vuelo (ver calculadora.ts). No es una
+  // respuesta guardada: sale de operar los números que escribió la
+  // persona, así que funciona con cifras que nadie previó.
+  | { tipo: "calculo"; clave: string; valores: Record<string, number> }
   | { tipo: "saludo" }
   | { tipo: "despedida" }
   | { tipo: "ayuda" }
   | { tipo: "identidad" }
   | { tipo: "estado_animo" }
+  // Conversación que no pide información: alguien que está mal, alguien
+  // que celebra, alguien que pide una opinión o un chiste. Responder
+  // "no entendí" a "me está yendo pésimo" es lo que hace que un
+  // asistente se sienta una máquina.
+  | { tipo: "desahogo" }
+  | { tipo: "celebracion" }
+  | { tipo: "opinion" }
+  | { tipo: "chiste" }
+  | { tipo: "afecto" }
   // Se refiere al tema anterior ("cuéntame más", "y eso cómo lo aplico"):
   // sin memoria de la conversación esto no significaba nada y caía en
   // "no entendí", que es lo que rompía la sensación de estar hablando
@@ -217,6 +241,52 @@ const CANDIDATOS_CHARLA: Candidato[] = [
       "thanks", "thank you", "obrigado", "merci", "danke", "grazie", "谢谢",
     ],
   },
+  {
+    // Va antes que cualquier tema: quien escribe "estoy harto" no busca
+    // un artículo sobre agotamiento, busca que alguien lo registre
+    // primero. La respuesta ofrece el tema después, no en lugar de.
+    resultado: { tipo: "desahogo" },
+    palabras: [
+      "estoy mal", "me siento mal", "estoy triste", "estoy harto", "estoy harta",
+      "ya no puedo mas", "estoy desesperado", "estoy desesperada", "tengo miedo",
+      "estoy preocupado", "estoy preocupada", "me va mal", "me esta yendo mal",
+      "todo va mal", "estoy solo", "estoy sola", "nadie me ayuda", "estoy quebrado",
+      "i feel bad", "im struggling", "estou mal", "je vais mal", "mir geht es schlecht",
+      "sto male", "我很难受",
+    ],
+  },
+  {
+    resultado: { tipo: "celebracion" },
+    palabras: [
+      "feliz", "contento", "contenta", "que bueno", "excelente noticia", "me fue bien", "vendi mucho",
+      "mejor mes", "lo logre", "buenas noticias", "me fue muy bien",
+      "im happy", "great news", "estou feliz", "je suis content", "ich bin froh",
+      "sono felice", "我很高兴",
+    ],
+  },
+  {
+    resultado: { tipo: "opinion" },
+    palabras: [
+      "que opinas", "que piensas", "que harias tu", "tu que crees", "que me recomiendas tu",
+      "cual es tu opinion", "estas de acuerdo", "what do you think", "your opinion",
+      "o que voce acha", "qu'en penses tu", "was denkst du", "cosa ne pensi", "你怎么看",
+    ],
+  },
+  {
+    resultado: { tipo: "chiste" },
+    palabras: [
+      "un chiste", "cuentame un chiste", "hazme reir", "algo gracioso", "dime algo divertido",
+      "a joke", "tell me a joke", "uma piada", "une blague", "ein witz", "una barzelletta", "讲个笑话",
+    ],
+  },
+  {
+    resultado: { tipo: "afecto" },
+    palabras: [
+      "te quiero", "eres el mejor", "me caes bien", "eres genial", "me sirves mucho",
+      "eres util", "gracias por todo", "i love you", "you are the best",
+      "voce e o melhor", "tu es le meilleur", "du bist der beste", "sei il migliore", "你最棒",
+    ],
+  },
 ];
 
 // Los saludos se tratan aparte: deben coincidir con el mensaje COMPLETO
@@ -270,9 +340,118 @@ function puntuar(texto: string, palabras: string[]): number {
 // cualquier cosa por haber pescado tres letras sueltas.
 const PUNTAJE_MINIMO = 4;
 
+// Distancia de edición con corte temprano: en cuanto se sabe que
+// supera el máximo tolerado, deja de calcular. Importa porque esto se
+// llama miles de veces en el barrido de erratas.
+function distancia(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+
+  let anterior = Array.from({ length: b.length + 1 }, (_, i) => i);
+
+  for (let i = 1; i <= a.length; i++) {
+    const actual = [i];
+    let mejorFila = i;
+
+    for (let j = 1; j <= b.length; j++) {
+      const costo = a[i - 1] === b[j - 1] ? 0 : 1;
+      const v = Math.min(actual[j - 1] + 1, anterior[j] + 1, anterior[j - 1] + costo);
+      actual.push(v);
+      if (v < mejorFila) mejorFila = v;
+    }
+
+    // Toda la fila ya supera el máximo: ninguna continuación puede bajar.
+    if (mejorFila > max) return max + 1;
+    anterior = actual;
+  }
+
+  return anterior[b.length];
+}
+
+// Cuántas letras de más se perdonan según lo larga que sea la palabra.
+// En una palabra de 4 letras, un error cambia demasiado el significado
+// ("caja" y "cara"); en una de 10, casi nunca.
+function toleranciaPara(palabra: string): number {
+  if (palabra.length >= 8) return 2;
+  if (palabra.length >= 5) return 1;
+  return 0;
+}
+
+// Vocabulario por tema para el barrido de erratas: cada palabra
+// significativa que aparece en sus claves, incluidas las que viven
+// dentro de una frase.
+//
+// Ese último detalle no es un adorno. Casi todas las claves de la base
+// son frases ("que es el margen", "margen de ganancia") y ninguna es la
+// palabra suelta "margen": comparando solo claves de una palabra, el
+// barrido no tenía nada contra qué medir justo en los temas más
+// buscados, y "margem" seguía cayendo en "no entendí".
+//
+// Se calcula una sola vez, la primera vez que hace falta.
+let vocabularioTemas: { id: string; palabras: string[] }[] | null = null;
+
+function obtenerVocabulario() {
+  if (!vocabularioTemas) {
+    vocabularioTemas = TODOS_LOS_TEMAS.map((tema) => {
+      const palabras = new Set<string>();
+      for (const clave of tema.palabras) {
+        for (const palabra of clave.split(/[^a-z0-9]+/)) {
+          if (palabra.length >= 5) palabras.add(palabra);
+        }
+      }
+      return { id: tema.id, palabras: [...palabras] };
+    });
+  }
+  return vocabularioTemas;
+}
+
+// Último recurso cuando nada coincidió: la gente escribe rápido y desde
+// el celular, y "margem", "rotasion" o "equilibrrio" no deberían
+// terminar en "no entendí" cuando el tema está clarísimo.
+function temaPorErrata(texto: string): string | null {
+  const palabrasTexto = texto.split(/[^a-z0-9]+/).filter((p) => p.length >= 5);
+  if (palabrasTexto.length === 0) return null;
+
+  let mejorId: string | null = null;
+  let mejorPuntaje = 0;
+
+  for (const tema of obtenerVocabulario()) {
+    let puntaje = 0;
+
+    for (const clave of tema.palabras) {
+      const max = toleranciaPara(clave);
+      if (max === 0) continue;
+
+      for (const palabra of palabrasTexto) {
+        // La coincidencia exacta ya la habría pescado puntuar(); aquí
+        // solo interesa lo que está escrito casi bien.
+        if (palabra === clave) continue;
+        if (distancia(palabra, clave, max) <= max) {
+          puntaje += clave.length;
+          break;
+        }
+      }
+    }
+
+    if (puntaje > mejorPuntaje) {
+      mejorPuntaje = puntaje;
+      mejorId = tema.id;
+    }
+  }
+
+  return mejorPuntaje >= PUNTAJE_MINIMO ? mejorId : null;
+}
+
 export function detectarIntencion(entrada: string): Resultado {
   const texto = normalizarTexto(entrada).trim();
   if (!texto) return null;
+
+  // Las cuentas se atienden primero y salen enseguida si no hay dígitos.
+  // Van antes que todo lo demás porque son inequívocas: "cuanto es 15%
+  // de 2500" no se parece a ninguna otra intención.
+  const calculo = interpretarCalculo(texto);
+  if (calculo) {
+    return { tipo: "calculo", clave: calculo.clave, valores: calculo.valores };
+  }
 
   const preguntaConcepto = MARCAS_CONCEPTO.some((m) => contieneFrase(texto, m));
   const preguntaDatos = MARCAS_DATOS.some((m) => contieneFrase(texto, m));
@@ -312,11 +491,17 @@ export function detectarIntencion(entrada: string): Resultado {
   // "¡hola!", que es lo que hacía antes al revisarlo primero.
   if (!mejor && esSaludoSuelto(texto)) return { tipo: "saludo" };
 
-  // Nada superó el umbral, pero antes de rendirse: ¿hay temas que
-  // comparten alguna palabra con lo que escribió? Ofrecerlos es mucho
-  // más útil que un "no entendí" seco, y es lo que hace que la persona
-  // descubra de qué más se puede hablar.
+  // Nada superó el umbral. Antes de rendirse, dos intentos más:
   if (!mejor) {
+    // 1. ¿Será que solo está mal escrito? Se responde de verdad, no se
+    //    sugiere: si "cuanto es la rotasion de inventario" se entiende
+    //    perfectamente, ofrecer una lista sería peor que contestar.
+    const conErrata = temaPorErrata(texto);
+    if (conErrata) return { tipo: "conocimiento", temaId: conErrata };
+
+    // 2. ¿Hay temas que comparten alguna palabra con lo que escribió?
+    //    Ofrecerlos es mucho más útil que un "no entendí" seco, y es lo
+    //    que hace que la persona descubra de qué más se puede hablar.
     const sugerencias = temasParecidos(texto);
     if (sugerencias.length > 0) return { tipo: "sugerencia", temaIds: sugerencias };
   }

@@ -68,6 +68,38 @@ interface Mensaje {
   claveTexto?: string;
 }
 
+// Los resultados de la calculadora salen como números crudos (ver
+// calculadora.ts) y se formatean aquí, en el idioma activo: separador
+// de miles y decimales cambian por país, y un "1,234.5" en una interfaz
+// en alemán se lee mal.
+const LOCALES: Record<Idioma, string> = {
+  es: "es-MX",
+  en: "en-US",
+  pt: "pt-BR",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  it: "it-IT",
+};
+
+function formatearNumero(valor: number, idioma: Idioma): string {
+  return new Intl.NumberFormat(LOCALES[idioma], { maximumFractionDigits: 2 }).format(valor);
+}
+
+// Rellena los huecos {a}, {b}, {r}... de la plantilla traducida con los
+// números que calculó el motor.
+function rellenarPlantilla(
+  plantilla: string,
+  valores: Record<string, number>,
+  idioma: Idioma
+): string {
+  let texto = plantilla;
+  for (const [clave, valor] of Object.entries(valores)) {
+    texto = texto.split(`{${clave}}`).join(formatearNumero(valor, idioma));
+  }
+  return texto;
+}
+
 // Convierte **negritas** y saltos de línea en JSX simple.
 function renderizarTexto(texto: string) {
   const lineas = texto.split("\n");
@@ -257,6 +289,18 @@ function AsistenteContenido() {
         return;
       }
 
+      // Una cuenta resuelta al vuelo. No pasa por la base de temas, así
+      // que tampoco cambia de qué se está hablando: preguntar "¿cuánto
+      // es el 15% de 800?" a media conversación sobre márgenes no
+      // debería borrar el hilo.
+      if (resultado.tipo === "calculo") {
+        agregarMensaje(
+          "asistente",
+          rellenarPlantilla(t(resultado.clave), resultado.valores, idioma)
+        );
+        return;
+      }
+
       // "Cuéntame más" solo significa algo si hay un tema anterior. Si
       // no lo hay, se responde con la ayuda en vez de con un "no
       // entendí" que dejaría a la persona sin saber qué hacer.
@@ -306,6 +350,28 @@ function AsistenteContenido() {
         }
         setUltimoTema(tema.id);
         agregarMensaje("asistente", conRelacionados(TODOS_LOS_TEMAS, tema.respuesta[idioma], tema));
+        return;
+      }
+
+      // Conversación que no pide información: alguien que está mal,
+      // alguien que celebra, quien pide una opinión o un chiste. No
+      // limpia el tema anterior a propósito — quien dice "eres un
+      // genio" a media explicación quiere seguir donde iba.
+      //
+      // En este punto ya solo quedan la charla y "datos", así que
+      // descartar "datos" deja el tipo exacto y el mapa de abajo tiene
+      // que cubrirlo entero: si mañana se agrega una intención de
+      // charla y se olvida su respuesta, no compila.
+      if (resultado.tipo !== "datos") {
+        const RESPUESTAS_CHARLA: Record<typeof resultado.tipo, string> = {
+          desahogo: "asistente.desahogo_respuesta",
+          celebracion: "asistente.celebracion_respuesta",
+          opinion: "asistente.opinion_respuesta",
+          chiste: "asistente.chiste_respuesta",
+          afecto: "asistente.afecto_respuesta",
+        };
+
+        agregarMensaje("asistente", t(RESPUESTAS_CHARLA[resultado.tipo]));
         return;
       }
 

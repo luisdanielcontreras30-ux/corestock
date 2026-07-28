@@ -21,7 +21,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "activos_pasivos",
-    titulo: { es: "Activos y pasivos", en: "Assets and liabilities", pt: "Ativos e passivos", fr: "Actifs et passifs", de: "Vermögen und Schulden", zh: "Attivi e passivi", it: "资产与负债" },
+    titulo: { es: "Activos y pasivos", en: "Assets and liabilities", pt: "Ativos e passivos", fr: "Actifs et passifs", de: "Vermögen und Schulden", zh: "资产与负债", it: "Attivi e passivi" },
     relacionados: ["cuadrante_flujo", "educacion_financiera", "separar_finanzas"],
     palabras: [
       "activo", "activos", "pasivo", "pasivos", "activos y pasivos",
@@ -41,7 +41,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "cuadrante_flujo",
-    titulo: { es: "El cuadrante del flujo de dinero", en: "The cashflow quadrant", pt: "Quadrante do fluxo de dinheiro", fr: "Le quadrant du cashflow", de: "Das Cashflow-Quadrant", zh: "Il quadrante del cashflow", it: "现金流四象限" },
+    titulo: { es: "El cuadrante del flujo de dinero", en: "The cashflow quadrant", pt: "Quadrante do fluxo de dinheiro", fr: "Le quadrant du cashflow", de: "Das Cashflow-Quadrant", zh: "现金流四象限", it: "Il quadrante del cashflow" },
     relacionados: ["activos_pasivos", "reinvertir", "ego_fracaso"],
     palabras: [
       "cuadrante", "cuadrante del flujo", "cuadrante del dinero", "empleado autoempleado",
@@ -60,7 +60,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "educacion_financiera",
-    titulo: { es: "Educación financiera", en: "Financial literacy", pt: "Educação financeira", fr: "Éducation financière", de: "Finanzbildung", zh: "Educazione finanziaria", it: "财务素养" },
+    titulo: { es: "Educación financiera", en: "Financial literacy", pt: "Educação financeira", fr: "Éducation financière", de: "Finanzbildung", zh: "财务素养", it: "Educazione finanziaria" },
     relacionados: ["activos_pasivos", "indicadores", "separar_finanzas"],
     palabras: [
       "educacion financiera", "los ricos no trabajan por dinero", "mentalidad de rico",
@@ -84,7 +84,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "leyes_poder",
-    titulo: { es: "Las 48 Leyes del Poder", en: "The 48 Laws of Power", pt: "As 48 Leis do Poder", fr: "Les 48 lois du pouvoir", de: "Die 48 Gesetze der Macht", zh: "Le 48 leggi del potere", it: "权力的48条法则" },
+    titulo: { es: "Las 48 Leyes del Poder", en: "The 48 Laws of Power", pt: "As 48 Leis do Poder", fr: "Les 48 lois du pouvoir", de: "Die 48 Gesetze der Macht", zh: "权力的48条法则", it: "Le 48 leggi del potere" },
     relacionados: ["leyes_peligrosas", "psicologia_oscura", "largo_plazo"],
     palabras: [
       "48 leyes del poder", "leyes del poder", "las 48 leyes", "robert greene",
@@ -103,7 +103,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "leyes_peligrosas",
-    titulo: { es: "Leyes del poder que te destruyen", en: "Power laws that destroy you", pt: "Leis do poder perigosas", fr: "Lois du pouvoir dangereuses", de: "Gefährliche Machtgesetze", zh: "Leggi del potere pericolose", it: "危险的权力法则" },
+    titulo: { es: "Leyes del poder que te destruyen", en: "Power laws that destroy you", pt: "Leis do poder perigosas", fr: "Lois du pouvoir dangereuses", de: "Gefährliche Machtgesetze", zh: "危险的权力法则", it: "Leggi del potere pericolose" },
     relacionados: ["leyes_poder", "largo_plazo", "manipular_clientes"],
     palabras: [
       "leyes peligrosas", "leyes del poder son peligrosas", "leyes que no debo usar", "cuales leyes evitar", "aplastar al enemigo",
@@ -127,7 +127,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "psicologia_oscura",
-    titulo: { es: "Psicología oscura", en: "Dark psychology", pt: "Psicologia sombria", fr: "Psychologie noire", de: "Dunkle Psychologie", zh: "Psicologia oscura", it: "黑暗心理学" },
+    titulo: { es: "Psicología oscura", en: "Dark psychology", pt: "Psicologia sombria", fr: "Psychologie noire", de: "Dunkle Psychologie", zh: "黑暗心理学", it: "Psicologia oscura" },
     relacionados: ["defenderse_manipulacion", "manipular_clientes", "leyes_poder"],
     palabras: [
       "filosofia oscura", "psicologia oscura", "manipulacion", "manipular",
@@ -141,13 +141,13 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
       pt: "A chamada **psicologia sombria** estuda como se influencia as pessoas sem que percebam, e se associa à \"tríade sombria\": maquiavelismo (usar as pessoas como meio), narcisismo e baixa empatia.\n\nAs alavancas de que abusa são as mesmas da persuasão normal, levadas ao engano:\n\n• **Reciprocidade** — um presentinho para criar dívida.\n• **Escassez e urgência** — \"só hoje\", \"resta um\", quase sempre falsos.\n• **Prova social** — depoimentos e números inventados.\n• **Autoridade** — títulos e logos que não significam nada.\n• **Compromisso** — arrancar um \"sim\" pequeno para te arrastar a um grande.\n\nE as de manipulação pura: **ancoragem** (soltar um número absurdo primeiro para o seguinte parecer razoável), **culpa** (\"depois de tudo que fiz por você\"), **bombardeio de amor** seguido de frieza, e **gaslighting** (te fazer duvidar do que viu ou combinou).\n\nMinha posição: explico isso **para que reconheça quando aplicarem em você**, o que num negócio acontece muito — fornecedores, agiotas, \"consultores\", franquias. Pergunte \"como me defendo da manipulação\" para as contramedidas concretas. Como estratégia comercial própria não recomendo, e explico por quê se perguntar sobre \"manipular clientes\".",
       fr: "La **psychologie noire** étudie comment influencer les gens à leur insu, et s'associe à la « triade noire » : machiavélisme (utiliser les gens comme moyens), narcissisme et faible empathie.\n\nLes leviers dont elle abuse sont ceux de la persuasion ordinaire, poussés jusqu'à la tromperie :\n\n• **Réciprocité** — un petit cadeau pour créer une dette.\n• **Rareté et urgence** — « aujourd'hui seulement », « il en reste un », presque toujours faux.\n• **Preuve sociale** — témoignages et chiffres inventés.\n• **Autorité** — titres et logos qui ne veulent rien dire.\n• **Engagement** — vous arracher un petit « oui » pour vous entraîner vers un grand.\n\nEt les purement manipulatrices : **l'ancrage** (lancer un chiffre absurde d'abord pour que le suivant paraisse raisonnable), **la culpabilité** (« après tout ce que j'ai fait pour vous »), le **love bombing** suivi de froideur, et le **gaslighting** (vous faire douter de ce que vous avez vu ou convenu).\n\nMa position : je vous explique cela **pour que vous le reconnaissiez quand on vous l'applique**, ce qui arrive souvent en affaires — fournisseurs, prêteurs, « conseillers », franchises. Demandez-moi « comment me défendre de la manipulation » pour les contre-mesures concrètes. Comme stratégie commerciale, je ne la recommande pas, et je vous explique pourquoi si vous demandez « manipuler les clients ».",
       de: "Die sogenannte **dunkle Psychologie** untersucht, wie Menschen unbemerkt beeinflusst werden, und wird mit der „dunklen Triade\" verbunden: Machiavellismus (Menschen als Mittel benutzen), Narzissmus und geringe Empathie.\n\nDie Hebel, die sie missbraucht, sind dieselben der normalen Überzeugung, ins Täuschen getrieben:\n\n• **Reziprozität** — ein kleines Geschenk, um eine Schuld zu erzeugen.\n• **Knappheit und Dringlichkeit** — „nur heute\", „nur noch eins\", fast immer falsch.\n• **Sozialer Beweis** — erfundene Erfahrungsberichte und Zahlen.\n• **Autorität** — Titel und Logos, die nichts bedeuten.\n• **Commitment** — dir ein kleines „Ja\" entlocken, um dich zu einem großen zu ziehen.\n\nUnd die rein manipulativen: **Ankern** (zuerst eine absurde Zahl nennen, damit die nächste vernünftig wirkt), **Schuldgefühle** („nach allem, was ich für dich getan habe\"), **Love Bombing** gefolgt von Kälte, und **Gaslighting** (dich zweifeln lassen, was du gesehen oder vereinbart hast).\n\nMeine Haltung: Ich erkläre dir das, **damit du es erkennst, wenn es bei dir angewandt wird** — im Geschäft passiert das oft: Lieferanten, Geldverleiher, „Berater\", Franchises. Frag mich „wie wehre ich mich gegen Manipulation\" für konkrete Gegenmaßnahmen. Als eigene Geschäftsstrategie empfehle ich sie nicht, und ich erkläre dir warum, wenn du nach „Kunden manipulieren\" fragst.",
-      zh: "所谓**黑暗心理学**研究的是如何在别人无察觉的情况下施加影响，通常与「黑暗三角」相关：马basicallyavelli主义（把人当工具）、自恋和低共情。\n\n它滥用的杠杆，其实就是普通说服术，只是推到了欺骗的一端：\n\n• **互惠** —— 送个小礼物制造亏欠感。\n• **稀缺与紧迫** —— 「仅限今天」「只剩一件」，几乎都是假的。\n• **社会认同** —— 编造的评价和数据。\n• **权威** —— 毫无意义的头衔和标志。\n• **承诺一致** —— 先让你说一个小「是」，再把你拖向大的。\n\n还有纯操纵性的手法：**锚定**（先抛出一个离谱数字，让下一个显得合理）、**愧疚**（「我为你做了这么多」）、**爱意轰炸**后接冷淡，以及**煤气灯效应**（让你怀疑自己看到或谈好的事）。\n\n我的立场：我讲这些，是**为了让你在别人对你使用时能认出来**——生意里这很常见：供应商、放贷人、「顾问」、加盟商。想要具体的应对办法，问我「怎么防范操纵」。至于把它当成自己的经营策略，我不建议，你问「操纵客户」我会说明原因。",
+      zh: "所谓**黑暗心理学**研究的是如何在别人无察觉的情况下施加影响，通常与「黑暗三角」相关：马基雅维利主义（把人当工具）、自恋和低共情。\n\n它滥用的杠杆，其实就是普通说服术，只是推到了欺骗的一端：\n\n• **互惠** —— 送个小礼物制造亏欠感。\n• **稀缺与紧迫** —— 「仅限今天」「只剩一件」，几乎都是假的。\n• **社会认同** —— 编造的评价和数据。\n• **权威** —— 毫无意义的头衔和标志。\n• **承诺一致** —— 先让你说一个小「是」，再把你拖向大的。\n\n还有纯操纵性的手法：**锚定**（先抛出一个离谱数字，让下一个显得合理）、**愧疚**（「我为你做了这么多」）、**爱意轰炸**后接冷淡，以及**煤气灯效应**（让你怀疑自己看到或谈好的事）。\n\n我的立场：我讲这些，是**为了让你在别人对你使用时能认出来**——生意里这很常见：供应商、放贷人、「顾问」、加盟商。想要具体的应对办法，问我「怎么防范操纵」。至于把它当成自己的经营策略，我不建议，你问「操纵客户」我会说明原因。",
       it: "La cosiddetta **psicologia oscura** studia come si influenzano le persone senza che se ne accorgano, ed è associata alla \"triade oscura\": machiavellismo (usare le persone come mezzo), narcisismo e scarsa empatia.\n\nLe leve di cui abusa sono le stesse della persuasione normale, spinte fino all'inganno:\n\n• **Reciprocità** — un regalino per creare un debito.\n• **Scarsità e urgenza** — \"solo oggi\", \"ne resta uno\", quasi sempre falsi.\n• **Riprova sociale** — testimonianze e cifre inventate.\n• **Autorità** — titoli e loghi che non significano nulla.\n• **Impegno** — strapparti un piccolo \"sì\" per trascinarti a uno grande.\n\nE quelle di pura manipolazione: **ancoraggio** (buttare prima un numero assurdo perché il successivo sembri ragionevole), **senso di colpa** (\"dopo tutto quello che ho fatto per te\"), **love bombing** seguito da freddezza, e **gaslighting** (farti dubitare di ciò che hai visto o concordato).\n\nLa mia posizione: te lo spiego **perché tu lo riconosca quando lo applicano a te**, cosa che in un'attività succede spesso — fornitori, finanziatori, \"consulenti\", franchising. Chiedimi \"come mi difendo dalla manipolazione\" per le contromisure concrete. Come strategia commerciale tua non te la consiglio, e ti spiego perché se chiedi di \"manipolare i clienti\".",
     },
   },
   {
     id: "defenderse_manipulacion",
-    titulo: { es: "Defenderte de la manipulación", en: "Defending against manipulation", pt: "Defender-se da manipulação", fr: "Se défendre de la manipulation", de: "Sich vor Manipulation schützen", zh: "Difendersi dalla manipolazione", it: "防范操纵" },
+    titulo: { es: "Defenderte de la manipulación", en: "Defending against manipulation", pt: "Defender-se da manipulação", fr: "Se défendre de la manipulation", de: "Sich vor Manipulation schützen", zh: "防范操纵", it: "Difendersi dalla manipolazione" },
     relacionados: ["psicologia_oscura", "proveedores", "prestamos_intereses"],
     palabras: [
       "como me defiendo de la manipulacion", "defenderme de la manipulacion",
@@ -168,7 +168,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "manipular_clientes",
-    titulo: { es: "Por qué no manipular clientes", en: "Why not to manipulate customers", pt: "Por que não manipular clientes", fr: "Pourquoi ne pas manipuler les clients", de: "Warum Kunden nicht manipulieren", zh: "Perché non manipolare i clienti", it: "为何不该操纵客户" },
+    titulo: { es: "Por qué no manipular clientes", en: "Why not to manipulate customers", pt: "Por que não manipular clientes", fr: "Pourquoi ne pas manipuler les clients", de: "Warum Kunden nicht manipulieren", zh: "为何不该操纵客户", it: "Perché non manipolare i clienti" },
     relacionados: ["cliente_nuevo_vs_recurrente", "largo_plazo", "psicologia_oscura"],
     palabras: [
       "manipular clientes", "manipular al cliente", "convencer a como de lugar",
@@ -192,7 +192,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   // ---------------------------------------------------------------
   {
     id: "estoicismo",
-    titulo: { es: "Estoicismo para emprender", en: "Stoicism in business", pt: "Estoicismo nos negócios", fr: "Le stoïcisme en affaires", de: "Stoizismus im Geschäft", zh: "Stoicismo negli affari", it: "经商中的斯多葛" },
+    titulo: { es: "Estoicismo para emprender", en: "Stoicism in business", pt: "Estoicismo nos negócios", fr: "Le stoïcisme en affaires", de: "Stoizismus im Geschäft", zh: "经商中的斯多葛", it: "Stoicismo negli affari" },
     relacionados: ["ego_fracaso", "riesgo_ruina", "largo_plazo"],
     palabras: [
       "estoicismo", "estoico", "marco aurelio", "seneca", "filosofia para emprender",
@@ -212,7 +212,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "largo_plazo",
-    titulo: { es: "Pensar a largo plazo", en: "Long-term thinking", pt: "Pensar a longo prazo", fr: "Penser à long terme", de: "Langfristig denken", zh: "Pensare a lungo termine", it: "长期思维" },
+    titulo: { es: "Pensar a largo plazo", en: "Long-term thinking", pt: "Pensar a longo prazo", fr: "Penser à long terme", de: "Langfristig denken", zh: "长期思维", it: "Pensare a lungo termine" },
     relacionados: ["cliente_nuevo_vs_recurrente", "estoicismo", "leyes_peligrosas"],
     palabras: [
       "largo plazo", "corto plazo", "pensar a largo plazo", "paciencia",
@@ -231,7 +231,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "riesgo_ruina",
-    titulo: { es: "Riesgo y ruina", en: "Risk and ruin", pt: "Risco e ruína", fr: "Risque et ruine", de: "Risiko und Ruin", zh: "Rischio e rovina", it: "风险与破产" },
+    titulo: { es: "Riesgo y ruina", en: "Risk and ruin", pt: "Risco e ruína", fr: "Risque et ruine", de: "Risiko und Ruin", zh: "风险与破产", it: "Rischio e rovina" },
     relacionados: ["reinvertir", "estoicismo", "proveedores"],
     palabras: [
       "riesgo", "arriesgar", "apostar todo", "riesgo de ruina", "quebrar",
@@ -250,7 +250,7 @@ export const TEMAS_FILOSOFIA: TemaConocimiento[] = [
   },
   {
     id: "ego_fracaso",
-    titulo: { es: "Por qué fracasan los negocios", en: "Why businesses fail", pt: "Por que negócios fracassam", fr: "Pourquoi les entreprises échouent", de: "Warum Betriebe scheitern", zh: "Perché le imprese falliscono", it: "生意为何失败" },
+    titulo: { es: "Por qué fracasan los negocios", en: "Why businesses fail", pt: "Por que negócios fracassam", fr: "Pourquoi les entreprises échouent", de: "Warum Betriebe scheitern", zh: "生意为何失败", it: "Perché le imprese falliscono" },
     relacionados: ["estoicismo", "flujo_caja", "riesgo_ruina"],
     palabras: [
       "ego", "por que fracasan los negocios", "fracaso", "cerre mi negocio",
