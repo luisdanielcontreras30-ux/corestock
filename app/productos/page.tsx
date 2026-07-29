@@ -12,7 +12,7 @@ import { mensajeErrorSeguro } from "../../lib/errores";
 import { normalizarTexto } from "../../lib/normalizarTexto";
 import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
-import { ImagePlus, Package, Plus, Sparkles } from "lucide-react";
+import { ImagePlus, Package, Plus, Sparkles, Eraser } from "lucide-react";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -100,16 +100,6 @@ function ProductosInterno() {
   // reintente de inmediato y vuelva a chocar con el mismo límite.
   const [enfriamientoIA, setEnfriamientoIA] = useState(0);
 
-  // Qué categoría dejó puesta el análisis anterior. Sirve para que un
-  // análisis nuevo NO arrastre datos del producto anterior: si analizas
-  // un mouse y luego un teclado, la categoría del mouse tiene que
-  // desaparecer aunque la IA no reconozca la del teclado.
-  //
-  // Se guarda el valor concreto (y no un simple "vino de la IA") para
-  // poder distinguirlo de lo que la persona escribió a mano, que sí se
-  // respeta: borrar algo que alguien tecleó a propósito es peor que
-  // dejar una categoría de más.
-  const categoriaPuestaPorIA = useRef<string | null>(null);
 
   useEffect(() => {
     if (enfriamientoIA <= 0) return;
@@ -418,21 +408,18 @@ function ProductosInterno() {
     setAnalizandoIA(true);
     try {
       const resultado = await analizarProductoConIA(archivo, idioma, categorias);
-      // Nombre y descripción se reemplazan siempre: cada análisis
-      // describe un producto distinto y mezclarlos no tendría sentido.
-      setNombre(resultado.nombre);
-      setDescripcion(resultado.descripcion);
 
-      if (resultado.categoria) {
-        setCategoria(resultado.categoria);
-        categoriaPuestaPorIA.current = resultado.categoria;
-      } else {
-        // La IA no reconoció la categoría. Si la que está puesta la dejó
-        // ella en un análisis anterior, es del producto ANTERIOR y hay
-        // que quitarla; si la escribió la persona, se queda.
-        setCategoria((actual) => (actual === categoriaPuestaPorIA.current ? "" : actual));
-        categoriaPuestaPorIA.current = null;
-      }
+      // Los tres campos que describe la foto se reemplazan SIEMPRE,
+      // incluso si la IA no reconoció la categoría (entonces queda
+      // vacía). Cada análisis es un producto distinto: quedarse con la
+      // categoría del anterior es lo que hacía que al analizar un
+      // teclado siguiera puesto "Ratones".
+      //
+      // Precio, costo y stock no se tocan: eso no sale de una foto, lo
+      // escribe la persona.
+      setNombre(resultado.nombre);
+      setCategoria(resultado.categoria || "");
+      setDescripcion(resultado.descripcion);
       mostrarToast(t("productos.msg_ia_completado"), "exito");
     } catch (error) {
       console.error(error);
@@ -476,8 +463,10 @@ function ProductosInterno() {
     }
   }
 
-  function limpiar() {
-    setEditando(null);
+  // Vacía el formulario y ya: NO cierra la pantalla ni sale del modo
+  // edición. Es lo que necesita el botón "Borrar todo", que sirve para
+  // empezar de cero con el formulario delante, no para irse.
+  function limpiarCampos() {
     setNombre("");
     setCategoria("");
     setPrecio("");
@@ -487,6 +476,34 @@ function ProductosInterno() {
     setDescripcion("");
     if (claveBorrador) borrarBorrador(claveBorrador);
     limpiarImagen();
+  }
+
+  const hayAlgoQueBorrar = !!(
+    nombre ||
+    categoria ||
+    precio ||
+    costo ||
+    stock ||
+    stockMinimo ||
+    descripcion ||
+    preview
+  );
+
+  async function borrarTodo() {
+    if (!hayAlgoQueBorrar) return;
+
+    // Se pregunta porque es un botón que destruye trabajo y está justo
+    // al lado de Guardar: un toque de más en un celular no debería
+    // costar los datos ya escritos.
+    if (!(await confirmar(t("productos.confirmar_borrar_todo"), { peligroso: true }))) return;
+
+    limpiarCampos();
+    mostrarToast(t("productos.msg_campos_borrados"), "exito");
+  }
+
+  function limpiar() {
+    setEditando(null);
+    limpiarCampos();
     // Después de guardar o cancelar, vuelve a la lista en celular (ahí
     // es donde el formulario se cierra por completo; en escritorio no
     // tiene efecto visual, siempre queda visible).
@@ -737,6 +754,16 @@ function ProductosInterno() {
 
           <button onClick={() => excelInputRef.current?.click()} className="btn-secondary">
             {t("productos.importar_excel")}
+          </button>
+
+          {/* Vaciar el formulario sin salir de él. Antes solo se podía
+              con "Cancelar", y ese únicamente existe al editar. */}
+          <button
+            onClick={borrarTodo}
+            className="btn-secondary"
+            disabled={!hayAlgoQueBorrar || guardando}
+          >
+            <Eraser size={15} /> {t("productos.borrar_todo")}
           </button>
 
           {editando !== null && (
