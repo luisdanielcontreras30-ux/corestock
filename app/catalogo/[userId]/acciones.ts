@@ -23,8 +23,11 @@ interface FilaCatalogoPublico {
   // Llegan con supabase_catalogo_apariencia.sql. Opcionales porque la
   // función pública anterior no las devolvía: sin la migración corrida
   // vienen como undefined y el catálogo se ve igual que siempre.
+  catalogo_color_fondo?: string | null;
   catalogo_color_producto?: string | null;
   catalogo_color_borde?: string | null;
+  catalogo_color_titulo?: string | null;
+  catalogo_color_precio?: string | null;
   catalogo_color_boton?: string | null;
   catalogo_colores_categoria?: Record<string, string> | null;
 }
@@ -71,8 +74,11 @@ export async function obtenerCatalogoPublico(userId: string) {
     logoUrl: primera.logo_url,
     colorPrincipal: colorSeguro(primera.color_principal) ?? "#5945e4",
     telefono: primera.telefono,
+    colorFondo: colorSeguro(primera.catalogo_color_fondo),
     colorProducto: colorSeguro(primera.catalogo_color_producto),
     colorBorde: colorSeguro(primera.catalogo_color_borde),
+    colorTitulo: colorSeguro(primera.catalogo_color_titulo),
+    colorPrecio: colorSeguro(primera.catalogo_color_precio),
     colorBoton: colorSeguro(primera.catalogo_color_boton),
     coloresCategoria: Object.fromEntries(
       Object.entries(primera.catalogo_colores_categoria ?? {}).filter(([, c]) =>

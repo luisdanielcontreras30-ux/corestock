@@ -38,8 +38,11 @@ export default function CatalogoPublicoPage({ params }: Props) {
   // Apariencia configurable (Configuración → Apariencia → Catálogo).
   // Null = como estaba: no se inventa ningún color por defecto que
   // cambie el catálogo de alguien que no lo pidió.
+  const [colorFondo, setColorFondo] = useState<string | null>(null);
   const [colorProducto, setColorProducto] = useState<string | null>(null);
   const [colorBorde, setColorBorde] = useState<string | null>(null);
+  const [colorTitulo, setColorTitulo] = useState<string | null>(null);
+  const [colorPrecio, setColorPrecio] = useState<string | null>(null);
   const [colorBoton, setColorBoton] = useState<string | null>(null);
   const [coloresCategoria, setColoresCategoria] = useState<Record<string, string>>({});
 
@@ -53,8 +56,11 @@ export default function CatalogoPublicoPage({ params }: Props) {
           setColorPrincipal(datos.colorPrincipal);
           setTelefono(datos.telefono);
           setProductos(datos.productos);
+          setColorFondo(datos.colorFondo);
           setColorProducto(datos.colorProducto);
           setColorBorde(datos.colorBorde);
+          setColorTitulo(datos.colorTitulo);
+          setColorPrecio(datos.colorPrecio);
           setColorBoton(datos.colorBoton);
           setColoresCategoria(datos.coloresCategoria);
         }
@@ -99,7 +105,7 @@ export default function CatalogoPublicoPage({ params }: Props) {
   }
 
   return (
-    <div className="catalogo-publico-scroll">
+    <div className="catalogo-publico-scroll" style={{ background: colorFondo ?? undefined }}>
       <header className="catalogo-publico-header">
         <div
           style={{
@@ -189,11 +195,16 @@ export default function CatalogoPublicoPage({ params }: Props) {
                           <Store size={28} color="var(--text-muted)" />
                         )}
                       </div>
-                      <p className="catalogo-publico-producto-nombre">{p.nombre}</p>
+                      <p
+                        className="catalogo-publico-producto-nombre"
+                        style={{ color: colorTitulo ?? undefined }}
+                      >
+                        {p.nombre}
+                      </p>
                       <p
                         style={{
                           fontSize: 15,
-                          color: coloresCategoria[cat.nombre] ?? colorPrincipal,
+                          color: colorPrecio ?? coloresCategoria[cat.nombre] ?? colorPrincipal,
                           fontWeight: 700,
                           margin: "6px 0 0 0",
                         }}

@@ -108,8 +108,11 @@ export default function CatalogoAparienciaTab() {
     // ignora sin avisarle a nadie.
     const aValidar = [
       empresa.color_principal,
+      empresa.catalogo_color_fondo,
       empresa.catalogo_color_producto,
       empresa.catalogo_color_borde,
+      empresa.catalogo_color_titulo,
+      empresa.catalogo_color_precio,
       empresa.catalogo_color_boton,
       ...Object.values(empresa.catalogo_colores_categoria ?? {}),
     ];
@@ -155,8 +158,11 @@ export default function CatalogoAparienciaTab() {
   }
 
   const colorValido = HEX.test(empresa.color_principal);
+  const colorFondo = empresa.catalogo_color_fondo || "";
   const colorProducto = empresa.catalogo_color_producto || "";
   const colorBorde = empresa.catalogo_color_borde || "";
+  const colorTitulo = empresa.catalogo_color_titulo || "";
+  const colorPrecio = empresa.catalogo_color_precio || empresa.color_principal;
   const colorBoton = empresa.catalogo_color_boton || empresa.color_principal;
 
   return (
@@ -189,6 +195,7 @@ export default function CatalogoAparienciaTab() {
           overflow: "hidden",
           marginBottom: 20,
           maxWidth: 340,
+          background: HEX.test(colorFondo) ? colorFondo : undefined,
         }}
       >
         <div
@@ -209,7 +216,14 @@ export default function CatalogoAparienciaTab() {
             padding: "14px 16px",
           }}
         >
-          <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", fontWeight: 600 }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 13,
+              color: HEX.test(colorTitulo) ? colorTitulo : "var(--text-primary)",
+              fontWeight: 600,
+            }}
+          >
             {t("catalogo_apariencia.producto_ejemplo")}
           </p>
           <p
@@ -217,7 +231,7 @@ export default function CatalogoAparienciaTab() {
               margin: "4px 0 0 0",
               fontSize: 13,
               fontWeight: 700,
-              color: colorValido ? empresa.color_principal : "var(--text-secondary)",
+              color: HEX.test(colorPrecio) ? colorPrecio : "var(--text-secondary)",
             }}
           >
             $199.00
@@ -245,6 +259,12 @@ export default function CatalogoAparienciaTab() {
       <h3 className="cat-apariencia-titulo">{t("catalogo_apariencia.producto_titulo")}</h3>
       <div className="cat-apariencia-colores">
         <ColorOpcional
+          etiqueta={t("catalogo_apariencia.color_fondo_pagina")}
+          valor={colorFondo}
+          alCambiar={(v) => cambiarCampo("catalogo_color_fondo", v)}
+          porDefecto="#090a14"
+        />
+        <ColorOpcional
           etiqueta={t("catalogo_apariencia.color_fondo")}
           valor={colorProducto}
           alCambiar={(v) => cambiarCampo("catalogo_color_producto", v)}
@@ -255,6 +275,18 @@ export default function CatalogoAparienciaTab() {
           valor={colorBorde}
           alCambiar={(v) => cambiarCampo("catalogo_color_borde", v)}
           porDefecto="#2a2e42"
+        />
+        <ColorOpcional
+          etiqueta={t("catalogo_apariencia.color_titulo")}
+          valor={colorTitulo}
+          alCambiar={(v) => cambiarCampo("catalogo_color_titulo", v)}
+          porDefecto="#ffffff"
+        />
+        <ColorOpcional
+          etiqueta={t("catalogo_apariencia.color_precio")}
+          valor={empresa.catalogo_color_precio || ""}
+          alCambiar={(v) => cambiarCampo("catalogo_color_precio", v)}
+          porDefecto={colorValido ? empresa.color_principal : "#5945e4"}
         />
         <ColorOpcional
           etiqueta={t("catalogo_apariencia.color_boton")}

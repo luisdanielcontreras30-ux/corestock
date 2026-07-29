@@ -52,8 +52,11 @@ export async function guardarEmpresa(
   // logo y moneda incluidos — por unos colores que nadie ha tocado.
   const fila: Record<string, unknown> = { ...config, user_id: negocioId };
   for (const campo of [
+    "catalogo_color_fondo",
     "catalogo_color_producto",
     "catalogo_color_borde",
+    "catalogo_color_titulo",
+    "catalogo_color_precio",
     "catalogo_color_boton",
     "catalogo_colores_categoria",
   ]) {
