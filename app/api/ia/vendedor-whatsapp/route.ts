@@ -13,13 +13,15 @@ const MENSAJES: Record<string, Record<string, string>> = {
   no_autenticado: { es: "No autenticado.", en: "Not authenticated.", pt: "Não autenticado.", fr: "Non authentifié.", de: "Nicht authentifiziert.", zh: "未认证。", it: "Non autenticato." },
   cuerpo_invalido: { es: "Cuerpo de la solicitud inválido.", en: "Invalid request body.", pt: "Corpo da solicitação inválido.", fr: "Corps de la requête invalide.", de: "Ungültiger Anfragetext.", zh: "请求正文无效。", it: "Corpo della richiesta non valido." },
   falta_pregunta: { es: "Escribe una pregunta para probar el vendedor.", en: "Type a question to test the seller.", pt: "Digite uma pergunta para testar o vendedor.", fr: "Saisissez une question pour tester le vendeur.", de: "Gib eine Frage ein, um den Verkäufer zu testen.", zh: "请输入一个问题来测试销售助手。", it: "Scrivi una domanda per testare il venditore." },
-  fallo_respuesta: { es: "No se pudo generar la respuesta. Intenta de nuevo en un momento.", en: "Couldn't generate the reply. Try again in a moment.", pt: "Não foi possível gerar a resposta. Tente novamente em instantes.", fr: "Impossible de générer la réponse. Réessayez dans un instant.", de: "Antwort konnte nicht erstellt werden. Versuche es gleich noch einmal.", zh: "无法生成回复，请稍后重试。", it: "Impossibile generare la risposta. Riprova tra un momento." },
-  cuota_excedida: { es: "Se alcanzó el límite de análisis con IA por ahora. Intenta de nuevo más tarde (en unos minutos u horas).", en: "The AI limit was reached for now. Try again later (in a few minutes or hours).", pt: "O limite de IA foi atingido por agora. Tente novamente mais tarde (em alguns minutos ou horas).", fr: "La limite d'IA a été atteinte pour le moment. Réessayez plus tard (dans quelques minutes ou heures).", de: "Das KI-Limit wurde vorübergehend erreicht. Versuche es später erneut (in ein paar Minuten oder Stunden).", zh: "AI 次数已达上限，请稍后再试（几分钟或几小时后）。", it: "Il limite IA è stato raggiunto per ora. Riprova più tardi (tra qualche minuto o ora)." },
-  // Groq renueva su catálogo seguido: cuando el modelo configurado
-  // desaparece, esto NO se arregla reintentando ni esperando, se
-  // arregla cambiando una variable de entorno. Merece su propio texto.
-  modelo_invalido: { es: "El modelo de IA configurado ya no está disponible. Revisa Configuración → Ayuda → Probar la IA para ver cuál usar.", en: "The configured AI model is no longer available. Check Settings → Help → Test the AI to see which one to use.", pt: "O modelo de IA configurado já não está disponível. Veja Configurações → Ajuda → Testar a IA para saber qual usar.", fr: "Le modèle d'IA configuré n'est plus disponible. Voyez Configuration → Aide → Tester l'IA pour savoir lequel utiliser.", de: "Das eingestellte KI-Modell ist nicht mehr verfügbar. Schau unter Einstellungen → Hilfe → KI testen, welches du nehmen kannst.", zh: "配置的 AI 模型已不可用。请到 设置 → 帮助 → 测试 AI 查看该用哪一个。", it: "Il modello IA configurato non è più disponibile. Guarda Configurazione → Aiuto → Prova l'IA per sapere quale usare." },
-  configuracion_invalida: { es: "El vendedor con IA no está disponible en este momento. Contacta a soporte.", en: "The AI seller isn't available right now. Contact support.", pt: "O vendedor com IA não está disponível no momento. Entre em contato com o suporte.", fr: "Le vendeur IA n'est pas disponible pour le moment. Contactez le support.", de: "Der KI-Verkäufer ist derzeit nicht verfügbar. Wende dich an den Support.", zh: "AI 销售助手目前不可用，请联系支持团队。", it: "Il venditore IA non è disponibile al momento. Contatta l'assistenza." },
+  // Un solo mensaje para TODO lo que falle del lado de la IA. A quien
+  // atiende un negocio no le sirve saber si fue la cuota, el modelo o
+  // la configuración: no puede hacer nada con esa información y solo
+  // le suena a que la app está rota. El detalle técnico sigue entero
+  // en el log del servidor, que es donde se arregla.
+  algo_salio_mal: { es: "Ups, algo salió mal. Inténtalo de nuevo en un momento.", en: "Oops, something went wrong. Try again in a moment.", pt: "Ops, algo deu errado. Tente novamente em instantes.", fr: "Oups, quelque chose s'est mal passé. Réessayez dans un instant.", de: "Ups, da ist etwas schiefgelaufen. Versuche es gleich noch einmal.", zh: "哎呀，出了点问题。请稍后再试。", it: "Ops, qualcosa è andato storto. Riprova tra un momento." },
+  // Igual de genérico, pero sin invitar a reintentar de inmediato
+  // contra un límite que aún no se ha soltado.
+  algo_salio_mal_espera: { es: "Ups, algo salió mal. Inténtalo de nuevo en unos minutos.", en: "Oops, something went wrong. Try again in a few minutes.", pt: "Ops, algo deu errado. Tente novamente em alguns minutos.", fr: "Oups, quelque chose s'est mal passé. Réessayez dans quelques minutes.", de: "Ups, da ist etwas schiefgelaufen. Versuche es in ein paar Minuten noch einmal.", zh: "哎呀，出了点问题。请过几分钟再试。", it: "Ops, qualcosa è andato storto. Riprova tra qualche minuto." },
 };
 
 function mensaje(clave: keyof typeof MENSAJES, idioma: string) {
@@ -68,7 +70,7 @@ export async function POST(request: Request) {
 
   if (!url || !anonKey) {
     console.error("Faltan NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY.");
-    return NextResponse.json({ error: mensaje("fallo_respuesta", idioma) }, { status: 500 });
+    return NextResponse.json({ error: mensaje("algo_salio_mal", idioma) }, { status: 500 });
   }
 
   const supabase = createClient(url, anonKey, {
@@ -83,7 +85,7 @@ export async function POST(request: Request) {
 
   if (errorProductos) {
     console.error(errorProductos);
-    return NextResponse.json({ error: mensaje("fallo_respuesta", idioma) }, { status: 500 });
+    return NextResponse.json({ error: mensaje("algo_salio_mal", idioma) }, { status: 500 });
   }
 
   try {
@@ -99,37 +101,16 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ respuesta: respuestaTexto });
   } catch (error) {
-    console.error(error);
+    // El detalle técnico se queda en el log del servidor, que es donde
+    // se arregla. Lo único que cambia para quien pregunta es CUÁNDO
+    // volver a intentarlo: si topó con un límite (429) o con otra cosa.
+    console.error("Vendedor WhatsApp:", error);
 
-    // Los dos proveedores lanzan un error con .status, así que el
-    // mismo manejo (429 = sin cuota, 401/403 = mal configurado)
-    // sirve para ambos sin duplicarlo.
-    if (error instanceof ErrorGoogleAI || error instanceof ErrorGroq) {
-      if (error.status === 429) {
-        return NextResponse.json({ error: mensaje("cuota_excedida", idioma) }, { status: 429 });
-      }
-      // Un modelo retirado devuelve 404, o un 400 que lo menciona. Es el
-      // fallo más común con Groq, que renueva su catálogo seguido, y
-      // decirle a la persona "intenta de nuevo en un momento" la manda a
-      // reintentar algo que no va a funcionar nunca: hay que cambiar la
-      // variable de entorno. Ya se distinguía en el diagnóstico; faltaba
-      // aquí, que es donde de verdad se topa con ello.
-      if (
-        error.status === 404 ||
-        (error.status === 400 && /model|decommission|not found/i.test(error.message))
-      ) {
-        return NextResponse.json({ error: mensaje("modelo_invalido", idioma) }, { status: 500 });
-      }
+    const limite =
+      (error instanceof ErrorGoogleAI || error instanceof ErrorGroq) && error.status === 429;
 
-      // 402 es "hace falta pagar" (plan agotado). Va con los de
-      // configuración y no con los transitorios porque reintentar no lo
-      // arregla. Ojo: en la capa gratuita de Groq lo normal NO es este,
-      // es el 429 de arriba — ahí sí conviene esperar y reintentar.
-      if (error.status === 401 || error.status === 402 || error.status === 403) {
-        return NextResponse.json({ error: mensaje("configuracion_invalida", idioma) }, { status: 500 });
-      }
-    }
-
-    return NextResponse.json({ error: mensaje("fallo_respuesta", idioma) }, { status: 500 });
+    return limite
+      ? NextResponse.json({ error: mensaje("algo_salio_mal_espera", idioma) }, { status: 429 })
+      : NextResponse.json({ error: mensaje("algo_salio_mal", idioma) }, { status: 500 });
   }
 }

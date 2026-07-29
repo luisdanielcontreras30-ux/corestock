@@ -550,6 +550,12 @@ textarea {
   padding: 12px 14px;
   outline: none;
   font-size: 15px;
+  /* Los campos de formulario NO heredan la tipografía de la página:
+     cada navegador les pone la suya, y a los <textarea> les toca una
+     monoespaciada de máquina de escribir. Eso hacía que la descripción
+     del producto — justo el campo más largo, y el que rellena la IA —
+     se leyera peor que todo lo demás y pareciera de otra aplicación. */
+  font-family: inherit;
   transition: var(--transition-fast);
 }
 
@@ -1087,6 +1093,15 @@ select optgroup {
   cursor: pointer;
   box-shadow: 0 4px 14px var(--primary-soft);
   transition: var(--transition-fast);
+  /* Flota SOBRE el textarea, así que su tamaño no puede depender del
+     texto: una etiqueta larga (la cuenta regresiva del límite de IA lo
+     era) crecía hacia arriba y tapaba la descripción entera. Con una
+     sola línea y tope de ancho, el peor caso es que se recorte con
+     puntos suspensivos — nunca que sepulte el campo. */
+  max-width: calc(100% - 20px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-generar-ia-inline:hover:not(:disabled) {

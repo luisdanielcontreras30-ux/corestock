@@ -83,6 +83,17 @@ async function errorDesdeRespuesta(respuesta: Response): Promise<ErrorGoogleAI> 
 // dos parámetros le molestaba.
 const AJUSTES_PRESCINDIBLES = ["thinkingConfig", "responseMimeType"];
 
+// Modelos que ya demostraron rechazarlos. Sin esta memoria, CADA
+// análisis gastaría dos llamadas: una condenada a fallar y el reintento
+// bueno. En la capa gratuita, donde el límite se cuenta por peticiones
+// por minuto, eso significa chocar con el 429 al doble de velocidad —
+// analizar dos fotos seguidas bastaba para quedarse bloqueado.
+//
+// Vive en memoria del proceso: si el servidor se reinicia se vuelve a
+// aprender con un solo reintento, que es exactamente el comportamiento
+// deseado si algún día Google cambia lo que acepta.
+const modelosQueRechazanAjustes = new Set<string>();
+
 function sinAjustesPrescindibles(
   generationConfig: Record<string, unknown>
 ): Record<string, unknown> | null {
@@ -135,9 +146,16 @@ async function pedirTexto(
     }
   }
 
-  let respuesta = await pedirUnaVez(generationConfig);
+  // Si este modelo ya rechazó los ajustes antes, se va directo a la
+  // versión que sí funciona en vez de repetir la llamada condenada.
+  const yaSabemos = modelosQueRechazanAjustes.has(modelo);
+  const configInicial = yaSabemos
+    ? sinAjustesPrescindibles(generationConfig) ?? generationConfig
+    : generationConfig;
 
-  if (respuesta.status === 400) {
+  let respuesta = await pedirUnaVez(configInicial);
+
+  if (!yaSabemos && respuesta.status === 400) {
     // El cuerpo solo se puede leer una vez, así que se clona antes de
     // mirarlo: si no es este caso, hay que poder construir el error
     // normal con el cuerpo intacto.
@@ -149,6 +167,11 @@ async function pedirTexto(
         `Google AI rechazó los ajustes opcionales (${error.message}). Se reintenta sin ellos.`
       );
       respuesta = await pedirUnaVez(reducido);
+
+      // Solo se apunta si el reintento SÍ funcionó. Si falla también,
+      // los ajustes no eran el problema y recordarlo sería aprender algo
+      // falso: se seguirían mandando peticiones capadas para siempre.
+      if (respuesta.ok) modelosQueRechazanAjustes.add(modelo);
     }
   }
 

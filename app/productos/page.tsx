@@ -100,6 +100,17 @@ function ProductosInterno() {
   // reintente de inmediato y vuelva a chocar con el mismo límite.
   const [enfriamientoIA, setEnfriamientoIA] = useState(0);
 
+  // Qué categoría dejó puesta el análisis anterior. Sirve para que un
+  // análisis nuevo NO arrastre datos del producto anterior: si analizas
+  // un mouse y luego un teclado, la categoría del mouse tiene que
+  // desaparecer aunque la IA no reconozca la del teclado.
+  //
+  // Se guarda el valor concreto (y no un simple "vino de la IA") para
+  // poder distinguirlo de lo que la persona escribió a mano, que sí se
+  // respeta: borrar algo que alguien tecleó a propósito es peor que
+  // dejar una categoría de más.
+  const categoriaPuestaPorIA = useRef<string | null>(null);
+
   useEffect(() => {
     if (enfriamientoIA <= 0) return;
     const id = setTimeout(() => setEnfriamientoIA((s) => Math.max(0, s - 1)), 1000);
@@ -407,11 +418,21 @@ function ProductosInterno() {
     setAnalizandoIA(true);
     try {
       const resultado = await analizarProductoConIA(archivo, idioma, categorias);
+      // Nombre y descripción se reemplazan siempre: cada análisis
+      // describe un producto distinto y mezclarlos no tendría sentido.
       setNombre(resultado.nombre);
-      // Si la IA no devolvió categoría (o falló al parsearla), se deja
-      // lo que la persona ya haya escrito en vez de borrarlo con "".
-      if (resultado.categoria) setCategoria(resultado.categoria);
       setDescripcion(resultado.descripcion);
+
+      if (resultado.categoria) {
+        setCategoria(resultado.categoria);
+        categoriaPuestaPorIA.current = resultado.categoria;
+      } else {
+        // La IA no reconoció la categoría. Si la que está puesta la dejó
+        // ella en un análisis anterior, es del producto ANTERIOR y hay
+        // que quitarla; si la escribió la persona, se queda.
+        setCategoria((actual) => (actual === categoriaPuestaPorIA.current ? "" : actual));
+        categoriaPuestaPorIA.current = null;
+      }
       mostrarToast(t("productos.msg_ia_completado"), "exito");
     } catch (error) {
       console.error(error);
@@ -636,7 +657,7 @@ function ProductosInterno() {
             {analizandoIA
               ? t("productos.analizando_ia")
               : enfriamientoIA > 0
-                ? t("productos.ia_enfriamiento").replace("{segundos}", String(enfriamientoIA))
+                ? t("productos.ia_enfriamiento_corto").replace("{segundos}", String(enfriamientoIA))
                 : t("productos.analizar_ia")}
           </button>
         </div>
