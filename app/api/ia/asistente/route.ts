@@ -8,6 +8,7 @@ import {
   listarModelosGroq,
   ErrorGroq,
   hayGroq,
+  modeloVisionConfigurado,
   ContextoNegocio,
   MensajeChat,
 } from "../../../../lib/groq";
@@ -217,7 +218,7 @@ export async function GET(request: Request) {
 
   const modeloTexto = process.env.GROQ_MODEL || "llama-3.3-70b-versatile (por defecto)";
   const modeloVision =
-    process.env.GROQ_MODELO_VISION || "meta-llama/llama-4-scout-17b-16e-instruct (por defecto)";
+    modeloVisionConfigurado() || "meta-llama/llama-4-scout-17b-16e-instruct (por defecto)";
 
   if (!hayGroq()) {
     return NextResponse.json({

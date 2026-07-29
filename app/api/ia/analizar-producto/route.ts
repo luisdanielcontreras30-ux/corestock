@@ -27,6 +27,10 @@ const MENSAJES: Record<string, Record<string, string>> = {
   // al dueño que espere un rato largo (cuota) o que avise al soporte
   // (configuración), en vez del mismo "intenta de nuevo" de siempre.
   cuota_excedida: { es: "Se alcanzó el límite de análisis con IA por ahora. Intenta de nuevo más tarde (en unos minutos u horas).", en: "The AI analysis limit was reached for now. Try again later (in a few minutes or hours).", pt: "O limite de análises com IA foi atingido por agora. Tente novamente mais tarde (em alguns minutos ou horas).", fr: "La limite d'analyses IA a été atteinte pour le moment. Réessayez plus tard (dans quelques minutes ou heures).", de: "Das Limit für KI-Analysen wurde vorübergehend erreicht. Versuche es später erneut (in ein paar Minuten oder Stunden).", zh: "AI 分析次数已达上限，请稍后再试（几分钟或几小时后）。", it: "Il limite di analisi IA è stato raggiunto per ora. Riprova più tardi (tra qualche minuto o ora)." },
+  // Groq renueva su catálogo seguido: cuando el modelo configurado
+  // desaparece, esto NO se arregla reintentando ni esperando, se
+  // arregla cambiando una variable de entorno. Merece su propio texto.
+  modelo_invalido: { es: "El modelo de IA configurado ya no está disponible. Revisa Configuración → Ayuda → Probar la IA para ver cuál usar.", en: "The configured AI model is no longer available. Check Settings → Help → Test the AI to see which one to use.", pt: "O modelo de IA configurado já não está disponível. Veja Configurações → Ajuda → Testar a IA para saber qual usar.", fr: "Le modèle d'IA configuré n'est plus disponible. Voyez Configuration → Aide → Tester l'IA pour savoir lequel utiliser.", de: "Das eingestellte KI-Modell ist nicht mehr verfügbar. Schau unter Einstellungen → Hilfe → KI testen, welches du nehmen kannst.", zh: "配置的 AI 模型已不可用。请到 设置 → 帮助 → 测试 AI 查看该用哪一个。", it: "Il modello IA configurato non è più disponibile. Guarda Configurazione → Aiuto → Prova l'IA per sapere quale usare." },
   configuracion_invalida: { es: "El análisis con IA no está disponible en este momento. Contacta a soporte.", en: "AI analysis isn't available right now. Contact support.", pt: "A análise com IA não está disponível no momento. Entre em contato com o suporte.", fr: "L'analyse IA n'est pas disponible pour le moment. Contactez le support.", de: "Die KI-Analyse ist derzeit nicht verfügbar. Wende dich an den Support.", zh: "AI 分析目前不可用，请联系支持团队。", it: "L'analisi IA non è disponibile al momento. Contatta l'assistenza." },
 };
 
@@ -84,7 +88,7 @@ export async function POST(request: Request) {
     // de AI Studio.
     //
     // Ojo: el modelo de Groq tiene que saber VER. Va en su propia
-    // variable (GROQ_MODELO_VISION) justo por eso.
+    // variable (GROQ_MODEL_VISION) justo por eso.
     const resultado = hayGroq()
       ? await analizarImagenProductoGroq(imagenBase64, mimeType, idioma, categoriasExistentes)
       : await analizarImagenProducto(imagenBase64, mimeType, idioma, categoriasExistentes);
@@ -104,6 +108,19 @@ export async function POST(request: Request) {
       if (error.status === 429) {
         return NextResponse.json({ error: mensaje("cuota_excedida", idioma) }, { status: 429 });
       }
+      // Un modelo retirado devuelve 404, o un 400 que lo menciona. Es el
+      // fallo más común con Groq, que renueva su catálogo seguido, y
+      // decirle a la persona "intenta de nuevo en un momento" la manda a
+      // reintentar algo que no va a funcionar nunca: hay que cambiar la
+      // variable de entorno. Ya se distinguía en el diagnóstico; faltaba
+      // aquí, que es donde de verdad se topa con ello.
+      if (
+        error.status === 404 ||
+        (error.status === 400 && /model|decommission|not found/i.test(error.message))
+      ) {
+        return NextResponse.json({ error: mensaje("modelo_invalido", idioma) }, { status: 500 });
+      }
+
       // 402 es "hace falta pagar" (plan agotado). Va con los de
       // configuración y no con los transitorios porque reintentar no lo
       // arregla. Ojo: en la capa gratuita de Groq lo normal NO es este,

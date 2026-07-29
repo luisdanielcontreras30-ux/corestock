@@ -22,7 +22,7 @@ const URL_GROQ = "https://api.groq.com/openai/v1/chat/completions";
 
 // Groq renueva y retira modelos con bastante frecuencia, así que estos
 // son solo un punto de partida razonable: se cambian con GROQ_MODEL y
-// GROQ_MODELO_VISION sin tocar código. Si el que está puesto ya no
+// GROQ_MODEL_VISION sin tocar código. Si el que está puesto ya no
 // existe, la prueba de Configuración → Ayuda lo dice tal cual
 // ("model not found") en vez de dejar el Asistente mudo sin explicar.
 const MODELO_POR_DEFECTO = "llama-3.3-70b-versatile";
@@ -30,6 +30,19 @@ const MODELO_POR_DEFECTO = "llama-3.3-70b-versatile";
 // Analizar la foto de un producto necesita un modelo que sepa VER, y
 // esos son pocos. Va en su propia variable para que abaratar o cambiar
 // el modelo de texto no rompa el análisis de fotos.
+// El nombre correcto es GROQ_MODEL_VISION, en inglés como GROQ_MODEL.
+// GROQ_MODELO_VISION (medio en español) se acepta porque fue el nombre
+// original y alguien ya puede tenerlo puesto — cambiarlo a secas le
+// apagaría el análisis de fotos sin decirle nada.
+//
+// Que existieran dos convenciones era una trampa de verdad: quien
+// escribía el nombre "obvio" no recibía ningún error, la app usaba el
+// valor por defecto en silencio, y desde fuera eso se ve idéntico a
+// "el modelo por defecto no sirve".
+export function modeloVisionConfigurado(): string | undefined {
+  return process.env.GROQ_MODEL_VISION || process.env.GROQ_MODELO_VISION;
+}
+
 const MODELO_VISION_POR_DEFECTO = "meta-llama/llama-4-scout-17b-16e-instruct";
 
 // Un asistente de negocio no necesita ensayos: respuestas largas
@@ -267,7 +280,7 @@ export async function analizarImagenProductoGroq(
   idioma: string,
   categoriasExistentes: string[] = []
 ): Promise<ResultadoAnalisisProducto> {
-  const modelo = process.env.GROQ_MODELO_VISION || MODELO_VISION_POR_DEFECTO;
+  const modelo = modeloVisionConfigurado() || MODELO_VISION_POR_DEFECTO;
 
   // La imagen viaja como data URI dentro del propio mensaje, en el
   // formato de partes de contenido de la API de chat.
@@ -310,7 +323,7 @@ export async function generarRespuestaVendedorGroq(
 // contestar cualquier cosa. Eso daría un "no funciona" falso justo
 // cuando sí funciona. Aquí solo importa que la llamada no reviente.
 export async function probarVisionGroq(): Promise<void> {
-  const modelo = process.env.GROQ_MODELO_VISION || MODELO_VISION_POR_DEFECTO;
+  const modelo = modeloVisionConfigurado() || MODELO_VISION_POR_DEFECTO;
 
   // PNG de 1x1 transparente: lo más chico que se puede mandar.
   const pixel =

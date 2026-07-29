@@ -45,7 +45,7 @@ Con una sola llave enciende **las tres** funciones de IA de la app: el Asistente
 
 - `GROQ_API_KEY` — API key de Groq (https://console.groq.com/keys). Groq tiene capa gratuita con límite de peticiones por minuto, así que se puede probar sin tarjeta. **Nunca** la expongas con prefijo `NEXT_PUBLIC_`: solo la usa el servidor. Si llegara al navegador, cualquiera que abra la app podría leerla y usarla por su cuenta.
 - `GROQ_MODEL` — opcional, modelo de texto (por defecto `llama-3.3-70b-versatile`). Lista y precios en https://console.groq.com/docs/models.
-- `GROQ_MODELO_VISION` — opcional, modelo para analizar fotos (por defecto `meta-llama/llama-4-scout-17b-16e-instruct`). Va aparte porque tiene que **saber ver imágenes**, y esos son pocos: así cambiar `GROQ_MODEL` no rompe el análisis de fotos.
+- `GROQ_MODEL_VISION` — opcional, modelo para analizar fotos (por defecto `meta-llama/llama-4-scout-17b-16e-instruct`). Va aparte porque tiene que **saber ver imágenes**, y esos son pocos: así cambiar `GROQ_MODEL` no rompe el análisis de fotos.
 
 > Groq retira y renueva modelos con frecuencia. Si el valor por defecto ya no existe, la llamada falla con `model not found` — el botón **Probar la IA** de Configuración → Ayuda te lo dice tal cual, y se arregla cambiando la variable, sin tocar código.
 

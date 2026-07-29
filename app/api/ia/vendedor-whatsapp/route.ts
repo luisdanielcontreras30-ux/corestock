@@ -15,6 +15,10 @@ const MENSAJES: Record<string, Record<string, string>> = {
   falta_pregunta: { es: "Escribe una pregunta para probar el vendedor.", en: "Type a question to test the seller.", pt: "Digite uma pergunta para testar o vendedor.", fr: "Saisissez une question pour tester le vendeur.", de: "Gib eine Frage ein, um den Verkäufer zu testen.", zh: "请输入一个问题来测试销售助手。", it: "Scrivi una domanda per testare il venditore." },
   fallo_respuesta: { es: "No se pudo generar la respuesta. Intenta de nuevo en un momento.", en: "Couldn't generate the reply. Try again in a moment.", pt: "Não foi possível gerar a resposta. Tente novamente em instantes.", fr: "Impossible de générer la réponse. Réessayez dans un instant.", de: "Antwort konnte nicht erstellt werden. Versuche es gleich noch einmal.", zh: "无法生成回复，请稍后重试。", it: "Impossibile generare la risposta. Riprova tra un momento." },
   cuota_excedida: { es: "Se alcanzó el límite de análisis con IA por ahora. Intenta de nuevo más tarde (en unos minutos u horas).", en: "The AI limit was reached for now. Try again later (in a few minutes or hours).", pt: "O limite de IA foi atingido por agora. Tente novamente mais tarde (em alguns minutos ou horas).", fr: "La limite d'IA a été atteinte pour le moment. Réessayez plus tard (dans quelques minutes ou heures).", de: "Das KI-Limit wurde vorübergehend erreicht. Versuche es später erneut (in ein paar Minuten oder Stunden).", zh: "AI 次数已达上限，请稍后再试（几分钟或几小时后）。", it: "Il limite IA è stato raggiunto per ora. Riprova più tardi (tra qualche minuto o ora)." },
+  // Groq renueva su catálogo seguido: cuando el modelo configurado
+  // desaparece, esto NO se arregla reintentando ni esperando, se
+  // arregla cambiando una variable de entorno. Merece su propio texto.
+  modelo_invalido: { es: "El modelo de IA configurado ya no está disponible. Revisa Configuración → Ayuda → Probar la IA para ver cuál usar.", en: "The configured AI model is no longer available. Check Settings → Help → Test the AI to see which one to use.", pt: "O modelo de IA configurado já não está disponível. Veja Configurações → Ajuda → Testar a IA para saber qual usar.", fr: "Le modèle d'IA configuré n'est plus disponible. Voyez Configuration → Aide → Tester l'IA pour savoir lequel utiliser.", de: "Das eingestellte KI-Modell ist nicht mehr verfügbar. Schau unter Einstellungen → Hilfe → KI testen, welches du nehmen kannst.", zh: "配置的 AI 模型已不可用。请到 设置 → 帮助 → 测试 AI 查看该用哪一个。", it: "Il modello IA configurato non è più disponibile. Guarda Configurazione → Aiuto → Prova l'IA per sapere quale usare." },
   configuracion_invalida: { es: "El vendedor con IA no está disponible en este momento. Contacta a soporte.", en: "The AI seller isn't available right now. Contact support.", pt: "O vendedor com IA não está disponível no momento. Entre em contato com o suporte.", fr: "Le vendeur IA n'est pas disponible pour le moment. Contactez le support.", de: "Der KI-Verkäufer ist derzeit nicht verfügbar. Wende dich an den Support.", zh: "AI 销售助手目前不可用，请联系支持团队。", it: "Il venditore IA non è disponibile al momento. Contatta l'assistenza." },
 };
 
@@ -104,6 +108,19 @@ export async function POST(request: Request) {
       if (error.status === 429) {
         return NextResponse.json({ error: mensaje("cuota_excedida", idioma) }, { status: 429 });
       }
+      // Un modelo retirado devuelve 404, o un 400 que lo menciona. Es el
+      // fallo más común con Groq, que renueva su catálogo seguido, y
+      // decirle a la persona "intenta de nuevo en un momento" la manda a
+      // reintentar algo que no va a funcionar nunca: hay que cambiar la
+      // variable de entorno. Ya se distinguía en el diagnóstico; faltaba
+      // aquí, que es donde de verdad se topa con ello.
+      if (
+        error.status === 404 ||
+        (error.status === 400 && /model|decommission|not found/i.test(error.message))
+      ) {
+        return NextResponse.json({ error: mensaje("modelo_invalido", idioma) }, { status: 500 });
+      }
+
       // 402 es "hace falta pagar" (plan agotado). Va con los de
       // configuración y no con los transitorios porque reintentar no lo
       // arregla. Ojo: en la capa gratuita de Groq lo normal NO es este,
