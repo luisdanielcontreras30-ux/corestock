@@ -1,19 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { SlidersHorizontal, Palette, BarChart3, LucideIcon } from "lucide-react";
+import { SlidersHorizontal, Palette, BarChart3, Store, LucideIcon } from "lucide-react";
 import { useTheme, Tema } from "../../../components/ThemeProvider";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
 import { useModoInterfaz, ModoInterfaz } from "../../../components/ModoInterfazProvider";
 import SelectorModoInterfaz from "../../../components/SelectorModoInterfaz";
+import CatalogoAparienciaTab from "./CatalogoAparienciaTab";
 
-type SubSeccion = "interfaz" | "temas" | "graficas";
+type SubSeccion = "interfaz" | "temas" | "graficas" | "catalogo";
 
 const SUBSECCIONES: { id: SubSeccion; clave: string; Icono: LucideIcon }[] = [
   { id: "interfaz", clave: "config.apariencia.tab_interfaz", Icono: SlidersHorizontal },
   { id: "temas", clave: "config.apariencia.tab_temas", Icono: Palette },
   { id: "graficas", clave: "config.apariencia.tab_graficas", Icono: BarChart3 },
+  // El color del catálogo público estaba perdido en Empresa, entre el
+  // RFC y la zona horaria. Es un ajuste de aspecto y va con los demás.
+  { id: "catalogo", clave: "config.apariencia.tab_catalogo", Icono: Store },
 ];
 
 interface OpcionTema {
@@ -258,6 +262,8 @@ export default function ApariciarenciaTab() {
       </div>
     </div>
     )}
+
+    {subSeccion === "catalogo" && <CatalogoAparienciaTab />}
     </div>
   );
 }

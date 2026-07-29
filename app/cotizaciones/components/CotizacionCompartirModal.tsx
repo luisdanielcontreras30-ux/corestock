@@ -125,7 +125,6 @@ export default function CotizacionCompartirModal({ cotizacion, onClose }: Props)
               <div>
                 <h1>{nombreNegocio}</h1>
                 <p>{t("cotizaciones.hoja_subtitulo")}</p>
-                {empresa?.rfc && <p>{empresa.rfc}</p>}
                 {empresa?.direccion && <p>{empresa.direccion}</p>}
               </div>
             </div>

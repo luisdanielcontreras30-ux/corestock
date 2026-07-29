@@ -96,16 +96,6 @@ export default function EmpresaTab() {
   async function alGuardar() {
     if (guardando) return;
 
-    // El selector <input type="color"> de al lado siempre manda un hex
-    // válido, pero este campo de texto es libre — un valor inválido
-    // ahí se usa tal cual como color de fondo en el catálogo público
-    // (app/catalogo/[userId]/page.tsx), donde el navegador simplemente
-    // lo ignora sin avisar a nadie.
-    if (!/^#[0-9a-fA-F]{6}$/.test(empresa.color_principal)) {
-      setMensaje({ tipo: "error", texto: t("empresa.msg_color_invalido") });
-      return;
-    }
-
     setGuardando(true);
     setMensaje(null);
 
@@ -260,15 +250,6 @@ export default function EmpresaTab() {
         </div>
 
         <div>
-          <label>{t("empresa.rfc")}</label>
-          <input
-            value={empresa.rfc}
-            onChange={(e) => actualizarCampo("rfc", e.target.value)}
-            placeholder={t("empresa.rfc_placeholder")}
-          />
-        </div>
-
-        <div>
           <label>{t("empresa.moneda")}</label>
           <SelectorPersonalizado
             value={empresa.moneda}
@@ -308,26 +289,6 @@ export default function EmpresaTab() {
               </OpcionSelector>
             ))}
           </SelectorPersonalizado>
-        </div>
-
-        <div>
-          <label>{t("empresa.color_principal")}</label>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <input
-              type="color"
-              value={empresa.color_principal}
-              onChange={(e) =>
-                actualizarCampo("color_principal", e.target.value)
-              }
-              style={{ width: 46, height: 40, padding: 2, cursor: "pointer" }}
-            />
-            <input
-              value={empresa.color_principal}
-              onChange={(e) =>
-                actualizarCampo("color_principal", e.target.value)
-              }
-            />
-          </div>
         </div>
       </div>
 

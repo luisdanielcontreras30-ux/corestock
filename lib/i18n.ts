@@ -98,6 +98,12 @@ export const TRADUCCIONES: Diccionario = {
   "config.apariencia.tab_interfaz": { es: "Interfaz", en: "Interface", pt: "Interface", fr: "Interface", de: "Oberfläche", zh: "界面", it: "Interfaccia" },
   "config.apariencia.tab_temas": { es: "Temas", en: "Themes", pt: "Temas", fr: "Thèmes", de: "Designs", zh: "主题", it: "Temi" },
   "config.apariencia.tab_graficas": { es: "Gráficas", en: "Charts", pt: "Gráficos", fr: "Graphiques", de: "Diagramme", zh: "图表", it: "Grafici" },
+  "config.apariencia.tab_catalogo": { es: "Catálogo", en: "Catalog", pt: "Catálogo", fr: "Catalogue", de: "Katalog", zh: "商品目录", it: "Catalogo" },
+  "catalogo_apariencia.titulo": { es: "Apariencia del catálogo", en: "Catalog appearance", pt: "Aparência do catálogo", fr: "Apparence du catalogue", de: "Aussehen des Katalogs", zh: "商品目录外观", it: "Aspetto del catalogo" },
+  "catalogo_apariencia.subtitulo": { es: "El color con el que ven tu catálogo en línea las personas que le compran. No cambia nada dentro de la app: solo la página pública que compartes.", en: "The color people see when they open your online catalog. It doesn't change anything inside the app — only the public page you share.", pt: "A cor com que as pessoas veem seu catálogo online. Não muda nada dentro do app: apenas a página pública que você compartilha.", fr: "La couleur que voient les personnes qui ouvrent votre catalogue en ligne. Cela ne change rien dans l'application : seulement la page publique que vous partagez.", de: "Die Farbe, die Leute sehen, wenn sie deinen Online-Katalog öffnen. In der App ändert sich nichts — nur die öffentliche Seite, die du teilst.", zh: "顾客打开你的在线商品目录时看到的颜色。不会改变应用内部的任何东西，只影响你分享的公开页面。", it: "Il colore con cui le persone vedono il tuo catalogo online. Non cambia nulla dentro l'app: solo la pagina pubblica che condividi." },
+  "catalogo_apariencia.vista_previa": { es: "Así se va a ver", en: "This is how it will look", pt: "Assim vai ficar", fr: "Voici le rendu", de: "So wird es aussehen", zh: "效果预览", it: "Ecco come apparirà" },
+  "catalogo_apariencia.negocio_ejemplo": { es: "Tu negocio", en: "Your business", pt: "Seu negócio", fr: "Votre entreprise", de: "Dein Betrieb", zh: "你的店铺", it: "La tua attività" },
+  "catalogo_apariencia.producto_ejemplo": { es: "Producto de ejemplo", en: "Sample product", pt: "Produto de exemplo", fr: "Produit d'exemple", de: "Beispielprodukt", zh: "示例商品", it: "Prodotto di esempio" },
 
   // Configuración - Cuenta
   "cuenta.titulo": { es: "Mi cuenta", en: "My account", pt: "Minha conta", fr: "Mon compte", de: "Mein Konto", zh: "我的账户", it: "Il mio account" },
@@ -339,8 +345,6 @@ export const TRADUCCIONES: Diccionario = {
   "empresa.direccion": { es: "Dirección", en: "Address", pt: "Endereço", fr: "Adresse", de: "Adresse", zh: "地址", it: "Indirizzo" },
   "empresa.telefono": { es: "Teléfono", en: "Phone", pt: "Telefone", fr: "Téléphone", de: "Telefon", zh: "电话", it: "Telefono" },
   "empresa.correo": { es: "Correo electrónico", en: "Email", pt: "E-mail", fr: "E-mail", de: "E-Mail", zh: "电子邮箱", it: "Email" },
-  "empresa.rfc": { es: "RFC / NIF", en: "Tax ID", pt: "CNPJ / CPF", fr: "Numéro fiscal", de: "Steuernummer", zh: "税号", it: "Partita IVA / Codice fiscale" },
-  "empresa.rfc_placeholder": { es: "Según tu país", en: "Depends on your country", pt: "Depende do seu país", fr: "Selon votre pays", de: "Je nach Land", zh: "视您所在国家而定", it: "Secondo il tuo paese" },
   "empresa.direccion_placeholder": { es: "Calle, número, ciudad", en: "Street, number, city", pt: "Rua, número, cidade", fr: "Rue, numéro, ville", de: "Straße, Hausnummer, Stadt", zh: "街道、门牌号、城市", it: "Via, numero, città" },
   "empresa.moneda": { es: "Moneda", en: "Currency", pt: "Moeda", fr: "Devise", de: "Währung", zh: "货币", it: "Valuta" },
   "empresa.zona_horaria": { es: "Zona horaria", en: "Time zone", pt: "Fuso horário", fr: "Fuseau horaire", de: "Zeitzone", zh: "时区", it: "Fuso orario" },
