@@ -8,7 +8,8 @@ import {
   listarModelosGroq,
   ErrorGroq,
   hayGroq,
-  modeloVisionConfigurado,
+  modeloTextoEnUso,
+  modeloVisionEnUso,
   ContextoNegocio,
   MensajeChat,
 } from "../../../../lib/groq";
@@ -216,15 +217,20 @@ export async function GET(request: Request) {
     );
   }
 
-  const modeloTexto = process.env.GROQ_MODEL || "llama-3.3-70b-versatile (por defecto)";
-  const modeloVision =
-    modeloVisionConfigurado() || "meta-llama/llama-4-scout-17b-16e-instruct (por defecto)";
+  // Los nombres salen de lib/groq.ts, no escritos a mano acá: es la
+  // ÚNICA forma de garantizar que el diagnóstico nombre el mismo modelo
+  // que la app usa de verdad. Tenerlos duplicados significaba que
+  // cambiar un valor por defecto convertía esta pantalla en una mentira
+  // — y es la pantalla a la que se acude justo cuando no se sabe qué
+  // está pasando.
+  const modeloTexto = modeloTextoEnUso();
+  const modeloVision = modeloVisionEnUso();
 
   if (!hayGroq()) {
     return NextResponse.json({
       configurada: false,
-      texto: { motivo: "sin_llave", modelo: modeloTexto },
-      vision: { motivo: "sin_llave", modelo: modeloVision },
+      texto: { motivo: "sin_llave", ...modeloTexto },
+      vision: { motivo: "sin_llave", ...modeloVision },
     });
   }
 
@@ -257,12 +263,12 @@ export async function GET(request: Request) {
       },
       "es"
     )
-      .then(() => ({ motivo: "ok", modelo: modeloTexto }))
-      .catch((error) => ({ ...clasificar(error), modelo: modeloTexto })),
+      .then(() => ({ motivo: "ok", ...modeloTexto }))
+      .catch((error) => ({ ...clasificar(error), ...modeloTexto })),
 
     probarVisionGroq()
-      .then(() => ({ motivo: "ok", modelo: modeloVision }))
-      .catch((error) => ({ ...clasificar(error), modelo: modeloVision })),
+      .then(() => ({ motivo: "ok", ...modeloVision }))
+      .catch((error) => ({ ...clasificar(error), ...modeloVision })),
   ]);
 
   // La lista real solo hace falta cuando hay algo que arreglar. Pedirla

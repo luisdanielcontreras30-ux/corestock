@@ -39,11 +39,31 @@ const MODELO_POR_DEFECTO = "llama-3.3-70b-versatile";
 // escribía el nombre "obvio" no recibía ningún error, la app usaba el
 // valor por defecto en silencio, y desde fuera eso se ve idéntico a
 // "el modelo por defecto no sirve".
-export function modeloVisionConfigurado(): string | undefined {
+function modeloVisionConfigurado(): string | undefined {
   return process.env.GROQ_MODEL_VISION || process.env.GROQ_MODELO_VISION;
 }
 
 const MODELO_VISION_POR_DEFECTO = "meta-llama/llama-4-scout-17b-16e-instruct";
+
+// Qué modelo se va a usar de verdad. Existen para que NADIE más tenga
+// que repetir la expresión "variable de entorno o el de por defecto":
+// el diagnóstico de Configuración → Ayuda tenía los dos nombres por
+// defecto escritos a mano, así que al cambiarlos aquí habría empezado a
+// reportar un modelo distinto del que la app realmente usa. Un
+// diagnóstico que miente es peor que no tener diagnóstico.
+//
+// porDefecto viaja aparte (y no pegado al nombre) para que la pantalla
+// lo pueda traducir: aquí es código de servidor y no sabe en qué idioma
+// está la persona.
+export function modeloTextoEnUso(): { modelo: string; porDefecto: boolean } {
+  const configurado = process.env.GROQ_MODEL;
+  return { modelo: configurado || MODELO_POR_DEFECTO, porDefecto: !configurado };
+}
+
+export function modeloVisionEnUso(): { modelo: string; porDefecto: boolean } {
+  const configurado = modeloVisionConfigurado();
+  return { modelo: configurado || MODELO_VISION_POR_DEFECTO, porDefecto: !configurado };
+}
 
 // Un asistente de negocio no necesita ensayos: respuestas largas
 // cuestan más, tardan más y se leen peor en un celular tras el
@@ -178,7 +198,7 @@ export async function generarRespuestaAsistente(
     throw new ErrorGroq("Falta configurar GROQ_API_KEY en el servidor.", 401);
   }
 
-  const modelo = process.env.GROQ_MODEL || MODELO_POR_DEFECTO;
+  const { modelo } = modeloTextoEnUso();
 
   const mensajes = [
     { role: "system", content: construirSistema(contexto, idioma) },
@@ -280,7 +300,7 @@ export async function analizarImagenProductoGroq(
   idioma: string,
   categoriasExistentes: string[] = []
 ): Promise<ResultadoAnalisisProducto> {
-  const modelo = modeloVisionConfigurado() || MODELO_VISION_POR_DEFECTO;
+  const { modelo } = modeloVisionEnUso();
 
   // La imagen viaja como data URI dentro del propio mensaje, en el
   // formato de partes de contenido de la API de chat.
@@ -306,7 +326,7 @@ export async function generarRespuestaVendedorGroq(
   productos: ProductoParaVendedor[],
   idioma: string
 ): Promise<string> {
-  const modelo = process.env.GROQ_MODEL || MODELO_POR_DEFECTO;
+  const { modelo } = modeloTextoEnUso();
 
   return pedirTexto(
     modelo,
@@ -323,7 +343,7 @@ export async function generarRespuestaVendedorGroq(
 // contestar cualquier cosa. Eso daría un "no funciona" falso justo
 // cuando sí funciona. Aquí solo importa que la llamada no reviente.
 export async function probarVisionGroq(): Promise<void> {
-  const modelo = modeloVisionConfigurado() || MODELO_VISION_POR_DEFECTO;
+  const { modelo } = modeloVisionEnUso();
 
   // PNG de 1x1 transparente: lo más chico que se puede mandar.
   const pixel =
@@ -340,7 +360,14 @@ export async function probarVisionGroq(): Promise<void> {
         ],
       },
     ],
-    { temperatura: 0, maxTokens: 5, plazoMs: 30000 }
+    // 5 tokens parecían de sobra para contestar "ok", pero un modelo
+    // sano que empiece con cualquier cosa antes (una cortesía, o el
+    // bloque de razonamiento que emiten los modelos de razonamiento) se
+    // queda cortado a la mitad y devuelve contenido vacío. Eso hace que
+    // pedirTexto lo dé por roto: un "las fotos no funcionan" falso justo
+    // cuando sí funcionan, que es el error más caro que puede cometer un
+    // diagnóstico. 64 sigue siendo una llamada insignificante.
+    { temperatura: 0, maxTokens: 64, plazoMs: 30000 }
   );
 }
 

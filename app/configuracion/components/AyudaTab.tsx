@@ -18,6 +18,10 @@ interface ResultadoModelo {
   motivo: string;
   detalle?: string;
   modelo?: string;
+  // true cuando nadie configuró ese modelo y se está usando el que trae
+  // la app. Viaja como bandera y no pegado al nombre porque el servidor
+  // no sabe en qué idioma está la persona: la etiqueta se traduce aquí.
+  porDefecto?: boolean;
 }
 
 interface EstadoIA {
@@ -29,6 +33,7 @@ interface EstadoIA {
   modelosDisponibles?: string[];
   // Solo cuando el fallo es del navegador y ni se llegó a preguntar.
   motivo?: string;
+  detalle?: string;
 }
 
 export default function AyudaTab() {
@@ -58,10 +63,36 @@ export default function AyudaTab() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // El 429 del diagnóstico trae el mismo cuerpo que un resultado
-      // normal, así que se muestra igual: la fila explica que se
-      // hicieron demasiadas comprobaciones seguidas.
-      setEstadoIA(await respuesta.json());
+      let cuerpo: unknown = null;
+      try {
+        cuerpo = await respuesta.json();
+      } catch {
+        // Un 502 del hosting o una página de error devuelven HTML, no
+        // JSON. No es un fallo de red: el servidor contestó.
+      }
+
+      // No todo lo que responde esta ruta es un diagnóstico. Un 401 (la
+      // sesión caducó entre abrir la pantalla y pulsar el botón) o un
+      // error del hosting traen otra forma, y guardarla tal cual dejaba
+      // la pantalla EXACTAMENTE igual que antes de pulsar: sin fila, sin
+      // error, sin nada. Es el fallo silencioso que este botón existe
+      // para eliminar, ocurriendo dentro del propio botón.
+      //
+      // El 429 sí trae la forma normal (con sus dos filas), así que pasa
+      // por aquí sin tratamiento especial.
+      const esDiagnostico =
+        !!cuerpo && typeof cuerpo === "object" && ("texto" in cuerpo || "motivo" in cuerpo);
+
+      if (!esDiagnostico) {
+        setEstadoIA(
+          respuesta.status === 401
+            ? { configurada: false, motivo: "sin_sesion" }
+            : { configurada: false, motivo: "sin_respuesta", detalle: `HTTP ${respuesta.status}` }
+        );
+        return;
+      }
+
+      setEstadoIA(cuerpo as EstadoIA);
     } catch (error) {
       console.error(error);
       setEstadoIA({ configurada: false, motivo: "sin_red" });
@@ -131,7 +162,7 @@ export default function AyudaTab() {
         </button>
 
         {estadoIA?.motivo && (
-          <Fila etiqueta="" resultado={{ motivo: estadoIA.motivo }} t={t} />
+          <Fila etiqueta="" resultado={{ motivo: estadoIA.motivo, detalle: estadoIA.detalle }} t={t} />
         )}
 
         {estadoIA?.texto && (
@@ -261,6 +292,10 @@ function Fila({
         {resultado.modelo && (
           <p style={{ margin: "8px 0 0 0", fontSize: 11.5, color: "var(--text-secondary)" }}>
             {t("ayuda.ia_modelo")} {resultado.modelo}
+            {/* Saber que el modelo NO lo eligió nadie es media respuesta
+                cuando algo falla: dice que la variable de entorno está
+                sin poner, no mal puesta. */}
+            {resultado.porDefecto && ` ${t("ayuda.ia_modelo_por_defecto")}`}
           </p>
         )}
       </div>
