@@ -20,7 +20,6 @@ import {
   CalendarClock,
   UserCircle,
   BookOpen,
-  Bot,
   MessageCircle,
   Landmark,
   PlayCircle,
@@ -105,7 +104,6 @@ export const SECCIONES_NAV: SeccionNav[] = [
     items: [
       { claveNombre: "sidebar.suscripcion", href: "/suscripcion", Icono: Crown, colorMovil: "#f59e0b" },
       { claveNombre: "sidebar.configuracion", href: "/configuracion", Icono: Settings, colorMovil: "#64748b" },
-      { claveNombre: "sidebar.empleados_ia", href: "/empleados-ia", Icono: Bot, proximamente: true, colorMovil: "#4f46e5" },
       { claveNombre: "sidebar.tutoriales", href: "/tutoriales", Icono: PlayCircle, colorMovil: "#0891b2" },
     ],
   },

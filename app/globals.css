@@ -28,6 +28,13 @@ body {
 }
 
 :root {
+  /* Color de identidad del módulo abierto. Lo escribe
+     components/EncabezadoModulo.tsx en cada pantalla; este valor solo
+     actúa donde no hay encabezado propio. Ver lib/colorModulo.ts para
+     la regla (color del icono en claro/oscuro, color del tema en el
+     resto). */
+  --modulo-color: var(--primary);
+
   /* --- Paleta por defecto: tema Claro (primer uso, antes de que
      ThemeProvider aplique el tema guardado/elegido) --- */
   /* Sin esto, controles nativos del sistema operativo (el popup de
@@ -5649,7 +5656,7 @@ select optgroup {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #ea580c;
+  color: var(--modulo-color);
   margin: 0;
 }
 
@@ -5689,14 +5696,14 @@ select optgroup {
 }
 
 .fabricacion-paso-circulo-primero {
-  background: #ea580c;
+  background: var(--modulo-color);
   color: #fff;
 }
 
 .fabricacion-paso-circulo-resto {
   background: transparent;
-  border: 2px solid #ea580c;
-  color: #ea580c;
+  border: 2px solid var(--modulo-color);
+  color: var(--modulo-color);
 }
 
 .fabricacion-paso-texto {
@@ -5819,8 +5826,8 @@ select optgroup {
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: rgba(234, 88, 12, 0.12);
-  color: #ea580c;
+  background: color-mix(in srgb, var(--modulo-color) 12%, transparent);
+  color: var(--modulo-color);
 }
 
 .fabricacion-stock-card-nombre {
@@ -5980,8 +5987,8 @@ select optgroup {
   max-width: 100%;
   font-size: 10.5px;
   font-weight: 600;
-  color: #ea580c;
-  background: rgba(234, 88, 12, 0.12);
+  color: var(--modulo-color);
+  background: color-mix(in srgb, var(--modulo-color) 12%, transparent);
   border-radius: 999px;
   padding: 2px 8px;
   overflow: hidden;
@@ -6027,8 +6034,8 @@ select optgroup {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: rgba(234, 88, 12, 0.12);
-  color: #ea580c;
+  background: color-mix(in srgb, var(--modulo-color) 12%, transparent);
+  color: var(--modulo-color);
   flex-shrink: 0;
 }
 

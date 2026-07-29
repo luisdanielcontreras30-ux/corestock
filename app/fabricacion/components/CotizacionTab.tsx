@@ -272,12 +272,12 @@ export default function CotizacionTab({ productos, materiasPrimas, recetas }: Pr
               flexDirection: "column",
               gap: 2,
               padding: "10px 14px",
-              background: "rgba(234, 88, 12, 0.12)",
-              border: "1px solid rgba(234, 88, 12, 0.4)",
+              background: "color-mix(in srgb, var(--modulo-color) 12%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--modulo-color) 40%, transparent)",
               borderRadius: 10,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14, fontWeight: 700, color: "#ea580c" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14, fontWeight: 700, color: "var(--modulo-color)" }}>
               <span>{t("fabricacion.cotizacion_precio_sugerido")}</span>
               <span>{formatoMoneda(precioSugeridoCotizacion)}</span>
             </div>

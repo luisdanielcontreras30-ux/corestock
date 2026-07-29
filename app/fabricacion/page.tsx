@@ -240,13 +240,13 @@ function FabricacionContenido() {
                   width: 56,
                   height: 56,
                   borderRadius: "50%",
-                  background: "rgba(234, 88, 12, 0.12)",
+                  background: "color-mix(in srgb, var(--modulo-color) 12%, transparent)",
                   display: "grid",
                   placeItems: "center",
                   margin: "0 auto 16px",
                 }}
               >
-                <Factory size={26} color="#ea580c" />
+                <Factory size={26} color="var(--modulo-color)" />
               </div>
               <h2 style={{ marginBottom: 8 }}>{t("fabricacion.vacio_titulo")}</h2>
               <p style={{ color: "var(--text-secondary)", fontSize: 13.5, maxWidth: 420, margin: "0 auto 20px" }}>

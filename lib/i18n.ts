@@ -53,7 +53,6 @@ export const TRADUCCIONES: Diccionario = {
   "sidebar.sistema": { es: "Sistema", en: "System", pt: "Sistema", fr: "Système", de: "System", zh: "系统", it: "Sistema" },
   "sidebar.configuracion": { es: "Configuración", en: "Settings", pt: "Configurações", fr: "Paramètres", de: "Einstellungen", zh: "设置", it: "Impostazioni" },
   "sidebar.suscripcion": { es: "Suscripción", en: "Subscription", pt: "Assinatura", fr: "Abonnement", de: "Abonnement", zh: "订阅", it: "Abbonamento" },
-  "sidebar.empleados_ia": { es: "Empleados IA", en: "AI Employees", pt: "Funcionários IA", fr: "Employés IA", de: "KI-Mitarbeiter", zh: "AI员工", it: "Dipendenti IA" },
   "sidebar.tutoriales": { es: "Tutoriales", en: "Tutorials", pt: "Tutoriais", fr: "Tutoriels", de: "Anleitungen", zh: "教程", it: "Tutorial" },
 
   // Página "Más" (móvil) y páginas "Próximamente"
