@@ -65,6 +65,35 @@ async function errorDesdeRespuesta(respuesta: Response): Promise<ErrorGoogleAI> 
   return new ErrorGoogleAI(detalle, esClaveInvalida ? 401 : respuesta.status);
 }
 
+// Ajustes de generationConfig que son OPTIMIZACIONES, no requisitos:
+//
+// - thinkingConfig.thinkingBudget: 0 apaga el razonamiento para ahorrar
+//   tokens y tiempo. Los modelos Gemini recientes (a los que apunta hoy
+//   el alias gemini-flash-latest) NO dejan apagarlo y rechazan la
+//   petición entera con "Request contains an invalid argument".
+// - responseMimeType: "application/json" pide la respuesta ya en JSON.
+//   No todos los modelos lo aceptan, y no hace falta: quien parsea
+//   (extraerResultadoProducto) ya sabe rescatar el JSON de un texto
+//   suelto, que es justo para lo que se escribió.
+//
+// Perder cualquiera de las dos cuesta unos tokens; que la petición falle
+// cuesta la función entera. Por eso, ante un 400 de "argumento
+// inválido", se reintenta UNA vez sin ellas en vez de rendirse: así un
+// modelo nuevo funciona sin que nadie tenga que averiguar cuál de los
+// dos parámetros le molestaba.
+const AJUSTES_PRESCINDIBLES = ["thinkingConfig", "responseMimeType"];
+
+function sinAjustesPrescindibles(
+  generationConfig: Record<string, unknown>
+): Record<string, unknown> | null {
+  const sobrantes = AJUSTES_PRESCINDIBLES.filter((clave) => clave in generationConfig);
+  if (sobrantes.length === 0) return null;
+
+  const reducido = { ...generationConfig };
+  for (const clave of sobrantes) delete reducido[clave];
+  return reducido;
+}
+
 // Núcleo compartido: manda las partes del mensaje y devuelve el texto.
 // Todo lo delicado (plazo, respuesta vacía, errores) vive aquí una sola
 // vez, igual que pedirTexto() en lib/groq.ts.
@@ -83,27 +112,44 @@ async function pedirTexto(
 
   const { modelo } = modeloGoogleEnUso();
 
-  // Sin plazo, una respuesta lenta deja la pantalla colgada y en un host
-  // serverless se come el tiempo de la función hasta que la cortan de
-  // golpe. Groq ya lo tenía; aquí faltaba, y ahora que Google es quien
-  // atiende las fotos importa mucho más.
-  const control = new AbortController();
-  const plazo = setTimeout(() => control.abort(), plazoMs);
+  async function pedirUnaVez(config: Record<string, unknown>): Promise<Response> {
+    // Sin plazo, una respuesta lenta deja la pantalla colgada y en un
+    // host serverless se come el tiempo de la función hasta que la
+    // cortan de golpe. Groq ya lo tenía; aquí faltaba, y ahora que
+    // Google es quien atiende las fotos importa mucho más.
+    const control = new AbortController();
+    const plazo = setTimeout(() => control.abort(), plazoMs);
 
-  let respuesta: Response;
+    try {
+      return await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: partes }], generationConfig: config }),
+          signal: control.signal,
+        }
+      );
+    } finally {
+      clearTimeout(plazo);
+    }
+  }
 
-  try {
-    respuesta = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: partes }], generationConfig }),
-        signal: control.signal,
-      }
-    );
-  } finally {
-    clearTimeout(plazo);
+  let respuesta = await pedirUnaVez(generationConfig);
+
+  if (respuesta.status === 400) {
+    // El cuerpo solo se puede leer una vez, así que se clona antes de
+    // mirarlo: si no es este caso, hay que poder construir el error
+    // normal con el cuerpo intacto.
+    const error = await errorDesdeRespuesta(respuesta.clone());
+    const reducido = sinAjustesPrescindibles(generationConfig);
+
+    if (reducido && /invalid argument|thinking|not supported/i.test(error.message)) {
+      console.warn(
+        `Google AI rechazó los ajustes opcionales (${error.message}). Se reintenta sin ellos.`
+      );
+      respuesta = await pedirUnaVez(reducido);
+    }
   }
 
   if (!respuesta.ok) {
