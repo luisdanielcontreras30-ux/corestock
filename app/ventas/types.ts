@@ -5,6 +5,9 @@ export interface Producto {
   stock: number;
   stock_minimo: number;
   imagen: string | null;
+  // La consulta siempre la trajo (usa select *); faltaba exponerla para
+  // poder agrupar el mostrador por categorías.
+  categoria: string | null;
 }
 
 export interface Cliente {

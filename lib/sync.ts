@@ -54,6 +54,7 @@ export async function sincronizarPendientes(
         stock: 0,
         stock_minimo: 0,
         imagen: null,
+        categoria: null,
       };
 
       await registrarVenta(

@@ -44,6 +44,7 @@ export async function cargarProductosVentaRapida(userId: string) {
         stock_minimo: p.stock_minimo,
         activo: true,
         imagen: p.imagen,
+        categoria: p.categoria,
         user_id: userId,
       }))
     );
@@ -65,6 +66,7 @@ export async function cargarProductosVentaRapida(userId: string) {
       stock: p.stock,
       stock_minimo: p.stock_minimo ?? 0,
       imagen: p.imagen,
+      categoria: p.categoria ?? null,
     }));
 
     // Las promociones no se cachean todavía (Fase 2) — sin conexión se

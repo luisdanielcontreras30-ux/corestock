@@ -103,6 +103,7 @@ export default function VentasRapidasPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [promociones, setPromociones] = useState<Promocion[]>([]);
   const [busqueda, setBusqueda] = useState("");
+  const [categoria, setCategoria] = useState<string>("");
   const [carrito, setCarrito] = useState<Map<number, number>>(new Map());
 
   const [panelAbierto, setPanelAbierto] = useState(false);
@@ -181,11 +182,33 @@ export default function VentasRapidasPage() {
     return calcularPrecioConDescuento(producto.precio_venta, promo);
   }
 
+  // Las categorías salen del propio catálogo, no de una lista aparte:
+  // así aparecen y desaparecen solas conforme se dan de alta productos,
+  // sin que nadie tenga que mantenerlas en ningún sitio.
+  const categorias = useMemo(() => {
+    const vistas = new Set<string>();
+    for (const p of productos) {
+      const nombre = p.categoria?.trim();
+      if (nombre) vistas.add(nombre);
+    }
+    return [...vistas].sort((a, b) => a.localeCompare(b));
+  }, [productos]);
+
+  // Si la categoría elegida se queda sin productos (se agotaron, se
+  // dieron de baja), el mostrador aparecería vacío sin explicación y con
+  // un filtro invisible puesto. Se resuelve derivando en vez de con un
+  // efecto que corrija el estado: así no hay un render intermedio con
+  // el mostrador en blanco, ni una cascada de renders.
+  const categoriaActiva = categoria && categorias.includes(categoria) ? categoria : "";
+
   const productosFiltrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
-    if (!texto) return productos;
-    return productos.filter((p) => p.nombre.toLowerCase().includes(texto));
-  }, [productos, busqueda]);
+    return productos.filter((p) => {
+      if (categoriaActiva && p.categoria?.trim() !== categoriaActiva) return false;
+      if (!texto) return true;
+      return p.nombre.toLowerCase().includes(texto);
+    });
+  }, [productos, busqueda, categoriaActiva]);
 
   const itemsCarrito: ItemCarrito[] = useMemo(() => {
     const items: ItemCarrito[] = [];
@@ -394,6 +417,35 @@ export default function VentasRapidasPage() {
               />
             </div>
 
+            {/* Filtro por categoría. En un mostrador con cien productos,
+                buscar por escrito es lento cuando ya sabes que quieres
+                "bebidas"; con dos toques se llega igual. Solo aparece si
+                hay categorías de verdad: con una tienda sin clasificar,
+                una fila de un solo chip sería ruido. */}
+            {categorias.length > 0 && (
+              <div className="venta-rapida-categorias">
+                <button
+                  type="button"
+                  className={`venta-rapida-chip ${categoriaActiva === "" ? "venta-rapida-chip-activo" : ""}`}
+                  onClick={() => setCategoria("")}
+                  aria-pressed={categoriaActiva === ""}
+                >
+                  {t("ventas_rapidas.categoria_todos")}
+                </button>
+                {categorias.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`venta-rapida-chip ${categoriaActiva === c ? "venta-rapida-chip-activo" : ""}`}
+                    onClick={() => setCategoria(c)}
+                    aria-pressed={categoriaActiva === c}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {productosFiltrados.length === 0 ? (
               <div
                 style={{
@@ -452,6 +504,9 @@ export default function VentasRapidasPage() {
                         <div className="venta-rapida-card-info">
                           <p className="venta-rapida-card-nombre">
                             {producto.nombre}
+                          </p>
+                          <p className="venta-rapida-card-stock">
+                            {t("dashboard.stock_actual")}: {producto.stock}
                           </p>
                           <p className="venta-rapida-card-precio">
                             {formatoMoneda(precio)}

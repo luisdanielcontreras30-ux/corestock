@@ -18,6 +18,10 @@ export interface ProductoCache {
   stock_minimo: number | null;
   activo: boolean;
   imagen: string | null;
+  // Opcional a propósito: las copias guardadas antes de que existiera
+  // este campo siguen siendo válidas y se leen como "sin categoría"
+  // hasta la próxima sincronización, que ya la trae.
+  categoria?: string | null;
   user_id: string;
 }
 
