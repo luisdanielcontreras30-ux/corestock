@@ -6774,3 +6774,278 @@ select optgroup {
   font-size: 11.5px;
   color: var(--text-secondary);
 }
+
+/* Preguntas sugeridas del asistente. Eran once botones sueltos que
+   llenaban media pantalla y empujaban la conversación —a lo que se
+   viene— por debajo del borde en un celular. Ahora son tres y un
+   "Ver más". */
+.asistente-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.asistente-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-hover);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.asistente-chip:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--modulo-color);
+}
+
+.asistente-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.asistente-chip-mas {
+  color: var(--modulo-color);
+  border-color: color-mix(in srgb, var(--modulo-color) 45%, transparent);
+}
+
+.asistente-chip svg {
+  transition: transform 0.25s ease;
+}
+
+.asistente-chip-flecha-abierta {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asistente-chip svg {
+    transition: none;
+  }
+}
+
+/* Con una sola fila de sugerencias en vez de cuatro, la conversación
+   puede subir y ocupar el sitio que se liberó. */
+@media (max-width: 768px) {
+  .asistente-hilo {
+    height: 64vh;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Resumen de módulo — tira de cifras bajo el encabezado. Es lo que
+   convierte una pantalla de "formulario + tabla" en un módulo con
+   estado propio, y se usa igual en todos para que se sientan de la
+   misma familia. Los números salen SIEMPRE de datos ya cargados.
+   --------------------------------------------------------------- */
+
+.modulo-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.modulo-resumen-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  transition: var(--transition-fast);
+}
+
+.modulo-resumen-item:hover {
+  border-color: color-mix(in srgb, var(--modulo-color) 45%, var(--border));
+}
+
+.modulo-resumen-icono {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--modulo-color) 12%, transparent);
+  color: var(--modulo-color);
+}
+
+.modulo-resumen-valor {
+  display: block;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.modulo-resumen-etiqueta {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+/* ---------------------------------------------------------------
+   Cuentas por cobrar — cada cliente es una tarjeta que se abre, con
+   su inicial, su antigüedad y su saldo a la vista. Antes eran tablas
+   apiladas y siempre abiertas: con diez clientes había que bajar
+   media pantalla para ver quién debía más.
+   --------------------------------------------------------------- */
+
+.deuda-tarjeta {
+  padding: 0;
+  overflow: hidden;
+}
+
+.deuda-cabecera {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.deuda-cabecera:hover {
+  background: var(--card-hover);
+}
+
+.deuda-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 17px;
+  font-weight: 700;
+  background: color-mix(in srgb, #facc15 20%, transparent);
+  color: #facc15;
+}
+
+.deuda-avatar-vieja {
+  background: color-mix(in srgb, #ef4444 20%, transparent);
+  color: #ef4444;
+}
+
+.deuda-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.deuda-nombre-fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.deuda-nombre {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.deuda-insignia {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #facc15 18%, transparent);
+  color: #facc15;
+}
+
+.deuda-insignia-vieja {
+  background: color-mix(in srgb, #ef4444 18%, transparent);
+  color: #ef4444;
+}
+
+.deuda-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.deuda-monto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.deuda-monto-etiqueta {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.deuda-monto-valor {
+  font-size: 19px;
+  font-weight: 700;
+  color: #facc15;
+  white-space: nowrap;
+}
+
+.deuda-monto-vieja {
+  color: #ef4444;
+}
+
+.deuda-flecha {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform 0.25s ease;
+}
+
+.deuda-tarjeta-abierta .deuda-flecha {
+  transform: rotate(180deg);
+}
+
+.deuda-cuerpo {
+  padding: 0 18px 18px;
+  animation: desplegar-cuerpo 0.22s ease;
+}
+
+/* En celular el saldo no cabe al lado del nombre: baja a su propia
+   línea en vez de encogerse hasta ser ilegible. */
+@media (max-width: 620px) {
+  .deuda-cabecera {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .deuda-monto {
+    align-items: flex-start;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deuda-flecha {
+    transition: none;
+  }
+
+  .deuda-cuerpo {
+    animation: none;
+  }
+}

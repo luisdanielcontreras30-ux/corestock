@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { HandCoins, Check } from "lucide-react";
+import { HandCoins, Check, ChevronDown, CalendarClock} from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
@@ -33,6 +33,11 @@ export default function CuentasPorCobrarPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [ventas, setVentas] = useState<VentaFiada[]>([]);
+  // Momento contra el que se mide la antigüedad. Se fija al cargar los
+  // datos y no se lee en cada render: leer el reloj mientras se dibuja
+  // hace que dos tarjetas de la misma lista puedan calcular días
+  // distintos, y es impuro (el lint del repo lo marca).
+  const [referenciaFecha, setReferenciaFecha] = useState(0);
   const [cobrando, setCobrando] = useState<number | null>(null);
 
   async function obtenerDatos() {
@@ -41,6 +46,7 @@ export default function CuentasPorCobrarPage() {
     try {
       const datos = await cargarPendientes();
       setVentas(datos);
+      setReferenciaFecha(Date.now());
     } catch (error) {
       console.error(error);
       setError(true);
@@ -173,55 +179,139 @@ export default function CuentasPorCobrarPage() {
         </div>
       ) : (
         deudas.map((deuda) => (
-          <div key={deuda.clienteId ?? deuda.nombre} className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
-              <h3 style={{ margin: 0 }}>{deuda.nombre}</h3>
-              <span style={{ fontWeight: 700, color: "#facc15" }}>{formatoMoneda(deuda.totalPendiente)}</span>
-            </div>
-
-            <div className="tabla">
-              <table>
-                <thead>
-                  <tr>
-                    <th>{t("tabla.fecha")}</th>
-                    <th>{t("tabla.producto")}</th>
-                    <th>{t("tabla.cantidad")}</th>
-                    <th>{t("tabla.total")}</th>
-                    <th>{t("productos.col_acciones")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deuda.ventas.map((venta) => (
-                    <tr key={venta.id}>
-                      <td>{new Date(venta.fecha).toLocaleDateString()}</td>
-                      <td>{venta.producto}</td>
-                      <td>{venta.cantidad}</td>
-                      <td>{formatoMoneda(venta.total)}</td>
-                      <td>
-                        {puedeCobrar ? (
-                          <button
-                            className="btn-success"
-                            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-                            disabled={cobrando === venta.id}
-                            onClick={() => cobrar(venta)}
-                          >
-                            <Check size={14} />
-                            {t("cuentas_por_cobrar.marcar_cobrado")}
-                          </button>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <TarjetaDeuda
+            key={deuda.clienteId ?? deuda.nombre}
+            deuda={deuda}
+            puedeCobrar={puedeCobrar}
+            cobrando={cobrando}
+            onCobrar={cobrar}
+            referenciaFecha={referenciaFecha}
+            t={t}
+          />
         ))
       )}
       </>
       )}
     </main>
+  );
+}
+
+
+// Días desde la venta fiada más antigua a partir de los cuales la deuda
+// se resalta en rojo. NO es una fecha de vencimiento: CoreStock no
+// guarda plazos de crédito por cliente, así que inventarse un "vencida"
+// sería afirmar algo que el sistema no sabe. Lo que sí sabe es cuánto
+// lleva sin cobrarse, y eso es lo que se muestra.
+const DIAS_PARA_RESALTAR = 30;
+
+function TarjetaDeuda({
+  deuda,
+  puedeCobrar,
+  cobrando,
+  onCobrar,
+  referenciaFecha,
+  t,
+}: {
+  deuda: DeudaCliente;
+  puedeCobrar: boolean;
+  cobrando: number | null;
+  onCobrar: (venta: VentaFiada) => void;
+  referenciaFecha: number;
+  t: (clave: string) => string;
+}) {
+  const [abierta, setAbierta] = useState(false);
+
+  const masAntigua = deuda.ventas.reduce(
+    (min, v) => (v.fecha < min ? v.fecha : min),
+    deuda.ventas[0]?.fecha ?? ""
+  );
+  const dias =
+    masAntigua && referenciaFecha
+      ? Math.floor((referenciaFecha - new Date(masAntigua).getTime()) / 86400000)
+      : 0;
+  const vieja = dias >= DIAS_PARA_RESALTAR;
+
+  // La inicial como avatar: con diez clientes en la lista, un círculo
+  // con letra se localiza de un vistazo mejor que diez filas de texto.
+  const inicial = deuda.nombre.trim().charAt(0).toUpperCase() || "?";
+
+  return (
+    <div className={`card deuda-tarjeta ${abierta ? "deuda-tarjeta-abierta" : ""}`}>
+      <button
+        type="button"
+        className="deuda-cabecera"
+        onClick={() => setAbierta((v) => !v)}
+        aria-expanded={abierta}
+      >
+        <span className={`deuda-avatar ${vieja ? "deuda-avatar-vieja" : ""}`}>{inicial}</span>
+
+        <span className="deuda-datos">
+          <span className="deuda-nombre-fila">
+            <span className="deuda-nombre">{deuda.nombre}</span>
+            <span className={`deuda-insignia ${vieja ? "deuda-insignia-vieja" : ""}`}>
+              {t(vieja ? "cuentas_por_cobrar.insignia_vieja" : "cuentas_por_cobrar.insignia_reciente")}
+            </span>
+          </span>
+          <span className="deuda-meta">
+            <CalendarClock size={13} />
+            {t("cuentas_por_cobrar.dias_sin_cobrar").replace("{dias}", String(dias))}
+            {" · "}
+            {t("cuentas_por_cobrar.n_pendientes").replace("{n}", String(deuda.ventas.length))}
+          </span>
+        </span>
+
+        <span className="deuda-monto">
+          <span className="deuda-monto-etiqueta">{t("cuentas_por_cobrar.saldo_pendiente")}</span>
+          <span className={`deuda-monto-valor ${vieja ? "deuda-monto-vieja" : ""}`}>
+            {formatoMoneda(deuda.totalPendiente)}
+          </span>
+        </span>
+
+        <ChevronDown size={20} className="deuda-flecha" aria-hidden="true" />
+      </button>
+
+      {abierta && (
+        <div className="deuda-cuerpo">
+          <div className="tabla">
+            <table>
+              <thead>
+                <tr>
+                  <th>{t("tabla.fecha")}</th>
+                  <th>{t("tabla.producto")}</th>
+                  <th>{t("tabla.cantidad")}</th>
+                  <th>{t("tabla.total")}</th>
+                  <th>{t("productos.col_acciones")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deuda.ventas.map((venta) => (
+                  <tr key={venta.id}>
+                    <td>{new Date(venta.fecha).toLocaleDateString()}</td>
+                    <td>{venta.producto}</td>
+                    <td>{venta.cantidad}</td>
+                    <td>{formatoMoneda(venta.total)}</td>
+                    <td>
+                      {puedeCobrar ? (
+                        <button
+                          className="btn-success"
+                          style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                          disabled={cobrando === venta.id}
+                          onClick={() => onCobrar(venta)}
+                        >
+                          <Check size={14} />
+                          {t("cuentas_por_cobrar.marcar_cobrado")}
+                        </button>
+                      ) : (
+                        "\u2014"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

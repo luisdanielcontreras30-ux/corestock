@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { ShoppingCart, Trash2, PackagePlus, Wallet, CalendarDays} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
@@ -9,6 +9,7 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import TarjetaDesplegable from "../../components/TarjetaDesplegable";
 import RequierePlus from "../../components/RequierePlus";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, Proveedor, Compra } from "./types";
@@ -185,6 +186,23 @@ function ComprasContenido() {
     }
   }
 
+  // Resumen del mes con lo que YA está cargado: ninguna consulta nueva.
+  // Compras se sentía "muy simple" porque solo mostraba un formulario y
+  // una lista, sin decir en ningún momento cuánto se lleva gastado.
+  const resumen = useMemo(() => {
+    const ahora = new Date();
+    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString();
+    let gastadoMes = 0;
+    let comprasMes = 0;
+    for (const c of compras) {
+      if (c.fecha >= inicioMes) {
+        gastadoMes += Number(c.total) || 0;
+        comprasMes += 1;
+      }
+    }
+    return { gastadoMes, comprasMes, total: compras.length };
+  }, [compras]);
+
   const comprasFiltradas = useMemo(
     () =>
       compras.filter((c) => {
@@ -215,9 +233,41 @@ function ComprasContenido() {
         subtitulo={t("compras.subtitulo")}
       />
 
-      <div className="card">
-        <h2 style={{ marginBottom: 16 }}>{t("compras.registrar")}</h2>
+      <div className="modulo-resumen">
+        <div className="modulo-resumen-item">
+          <span className="modulo-resumen-icono">
+            <Wallet size={17} />
+          </span>
+          <div>
+            <span className="modulo-resumen-valor">{formatoMoneda(resumen.gastadoMes)}</span>
+            <span className="modulo-resumen-etiqueta">{t("compras.resumen_gastado_mes")}</span>
+          </div>
+        </div>
+        <div className="modulo-resumen-item">
+          <span className="modulo-resumen-icono">
+            <CalendarDays size={17} />
+          </span>
+          <div>
+            <span className="modulo-resumen-valor">{resumen.comprasMes}</span>
+            <span className="modulo-resumen-etiqueta">{t("compras.resumen_compras_mes")}</span>
+          </div>
+        </div>
+        <div className="modulo-resumen-item">
+          <span className="modulo-resumen-icono">
+            <PackagePlus size={17} />
+          </span>
+          <div>
+            <span className="modulo-resumen-valor">{resumen.total}</span>
+            <span className="modulo-resumen-etiqueta">{t("compras.resumen_total")}</span>
+          </div>
+        </div>
+      </div>
 
+      <TarjetaDesplegable
+        Icono={PackagePlus}
+        titulo={t("compras.registrar")}
+        subtitulo={t("compras.registrar_ayuda")}
+      >
         <div className="productos-grid">
           <SelectorPersonalizado value={productoId} onChange={alElegirProducto}>
             <OpcionSelector value="">{t("compras.selecciona_producto")}</OpcionSelector>
@@ -288,7 +338,7 @@ function ComprasContenido() {
             {guardando ? t("compras.guardando") : t("compras.registrar")}
           </button>
         </div>
-      </div>
+      </TarjetaDesplegable>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <input

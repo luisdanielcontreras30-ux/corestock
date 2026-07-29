@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Send, Bot } from "lucide-react";
+import { Sparkles, Send, Bot, ChevronDown } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { Idioma } from "../../lib/i18n";
@@ -139,6 +139,7 @@ function AsistenteContenido() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [entrada, setEntrada] = useState("");
   const [pensando, setPensando] = useState(false);
+  const [verTodasLasPreguntas, setVerTodasLasPreguntas] = useState(false);
   // Memoria mínima de la conversación: sobre qué se habló al final,
   // para que "cuéntame más" o "dame un ejemplo" tengan a qué referirse.
   const [ultimoTema, setUltimoTema] = useState<string | null>(null);
@@ -154,19 +155,28 @@ function AsistenteContenido() {
     finRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensajes, pensando]);
 
+  // Las tres primeras son las que se preguntan de verdad a diario; el
+  // resto está a un toque. Enseñar las once de golpe llenaba media
+  // pantalla de botones y empujaba la conversación —que es a lo que se
+  // viene— por debajo del borde en un celular.
   const preguntas = [
     { texto: t("asistente.q_hoy"), fn: analizarVentasHoy },
     { texto: t("asistente.q_comprar"), fn: analizarQueComprar },
+    { texto: t("asistente.q_topproducto"), fn: analizarProductoTop },
     { texto: t("asistente.q_ganancias"), fn: analizarGanancias },
     { texto: t("asistente.q_bajaron"), fn: analizarBajaVentas },
     { texto: t("asistente.q_resumen"), fn: analizarResumenSemana },
     { texto: t("asistente.q_mes"), fn: analizarVentasMes },
-    { texto: t("asistente.q_topproducto"), fn: analizarProductoTop },
     { texto: t("asistente.q_categoria"), fn: analizarCategoriaTop },
     { texto: t("asistente.q_agotados"), fn: analizarAgotados },
     { texto: t("asistente.q_inventario"), fn: analizarInventario },
     { texto: t("asistente.q_mejorcliente"), fn: analizarMejorCliente },
   ];
+
+  const PREGUNTAS_VISIBLES = 3;
+  const preguntasVisibles = verTodasLasPreguntas
+    ? preguntas
+    : preguntas.slice(0, PREGUNTAS_VISIBLES);
 
   async function enviarPregunta(
     texto: string,
@@ -449,19 +459,35 @@ function AsistenteContenido() {
         subtitulo={t("asistente.subtitulo")}
       />
 
-      {/* CHIPS DE PREGUNTAS SUGERIDAS */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-        {preguntas.map((p) => (
+      {/* PREGUNTAS SUGERIDAS — solo las tres de cabecera, con el resto
+          detrás de "Ver más". */}
+      <div className="asistente-chips">
+        {preguntasVisibles.map((p) => (
           <button
             key={p.texto}
             onClick={() => enviarPregunta(p.texto, p.fn)}
             disabled={pensando}
-            className="btn-secondary"
-            style={{ fontSize: 13, borderRadius: 999 }}
+            className="asistente-chip"
           >
             {p.texto}
           </button>
         ))}
+
+        {preguntas.length > PREGUNTAS_VISIBLES && (
+          <button
+            type="button"
+            className="asistente-chip asistente-chip-mas"
+            onClick={() => setVerTodasLasPreguntas((v) => !v)}
+            aria-expanded={verTodasLasPreguntas}
+          >
+            {verTodasLasPreguntas ? t("asistente.ver_menos") : t("asistente.ver_mas")}
+            <ChevronDown
+              size={14}
+              className={verTodasLasPreguntas ? "asistente-chip-flecha-abierta" : ""}
+              aria-hidden="true"
+            />
+          </button>
+        )}
       </div>
 
       {/* HILO DE CONVERSACIÓN */}
