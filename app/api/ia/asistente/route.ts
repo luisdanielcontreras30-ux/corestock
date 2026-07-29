@@ -13,6 +13,12 @@ import {
   ContextoNegocio,
   MensajeChat,
 } from "../../../../lib/groq";
+import {
+  hayGoogleAI,
+  modeloGoogleEnUso,
+  probarVisionGoogleAI,
+  ErrorGoogleAI,
+} from "../../../../lib/googleAI";
 
 const LARGO_MAXIMO_PREGUNTA = 1000;
 
@@ -182,7 +188,8 @@ async function construirContexto(
 // "modelo no encontrado") porque es justo el dato que hace falta, y va
 // detrás de sesión válida como el resto de la ruta.
 function clasificar(error: unknown): { motivo: string; detalle: string } {
-  const status = error instanceof ErrorGroq ? error.status : 0;
+  const status =
+    error instanceof ErrorGroq || error instanceof ErrorGoogleAI ? error.status : 0;
   const detalle = error instanceof Error ? error.message : String(error);
 
   // Un modelo retirado devuelve 404, o un 400 que menciona el modelo.
@@ -217,20 +224,30 @@ export async function GET(request: Request) {
     );
   }
 
-  // Los nombres salen de lib/groq.ts, no escritos a mano acá: es la
-  // ÚNICA forma de garantizar que el diagnóstico nombre el mismo modelo
-  // que la app usa de verdad. Tenerlos duplicados significaba que
-  // cambiar un valor por defecto convertía esta pantalla en una mentira
-  // — y es la pantalla a la que se acude justo cuando no se sabe qué
-  // está pasando.
-  const modeloTexto = modeloTextoEnUso();
-  const modeloVision = modeloVisionEnUso();
+  // Los nombres salen de lib/groq.ts y lib/googleAI.ts, no escritos a
+  // mano acá: es la ÚNICA forma de garantizar que el diagnóstico nombre
+  // el mismo modelo que la app usa de verdad. Tenerlos duplicados
+  // significaba que cambiar un valor por defecto convertía esta pantalla
+  // en una mentira — y es la pantalla a la que se acude justo cuando no
+  // se sabe qué está pasando.
+  const groqListo = hayGroq();
+  const googleListo = hayGoogleAI();
 
-  if (!hayGroq()) {
+  // El texto (chat) lo hace siempre Groq; las fotos las hace Google
+  // cuando su llave está puesta. El diagnóstico tiene que probar al
+  // proveedor QUE DE VERDAD ATIENDE cada parte, y decir cuál es: probar
+  // Groq para las fotos cuando quien las atiende es Google daría un
+  // resultado que no tiene nada que ver con lo que le pasa a la persona.
+  const infoTexto = { ...modeloTextoEnUso(), proveedor: "Groq" };
+  const infoVision = googleListo
+    ? { ...modeloGoogleEnUso(), proveedor: "Google AI" }
+    : { ...modeloVisionEnUso(), proveedor: "Groq" };
+
+  if (!groqListo && !googleListo) {
     return NextResponse.json({
       configurada: false,
-      texto: { motivo: "sin_llave", ...modeloTexto },
-      vision: { motivo: "sin_llave", ...modeloVision },
+      texto: { motivo: "sin_llave", ...infoTexto },
+      vision: { motivo: "sin_llave", ...infoVision },
     });
   }
 
@@ -240,8 +257,8 @@ export async function GET(request: Request) {
   //
   // En paralelo porque son independientes, y con llamadas mínimas para
   // que comprobar no consuma cuota apreciable.
-  const [texto, vision] = await Promise.all([
-    generarRespuestaAsistente(
+  const pruebaTexto = groqListo
+    ? generarRespuestaAsistente(
       "Responde solo: ok",
       [],
       {
@@ -263,19 +280,23 @@ export async function GET(request: Request) {
       },
       "es"
     )
-      .then(() => ({ motivo: "ok", ...modeloTexto }))
-      .catch((error) => ({ ...clasificar(error), ...modeloTexto })),
+      .then(() => ({ motivo: "ok", ...infoTexto }))
+      .catch((error) => ({ ...clasificar(error), ...infoTexto }))
+    : Promise.resolve({ motivo: "sin_llave", ...infoTexto });
 
-    probarVisionGroq()
-      .then(() => ({ motivo: "ok", ...modeloVision }))
-      .catch((error) => ({ ...clasificar(error), ...modeloVision })),
-  ]);
+  const pruebaVision = (googleListo ? probarVisionGoogleAI() : probarVisionGroq())
+    .then(() => ({ motivo: "ok", ...infoVision }))
+    .catch((error) => ({ ...clasificar(error), ...infoVision }));
 
-  // La lista real solo hace falta cuando hay algo que arreglar. Pedirla
-  // siempre sería una llamada de más en el caso normal, que es que todo
-  // funcione.
-  const algoFallo = texto.motivo !== "ok" || vision.motivo !== "ok";
-  const modelosDisponibles = algoFallo ? await listarModelosGroq() : [];
+  const [texto, vision] = await Promise.all([pruebaTexto, pruebaVision]);
+
+  // La lista real solo hace falta cuando hay algo de Groq que arreglar.
+  // Pedirla siempre sería una llamada de más en el caso normal (que todo
+  // funcione), y pedirla porque falló la visión de Google sería peor:
+  // una lista de modelos de Groq no ayuda en nada a arreglar Google.
+  const falloDeGroq =
+    groqListo && (texto.motivo !== "ok" || (!googleListo && vision.motivo !== "ok"));
+  const modelosDisponibles = falloDeGroq ? await listarModelosGroq() : [];
 
   return NextResponse.json({ configurada: true, texto, vision, modelosDisponibles });
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
-import { analizarImagenProducto, ErrorGoogleAI } from "../../../../lib/googleAI";
-import { analizarImagenProductoGroq, ErrorGroq, hayGroq } from "../../../../lib/groq";
+import { analizarImagenProducto, ErrorGoogleAI, hayGoogleAI } from "../../../../lib/googleAI";
+import { analizarImagenProductoGroq, ErrorGroq } from "../../../../lib/groq";
 
 // El cliente ya redimensiona la foto antes de mandarla (ver
 // lib/iaAcciones.ts), así que en el caso normal esto pesa muy poco.
@@ -82,16 +82,21 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Se prefiere Groq cuando su llave está puesta: es la que
-    // enciende TODAS las funciones de IA de la app con una sola cuenta.
-    // Google queda como alternativa para quien ya venía usando su llave
-    // de AI Studio.
+    // Las FOTOS las atiende Google cuando su llave está puesta, al revés
+    // que el texto (chat y vendedor), que prefiere Groq.
     //
-    // Ojo: el modelo de Groq tiene que saber VER. Va en su propia
-    // variable (GROQ_MODEL_VISION) justo por eso.
-    const resultado = hayGroq()
-      ? await analizarImagenProductoGroq(imagenBase64, mimeType, idioma, categoriasExistentes)
-      : await analizarImagenProducto(imagenBase64, mimeType, idioma, categoriasExistentes);
+    // No es capricho: la capa gratuita de Groq es excelente para texto,
+    // pero su catálogo de modelos que saben VER es corto y rota seguido,
+    // así que el análisis de fotos se rompía cada vez que retiraban uno.
+    // Gemini lleva la visión en el modelo por defecto y no hay que
+    // perseguir identificadores.
+    //
+    // Si no hay llave de Google, se intenta con Groq igual: quien tenga
+    // un modelo de visión que le funcione (GROQ_MODEL_VISION) sigue como
+    // estaba, sin tener que abrir una cuenta más.
+    const resultado = hayGoogleAI()
+      ? await analizarImagenProducto(imagenBase64, mimeType, idioma, categoriasExistentes)
+      : await analizarImagenProductoGroq(imagenBase64, mimeType, idioma, categoriasExistentes);
 
     return NextResponse.json(resultado);
   } catch (error) {

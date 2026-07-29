@@ -22,6 +22,10 @@ interface ResultadoModelo {
   // la app. Viaja como bandera y no pegado al nombre porque el servidor
   // no sabe en qué idioma está la persona: la etiqueta se traduce aquí.
   porDefecto?: boolean;
+  // Quién atiende esa parte: el chat lo hace Groq y las fotos las hace
+  // Google cuando su llave está puesta. Sin verlo, un error de Google
+  // parecía un problema de Groq y se buscaba dónde no era.
+  proveedor?: string;
 }
 
 interface EstadoIA {
@@ -289,8 +293,14 @@ function Fila({
           </p>
         )}
 
-        {resultado.modelo && (
+        {resultado.proveedor && (
           <p style={{ margin: "8px 0 0 0", fontSize: 11.5, color: "var(--text-secondary)" }}>
+            {t("ayuda.ia_proveedor")} {resultado.proveedor}
+          </p>
+        )}
+
+        {resultado.modelo && (
+          <p style={{ margin: "4px 0 0 0", fontSize: 11.5, color: "var(--text-secondary)" }}>
             {t("ayuda.ia_modelo")} {resultado.modelo}
             {/* Saber que el modelo NO lo eligió nadie es media respuesta
                 cuando algo falla: dice que la variable de entorno está
