@@ -142,6 +142,59 @@ export async function analizarImagenProducto(
   return extraerResultadoProducto(texto);
 }
 
+// Lista los modelos que la cuenta tiene disponibles AHORA, preguntándole
+// a Google. Es la única fuente que no envejece: cualquier lista escrita
+// a mano en el código o en la documentación queda vieja en cuanto Google
+// saca una versión nueva.
+//
+// Hace falta porque el nombre COMERCIAL que se ve en AI Studio ("Gemini
+// 3.6 Flash") no es el identificador que pide la API — poner el nombre
+// bonito en GOOGLE_AI_MODEL da un 404 y parece que la llave está mal.
+//
+// Se filtran los que saben responder contenido (generateContent): el
+// resto de la lista son modelos de embeddings y similares, que aquí no
+// sirven para nada y solo estorbarían al elegir.
+//
+// Devuelve [] si algo falla: es información de apoyo, y no vale la pena
+// que un fallo aquí tumbe el diagnóstico entero, que es lo importante.
+export async function listarModelosGoogleAI(): Promise<string[]> {
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  if (!apiKey) return [];
+
+  const control = new AbortController();
+  const plazo = setTimeout(() => control.abort(), 15000);
+
+  try {
+    const respuesta = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}&pageSize=200`,
+      { signal: control.signal }
+    );
+
+    if (!respuesta.ok) return [];
+
+    const datos = await respuesta.json();
+    const lista = Array.isArray(datos?.models) ? datos.models : [];
+
+    return lista
+      .filter((m: { supportedGenerationMethods?: unknown }) =>
+        Array.isArray(m?.supportedGenerationMethods)
+          ? m.supportedGenerationMethods.includes("generateContent")
+          : false
+      )
+      .map((m: { name?: unknown }) =>
+        // Vienen como "models/gemini-2.5-flash"; en la variable de
+        // entorno va solo la parte de después de la barra.
+        typeof m?.name === "string" ? m.name.replace(/^models\//, "") : null
+      )
+      .filter((id: string | null): id is string => !!id)
+      .sort();
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(plazo);
+  }
+}
+
 // Prueba mínima de que el modelo acepta imágenes, para el diagnóstico de
 // Configuración → Ayuda. Deliberadamente NO usa analizarImagenProducto:
 // esa exige que la respuesta sea el JSON del catálogo, y ante un pixel

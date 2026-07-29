@@ -17,6 +17,7 @@ import {
   hayGoogleAI,
   modeloGoogleEnUso,
   probarVisionGoogleAI,
+  listarModelosGoogleAI,
   ErrorGoogleAI,
 } from "../../../../lib/googleAI";
 
@@ -290,13 +291,22 @@ export async function GET(request: Request) {
 
   const [texto, vision] = await Promise.all([pruebaTexto, pruebaVision]);
 
-  // La lista real solo hace falta cuando hay algo de Groq que arreglar.
-  // Pedirla siempre sería una llamada de más en el caso normal (que todo
-  // funcione), y pedirla porque falló la visión de Google sería peor:
-  // una lista de modelos de Groq no ayuda en nada a arreglar Google.
+  // La lista de modelos reales solo hace falta cuando hay algo que
+  // arreglar, y tiene que ser la del proveedor QUE FALLÓ: una lista de
+  // modelos de Groq no ayuda en nada a arreglar Google, y al revés
+  // igual. Se pide primero la de Google porque es el caso más común
+  // (el nombre comercial de AI Studio no es el ID de la API, así que
+  // GOOGLE_AI_MODEL se pone mal con facilidad).
+  const falloDeGoogle = googleListo && vision.motivo !== "ok";
   const falloDeGroq =
     groqListo && (texto.motivo !== "ok" || (!googleListo && vision.motivo !== "ok"));
-  const modelosDisponibles = falloDeGroq ? await listarModelosGroq() : [];
+
+  let modelosDisponibles: string[] = [];
+  if (falloDeGoogle) {
+    modelosDisponibles = await listarModelosGoogleAI();
+  } else if (falloDeGroq) {
+    modelosDisponibles = await listarModelosGroq();
+  }
 
   return NextResponse.json({ configurada: true, texto, vision, modelosDisponibles });
 }
