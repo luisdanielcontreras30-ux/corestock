@@ -7333,3 +7333,123 @@ select optgroup {
   cursor: pointer;
   flex-shrink: 0;
 }
+
+/* ---------------------------------------------------------------
+   Análisis de producto — la pantalla era UNA tarjeta de 480px y nada
+   más: en un monitor ancho quedaba una caja chica en la esquina con
+   todo lo demás vacío, y parecía rota en vez de vacía.
+   --------------------------------------------------------------- */
+
+.analisis-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.analisis-panel-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  margin: 0 0 14px 0;
+}
+
+.analisis-panel-titulo svg {
+  color: var(--modulo-color);
+}
+
+/* Más alta que la caja de subida genérica: es la acción principal de
+   toda la pantalla, y un objetivo grande se acierta con el pulgar. */
+.analisis-upload {
+  margin-top: 0;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.analisis-upload:hover {
+  border-color: var(--modulo-color);
+  background: color-mix(in srgb, var(--modulo-color) 8%, transparent);
+}
+
+.analisis-upload .upload-box-preview {
+  max-height: 260px;
+  border-radius: var(--radius-md);
+}
+
+.analisis-pasos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.analisis-pasos li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.analisis-paso-numero {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--modulo-color) 16%, transparent);
+  color: var(--modulo-color);
+}
+
+.analisis-pasos strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.analisis-pasos p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.analisis-explica-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 20px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--modulo-color) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--modulo-color) 25%, transparent);
+}
+
+.analisis-explica-nota svg {
+  color: var(--modulo-color);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.analisis-explica-nota p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+/* En celular y tablet las dos columnas se apilan: 300px de ancho
+   mínimo para la izquierda no caben junto a nada más. */
+@media (max-width: 900px) {
+  .analisis-layout {
+    grid-template-columns: 1fr;
+  }
+}

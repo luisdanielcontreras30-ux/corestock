@@ -12,7 +12,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import CargandoLista from "../../components/CargandoLista";
-import { ImagePlus, ScanSearch, TrendingUp, DollarSign, Percent, Repeat } from "lucide-react";
+import { ImagePlus, ScanSearch, TrendingUp, DollarSign, Percent, Repeat, Camera, Sparkles, LineChart } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -149,10 +149,14 @@ function AnalisisProductoContenido() {
       {!IA_DISPONIBLE ? (
         <IaNoDisponible />
       ) : (
-        <>
-          <div className="card" style={{ maxWidth: 480 }}>
+        <div className="analisis-layout">
+          <div className="card analisis-panel-subida">
+            <h2 className="analisis-panel-titulo">
+              <Camera size={17} /> {t("analisis.paso_subir")}
+            </h2>
+
             <div
-              className="upload-box"
+              className="upload-box analisis-upload"
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
@@ -201,8 +205,47 @@ function AnalisisProductoContenido() {
             </div>
           </div>
 
-          {resultadoIA && (
-            <div className="card fade-up">
+          {/* La columna derecha nunca queda vacía: antes del primer
+              análisis explica qué hace la pantalla en tres pasos. Sin
+              esto, en un monitor ancho la página era una caja chica en
+              la esquina y todo lo demás negro — parecía rota, no vacía. */}
+          {!resultadoIA ? (
+            <div className="card analisis-explica">
+              <h2 className="analisis-panel-titulo">
+                <Sparkles size={17} /> {t("analisis.como_funciona")}
+              </h2>
+
+              <ol className="analisis-pasos">
+                <li>
+                  <span className="analisis-paso-numero">1</span>
+                  <div>
+                    <strong>{t("analisis.paso1_titulo")}</strong>
+                    <p>{t("analisis.paso1_texto")}</p>
+                  </div>
+                </li>
+                <li>
+                  <span className="analisis-paso-numero">2</span>
+                  <div>
+                    <strong>{t("analisis.paso2_titulo")}</strong>
+                    <p>{t("analisis.paso2_texto")}</p>
+                  </div>
+                </li>
+                <li>
+                  <span className="analisis-paso-numero">3</span>
+                  <div>
+                    <strong>{t("analisis.paso3_titulo")}</strong>
+                    <p>{t("analisis.paso3_texto")}</p>
+                  </div>
+                </li>
+              </ol>
+
+              <div className="analisis-explica-nota">
+                <LineChart size={15} />
+                <p>{t("analisis.nota_historial")}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="card fade-up analisis-resultado">
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
                 <h2 style={{ margin: 0, fontSize: 20 }}>{resultadoIA.nombre}</h2>
                 {resultadoIA.categoria && (
@@ -235,7 +278,7 @@ function AnalisisProductoContenido() {
               </Link>
             </div>
           )}
-        </>
+        </div>
       )}
     </main>
   );
