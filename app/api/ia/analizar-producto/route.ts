@@ -81,6 +81,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: mensaje("imagen_muy_grande", idioma) }, { status: 400 });
   }
 
+  // Quién va a atender esta foto se decide ANTES del try, para poder
+  // nombrarlo tanto en el log del servidor como en el mensaje que ve la
+  // persona. Sin esto, "no se pudo analizar la imagen" no distingue si
+  // falló Google, falló Groq, o ni siquiera se llegó a preguntar — y
+  // adivinar eso ha costado ya varias rondas.
+  const porGoogle = hayGoogleAI();
+  const proveedor = porGoogle ? "Google AI" : "Groq";
+
+  // El nombre del proveedor NO se traduce (es un nombre propio) y va
+  // entre paréntesis al final del mensaje traducido.
+  const fallo = (clave: keyof typeof MENSAJES, status: number) =>
+    NextResponse.json({ error: `${mensaje(clave, idioma)} (${proveedor})`, proveedor }, { status });
+
   try {
     // Las FOTOS las atiende Google cuando su llave está puesta, al revés
     // que el texto (chat y vendedor), que prefiere Groq.
@@ -94,7 +107,7 @@ export async function POST(request: Request) {
     // Si no hay llave de Google, se intenta con Groq igual: quien tenga
     // un modelo de visión que le funcione (GROQ_MODEL_VISION) sigue como
     // estaba, sin tener que abrir una cuenta más.
-    const resultado = hayGoogleAI()
+    const resultado = porGoogle
       ? await analizarImagenProducto(imagenBase64, mimeType, idioma, categoriasExistentes)
       : await analizarImagenProductoGroq(imagenBase64, mimeType, idioma, categoriasExistentes);
 
@@ -104,14 +117,14 @@ export async function POST(request: Request) {
     // API de Google directamente) queda solo en los logs del
     // servidor — al usuario final le llega un mensaje genérico y
     // traducido, no el texto crudo del proveedor.
-    console.error(error);
+    console.error(`Analizar producto (${proveedor}):`, error);
 
     // Los dos proveedores lanzan un error con .status, así que el
     // mismo manejo (429 = sin cuota, 401/403 = mal configurado)
     // sirve para ambos sin duplicarlo.
     if (error instanceof ErrorGoogleAI || error instanceof ErrorGroq) {
       if (error.status === 429) {
-        return NextResponse.json({ error: mensaje("cuota_excedida", idioma) }, { status: 429 });
+        return fallo("cuota_excedida", 429);
       }
       // Un modelo retirado devuelve 404, o un 400 que lo menciona. Es el
       // fallo más común con Groq, que renueva su catálogo seguido, y
@@ -123,7 +136,7 @@ export async function POST(request: Request) {
         error.status === 404 ||
         (error.status === 400 && /model|decommission|not found/i.test(error.message))
       ) {
-        return NextResponse.json({ error: mensaje("modelo_invalido", idioma) }, { status: 500 });
+        return fallo("modelo_invalido", 500);
       }
 
       // 402 es "hace falta pagar" (plan agotado). Va con los de
@@ -131,10 +144,10 @@ export async function POST(request: Request) {
       // arregla. Ojo: en la capa gratuita de Groq lo normal NO es este,
       // es el 429 de arriba — ahí sí conviene esperar y reintentar.
       if (error.status === 401 || error.status === 402 || error.status === 403) {
-        return NextResponse.json({ error: mensaje("configuracion_invalida", idioma) }, { status: 500 });
+        return fallo("configuracion_invalida", 500);
       }
     }
 
-    return NextResponse.json({ error: mensaje("fallo_analisis", idioma) }, { status: 500 });
+    return fallo("fallo_analisis", 500);
   }
 }
