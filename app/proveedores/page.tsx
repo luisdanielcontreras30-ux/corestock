@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Phone, Mail, Plus, Truck, History } from "lucide-react";
+import { Phone, Mail, Plus, Truck, History, Star, TrendingUp, TrendingDown, Minus, Wallet, CalendarClock} from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { obtenerNegocioId } from "../../lib/negocioActual";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -10,7 +10,7 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import HistorialModal from "./components/HistorialModal";
-import { ProveedorConResumen, CompraProveedor } from "./types";
+import { Proveedor, ProveedorConResumen, CompraProveedor } from "./types";
 import {
   cargarProveedores,
   crearProveedor,
@@ -53,7 +53,11 @@ function ProveedoresContenido() {
   const [telefono, setTelefono] = useState("");
   const [correo, setCorreo] = useState("");
   const [notas, setNotas] = useState("");
+  const [categoriaForm, setCategoriaForm] = useState("");
+  const [calificacionForm, setCalificacionForm] = useState("");
+  const [diasEntregaForm, setDiasEntregaForm] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [categoria, setCategoria] = useState("");
 
   useEffect(() => {
     if (user) refrescar();
@@ -83,6 +87,9 @@ function ProveedoresContenido() {
     setCorreo("");
     setNotas("");
     setMostrarForm(true);
+    setCategoriaForm("");
+    setCalificacionForm("");
+    setDiasEntregaForm("");
   }
 
   function abrirEditar(p: ProveedorConResumen) {
@@ -91,6 +98,9 @@ function ProveedoresContenido() {
     setTelefono(p.telefono ?? "");
     setCorreo(p.correo ?? "");
     setNotas(p.notas ?? "");
+    setCategoriaForm(p.categoria ?? "");
+    setCalificacionForm(p.calificacion != null ? String(p.calificacion) : "");
+    setDiasEntregaForm(p.dias_entrega != null ? String(p.dias_entrega) : "");
     setMostrarForm(true);
   }
 
@@ -130,22 +140,47 @@ function ProveedoresContenido() {
 
     try {
       const negocioId = await obtenerNegocioId(user.id);
+
+      // Los tres campos del panel solo se mandan si la persona puso
+      // algo. Así, en una base sin la migración corrida, guardar un
+      // proveedor normal sigue funcionando: la petición ni menciona las
+      // columnas que no existen.
+      const extras: Partial<Proveedor> = {};
+      if (categoriaForm.trim()) extras.categoria = categoriaForm.trim();
+      const calif = Number(calificacionForm);
+      if (calificacionForm && Number.isFinite(calif) && calif >= 1 && calif <= 5) {
+        extras.calificacion = Math.round(calif);
+      }
+      const dias = Number(diasEntregaForm);
+      if (diasEntregaForm && Number.isFinite(dias) && dias >= 0 && dias <= 365) {
+        extras.dias_entrega = Math.round(dias);
+      }
+
       if (editando) {
         await actualizarProveedor(negocioId, editando.id, {
           nombre: nombre.trim(),
           telefono: telefono.trim() || null,
           correo: correo.trim() || null,
           notas: notas.trim() || null,
+          ...extras,
         });
       } else {
-        await crearProveedor(negocioId, nombre, telefono, correo, notas);
+        await crearProveedor(negocioId, nombre, telefono, correo, notas, extras);
       }
 
       setMostrarForm(false);
       await refrescar();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("proveedores.msg_error_guardar"), "error");
+      // Si faltan las columnas nuevas, Postgres lo dice con claridad y
+      // no tiene sentido esconderlo tras un "no se pudo guardar": la
+      // solución es correr un archivo SQL, y hay que decirlo.
+      const texto = error instanceof Error ? error.message : "";
+      const faltaMigracion = /column .* does not exist|categoria|calificacion|dias_entrega/i.test(texto);
+      mostrarToast(
+        t(faltaMigracion ? "proveedores.msg_falta_migracion" : "proveedores.msg_error_guardar"),
+        "error"
+      );
     } finally {
       setGuardando(false);
     }
@@ -175,10 +210,39 @@ function ProveedoresContenido() {
     }
   }
 
+  // Categorías reales del propio listado: aparecen y desaparecen solas.
+  // Si nadie ha corrido la migración, `categoria` no viene en la
+  // consulta (usa select *), el arreglo sale vacío y la fila de filtros
+  // ni se dibuja — la pantalla funciona igual sin ella.
+  const categorias = useMemo(() => {
+    const vistas = new Set<string>();
+    for (const p of proveedores) {
+      const c = p.categoria?.trim();
+      if (c) vistas.add(c);
+    }
+    return [...vistas].sort((a, b) => a.localeCompare(b));
+  }, [proveedores]);
+
+  const categoriaActiva = categoria && categorias.includes(categoria) ? categoria : "";
+
+  // Cifras de la tira superior. Todas salen de lo ya cargado.
+  const global = useMemo(() => {
+    const gastoTotal = proveedores.reduce((s, p) => s + p.totalGastado, 0);
+    const calificados = proveedores.filter((p) => typeof p.calificacion === "number");
+    const promedio =
+      calificados.length > 0
+        ? calificados.reduce((s, p) => s + (p.calificacion ?? 0), 0) / calificados.length
+        : null;
+    return { gastoTotal, promedio, calificados: calificados.length };
+  }, [proveedores]);
+
   const proveedoresFiltrados = useMemo(
     () =>
-      proveedores.filter((p) => p.nombre.toLowerCase().includes(busqueda.toLowerCase().trim())),
-    [proveedores, busqueda]
+      proveedores.filter((p) => {
+        if (categoriaActiva && (p.categoria?.trim() || "") !== categoriaActiva) return false;
+        return p.nombre.toLowerCase().includes(busqueda.toLowerCase().trim());
+      }),
+    [proveedores, busqueda, categoriaActiva]
   );
 
   return (
@@ -196,12 +260,76 @@ function ProveedoresContenido() {
         </button>
       </div>
 
-      {!cargando && proveedores.length > 0 && (
-        <input
-          placeholder={t("proveedores.buscar")}
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+      {!cargando && !error && proveedores.length > 0 && (
+        <>
+          <div className="modulo-resumen">
+            <div className="modulo-resumen-item">
+              <span className="modulo-resumen-icono">
+                <Truck size={17} />
+              </span>
+              <div>
+                <span className="modulo-resumen-valor">{proveedores.length}</span>
+                <span className="modulo-resumen-etiqueta">{t("proveedores.resumen_total")}</span>
+              </div>
+            </div>
+            <div className="modulo-resumen-item">
+              <span className="modulo-resumen-icono">
+                <Wallet size={17} />
+              </span>
+              <div>
+                <span className="modulo-resumen-valor">{formatoMoneda(global.gastoTotal)}</span>
+                <span className="modulo-resumen-etiqueta">{t("proveedores.resumen_gasto")}</span>
+              </div>
+            </div>
+            {/* Solo si alguien ha calificado a alguien: un "0.0 de
+                promedio" cuando nadie ha puntuado nada parece una mala
+                nota, no un dato ausente. */}
+            {global.promedio !== null && (
+              <div className="modulo-resumen-item">
+                <span className="modulo-resumen-icono">
+                  <Star size={17} />
+                </span>
+                <div>
+                  <span className="modulo-resumen-valor">{global.promedio.toFixed(1)}</span>
+                  <span className="modulo-resumen-etiqueta">{t("proveedores.resumen_calificacion")}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <input
+              style={{ flex: 1, minWidth: 220 }}
+              placeholder={t("proveedores.buscar")}
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </div>
+
+          {categorias.length > 0 && (
+            <div className="venta-rapida-categorias">
+              <button
+                type="button"
+                className={`venta-rapida-chip ${categoriaActiva === "" ? "venta-rapida-chip-activo" : ""}`}
+                onClick={() => setCategoria("")}
+                aria-pressed={categoriaActiva === ""}
+              >
+                {t("ventas_rapidas.categoria_todos")}
+              </button>
+              {categorias.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`venta-rapida-chip ${categoriaActiva === c ? "venta-rapida-chip-activo" : ""}`}
+                  onClick={() => setCategoria(c)}
+                  aria-pressed={categoriaActiva === c}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {cargando ? (
@@ -222,62 +350,125 @@ function ProveedoresContenido() {
           <p style={{ color: "var(--text-secondary)" }}>{t("proveedores.sin_resultados_busqueda")}</p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
-          {proveedoresFiltrados.map((p) => (
-            <div key={p.id} className="card">
-              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>{p.nombre}</h3>
+        <div className="proveedores-rejilla">
+          {proveedoresFiltrados.map((p) => {
+            const participacion =
+              global.gastoTotal > 0 ? (p.totalGastado / global.gastoTotal) * 100 : 0;
 
-              {p.telefono && (
-                <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 4 }}>{p.telefono}</p>
-              )}
+            // Tendencia real: lo comprado en los últimos 30 días contra
+            // los 30 anteriores. Se marca "igual" cuando la diferencia
+            // es menor al 5% para que un cambio de unos pesos no
+            // aparezca como una subida.
+            const variacion = p.gastoReciente - p.gastoAnterior;
+            const base = Math.max(p.gastoAnterior, 1);
+            const tendencia =
+              Math.abs(variacion) / base < 0.05 ? "igual" : variacion > 0 ? "sube" : "baja";
 
-              {p.correo && (
-                <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 10 }}>{p.correo}</p>
-              )}
+            return (
+              <div key={p.id} className="prov-tarjeta">
+                <div className="prov-cabecera">
+                  <span className="prov-avatar">{p.nombre.trim().charAt(0).toUpperCase() || "?"}</span>
 
-              {p.notas && (
-                <p style={{ color: "var(--text-muted)", fontSize: 12.5, marginBottom: 14 }}>{p.notas}</p>
-              )}
+                  <div className="prov-identidad">
+                    <h3 className="prov-nombre">{p.nombre}</h3>
+                    {typeof p.calificacion === "number" ? (
+                      <span className="prov-estrellas" title={`${p.calificacion} / 5`}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Star
+                            key={n}
+                            size={13}
+                            fill={n <= (p.calificacion ?? 0) ? "currentColor" : "none"}
+                          />
+                        ))}
+                        <span className="prov-estrellas-texto">{p.calificacion} / 5</span>
+                      </span>
+                    ) : (
+                      <span className="prov-sin-calificar">{t("proveedores.sin_calificar")}</span>
+                    )}
+                  </div>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-                {p.telefono && (
-                  <a
-                    href={`tel:${p.telefono}`}
-                    className="btn-primary"
-                    style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none", fontSize: 13 }}
-                  >
-                    <Phone size={14} /> {t("proveedores.llamar")}
-                  </a>
+                  {p.categoria?.trim() && <span className="prov-categoria">{p.categoria.trim()}</span>}
+                </div>
+
+                <div className="prov-metricas">
+                  <div>
+                    <span className="prov-metrica-valor">{formatoMoneda(p.totalGastado)}</span>
+                    <span className="prov-metrica-etiqueta">{t("proveedores.total_gastado")}</span>
+                  </div>
+                  <div>
+                    <span className="prov-metrica-valor">{p.compras}</span>
+                    <span className="prov-metrica-etiqueta">{t("proveedores.compras_totales")}</span>
+                  </div>
+                  <div>
+                    <span className="prov-metrica-valor">
+                      {typeof p.dias_entrega === "number" ? `${p.dias_entrega}d` : "—"}
+                    </span>
+                    <span className="prov-metrica-etiqueta">{t("proveedores.dias_entrega")}</span>
+                  </div>
+                </div>
+
+                {/* Cuánto del gasto total del negocio se va con este
+                    proveedor. Dice de un vistazo de quién se depende. */}
+                <div className="prov-barra-fila">
+                  <span>{t("proveedores.participacion")}</span>
+                  <span className="prov-barra-valor">{participacion.toFixed(0)}%</span>
+                </div>
+                <div className="prov-barra">
+                  <span style={{ width: `${Math.min(100, participacion)}%` }} />
+                </div>
+
+                <div className="prov-pie">
+                  <span className={`prov-tendencia prov-tendencia-${tendencia}`}>
+                    {tendencia === "sube" ? (
+                      <TrendingUp size={14} />
+                    ) : tendencia === "baja" ? (
+                      <TrendingDown size={14} />
+                    ) : (
+                      <Minus size={14} />
+                    )}
+                    {t(`proveedores.tendencia_${tendencia}`)}
+                  </span>
+
+                  <span className="prov-ultima">
+                    <CalendarClock size={13} />
+                    {p.ultimaCompra
+                      ? new Date(p.ultimaCompra).toLocaleDateString()
+                      : t("proveedores.sin_compras")}
+                  </span>
+                </div>
+
+                {(p.telefono || p.correo || p.notas) && (
+                  <div className="prov-contacto">
+                    {p.telefono && <span>{p.telefono}</span>}
+                    {p.correo && <span>{p.correo}</span>}
+                    {p.notas && <span className="prov-notas">{p.notas}</span>}
+                  </div>
                 )}
 
-                {p.correo && (
-                  <a
-                    href={`mailto:${p.correo}`}
-                    className="btn-secondary"
-                    style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none", fontSize: 13 }}
-                  >
-                    <Mail size={14} /> {t("proveedores.correo")}
-                  </a>
-                )}
+                <div className="prov-acciones">
+                  {p.telefono && (
+                    <a href={`tel:${p.telefono}`} className="btn-secondary prov-accion">
+                      <Phone size={14} /> {t("proveedores.llamar")}
+                    </a>
+                  )}
+                  {p.correo && (
+                    <a href={`mailto:${p.correo}`} className="btn-secondary prov-accion">
+                      <Mail size={14} /> {t("proveedores.correo")}
+                    </a>
+                  )}
+                  <button className="btn-secondary prov-accion" onClick={() => verHistorial(p)}>
+                    <History size={14} /> {t("proveedores.ver_historial")}
+                  </button>
+                  <button className="btn-edit prov-accion" onClick={() => abrirEditar(p)}>
+                    {t("proveedores.editar")}
+                  </button>
+                  <button className="btn-delete prov-accion" onClick={() => alEliminar(p)}>
+                    {t("proveedores.eliminar")}
+                  </button>
+                </div>
               </div>
-
-              <p style={{ color: "var(--text-secondary)", fontSize: 12.5, marginBottom: 4 }}>
-                {t("proveedores.compras_totales")}: {p.compras} · {t("proveedores.total_gastado")}: {formatoMoneda(p.totalGastado)}
-              </p>
-
-              <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                <button className="btn-secondary" onClick={() => verHistorial(p)} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <History size={14} /> {t("proveedores.ver_historial")}
-                </button>
-                <button className="btn-edit" onClick={() => abrirEditar(p)}>
-                  {t("proveedores.editar")}
-                </button>
-                <button className="btn-delete" onClick={() => alEliminar(p)}>
-                  {t("proveedores.eliminar")}
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -329,6 +520,46 @@ function ProveedoresContenido() {
                   onChange={(e) => setCorreo(e.target.value)}
                   placeholder="contacto@proveedor.com"
                 />
+              </div>
+
+              {/* Los tres del panel. Si no se ha corrido
+                  supabase_proveedores_scorecard.sql, dejarlos vacíos
+                  hace que la petición ni los mencione y todo sigue
+                  funcionando igual que antes. */}
+              <div>
+                <label>{t("proveedores.categoria")}</label>
+                <input
+                  value={categoriaForm}
+                  onChange={(e) => setCategoriaForm(e.target.value)}
+                  placeholder={t("proveedores.categoria_placeholder")}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label>{t("proveedores.calificacion")}</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={calificacionForm}
+                    onChange={(e) => setCalificacionForm(e.target.value)}
+                    placeholder="1 - 5"
+                  />
+                </div>
+                <div>
+                  <label>{t("proveedores.dias_entrega")}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    step="1"
+                    value={diasEntregaForm}
+                    onChange={(e) => setDiasEntregaForm(e.target.value)}
+                    placeholder={t("proveedores.dias_entrega_placeholder")}
+                  />
+                </div>
               </div>
 
               <div>

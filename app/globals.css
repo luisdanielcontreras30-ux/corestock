@@ -7049,3 +7049,215 @@ select optgroup {
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------
+   Proveedores — panel por proveedor. Antes eran fichas de contacto
+   (nombre, teléfono, correo) y una línea con el gasto: no había forma
+   de ver de un vistazo de quién depende el negocio.
+   --------------------------------------------------------------- */
+
+.proveedores-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.prov-tarjeta {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: var(--transition-fast);
+}
+
+.prov-tarjeta:hover {
+  border-color: color-mix(in srgb, var(--modulo-color) 45%, var(--border));
+  transform: translateY(-2px);
+}
+
+.prov-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.prov-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 17px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--modulo-color) 16%, transparent);
+  color: var(--modulo-color);
+}
+
+.prov-identidad {
+  flex: 1;
+  min-width: 0;
+}
+
+.prov-nombre {
+  font-size: 15.5px;
+  font-weight: 700;
+  margin: 0 0 3px 0;
+  overflow-wrap: anywhere;
+}
+
+.prov-estrellas {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #f59e0b;
+}
+
+.prov-estrellas-texto {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.prov-sin-calificar {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.prov-categoria {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--modulo-color) 40%, transparent);
+  color: var(--modulo-color);
+}
+
+.prov-metricas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.prov-metrica-valor {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.prov-metrica-etiqueta {
+  display: block;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.prov-barra-fila {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.prov-barra-valor {
+  font-weight: 700;
+  color: var(--modulo-color);
+}
+
+.prov-barra {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--card-hover);
+  overflow: hidden;
+}
+
+.prov-barra span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--modulo-color);
+  transition: width 0.4s ease;
+}
+
+.prov-pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+}
+
+.prov-tendencia {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.prov-tendencia-sube {
+  color: #10b981;
+}
+
+.prov-tendencia-baja {
+  color: #ef4444;
+}
+
+.prov-tendencia-igual {
+  color: var(--text-secondary);
+}
+
+.prov-ultima {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-secondary);
+}
+
+.prov-contacto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.prov-notas {
+  color: var(--text-muted);
+}
+
+.prov-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.prov-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prov-tarjeta:hover {
+    transform: none;
+  }
+
+  .prov-barra span {
+    transition: none;
+  }
+}
