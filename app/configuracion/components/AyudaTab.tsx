@@ -58,6 +58,9 @@ export default function AyudaTab() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      // El 429 del diagnóstico trae el mismo cuerpo que un resultado
+      // normal, así que se muestra igual: la fila explica que se
+      // hicieron demasiadas comprobaciones seguidas.
       setEstadoIA(await respuesta.json());
     } catch (error) {
       console.error(error);

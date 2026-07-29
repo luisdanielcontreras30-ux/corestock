@@ -27,6 +27,16 @@ const MAX_MENSAJES_HISTORIAL = 8;
 const MAX_PREGUNTAS_POR_HORA = 60;
 const VENTANA_MS = 60 * 60 * 1000;
 
+// El diagnóstico se limita MUCHO más que una pregunta normal, y no por
+// exceso de celo: cada comprobación gasta hasta tres llamadas a Groq
+// (texto, visión y la lista de modelos) contra una de una pregunta
+// suelta. Sin tope era el punto más caro de toda la app — y el único
+// sin límite, porque el que existía solo cubría el POST.
+//
+// 10 por hora sobra para configurar la llave y comprobar un cambio de
+// modelo, que es para lo único que sirve.
+const MAX_DIAGNOSTICOS_POR_HORA = 10;
+
 const MENSAJES: Record<string, Record<string, string>> = {
   no_autenticado: { es: "No autenticado.", en: "Not authenticated.", pt: "Não autenticado.", fr: "Non authentifié.", de: "Nicht authentifiziert.", zh: "未认证。", it: "Non autenticato." },
   cuerpo_invalido: { es: "Cuerpo de la solicitud inválido.", en: "Invalid request body.", pt: "Corpo da solicitação inválido.", fr: "Corps de la requête invalide.", de: "Ungültiger Anfragetext.", zh: "请求正文无效。", it: "Corpo della richiesta non valido." },
@@ -70,8 +80,8 @@ async function construirContexto(
 ): Promise<ContextoNegocio> {
   const [
     { data: config },
-    { data: productos },
-    { data: ventas },
+    { data: productos, error: errorProductos },
+    { data: ventas, error: errorVentas },
     { data: clientes },
   ] = await Promise.all([
     supabase.from("empresa_config").select("nombre_negocio").maybeSingle(),
@@ -124,7 +134,17 @@ async function construirContexto(
 
   const clienteTop = mayor(porCliente);
 
+  // Un error acá NO se convierte en cero. Si la consulta de ventas
+  // falla (RLS, permiso, red), mandar ventasHoy: 0 hace que el modelo
+  // afirme con total seguridad "hoy no has vendido nada" — una mentira
+  // sobre el propio negocio de quien pregunta, que es exactamente lo
+  // que este asistente no puede permitirse.
+  if (errorProductos) console.error("Asistente IA, inventario:", errorProductos);
+  if (errorVentas) console.error("Asistente IA, ventas:", errorVentas);
+
   return {
+    inventarioDisponible: !errorProductos,
+    ventasDisponibles: !errorVentas,
     nombreNegocio: (config as { nombre_negocio?: string } | null)?.nombre_negocio ?? null,
     moneda: "$",
     productosActivos: listaProductos.length,
@@ -186,6 +206,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: mensaje("no_autenticado", "es") }, { status: 401 });
   }
 
+  // Clave propia, separada de la del POST: gastar los diagnósticos no
+  // debe dejar a nadie sin poder usar el Asistente, ni al revés.
+  if (excedeLimiteIntentos(`ia-diagnostico:${user.id}`, MAX_DIAGNOSTICOS_POR_HORA, VENTANA_MS)) {
+    return NextResponse.json(
+      { configurada: true, texto: { motivo: "limite_diagnostico" }, vision: { motivo: "limite_diagnostico" } },
+      { status: 429 }
+    );
+  }
+
   const modeloTexto = process.env.GROQ_MODEL || "llama-3.3-70b-versatile (por defecto)";
   const modeloVision =
     process.env.GROQ_MODELO_VISION || "meta-llama/llama-4-scout-17b-16e-instruct (por defecto)";
@@ -209,6 +238,10 @@ export async function GET(request: Request) {
       "Responde solo: ok",
       [],
       {
+        // El diagnóstico solo comprueba que el modelo conteste; no le
+        // muestra ningún dato del negocio.
+        ventasDisponibles: true,
+        inventarioDisponible: true,
         nombreNegocio: null,
         moneda: "$",
         productosActivos: 0,

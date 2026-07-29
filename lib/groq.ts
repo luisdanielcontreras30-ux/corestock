@@ -63,6 +63,14 @@ export interface MensajeChat {
 // esto respondería bien de negocio en general pero no podría decir una
 // sola cifra del negocio de quien pregunta, que es la mitad del valor.
 export interface ContextoNegocio {
+  // Cuando una consulta a la base falla, sus cifras NO se mandan como
+  // cero: se marca que no se pudieron leer. Un cero y un "no se pudo
+  // leer" son cosas distintas, y confundirlos hace que el modelo afirme
+  // con total seguridad "hoy no has vendido nada" cuando lo que pasó es
+  // que la consulta falló. Una cifra inventada sobre el propio negocio
+  // es lo peor que puede decir este asistente.
+  ventasDisponibles: boolean;
+  inventarioDisponible: boolean;
   nombreNegocio: string | null;
   moneda: string;
   productosActivos: number;
@@ -114,15 +122,27 @@ function construirSistema(contexto: ContextoNegocio, idioma: string): string {
     "- Si un dato está en cero, puede ser que de verdad sea cero o que aún no lo estén registrando. Menciónalo como posibilidad en vez de dar por hecho que el negocio va mal.",
     "",
     "DATOS ACTUALES:",
-    `- Productos activos: ${contexto.productosActivos}`,
-    `- Valor del inventario: ${m}${contexto.valorInventario.toFixed(2)}`,
-    `- Ventas de hoy: ${m}${contexto.ventasHoy.toFixed(2)}`,
-    `- Ventas de los últimos 7 días: ${m}${contexto.ventasSemana.toFixed(2)}`,
-    `- Ventas de los últimos 30 días: ${m}${contexto.ventasMes.toFixed(2)}`,
-    `- Producto más vendido (30 días): ${contexto.productoTop ?? "todavía no hay ventas"}`,
-    `- Mejor cliente (30 días): ${contexto.mejorCliente ?? "todavía no hay ventas con cliente"}`,
-    `- Productos agotados: ${listaCorta(contexto.agotados)}`,
-    `- Productos por debajo del stock mínimo: ${listaCorta(contexto.bajoStock)}`,
+    ...(contexto.inventarioDisponible
+      ? [
+          `- Productos activos: ${contexto.productosActivos}`,
+          `- Valor del inventario: ${m}${contexto.valorInventario.toFixed(2)}`,
+          `- Productos agotados: ${listaCorta(contexto.agotados)}`,
+          `- Productos por debajo del stock mínimo: ${listaCorta(contexto.bajoStock)}`,
+        ]
+      : [
+          "- Inventario: NO SE PUDO LEER en este momento. Si te preguntan por productos, stock o agotados, di que ahora mismo no puedes consultarlo y que lo revisen en la pantalla de Productos. NO digas que no tienen productos.",
+        ]),
+    ...(contexto.ventasDisponibles
+      ? [
+          `- Ventas de hoy: ${m}${contexto.ventasHoy.toFixed(2)}`,
+          `- Ventas de los últimos 7 días: ${m}${contexto.ventasSemana.toFixed(2)}`,
+          `- Ventas de los últimos 30 días: ${m}${contexto.ventasMes.toFixed(2)}`,
+          `- Producto más vendido (30 días): ${contexto.productoTop ?? "todavía no hay ventas"}`,
+          `- Mejor cliente (30 días): ${contexto.mejorCliente ?? "todavía no hay ventas con cliente"}`,
+        ]
+      : [
+          "- Ventas: NO SE PUDO LEER en este momento. Si te preguntan cuánto vendieron, di que ahora mismo no puedes consultarlo y que lo revisen en la pantalla de Ventas. NUNCA digas que no han vendido nada.",
+        ]),
     "",
     "LÍMITES:",
     "- No puedes registrar ventas, cambiar precios ni modificar nada. Solo informas y aconsejas. Si te piden hacer algo, explica en qué pantalla se hace.",
