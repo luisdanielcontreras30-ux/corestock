@@ -45,15 +45,24 @@ export async function guardarEmpresa(
   // "configuracion" puede editar), no el auth.uid() propio del miembro.
   const negocioId = await obtenerNegocioId(user.id);
 
+  // Los campos de apariencia del catálogo solo se mandan cuando de
+  // verdad tienen valor. En una base sin
+  // supabase_catalogo_apariencia.sql corrido, mencionarlos haría
+  // fallar el guardado ENTERO de la configuración de empresa — nombre,
+  // logo y moneda incluidos — por unos colores que nadie ha tocado.
+  const fila: Record<string, unknown> = { ...config, user_id: negocioId };
+  for (const campo of [
+    "catalogo_color_producto",
+    "catalogo_color_borde",
+    "catalogo_color_boton",
+    "catalogo_colores_categoria",
+  ]) {
+    if (fila[campo] === undefined || fila[campo] === null) delete fila[campo];
+  }
+
   const { error } = await supabase
     .from("empresa_config")
-    .upsert(
-      {
-        ...config,
-        user_id: negocioId,
-      },
-      { onConflict: "user_id" }
-    );
+    .upsert(fila, { onConflict: "user_id" });
 
   if (error) {
     throw error;

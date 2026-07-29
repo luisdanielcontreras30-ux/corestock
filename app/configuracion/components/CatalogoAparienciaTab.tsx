@@ -4,7 +4,24 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { EmpresaConfig, EMPRESA_VACIA } from "../types";
 import { cargarEmpresa, guardarEmpresa } from "../acciones";
+import { supabase } from "../../../lib/supabase";
 import { useIdioma } from "../../../components/LanguageProvider";
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
+
+// Paleta de arranque para las categorías. No se guarda: solo es lo que
+// propone el selector la primera vez, para no obligar a nadie a elegir
+// un color desde cero para cada categoría.
+const COLORES_SUGERIDOS = [
+  "#3b82f6",
+  "#10b981",
+  "#f97316",
+  "#a855f7",
+  "#ef4444",
+  "#14b8a6",
+  "#eab308",
+  "#ec4899",
+];
 
 // El color del catálogo vivía en Configuración → Empresa, entre el RFC y
 // la zona horaria. Ahí no lo encontraba nadie: es un ajuste de aspecto,
@@ -21,6 +38,10 @@ export default function CatalogoAparienciaTab() {
   const [errorCarga, setErrorCarga] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+  // Categorías reales del catálogo, para poder pintarlas una por una.
+  // Se leen de productos, que es donde viven: no hay tabla de
+  // categorías, son texto libre del propio producto.
+  const [categorias, setCategorias] = useState<string[]>([]);
 
   useEffect(() => {
     cargarEmpresa()
@@ -32,7 +53,46 @@ export default function CatalogoAparienciaTab() {
         setErrorCarga(true);
       })
       .finally(() => setCargando(false));
+
+    supabase
+      .from("productos")
+      .select("categoria")
+      .eq("activo", true)
+      .then(({ data, error }) => {
+        if (error) {
+          // Sin categorías la pantalla sigue sirviendo para todo lo
+          // demás; no vale la pena bloquearla por esto.
+          console.error(error);
+          return;
+        }
+        const vistas = new Set<string>();
+        for (const fila of data ?? []) {
+          const c = (fila as { categoria?: string | null }).categoria?.trim();
+          if (c) vistas.add(c);
+        }
+        setCategorias([...vistas].sort((a, b) => a.localeCompare(b)));
+      });
   }, []);
+
+  function cambiarCampo(campo: keyof EmpresaConfig, valor: string) {
+    setEmpresa((prev) => ({ ...prev, [campo]: valor }));
+    setMensaje(null);
+  }
+
+  function colorDeCategoria(nombre: string, indice: number): string {
+    const guardado = empresa.catalogo_colores_categoria?.[nombre];
+    return guardado && HEX.test(guardado)
+      ? guardado
+      : COLORES_SUGERIDOS[indice % COLORES_SUGERIDOS.length];
+  }
+
+  function cambiarColorCategoria(nombre: string, valor: string) {
+    setEmpresa((prev) => ({
+      ...prev,
+      catalogo_colores_categoria: { ...(prev.catalogo_colores_categoria ?? {}), [nombre]: valor },
+    }));
+    setMensaje(null);
+  }
 
   function cambiarColor(valor: string) {
     setEmpresa((prev) => ({ ...prev, color_principal: valor }));
@@ -46,7 +106,15 @@ export default function CatalogoAparienciaTab() {
     // texto de al lado es libre — un valor inválido se usaría tal cual
     // como color de fondo del catálogo público, donde el navegador lo
     // ignora sin avisarle a nadie.
-    if (!/^#[0-9a-fA-F]{6}$/.test(empresa.color_principal)) {
+    const aValidar = [
+      empresa.color_principal,
+      empresa.catalogo_color_producto,
+      empresa.catalogo_color_borde,
+      empresa.catalogo_color_boton,
+      ...Object.values(empresa.catalogo_colores_categoria ?? {}),
+    ];
+
+    if (aValidar.some((c) => c && !HEX.test(c))) {
       setMensaje({ tipo: "error", texto: t("empresa.msg_color_invalido") });
       return;
     }
@@ -59,7 +127,14 @@ export default function CatalogoAparienciaTab() {
       setMensaje({ tipo: "ok", texto: t("empresa.msg_guardado") });
     } catch (error) {
       console.error(error);
-      setMensaje({ tipo: "error", texto: t("empresa.msg_error_guardar") });
+      // Si faltan las columnas nuevas, decirlo: la solución es correr un
+      // archivo, no reintentar.
+      const texto = error instanceof Error ? error.message : "";
+      const faltaMigracion = /column .* does not exist|catalogo_color|colores_categoria/i.test(texto);
+      setMensaje({
+        tipo: "error",
+        texto: t(faltaMigracion ? "catalogo_apariencia.falta_migracion" : "empresa.msg_error_guardar"),
+      });
     } finally {
       setGuardando(false);
     }
@@ -79,7 +154,10 @@ export default function CatalogoAparienciaTab() {
     );
   }
 
-  const colorValido = /^#[0-9a-fA-F]{6}$/.test(empresa.color_principal);
+  const colorValido = HEX.test(empresa.color_principal);
+  const colorProducto = empresa.catalogo_color_producto || "";
+  const colorBorde = empresa.catalogo_color_borde || "";
+  const colorBoton = empresa.catalogo_color_boton || empresa.color_principal;
 
   return (
     <div className="card">
@@ -124,7 +202,13 @@ export default function CatalogoAparienciaTab() {
         >
           {empresa.nombre_negocio || t("catalogo_apariencia.negocio_ejemplo")}
         </div>
-        <div style={{ background: "var(--card-hover)", padding: "14px 16px" }}>
+        <div
+          style={{
+            background: HEX.test(colorProducto) ? colorProducto : "var(--card-hover)",
+            border: HEX.test(colorBorde) ? `1px solid ${colorBorde}` : undefined,
+            padding: "14px 16px",
+          }}
+        >
           <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", fontWeight: 600 }}>
             {t("catalogo_apariencia.producto_ejemplo")}
           </p>
@@ -138,8 +222,66 @@ export default function CatalogoAparienciaTab() {
           >
             $199.00
           </p>
+          <span
+            style={{
+              display: "inline-block",
+              marginTop: 10,
+              padding: "6px 14px",
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#fff",
+              background: HEX.test(colorBoton) ? colorBoton : "#5945e4",
+            }}
+          >
+            {t("catalogo_apariencia.boton_ejemplo")}
+          </span>
         </div>
       </div>
+
+      {/* Colores de la tarjeta de producto. Vacíos = como está hoy: no
+          se inventa ningún valor por defecto que cambie el catálogo de
+          alguien sin que lo haya pedido. */}
+      <h3 className="cat-apariencia-titulo">{t("catalogo_apariencia.producto_titulo")}</h3>
+      <div className="cat-apariencia-colores">
+        <ColorOpcional
+          etiqueta={t("catalogo_apariencia.color_fondo")}
+          valor={colorProducto}
+          alCambiar={(v) => cambiarCampo("catalogo_color_producto", v)}
+          porDefecto="#151827"
+        />
+        <ColorOpcional
+          etiqueta={t("catalogo_apariencia.color_borde")}
+          valor={colorBorde}
+          alCambiar={(v) => cambiarCampo("catalogo_color_borde", v)}
+          porDefecto="#2a2e42"
+        />
+        <ColorOpcional
+          etiqueta={t("catalogo_apariencia.color_boton")}
+          valor={empresa.catalogo_color_boton || ""}
+          alCambiar={(v) => cambiarCampo("catalogo_color_boton", v)}
+          porDefecto={colorValido ? empresa.color_principal : "#5945e4"}
+        />
+      </div>
+
+      {categorias.length > 0 && (
+        <>
+          <h3 className="cat-apariencia-titulo">{t("catalogo_apariencia.categorias_titulo")}</h3>
+          <p className="cat-apariencia-ayuda">{t("catalogo_apariencia.categorias_ayuda")}</p>
+          <div className="cat-apariencia-categorias">
+            {categorias.map((c, i) => (
+              <label key={c} className="cat-apariencia-categoria">
+                <input
+                  type="color"
+                  value={colorDeCategoria(c, i)}
+                  onChange={(e) => cambiarColorCategoria(c, e.target.value)}
+                />
+                <span>{c}</span>
+              </label>
+            ))}
+          </div>
+        </>
+      )}
 
       <button className="btn-primary" onClick={alGuardar} disabled={guardando}>
         {guardando ? t("empresa.guardando") : t("empresa.guardar_cambios")}
@@ -160,6 +302,42 @@ export default function CatalogoAparienciaTab() {
           {mensaje.texto}
         </p>
       )}
+    </div>
+  );
+}
+
+// Un color que puede estar SIN definir. El <input type="color"> no
+// admite vacío —siempre devuelve un hex— así que sin este envoltorio no
+// habría forma de decir "déjalo como está" una vez tocado el selector.
+function ColorOpcional({
+  etiqueta,
+  valor,
+  alCambiar,
+  porDefecto,
+}: {
+  etiqueta: string;
+  valor: string;
+  alCambiar: (valor: string) => void;
+  porDefecto: string;
+}) {
+  const activo = HEX.test(valor);
+
+  return (
+    <div className="cat-apariencia-color">
+      <label>{etiqueta}</label>
+      <div className="cat-apariencia-color-fila">
+        <input
+          type="color"
+          value={activo ? valor : porDefecto}
+          onChange={(e) => alCambiar(e.target.value)}
+        />
+        <input value={valor} onChange={(e) => alCambiar(e.target.value)} placeholder={porDefecto} />
+        {activo && (
+          <button type="button" className="btn-secondary" onClick={() => alCambiar("")}>
+            ×
+          </button>
+        )}
+      </div>
     </div>
   );
 }

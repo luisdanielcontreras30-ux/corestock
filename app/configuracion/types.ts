@@ -66,6 +66,14 @@ export interface EmpresaConfig {
   zona_horaria: string;
   idioma: string;
   color_principal: string;
+  // Apariencia del catálogo público. Todas opcionales: llegan con
+  // supabase_catalogo_apariencia.sql y la consulta usa select("*"), así
+  // que sin la migración simplemente no vienen y la pantalla sigue
+  // funcionando con el color principal de siempre.
+  catalogo_color_producto?: string | null;
+  catalogo_color_borde?: string | null;
+  catalogo_color_boton?: string | null;
+  catalogo_colores_categoria?: Record<string, string> | null;
 }
 
 export const EMPRESA_VACIA: EmpresaConfig = {

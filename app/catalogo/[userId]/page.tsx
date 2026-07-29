@@ -35,6 +35,13 @@ export default function CatalogoPublicoPage({ params }: Props) {
   const [telefono, setTelefono] = useState<string | null>(null);
   const [productos, setProductos] = useState<ProductoPublico[]>([]);
   const [productoSeleccionadoId, setProductoSeleccionadoId] = useState<number | null>(null);
+  // Apariencia configurable (Configuración → Apariencia → Catálogo).
+  // Null = como estaba: no se inventa ningún color por defecto que
+  // cambie el catálogo de alguien que no lo pidió.
+  const [colorProducto, setColorProducto] = useState<string | null>(null);
+  const [colorBorde, setColorBorde] = useState<string | null>(null);
+  const [colorBoton, setColorBoton] = useState<string | null>(null);
+  const [coloresCategoria, setColoresCategoria] = useState<Record<string, string>>({});
 
   useEffect(() => {
     obtenerCatalogoPublico(userId)
@@ -46,6 +53,10 @@ export default function CatalogoPublicoPage({ params }: Props) {
           setColorPrincipal(datos.colorPrincipal);
           setTelefono(datos.telefono);
           setProductos(datos.productos);
+          setColorProducto(datos.colorProducto);
+          setColorBorde(datos.colorBorde);
+          setColorBoton(datos.colorBoton);
+          setColoresCategoria(datos.coloresCategoria);
         }
       })
       .catch((error) => console.error(error))
@@ -125,7 +136,30 @@ export default function CatalogoPublicoPage({ params }: Props) {
         categorias.map((cat) => (
           <section key={cat.nombre} className="catalogo-publico-categoria">
             <div className="catalogo-publico-categoria-titulo">
-              <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{cat.nombre}</h2>
+              <h2
+                style={{
+                  fontSize: 22,
+                  fontWeight: 700,
+                  margin: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                {coloresCategoria[cat.nombre] && (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 4,
+                      height: 20,
+                      borderRadius: 999,
+                      background: coloresCategoria[cat.nombre],
+                      display: "inline-block",
+                    }}
+                  />
+                )}
+                {cat.nombre}
+              </h2>
               <p
                 className="catalogo-publico-desliza-texto"
                 style={{ color: "var(--text-secondary)", fontSize: 12.5, margin: "4px 0 0 0" }}
@@ -142,6 +176,10 @@ export default function CatalogoPublicoPage({ params }: Props) {
                     <div
                       className="card catalogo-publico-producto"
                       onClick={() => setProductoSeleccionadoId(seleccionado ? null : p.id)}
+                      style={{
+                        background: colorProducto ?? undefined,
+                        borderColor: colorBorde ?? undefined,
+                      }}
                     >
                       <div className="catalogo-publico-producto-imagen">
                         {p.imagen ? (
@@ -152,7 +190,14 @@ export default function CatalogoPublicoPage({ params }: Props) {
                         )}
                       </div>
                       <p className="catalogo-publico-producto-nombre">{p.nombre}</p>
-                      <p style={{ fontSize: 15, color: colorPrincipal, fontWeight: 700, margin: "6px 0 0 0" }}>
+                      <p
+                        style={{
+                          fontSize: 15,
+                          color: coloresCategoria[cat.nombre] ?? colorPrincipal,
+                          fontWeight: 700,
+                          margin: "6px 0 0 0",
+                        }}
+                      >
                         ${precioFormato(Number(p.precio))}
                       </p>
                     </div>
@@ -184,7 +229,10 @@ export default function CatalogoPublicoPage({ params }: Props) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
-                                <span className="catalogo-publico-panel-opcion-icono" style={{ background: colorPrincipal }}>
+                                <span
+                                  className="catalogo-publico-panel-opcion-icono"
+                                  style={{ background: colorBoton ?? colorPrincipal }}
+                                >
                                   <FileText size={14} color="#fff" />
                                 </span>
                                 {t("catalogo_publico.realizar_cotizacion")}

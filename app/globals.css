@@ -7261,3 +7261,75 @@ select optgroup {
     transition: none;
   }
 }
+
+/* Apariencia del catálogo — opciones de color por producto y por
+   categoría (Configuración → Apariencia → Catálogo). */
+.cat-apariencia-titulo {
+  font-size: 14px;
+  margin: 22px 0 4px 0;
+  color: var(--text-primary);
+}
+
+.cat-apariencia-ayuda {
+  margin: 0 0 12px 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.cat-apariencia-colores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.cat-apariencia-color label {
+  font-size: 12.5px;
+}
+
+.cat-apariencia-color-fila {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cat-apariencia-color-fila input[type="color"] {
+  width: 46px;
+  height: 40px;
+  padding: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.cat-apariencia-color-fila .btn-secondary {
+  padding: 8px 12px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.cat-apariencia-categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cat-apariencia-categoria {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-hover);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cat-apariencia-categoria input[type="color"] {
+  width: 26px;
+  height: 26px;
+  padding: 1px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+}
