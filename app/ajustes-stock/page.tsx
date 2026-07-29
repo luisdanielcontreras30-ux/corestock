@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SlidersHorizontal, Trash2 } from "lucide-react";
+import { SlidersHorizontal, Trash2, PlusCircle, MinusCircle, Info, History } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import TarjetaDesplegable from "../../components/TarjetaDesplegable";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, AjusteStock } from "./types";
 import { cargarDatos, registrarAjuste, eliminarAjuste } from "./acciones";
@@ -86,6 +87,19 @@ export default function AjustesStockPage() {
     () => ordenarPorCategoria(productos, t("productos.sin_categoria")),
     [productos, t]
   );
+
+  // Resumen a partir de los ajustes YA cargados: ninguna consulta
+  // nueva. Un número arriba convierte la pantalla en un módulo con
+  // estado propio en vez de un formulario suelto.
+  const resumen = useMemo(() => {
+    let agregadas = 0;
+    let quitadas = 0;
+    for (const a of ajustes) {
+      if (a.cantidad_ajuste >= 0) agregadas += a.cantidad_ajuste;
+      else quitadas += -a.cantidad_ajuste;
+    }
+    return { total: ajustes.length, agregadas, quitadas };
+  }, [ajustes]);
 
   const producto = productos.find((p) => p.id === Number(productoId));
   const cantidadNum = Number(cantidad) || 0;
@@ -178,8 +192,58 @@ export default function AjustesStockPage() {
         </div>
       ) : (
       <>
-      <div className="card">
-        <h2 style={{ marginBottom: 16 }}>{t("ajustes_stock.registrar")}</h2>
+      {/* Qué es esto. La pantalla llevaba el nombre "Ajustes de stock" y
+          nada más: quien no supiera de antemano para qué sirve, no lo
+          averiguaba mirándola. */}
+      <div className="ajustes-explica">
+        <span className="ajustes-explica-icono">
+          <Info size={18} />
+        </span>
+        <p>{t("ajustes_stock.explicacion")}</p>
+      </div>
+
+      <div className="ajustes-resumen">
+        <div className="ajustes-resumen-item">
+          <span className="ajustes-resumen-valor">{resumen.total}</span>
+          <span className="ajustes-resumen-etiqueta">{t("ajustes_stock.resumen_total")}</span>
+        </div>
+        <div className="ajustes-resumen-item ajustes-resumen-positivo">
+          <span className="ajustes-resumen-valor">+{resumen.agregadas}</span>
+          <span className="ajustes-resumen-etiqueta">{t("ajustes_stock.resumen_agregadas")}</span>
+        </div>
+        <div className="ajustes-resumen-item ajustes-resumen-negativo">
+          <span className="ajustes-resumen-valor">-{resumen.quitadas}</span>
+          <span className="ajustes-resumen-etiqueta">{t("ajustes_stock.resumen_quitadas")}</span>
+        </div>
+      </div>
+
+      <TarjetaDesplegable
+        Icono={SlidersHorizontal}
+        titulo={t("ajustes_stock.registrar")}
+        subtitulo={t("ajustes_stock.registrar_ayuda")}
+      >
+        {/* Agregar o quitar era un desplegable de dos opciones: dos
+            toques y sin ninguna pista visual de cuál estaba elegida.
+            Como par de botones se ve de un vistazo, y el color dice
+            hacia dónde va el stock antes de leer nada. */}
+        <div className="ajustes-tipo">
+          <button
+            type="button"
+            className={`ajustes-tipo-boton ${tipo === "agregar" ? "ajustes-tipo-activo-agregar" : ""}`}
+            onClick={() => setTipo("agregar")}
+            aria-pressed={tipo === "agregar"}
+          >
+            <PlusCircle size={16} /> {t("ajustes_stock.tipo_agregar")}
+          </button>
+          <button
+            type="button"
+            className={`ajustes-tipo-boton ${tipo === "quitar" ? "ajustes-tipo-activo-quitar" : ""}`}
+            onClick={() => setTipo("quitar")}
+            aria-pressed={tipo === "quitar"}
+          >
+            <MinusCircle size={16} /> {t("ajustes_stock.tipo_quitar")}
+          </button>
+        </div>
 
         <div className="productos-grid">
           <SelectorPersonalizado value={productoId} onChange={setProductoId}>
@@ -189,11 +253,6 @@ export default function AjustesStockPage() {
                 {p.nombre} — {t("dashboard.stock_actual")}: {p.stock}
               </OpcionSelector>
             ))}
-          </SelectorPersonalizado>
-
-          <SelectorPersonalizado value={tipo} onChange={(v) => setTipo(v as Tipo)}>
-            <OpcionSelector value="agregar">{t("ajustes_stock.tipo_agregar")}</OpcionSelector>
-            <OpcionSelector value="quitar">{t("ajustes_stock.tipo_quitar")}</OpcionSelector>
           </SelectorPersonalizado>
 
           <input
@@ -212,12 +271,29 @@ export default function AjustesStockPage() {
           />
         </div>
 
+        {/* Cómo queda el stock, antes de guardar. Es la pregunta que se
+            hace cualquiera al corregir inventario, y hasta ahora había
+            que hacer la cuenta de cabeza. */}
+        {producto && cantidadNum > 0 && (
+          <p className="ajustes-previo">
+            {producto.nombre}: <strong>{producto.stock}</strong>
+            {" → "}
+            <strong style={{ color: tipo === "agregar" ? "#10b981" : "#ef4444" }}>
+              {tipo === "agregar" ? producto.stock + cantidadNum : producto.stock - cantidadNum}
+            </strong>
+          </p>
+        )}
+
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
           <button className="btn-primary" onClick={guardar} disabled={guardando}>
             {guardando ? t("compras.guardando") : t("ajustes_stock.registrar")}
           </button>
         </div>
-      </div>
+      </TarjetaDesplegable>
+
+      <h2 className="ajustes-historial-titulo">
+        <History size={18} /> {t("ajustes_stock.historial")}
+      </h2>
 
       <div className="tabla">
         <table>

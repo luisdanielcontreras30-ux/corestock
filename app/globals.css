@@ -6488,3 +6488,239 @@ select optgroup {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------------------------------------------------------------
+   Tarjeta desplegable (components/TarjetaDesplegable.tsx)
+   --------------------------------------------------------------- */
+
+.tarjeta-desplegable {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* La cabecera entera es el botón: en un celular, un objetivo táctil del
+   ancho de la tarjeta se acierta siempre, mientras que una flecha de
+   20px se falla la mitad de las veces. */
+.tarjeta-desplegable-cabecera {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.tarjeta-desplegable-cabecera:hover {
+  background: var(--card-hover);
+}
+
+.tarjeta-desplegable-icono {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.tarjeta-desplegable-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.tarjeta-desplegable-titulo {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.tarjeta-desplegable-subtitulo {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.tarjeta-desplegable-flecha {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform 0.25s ease;
+}
+
+.tarjeta-desplegable-abierta .tarjeta-desplegable-flecha {
+  transform: rotate(180deg);
+}
+
+.tarjeta-desplegable-cuerpo {
+  padding: 0 18px 18px;
+  animation: desplegar-cuerpo 0.22s ease;
+}
+
+@keyframes desplegar-cuerpo {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Quien tenga activado "reducir movimiento" en su sistema no debería
+   recibir ni el giro ni el deslizamiento. */
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-desplegable-flecha {
+    transition: none;
+  }
+
+  .tarjeta-desplegable-cuerpo {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Ajustes de stock — la pantalla no explicaba para qué servía ni
+   tenía estado propio: era un formulario y una tabla.
+   --------------------------------------------------------------- */
+
+.ajustes-explica {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--modulo-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--modulo-color) 28%, transparent);
+}
+
+.ajustes-explica-icono {
+  color: var(--modulo-color);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ajustes-explica p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.ajustes-resumen {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.ajustes-resumen-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ajustes-resumen-valor {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.ajustes-resumen-positivo .ajustes-resumen-valor {
+  color: #10b981;
+}
+
+.ajustes-resumen-negativo .ajustes-resumen-valor {
+  color: #ef4444;
+}
+
+.ajustes-resumen-etiqueta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.ajustes-tipo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ajustes-tipo-boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--card-hover);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.ajustes-tipo-activo-agregar {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.ajustes-tipo-activo-quitar {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.ajustes-previo {
+  margin: 14px 0 0 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.ajustes-historial-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  margin: 4px 0 -8px 0;
+  color: var(--text-primary);
+}
+
+.ajustes-historial-titulo svg {
+  color: var(--modulo-color);
+}
+
+/* En celular tres columnas dejan los números ilegibles; una sola
+   columna por tarjeta se lee bien y ocupa poco al ser bajitas. */
+@media (max-width: 560px) {
+  .ajustes-resumen {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .ajustes-resumen-item {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 12px 14px;
+  }
+
+  .ajustes-resumen-valor {
+    font-size: 20px;
+  }
+}
