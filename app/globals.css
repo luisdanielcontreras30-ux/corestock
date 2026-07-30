@@ -6726,10 +6726,13 @@ select optgroup {
 }
 
 /* ---------------------------------------------------------------
-   Venta rápida — filtro por categoría del mostrador
+   Fila de chips de filtro. Nació en el mostrador de Venta Rápida y
+   hoy la usan también Proveedores; el nombre dejó de mencionar un
+   módulo concreto para que nadie la "arregle" para uno y la rompa
+   para el otro sin enterarse.
    --------------------------------------------------------------- */
 
-.venta-rapida-categorias {
+.chips-filtro {
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -6740,11 +6743,11 @@ select optgroup {
   -webkit-overflow-scrolling: touch;
 }
 
-.venta-rapida-categorias::-webkit-scrollbar {
+.chips-filtro::-webkit-scrollbar {
   display: none;
 }
 
-.venta-rapida-chip {
+.chip-filtro {
   flex-shrink: 0;
   padding: 8px 16px;
   border-radius: 999px;
@@ -6759,11 +6762,11 @@ select optgroup {
   transition: var(--transition-fast);
 }
 
-.venta-rapida-chip:hover {
+.chip-filtro:hover {
   color: var(--text-primary);
 }
 
-.venta-rapida-chip-activo {
+.chip-filtro-activo {
   background: var(--modulo-color);
   border-color: var(--modulo-color);
   color: #fff;

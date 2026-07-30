@@ -141,19 +141,37 @@ function ProveedoresContenido() {
     try {
       const negocioId = await obtenerNegocioId(user.id);
 
-      // Los tres campos del panel solo se mandan si la persona puso
-      // algo. Así, en una base sin la migración corrida, guardar un
-      // proveedor normal sigue funcionando: la petición ni menciona las
-      // columnas que no existen.
-      const extras: Partial<Proveedor> = {};
-      if (categoriaForm.trim()) extras.categoria = categoriaForm.trim();
+      // Los tres campos del panel (categoría, calificación, días de
+      // entrega) solo pueden viajar si sus columnas existen. Se detecta
+      // mirando si la fila cargada TRAE la clave: la consulta usa
+      // select("*"), así que la clave está presente —aunque valga null—
+      // cuando la columna existe, y falta por completo cuando no.
+      //
+      // La distinción no es cosmética: si se omite el campo cuando está
+      // vacío, borrar una categoría ya guardada es IMPOSIBLE (la
+      // petición no la menciona, la base conserva el valor viejo, y al
+      // recargar reaparece como si el guardado hubiera fallado). Cuando
+      // las columnas existen se manda null explícito para poder vaciar.
+      const columnasDelPanel = editando ? "categoria" in editando : false;
+
       const calif = Number(calificacionForm);
-      if (calificacionForm && Number.isFinite(calif) && calif >= 1 && calif <= 5) {
-        extras.calificacion = Math.round(calif);
-      }
       const dias = Number(diasEntregaForm);
-      if (diasEntregaForm && Number.isFinite(dias) && dias >= 0 && dias <= 365) {
-        extras.dias_entrega = Math.round(dias);
+      const calificacionValida =
+        !!calificacionForm && Number.isFinite(calif) && calif >= 1 && calif <= 5;
+      const diasValidos = !!diasEntregaForm && Number.isFinite(dias) && dias >= 0 && dias <= 365;
+
+      const extras: Partial<Proveedor> = {};
+
+      if (columnasDelPanel) {
+        extras.categoria = categoriaForm.trim() || null;
+        extras.calificacion = calificacionValida ? Math.round(calif) : null;
+        extras.dias_entrega = diasValidos ? Math.round(dias) : null;
+      } else {
+        // Sin migración (o dando de alta uno nuevo, donde omitir un
+        // campo vacío es idéntico a mandar null): solo lo que se llenó.
+        if (categoriaForm.trim()) extras.categoria = categoriaForm.trim();
+        if (calificacionValida) extras.calificacion = Math.round(calif);
+        if (diasValidos) extras.dias_entrega = Math.round(dias);
       }
 
       if (editando) {
@@ -307,10 +325,10 @@ function ProveedoresContenido() {
           </div>
 
           {categorias.length > 0 && (
-            <div className="venta-rapida-categorias">
+            <div className="chips-filtro">
               <button
                 type="button"
-                className={`venta-rapida-chip ${categoriaActiva === "" ? "venta-rapida-chip-activo" : ""}`}
+                className={`chip-filtro ${categoriaActiva === "" ? "chip-filtro-activo" : ""}`}
                 onClick={() => setCategoria("")}
                 aria-pressed={categoriaActiva === ""}
               >
@@ -320,7 +338,7 @@ function ProveedoresContenido() {
                 <button
                   key={c}
                   type="button"
-                  className={`venta-rapida-chip ${categoriaActiva === c ? "venta-rapida-chip-activo" : ""}`}
+                  className={`chip-filtro ${categoriaActiva === c ? "chip-filtro-activo" : ""}`}
                   onClick={() => setCategoria(c)}
                   aria-pressed={categoriaActiva === c}
                 >

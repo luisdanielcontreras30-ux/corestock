@@ -423,10 +423,10 @@ export default function VentasRapidasPage() {
                 hay categorías de verdad: con una tienda sin clasificar,
                 una fila de un solo chip sería ruido. */}
             {categorias.length > 0 && (
-              <div className="venta-rapida-categorias">
+              <div className="chips-filtro">
                 <button
                   type="button"
-                  className={`venta-rapida-chip ${categoriaActiva === "" ? "venta-rapida-chip-activo" : ""}`}
+                  className={`chip-filtro ${categoriaActiva === "" ? "chip-filtro-activo" : ""}`}
                   onClick={() => setCategoria("")}
                   aria-pressed={categoriaActiva === ""}
                 >
@@ -436,7 +436,7 @@ export default function VentasRapidasPage() {
                   <button
                     key={c}
                     type="button"
-                    className={`venta-rapida-chip ${categoriaActiva === c ? "venta-rapida-chip-activo" : ""}`}
+                    className={`chip-filtro ${categoriaActiva === c ? "chip-filtro-activo" : ""}`}
                     onClick={() => setCategoria(c)}
                     aria-pressed={categoriaActiva === c}
                   >
