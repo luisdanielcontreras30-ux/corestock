@@ -136,6 +136,23 @@ function ProveedoresContenido() {
       return;
     }
 
+    // Se valida ANTES de guardar y se avisa. Antes, un valor fuera de
+    // rango simplemente no se mandaba: escribías 9 en la calificación,
+    // guardabas, y el campo aparecía vacío al recargar sin que nadie te
+    // dijera por qué. Descartar en silencio lo que alguien acaba de
+    // escribir es peor que rechazarlo de frente.
+    const calif = Number(calificacionForm);
+    if (calificacionForm.trim() && (!Number.isFinite(calif) || calif < 1 || calif > 5)) {
+      mostrarToast(t("proveedores.msg_calificacion_invalida"), "error");
+      return;
+    }
+
+    const dias = Number(diasEntregaForm);
+    if (diasEntregaForm.trim() && (!Number.isFinite(dias) || dias < 0 || dias > 365)) {
+      mostrarToast(t("proveedores.msg_dias_invalidos"), "error");
+      return;
+    }
+
     setGuardando(true);
 
     try {
@@ -154,24 +171,23 @@ function ProveedoresContenido() {
       // las columnas existen se manda null explícito para poder vaciar.
       const columnasDelPanel = editando ? "categoria" in editando : false;
 
-      const calif = Number(calificacionForm);
-      const dias = Number(diasEntregaForm);
-      const calificacionValida =
-        !!calificacionForm && Number.isFinite(calif) && calif >= 1 && calif <= 5;
-      const diasValidos = !!diasEntregaForm && Number.isFinite(dias) && dias >= 0 && dias <= 365;
+      // Ya validados arriba: aquí solo se distingue "hay valor" de "está
+      // vacío", que es lo que decide entre guardar el número o null.
+      const hayCalificacion = !!calificacionForm.trim();
+      const hayDias = !!diasEntregaForm.trim();
 
       const extras: Partial<Proveedor> = {};
 
       if (columnasDelPanel) {
         extras.categoria = categoriaForm.trim() || null;
-        extras.calificacion = calificacionValida ? Math.round(calif) : null;
-        extras.dias_entrega = diasValidos ? Math.round(dias) : null;
+        extras.calificacion = hayCalificacion ? Math.round(calif) : null;
+        extras.dias_entrega = hayDias ? Math.round(dias) : null;
       } else {
         // Sin migración (o dando de alta uno nuevo, donde omitir un
         // campo vacío es idéntico a mandar null): solo lo que se llenó.
         if (categoriaForm.trim()) extras.categoria = categoriaForm.trim();
-        if (calificacionValida) extras.calificacion = Math.round(calif);
-        if (diasValidos) extras.dias_entrega = Math.round(dias);
+        if (hayCalificacion) extras.calificacion = Math.round(calif);
+        if (hayDias) extras.dias_entrega = Math.round(dias);
       }
 
       if (editando) {
@@ -194,6 +210,18 @@ function ProveedoresContenido() {
       // no tiene sentido esconderlo tras un "no se pudo guardar": la
       // solución es correr un archivo SQL, y hay que decirlo.
       const texto = error instanceof Error ? error.message : "";
+
+      // Sentinels de acciones.ts (sin traducir a propósito, ver
+      // lib/errores.ts): se convierten aquí al idioma de la app.
+      if (texto === "CALIFICACION_INVALIDA") {
+        mostrarToast(t("proveedores.msg_calificacion_invalida"), "error");
+        return;
+      }
+      if (texto === "DIAS_INVALIDOS") {
+        mostrarToast(t("proveedores.msg_dias_invalidos"), "error");
+        return;
+      }
+
       const faltaMigracion = /column .* does not exist|categoria|calificacion|dias_entrega/i.test(texto);
       mostrarToast(
         t(faltaMigracion ? "proveedores.msg_falta_migracion" : "proveedores.msg_error_guardar"),

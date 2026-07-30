@@ -98,6 +98,33 @@ export async function cargarHistorialCompras(
   return (data ?? []) as CompraProveedor[];
 }
 
+
+// Los rangos se repiten aquí a propósito, igual que la validación del
+// nombre: estas acciones son exportadas y podrían llamarse sin pasar por
+// la pantalla. La base también los restringe
+// (supabase_proveedores_scorecard.sql), pero su error llega como un
+// mensaje de Postgres que nadie puede leer — esto lo convierte en un
+// sentinel que la pantalla sabe traducir.
+function validarPanel(cambios: Partial<Proveedor>) {
+  const calificacion = cambios.calificacion;
+  if (
+    calificacion !== undefined &&
+    calificacion !== null &&
+    (!Number.isInteger(calificacion) || calificacion < 1 || calificacion > 5)
+  ) {
+    throw new Error("CALIFICACION_INVALIDA");
+  }
+
+  const dias = cambios.dias_entrega;
+  if (
+    dias !== undefined &&
+    dias !== null &&
+    (!Number.isInteger(dias) || dias < 0 || dias > 365)
+  ) {
+    throw new Error("DIAS_INVALIDOS");
+  }
+}
+
 export async function crearProveedor(
   userId: string,
   nombre: string,
@@ -115,6 +142,8 @@ export async function crearProveedor(
   if (!nombre.trim()) {
     throw new Error("Falta el nombre del proveedor.");
   }
+
+  validarPanel(extras);
 
   const { error } = await supabase.from("proveedores").insert({
     user_id: userId,
@@ -137,6 +166,8 @@ export async function actualizarProveedor(
   if (cambios.nombre !== undefined && !cambios.nombre.trim()) {
     throw new Error("Falta el nombre del proveedor.");
   }
+
+  validarPanel(cambios);
 
   const { error } = await supabase
     .from("proveedores")
