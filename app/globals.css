@@ -7453,3 +7453,43 @@ select optgroup {
     grid-template-columns: 1fr;
   }
 }
+
+/* Categoría sin color asignado: se ofrece asignarlo en vez de enseñar
+   un color que el catálogo no va a pintar. */
+.cat-apariencia-categoria-vacia {
+  color: var(--text-secondary);
+  font-family: inherit;
+}
+
+.cat-apariencia-categoria-vacia:hover {
+  border-color: var(--modulo-color);
+  color: var(--text-primary);
+}
+
+.cat-apariencia-punto-vacio {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px dashed var(--border);
+  flex-shrink: 0;
+}
+
+.cat-apariencia-asignar {
+  font-size: 11px;
+  color: var(--modulo-color);
+  font-weight: 600;
+}
+
+.cat-apariencia-quitar {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.cat-apariencia-quitar:hover {
+  color: #ef4444;
+}

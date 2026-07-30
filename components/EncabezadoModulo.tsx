@@ -32,9 +32,18 @@ export default function EncabezadoModulo({ Icono, color, titulo, subtitulo }: Pr
   // retira para que la siguiente pantalla no herede el color de la
   // anterior si no trae encabezado propio.
   useEffect(() => {
-    document.documentElement.style.setProperty("--modulo-color", colorFinal);
+    const raiz = document.documentElement;
+    raiz.style.setProperty("--modulo-color", colorFinal);
+
     return () => {
-      document.documentElement.style.removeProperty("--modulo-color");
+      // Solo se retira si sigue siendo EL NUESTRO. Al navegar entre
+      // módulos, el encabezado de la pantalla nueva puede montarse antes
+      // de que se limpie el de la vieja: borrando a ciegas, la pantalla
+      // recién abierta se quedaba sin su color de identidad y caía al
+      // del tema hasta el siguiente render.
+      if (raiz.style.getPropertyValue("--modulo-color") === colorFinal) {
+        raiz.style.removeProperty("--modulo-color");
+      }
     };
   }, [colorFinal]);
 

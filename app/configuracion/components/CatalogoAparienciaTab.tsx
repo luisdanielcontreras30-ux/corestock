@@ -79,11 +79,18 @@ export default function CatalogoAparienciaTab() {
     setMensaje(null);
   }
 
-  function colorDeCategoria(nombre: string, indice: number): string {
-    const guardado = empresa.catalogo_colores_categoria?.[nombre];
-    return guardado && HEX.test(guardado)
-      ? guardado
-      : COLORES_SUGERIDOS[indice % COLORES_SUGERIDOS.length];
+  // El color GUARDADO de una categoría, o null si no tiene. La
+  // distinción importa: el catálogo público solo pinta las categorías
+  // que de verdad tienen color, así que enseñar aquí un círculo de
+  // color para todas —como hacía antes, con la paleta de sugerencias—
+  // prometía algo que el catálogo no cumplía.
+  function colorGuardado(nombre: string): string | null {
+    const valor = empresa.catalogo_colores_categoria?.[nombre];
+    return valor && HEX.test(valor) ? valor : null;
+  }
+
+  function sugerenciaPara(indice: number): string {
+    return COLORES_SUGERIDOS[indice % COLORES_SUGERIDOS.length];
   }
 
   function cambiarColorCategoria(nombre: string, valor: string) {
@@ -91,6 +98,18 @@ export default function CatalogoAparienciaTab() {
       ...prev,
       catalogo_colores_categoria: { ...(prev.catalogo_colores_categoria ?? {}), [nombre]: valor },
     }));
+    setMensaje(null);
+  }
+
+  function quitarColorCategoria(nombre: string) {
+    setEmpresa((prev) => {
+      // Se BORRA la clave en vez de dejarla vacía: una cadena vacía
+      // guardada en el JSON no es un color, y tendría que filtrarse en
+      // cada lectura para siempre.
+      const resto = { ...(prev.catalogo_colores_categoria ?? {}) };
+      delete resto[nombre];
+      return { ...prev, catalogo_colores_categoria: resto };
+    });
     setMensaje(null);
   }
 
@@ -301,16 +320,50 @@ export default function CatalogoAparienciaTab() {
           <h3 className="cat-apariencia-titulo">{t("catalogo_apariencia.categorias_titulo")}</h3>
           <p className="cat-apariencia-ayuda">{t("catalogo_apariencia.categorias_ayuda")}</p>
           <div className="cat-apariencia-categorias">
-            {categorias.map((c, i) => (
-              <label key={c} className="cat-apariencia-categoria">
-                <input
-                  type="color"
-                  value={colorDeCategoria(c, i)}
-                  onChange={(e) => cambiarColorCategoria(c, e.target.value)}
-                />
-                <span>{c}</span>
-              </label>
-            ))}
+            {categorias.map((c, i) => {
+              const asignado = colorGuardado(c);
+
+              // Sin color asignado no se dibuja un selector con un color
+              // dentro: se ofrece asignarlo. Un toque pone la sugerencia
+              // y desde ahí ya se puede afinar.
+              if (!asignado) {
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    className="cat-apariencia-categoria cat-apariencia-categoria-vacia"
+                    onClick={() => cambiarColorCategoria(c, sugerenciaPara(i))}
+                  >
+                    <span className="cat-apariencia-punto-vacio" aria-hidden="true" />
+                    <span>{c}</span>
+                    <span className="cat-apariencia-asignar">
+                      {t("catalogo_apariencia.asignar_color")}
+                    </span>
+                  </button>
+                );
+              }
+
+              return (
+                <span key={c} className="cat-apariencia-categoria">
+                  <input
+                    type="color"
+                    value={asignado}
+                    onChange={(e) => cambiarColorCategoria(c, e.target.value)}
+                    aria-label={c}
+                  />
+                  <span>{c}</span>
+                  <button
+                    type="button"
+                    className="cat-apariencia-quitar"
+                    onClick={() => quitarColorCategoria(c)}
+                    aria-label={t("catalogo_apariencia.quitar_color")}
+                    title={t("catalogo_apariencia.quitar_color")}
+                  >
+                    ×
+                  </button>
+                </span>
+              );
+            })}
           </div>
         </>
       )}
