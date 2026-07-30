@@ -7672,8 +7672,53 @@ select optgroup {
   margin-top: 20px;
 }
 
-.analisis-historial .analisis-stat-grid {
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+/* Banda de métricas entre el panel de subida y las gráficas. Cuatro
+   tarjetas parejas de ancho completo, como la fila de resumen de
+   Proveedores: llena la franja que antes quedaba negra y separa el
+   bloque de arriba del de las gráficas. */
+.analisis-banda {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+/* Dentro de la banda cada métrica ya es una tarjeta, así que se le
+   quita el fondo tenue que lleva cuando va apilada dentro de otra. */
+.analisis-banda .analisis-stat {
+  background: var(--card-bg);
+  padding: 16px;
+  margin: 0;
+}
+
+/* Con resultado, la banda se mete en la columna derecha debajo de la
+   ficha del producto: en 2x2 y estirándose para alcanzar la altura del
+   panel de la foto, que es mucho más alto. */
+.analisis-columna-resultado {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.analisis-columna-resultado .analisis-banda {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0;
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .analisis-banda,
+  .analisis-columna-resultado .analisis-banda {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .analisis-banda,
+  .analisis-columna-resultado .analisis-banda {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .analisis-boton-agregar {

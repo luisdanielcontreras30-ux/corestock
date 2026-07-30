@@ -251,6 +251,13 @@ function AnalisisProductoContenido() {
               </div>
             </div>
           ) : (
+            /* Con resultado, la columna derecha lleva la ficha del
+               producto Y las métricas debajo. La ficha sola es corta y
+               dejaba media pantalla negra al lado del panel de la foto,
+               que es alto. Antes del análisis no hace falta: ahí la
+               columna la llena la explicación de tres pasos, y las
+               métricas van en su banda de ancho completo más abajo. */
+            <div className="analisis-columna-resultado">
             <div className="card fade-up analisis-resultado">
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
                 <h2 style={{ margin: 0, fontSize: 20 }}>{resultadoIA.nombre}</h2>
@@ -274,8 +281,16 @@ function AnalisisProductoContenido() {
                 {t("analisis.agregar_al_inventario")}
               </Link>
             </div>
+
+              <BandaEstadisticas estadisticas={estadisticas} t={t} />
+            </div>
           )}
           </div>
+
+          {/* Sin resultado las métricas no caben arriba (la columna la
+              ocupa la explicación), así que van aquí en ancho completo
+              y en guiones, marcando el sitio que van a ocupar. */}
+          {!resultadoIA && <BandaEstadisticas estadisticas={null} t={t} />}
 
           {/* Las dos gráficas se dibujan SIEMPRE, aunque todavía no se
               haya analizado nada: con sus ejes, vacías y con una línea
@@ -317,6 +332,74 @@ function AnalisisProductoContenido() {
   );
 }
 
+// Banda de métricas entre el panel de subida y las gráficas.
+//
+// Estas cuatro cifras vivían dentro de la tarjeta del historial, que
+// quedaba apretada mientras la franja de en medio de la página estaba
+// vacía. Sacarlas aquí llena ese hueco y descongestiona la tarjeta de
+// abajo con el mismo contenido — no se inventa nada nuevo.
+//
+// Se dibuja siempre, con "—" mientras no haya nada que enseñar, igual
+// que las gráficas: la pantalla enseña de entrada la forma que va a
+// tener en vez de aparecer a trozos.
+function BandaEstadisticas({
+  estadisticas,
+  t,
+}: {
+  estadisticas: EstadisticasCategoria | null;
+  t: (clave: string) => string;
+}) {
+  // Sin ventas en la categoría los promedios son cero, y un cero se lee
+  // como "vendes cero" en vez de "todavía no sé". Por eso el guion.
+  const datos = estadisticas?.tieneVentas ? estadisticas : null;
+
+  const metricas = [
+    {
+      color: "#3b82f6",
+      icono: <TrendingUp size={16} color="#fff" />,
+      label: t("analisis.unidades_mes"),
+      valor: datos ? datos.unidadesPromedioMes.toFixed(1) : "—",
+    },
+    {
+      color: "#10b981",
+      icono: <DollarSign size={16} color="#fff" />,
+      label: t("analisis.ingreso_estimado_mes"),
+      valor: datos ? formatoMoneda(datos.ingresosPromedioMes) : "—",
+    },
+    {
+      color: "#f59e0b",
+      icono: <Percent size={16} color="#fff" />,
+      label: t("analisis.margen_promedio"),
+      valor:
+        datos?.margenPromedioPct != null
+          ? `${(datos.margenPromedioPct * 100).toFixed(0)}%`
+          : "—",
+    },
+    {
+      color: "#8b5cf6",
+      icono: <Repeat size={16} color="#fff" />,
+      label: t("analisis.frecuencia_compra"),
+      valor: datos?.frecuencia ? t(`analisis.frecuencia_${datos.frecuencia}`) : "—",
+    },
+  ];
+
+  return (
+    <div className="analisis-banda">
+      {metricas.map((metrica) => (
+        <div className="card analisis-stat" key={metrica.label}>
+          <span className="analisis-stat-icono" style={{ background: metrica.color }}>
+            {metrica.icono}
+          </span>
+          <div>
+            <p className="analisis-stat-label">{metrica.label}</p>
+            <p className="analisis-stat-valor">{metrica.valor}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ResultadoEstadisticas({
   estadisticas,
   t,
@@ -324,14 +407,13 @@ function ResultadoEstadisticas({
   estadisticas: EstadisticasCategoria;
   t: (clave: string) => string;
 }) {
+  // Las métricas por separado (unidades, ingreso, margen, frecuencia)
+  // ya no salen aquí: viven en la banda de arriba, BandaEstadisticas.
   const {
     productosEnCategoria,
-    unidadesPromedioMes,
     precioPromedio,
     margenPromedioPct,
-    ingresosPromedioMes,
     gananciaEstimadaMensual,
-    frecuencia,
     ventasPorMes,
     tieneVentas,
   } = estadisticas;
@@ -348,52 +430,6 @@ function ResultadoEstadisticas({
         </div>
       ) : (
         <>
-          <div className="analisis-stat-grid">
-            <div className="analisis-stat">
-              <span className="analisis-stat-icono" style={{ background: "#3b82f6" }}>
-                <TrendingUp size={16} color="#fff" />
-              </span>
-              <div>
-                <p className="analisis-stat-label">{t("analisis.unidades_mes")}</p>
-                <p className="analisis-stat-valor">{unidadesPromedioMes.toFixed(1)}</p>
-              </div>
-            </div>
-
-            <div className="analisis-stat">
-              <span className="analisis-stat-icono" style={{ background: "#10b981" }}>
-                <DollarSign size={16} color="#fff" />
-              </span>
-              <div>
-                <p className="analisis-stat-label">{t("analisis.ingreso_estimado_mes")}</p>
-                <p className="analisis-stat-valor">{formatoMoneda(ingresosPromedioMes)}</p>
-              </div>
-            </div>
-
-            <div className="analisis-stat">
-              <span className="analisis-stat-icono" style={{ background: "#f59e0b" }}>
-                <Percent size={16} color="#fff" />
-              </span>
-              <div>
-                <p className="analisis-stat-label">{t("analisis.margen_promedio")}</p>
-                <p className="analisis-stat-valor">
-                  {margenPromedioPct != null ? `${(margenPromedioPct * 100).toFixed(0)}%` : "—"}
-                </p>
-              </div>
-            </div>
-
-            <div className="analisis-stat">
-              <span className="analisis-stat-icono" style={{ background: "#8b5cf6" }}>
-                <Repeat size={16} color="#fff" />
-              </span>
-              <div>
-                <p className="analisis-stat-label">{t("analisis.frecuencia_compra")}</p>
-                <p className="analisis-stat-valor">
-                  {frecuencia ? t(`analisis.frecuencia_${frecuencia}`) : "—"}
-                </p>
-              </div>
-            </div>
-          </div>
-
           <div className="card" style={{ marginTop: 14, background: "var(--glass-bg)" }}>
             <p className="analisis-stat-label" style={{ marginBottom: 8 }}>
               {t("analisis.ganancia_estimada_mes")}:{" "}
