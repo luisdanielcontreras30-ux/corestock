@@ -1,10 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { obtenerNegocioId } from "../../lib/negocioActual";
-import {
-  ClienteConResumen,
-  CompraCliente,
-  DatosClienteForm,
-} from "./types";
+import { Cliente, ClienteConResumen, CompraCliente } from "./types";
 
 export async function cargarClientes() {
   const {
@@ -60,20 +56,43 @@ export async function cargarClientes() {
     resumenPorCliente.set(venta.cliente_id, actual);
   }
 
-  const clientesConResumen: ClienteConResumen[] = (
-    clientes ?? []
-  ).map((cliente) => ({
-    ...cliente,
-    compras: resumenPorCliente.get(cliente.id)?.compras ?? 0,
-    totalGastado:
-      resumenPorCliente.get(cliente.id)?.totalGastado ?? 0,
-  }));
+  const clientesConResumen: ClienteConResumen[] = ((clientes ?? []) as Cliente[]).map(
+    (cliente) => ({
+      ...cliente,
+      compras: resumenPorCliente.get(cliente.id)?.compras ?? 0,
+      totalGastado: resumenPorCliente.get(cliente.id)?.totalGastado ?? 0,
+    })
+  );
 
   return { clientes: clientesConResumen };
 }
 
+// El rango se repite aquí a propósito, igual que la validación del
+// nombre: esta acción es exportada y podría llamarse sin pasar por la
+// pantalla. La base también lo restringe
+// (supabase_clientes_scorecard.sql), pero su error llega como un
+// mensaje de Postgres que nadie puede leer — esto lo convierte en un
+// sentinel que la pantalla sabe traducir.
+function validarPanel(cambios: Partial<Cliente>) {
+  const calificacion = cambios.calificacion;
+  if (
+    calificacion !== undefined &&
+    calificacion !== null &&
+    (!Number.isInteger(calificacion) || calificacion < 1 || calificacion > 5)
+  ) {
+    throw new Error("CALIFICACION_INVALIDA");
+  }
+}
+
 export async function crearCliente(
-  datos: DatosClienteForm
+  nombre: string,
+  telefono: string,
+  correo: string,
+  notas: string,
+  // Categoría y calificación. Van aparte y solo con lo que de verdad se
+  // llenó: en una base sin la migración corrida, la petición no
+  // menciona esas columnas y el alta sigue funcionando.
+  extras: Partial<Cliente> = {}
 ) {
   const {
     data: { user },
@@ -88,16 +107,19 @@ export async function crearCliente(
   // El formulario (page.tsx) ya valida esto, pero se repite aquí porque
   // esta acción es exportada y podría llamarse directamente sin pasar
   // por él — mismo patrón que Compras/Devoluciones/Conciliaciones.
-  if (!datos.nombre.trim()) {
+  if (!nombre.trim()) {
     throw new Error("Falta el nombre del cliente.");
   }
 
+  validarPanel(extras);
+
   const { error } = await supabase.from("clientes").insert({
-    nombre: datos.nombre.trim(),
-    telefono: datos.telefono.trim() || null,
-    correo: datos.correo.trim() || null,
-    notas: datos.notas.trim() || null,
+    nombre: nombre.trim(),
+    telefono: telefono.trim() || null,
+    correo: correo.trim() || null,
+    notas: notas.trim() || null,
     user_id: negocioId,
+    ...extras,
   });
 
   if (error) {
@@ -105,10 +127,7 @@ export async function crearCliente(
   }
 }
 
-export async function actualizarCliente(
-  id: number,
-  datos: DatosClienteForm
-) {
+export async function actualizarCliente(id: number, cambios: Partial<Cliente>) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -117,18 +136,15 @@ export async function actualizarCliente(
     throw new Error("Usuario no autenticado");
   }
 
-  if (!datos.nombre.trim()) {
+  if (cambios.nombre !== undefined && !cambios.nombre.trim()) {
     throw new Error("Falta el nombre del cliente.");
   }
 
+  validarPanel(cambios);
+
   const { error } = await supabase
     .from("clientes")
-    .update({
-      nombre: datos.nombre.trim(),
-      telefono: datos.telefono.trim() || null,
-      correo: datos.correo.trim() || null,
-      notas: datos.notas.trim() || null,
-    })
+    .update(cambios)
     .eq("id", id);
 
   if (error) {

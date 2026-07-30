@@ -7350,8 +7350,154 @@ select optgroup {
   text-decoration: none;
 }
 
+/* Clientes: mismo panel-tarjeta que Proveedores (mismo diseño que pidió
+   el dueño), pero sin tendencia ni participación de gasto — Clientes no
+   tiene un equivalente a "días de entrega" ni compara ventanas de 30
+   días, así que solo van dos métricas en vez de tres. Se duplica en
+   vez de reutilizar .prov-* directamente para que el nombre de la clase
+   siga diciendo de qué módulo es (mismo criterio que el resto de la
+   app: cada módulo con su propio prefijo). Todo usa var(--modulo-color)
+   igual que Proveedores, así que aquí sale en rosa sin tocar nada. */
+.clientes-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.cli-tarjeta {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: var(--transition-fast);
+}
+
+.cli-tarjeta:hover {
+  border-color: color-mix(in srgb, var(--modulo-color) 45%, var(--border));
+  transform: translateY(-2px);
+}
+
+.cli-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cli-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 17px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--modulo-color) 16%, transparent);
+  color: var(--modulo-color);
+}
+
+.cli-identidad {
+  flex: 1;
+  min-width: 0;
+}
+
+.cli-nombre {
+  font-size: 15.5px;
+  font-weight: 700;
+  margin: 0 0 3px 0;
+  overflow-wrap: anywhere;
+}
+
+.cli-estrellas {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #f59e0b;
+}
+
+.cli-estrellas-texto {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.cli-sin-calificar {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.cli-categoria {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--modulo-color) 40%, transparent);
+  color: var(--modulo-color);
+}
+
+.cli-metricas {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.cli-metrica-valor {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.cli-metrica-etiqueta {
+  display: block;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.cli-contacto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.cli-notas {
+  color: var(--text-muted);
+}
+
+.cli-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cli-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  text-decoration: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .prov-tarjeta:hover {
+    transform: none;
+  }
+
+  .cli-tarjeta:hover {
     transform: none;
   }
 

@@ -5,6 +5,12 @@ export interface Cliente {
   correo: string | null;
   notas: string | null;
   token: string;
+  // Llegan con supabase_clientes_scorecard.sql. Van opcionales a
+  // propósito: la consulta usa select("*"), así que si la migración no
+  // se ha corrido simplemente no vienen, y la pantalla funciona igual
+  // sin ellas en vez de reventar.
+  categoria?: string | null;
+  calificacion?: number | null;
 }
 
 export interface ClienteConResumen extends Cliente {
@@ -19,11 +25,4 @@ export interface CompraCliente {
   cantidad: number;
   precio: number;
   total: number;
-}
-
-export interface DatosClienteForm {
-  nombre: string;
-  telefono: string;
-  correo: string;
-  notas: string;
 }
