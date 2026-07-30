@@ -781,12 +781,32 @@ select optgroup {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    /* "none" a secas, no translateY(0): cualquier transform que no sea
+       el literal "none" — incluida una matriz identidad — convierte a
+       este elemento en el "containing block" de todo position:fixed que
+       viva dentro. Como .fade-up se aplica a .page-content en TODAS las
+       páginas y a .card/.estadistica/.tabla tr, cualquier modal con
+       position:fixed que no llegue por portal a document.body quedaba
+       atrapado dentro del área de contenido en vez de cubrir la
+       pantalla completa — el fondo oscuro no tapaba el sidebar/header,
+       y el modal se recortaba al alto disponible ahí en vez del alto
+       real de la ventana. Con "none" termina la animación sin dejar
+       ningún transform activo. */
+    transform: none;
   }
 }
 
 .fade-up {
-  animation: fadeUp 0.5s ease forwards;
+  /* Sin "forwards": el efecto de la animación NO se sostiene después de
+     terminar. Es a propósito — ver el comentario dentro de @keyframes
+     fadeUp. "forwards" mantiene el transform de la animación "en
+     efecto" indefinidamente (aunque su valor final sea "none"), y eso
+     es lo que convertía a CADA página (.page-content lleva esta clase)
+     en el containing block de cualquier modal position:fixed dentro.
+     Al terminar sin "forwards", el elemento vuelve a su estilo base —
+     que ya es opacity:1 / sin transform, igual que el último frame —
+     así que se ve idéntico, pero sin dejar ningún efecto activo. */
+  animation: fadeUp 0.5s ease;
 }
 
 /* ==========================================================================
@@ -2247,7 +2267,13 @@ select optgroup {
 }
 
 .card, .estadistica, .tabla tr {
-  animation: fadeUp 0.35s ease both;
+  /* Sin "both" por el mismo motivo que .fade-up más arriba: sin delay
+     en esta regla, "backwards" no evita ningún parpadeo (no hay nada
+     que adelantar), pero "forwards" sí dejaba cada tarjeta como
+     containing block permanente de cualquier position:fixed que
+     viviera dentro — por ejemplo, un modal cuya tarjeta es a la vez
+     hijo de .card en el árbol. */
+  animation: fadeUp 0.35s ease;
 }
 
 .tabla tbody tr {
@@ -3516,7 +3542,7 @@ select optgroup {
 .dashboard-card-prod,
 .dashboard-card-alertas {
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
-  animation: fadeUp 0.4s ease both;
+  animation: fadeUp 0.4s ease;
 }
 
 .dashboard-card-hero:hover,

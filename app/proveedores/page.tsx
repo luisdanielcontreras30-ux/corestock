@@ -535,14 +535,36 @@ function ProveedoresContenido() {
         >
           <div
             className="card fade-up"
-            style={{ width: "100%", maxWidth: 460 }}
+            style={{
+              width: "100%",
+              maxWidth: 460,
+              maxHeight: "min(640px, calc(100vh - 80px))",
+              display: "flex",
+              flexDirection: "column",
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ marginBottom: 20 }}>
+            <h2 style={{ marginBottom: 20, flexShrink: 0 }}>
               {editando ? t("proveedores.editar_proveedor") : t("proveedores.nuevo_proveedor")}
             </h2>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Con calificación + días de entrega + categoría, el
+                formulario ya no cabe completo en pantallas cortas — sin
+                límite de alto, el título aparecía arriba y el botón
+                Guardar quedaba fuera de la vista, sin ninguna señal de
+                que hubiera más campos abajo. Ahora solo esta zona
+                intermedia scrollea: el título y los botones de Cancelar
+                / Guardar quedan siempre visibles. */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 14,
+                overflowY: "auto",
+                minHeight: 0,
+                paddingRight: 4,
+              }}
+            >
               <div>
                 <label>{t("proveedores.nombre")}</label>
                 <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Distribuidora ABC" />
@@ -618,7 +640,15 @@ function ProveedoresContenido() {
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 22 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 10,
+                marginTop: 22,
+                flexShrink: 0,
+              }}
+            >
               <button className="btn-secondary" onClick={() => setMostrarForm(false)}>
                 {t("usuarios.cancelar")}
               </button>
