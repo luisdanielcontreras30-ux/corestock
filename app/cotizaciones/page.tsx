@@ -12,6 +12,7 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
+import CampoConSugerencias from "../../components/CampoConSugerencias";
 import CotizacionCompartirModal from "./components/CotizacionCompartirModal";
 import ConstructorConceptos, { ESTILO_TIPO, detalleLinea } from "./components/ConstructorConceptos";
 import { Producto, Cliente, Cotizacion, EstadoCotizacion, ItemNuevo } from "./types";
@@ -275,17 +276,12 @@ function CotizacionesContenido() {
         </div>
 
         <div className="cot-cliente">
-          <input
-            list="lista-clientes-cotizaciones"
+          <CampoConSugerencias
             value={clienteNombre}
-            onChange={(e) => alCambiarClienteNombre(e.target.value)}
+            onChange={alCambiarClienteNombre}
+            opciones={clientes.map((c) => c.nombre)}
             placeholder={t("cotizaciones.para_cliente")}
           />
-          <datalist id="lista-clientes-cotizaciones">
-            {clientes.map((c) => (
-              <option key={c.id} value={c.nombre} />
-            ))}
-          </datalist>
 
           <input
             value={nota}

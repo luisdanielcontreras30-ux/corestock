@@ -14,6 +14,7 @@ import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
 import { ImagePlus, Package, Plus, Sparkles, Eraser } from "lucide-react";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
+import CampoConSugerencias from "../../components/CampoConSugerencias";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
@@ -626,19 +627,14 @@ function ProductosInterno() {
         />
 
         <div className="campo-categoria-datalist">
-          <input
-            list="lista-categorias-nuevo-producto"
+          <CampoConSugerencias
             value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
+            onChange={setCategoria}
+            opciones={categorias}
             placeholder={t("productos.categoria")}
             disabled={analizandoIA}
             className={analizandoIA ? "campo-ia-cargando" : undefined}
           />
-          <datalist id="lista-categorias-nuevo-producto">
-            {categorias.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
         </div>
 
         {puede("ver_ganancias") ? (

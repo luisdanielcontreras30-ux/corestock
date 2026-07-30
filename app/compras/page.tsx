@@ -12,6 +12,7 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import TarjetaDesplegable from "../../components/TarjetaDesplegable";
 import RequierePlus from "../../components/RequierePlus";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
+import CampoConSugerencias from "../../components/CampoConSugerencias";
 import { Producto, Proveedor, Compra } from "./types";
 import { cargarDatos, registrarCompra, eliminarCompra } from "./acciones";
 import { exportarExcel } from "./utils";
@@ -278,17 +279,12 @@ function ComprasContenido() {
             ))}
           </SelectorPersonalizado>
 
-          <input
-            list="lista-proveedores-compras"
+          <CampoConSugerencias
             value={proveedorNombre}
-            onChange={(e) => alCambiarProveedorNombre(e.target.value)}
+            onChange={alCambiarProveedorNombre}
+            opciones={proveedores.map((p) => p.nombre)}
             placeholder={t("compras.proveedor_placeholder")}
           />
-          <datalist id="lista-proveedores-compras">
-            {proveedores.map((p) => (
-              <option key={p.id} value={p.nombre} />
-            ))}
-          </datalist>
 
           <input
             type="number"
