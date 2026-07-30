@@ -12,7 +12,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import CargandoLista from "../../components/CargandoLista";
-import { ImagePlus, ScanSearch, TrendingUp, DollarSign, Percent, Repeat, Camera, Sparkles, LineChart } from "lucide-react";
+import { ImagePlus, ScanSearch, TrendingUp, DollarSign, Percent, Repeat, Camera, Sparkles, LineChart, Info, Globe } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -23,7 +23,7 @@ import { analizarProductoConIA } from "../../lib/iaAcciones";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { IA_DISPONIBLE } from "../../lib/soporte";
 import { formatoMoneda } from "../ventas/utils";
-import { EstadisticasCategoria, ProductoCategoria, ResultadoIA, VentaCategoria } from "./types";
+import { EstadisticasCategoria, EstimacionMercado, ProductoCategoria, ResultadoIA, VentaCategoria } from "./types";
 import { cargarDatosAnalisis } from "./acciones";
 import { calcularEstadisticasCategoria, encontrarCategoriaExistente } from "./estadisticas";
 
@@ -254,6 +254,14 @@ function AnalisisProductoContenido() {
               </div>
               <p style={{ color: "var(--text-secondary)", margin: 0 }}>{resultadoIA.descripcion}</p>
 
+              {resultadoIA.mercado && (
+                <EstimacionDeMercado
+                  mercado={resultadoIA.mercado}
+                  margenPropio={estadisticas?.margenPromedioPct ?? null}
+                  t={t}
+                />
+              )}
+
               {estadisticas?.tieneProductos ? (
                 <ResultadoEstadisticas estadisticas={estadisticas} t={t} />
               ) : (
@@ -395,6 +403,104 @@ function ResultadoEstadisticas({
       <p className="upload-box-subtexto" style={{ marginTop: 10, fontStyle: "italic" }}>
         {t("analisis.disclaimer")}
       </p>
+    </div>
+  );
+}
+
+
+// Estimación de mercado del modelo, con gráficas.
+//
+// TODO lo de aquí es una aproximación: son cifras que el modelo conoce
+// del comercio en general, NO mediciones de ningún negocio ni datos
+// consultados en internet. Por eso el aviso no está escondido en letra
+// chica al final: va arriba, antes de los números, porque quien los lee
+// va a decidir con ellos en qué gastar su dinero.
+function EstimacionDeMercado({
+  mercado,
+  margenPropio,
+  t,
+}: {
+  mercado: EstimacionMercado;
+  margenPropio: number | null;
+  t: (clave: string) => string;
+}) {
+  const margenMedio = Math.round((mercado.margenMin + mercado.margenMax) / 2);
+
+  // La comparación solo se dibuja si el negocio YA vende esa categoría:
+  // sin margen propio no hay nada contra qué comparar, y una barra sola
+  // en un gráfico de dos parece un dato faltante.
+  const datosMargen = [
+    { nombre: t("analisis.mercado_tipico"), valor: margenMedio },
+    ...(margenPropio !== null
+      ? [{ nombre: t("analisis.mercado_tuyo"), valor: Math.round(margenPropio) }]
+      : []),
+  ];
+
+  return (
+    <div className="analisis-mercado">
+      <h3 className="analisis-panel-titulo">
+        <Globe size={17} /> {t("analisis.mercado_titulo")}
+      </h3>
+
+      <div className="analisis-mercado-aviso">
+        <Info size={15} />
+        <p>{t("analisis.mercado_aviso")}</p>
+      </div>
+
+      <div className="analisis-mercado-grid">
+        <div>
+          <p className="analisis-mercado-etiqueta">
+            {t("analisis.mercado_margen")}{" "}
+            <strong>
+              {mercado.margenMin}% – {mercado.margenMax}%
+            </strong>
+          </p>
+          <div style={{ height: 150 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={datosMargen} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="nombre" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
+                <Tooltip
+                  cursor={{ fill: "var(--card-hover)" }}
+                  contentStyle={{
+                    background: "var(--card-bg)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 10,
+                    fontSize: 12,
+                  }}
+                  formatter={(v) => [`${Number(v) || 0}%`, t("analisis.mercado_margen_corto")]}
+                />
+                <Bar dataKey="valor" fill="var(--modulo-color)" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="analisis-mercado-medidores">
+          <Medidor etiqueta={t("analisis.mercado_rotacion")} valor={mercado.rotacion} />
+          <Medidor etiqueta={t("analisis.mercado_demanda")} valor={mercado.demanda} />
+        </div>
+      </div>
+
+      {mercado.nota && <p className="analisis-mercado-nota">{mercado.nota}</p>}
+    </div>
+  );
+}
+
+// Barra de 1 a 5. Se dibujan los cinco segmentos siempre, llenos o
+// vacíos: así el 3 se lee como "3 de 5" y no como un porcentaje suelto.
+function Medidor({ etiqueta, valor }: { etiqueta: string; valor: number }) {
+  return (
+    <div className="analisis-medidor">
+      <div className="analisis-medidor-fila">
+        <span>{etiqueta}</span>
+        <strong>{valor} / 5</strong>
+      </div>
+      <div className="analisis-medidor-barras" role="img" aria-label={`${etiqueta}: ${valor} / 5`}>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <span key={n} className={n <= valor ? "analisis-medidor-lleno" : ""} />
+        ))}
+      </div>
     </div>
   );
 }

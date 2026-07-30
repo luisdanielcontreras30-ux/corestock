@@ -20,6 +20,31 @@ export interface ResultadoAnalisisProducto {
   nombre: string;
   categoria: string;
   descripcion: string;
+  // Estimación de mercado. OPCIONAL a propósito: si el modelo no la
+  // devuelve, o la devuelve mal, el análisis sigue sirviendo para lo de
+  // siempre (catalogar el producto) en vez de fallar entero.
+  //
+  // No son datos medidos de ningún lado: son lo que el modelo sabe del
+  // mercado en general. La pantalla que las muestra lo dice con todas
+  // sus letras, porque son cifras con las que alguien decide qué
+  // comprar con su dinero.
+  mercado?: EstimacionMercado;
+}
+
+export interface EstimacionMercado {
+  // Margen bruto típico del producto, en porcentaje sobre el precio de
+  // venta. Dos números y no uno: un rango dice honestamente que es una
+  // horquilla, mientras que "38%" suena a medición.
+  margenMin: number;
+  margenMax: number;
+  // Qué tan rápido suele rotar. Se guarda como número de 1 a 5 para
+  // poder dibujarlo, con su etiqueta en el idioma de quien pregunta.
+  rotacion: number;
+  // Qué tanta demanda general tiene, también de 1 a 5.
+  demanda: number;
+  // Una o dos frases del modelo sobre el producto en el mercado
+  // (estacionalidad, competencia, a quién le vende).
+  nota: string;
 }
 
 export function construirPromptProducto(idioma: string, categoriasExistentes: string[]): string {
@@ -48,8 +73,65 @@ export function construirPromptProducto(idioma: string, categoriasExistentes: st
     pistaCategorias +
     '"descripcion": una descripción breve y atractiva para un catálogo de ' +
     "ventas al público, 1 o 2 frases, sin inventar características que no " +
-    "se puedan ver en la imagen."
+    "se puedan ver en la imagen. " +
+    // La estimación de mercado va en el mismo JSON para no gastar una
+    // segunda llamada al modelo por cada foto.
+    '"mercado": un objeto con tu estimación de cómo se comporta ESTE TIPO ' +
+    "de producto en el comercio minorista en general, con la forma " +
+    '{"margen_min": 25, "margen_max": 40, "rotacion": 4, "demanda": 3, ' +
+    '"nota": "..."}. ' +
+    '"margen_min" y "margen_max": el rango de margen bruto típico en ' +
+    "porcentaje sobre el precio de venta, como números enteros entre 0 y 90. " +
+    '"rotacion": qué tan rápido suele venderse, entero de 1 (muy lento) a ' +
+    "5 (se vende solo). " +
+    '"demanda": qué tanta gente lo busca, entero de 1 (nicho muy pequeño) ' +
+    "a 5 (lo compra casi cualquiera). " +
+    `"nota": 1 o 2 frases en ${idiomaTexto} sobre cómo se vende este tipo de ` +
+    "producto: estacionalidad, competencia o a qué público le sirve. " +
+    "Basa el objeto \"mercado\" en tu conocimiento general del comercio, no " +
+    "en datos de ningún negocio concreto, y no exageres: si no estás " +
+    "seguro, da un rango amplio en vez de un número preciso."
   );
+}
+
+// Convierte el objeto "mercado" que devuelve el modelo en algo que se
+// pueda dibujar sin sustos, o en undefined si no vino utilizable.
+//
+// Se recorta a los rangos declarados en vez de confiar: un modelo puede
+// devolver un margen de 250% o una rotación de 9, y esos números
+// acabarían pintados en una barra que se sale de su caja o, peor,
+// leídos como si fueran ciertos.
+function normalizarMercado(bruto: unknown): EstimacionMercado | undefined {
+  if (!bruto || typeof bruto !== "object") return undefined;
+
+  const obj = bruto as Record<string, unknown>;
+
+  const entero = (valor: unknown, minimo: number, maximo: number): number | null => {
+    const n = typeof valor === "number" ? valor : Number(valor);
+    if (!Number.isFinite(n)) return null;
+    return Math.min(maximo, Math.max(minimo, Math.round(n)));
+  };
+
+  const margenMin = entero(obj.margen_min, 0, 90);
+  const margenMax = entero(obj.margen_max, 0, 90);
+  const rotacion = entero(obj.rotacion, 1, 5);
+  const demanda = entero(obj.demanda, 1, 5);
+
+  if (margenMin === null || margenMax === null || rotacion === null || demanda === null) {
+    return undefined;
+  }
+
+  const nota = typeof obj.nota === "string" ? obj.nota.trim() : "";
+
+  return {
+    // Si llegan al revés, se ordenan: un rango con el mínimo por encima
+    // del máximo rompería la barra al dibujarla.
+    margenMin: Math.min(margenMin, margenMax),
+    margenMax: Math.max(margenMin, margenMax),
+    rotacion,
+    demanda,
+    nota,
+  };
 }
 
 // El modelo a veces no cierra bien el JSON (le falta la "}" final) o
@@ -77,7 +159,8 @@ export function extraerResultadoProducto(texto: string): ResultadoAnalisisProduc
       // (que sí salieron bien) solo por eso.
       const categoriaBruta = (json as { categoria?: unknown }).categoria;
       const categoria = typeof categoriaBruta === "string" ? categoriaBruta.trim() : "";
-      if (nombre && descripcion) return { nombre, categoria, descripcion };
+      const mercado = normalizarMercado((json as { mercado?: unknown }).mercado);
+      if (nombre && descripcion) return { nombre, categoria, descripcion, mercado };
     }
     return null;
   }

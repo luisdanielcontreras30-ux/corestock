@@ -33,8 +33,16 @@ export interface EstadisticasCategoria {
   ventasPorMes: PuntoMes[];
 }
 
+import type { EstimacionMercado } from "../../lib/promptsIA";
+
+export type { EstimacionMercado };
+
 export interface ResultadoIA {
   nombre: string;
   categoria: string;
   descripcion: string;
+  // Estimación de mercado del modelo. Opcional: si no viene, la
+  // pantalla simplemente no muestra ese bloque.
+  mercado?: EstimacionMercado;
 }
+

@@ -7523,3 +7523,109 @@ select optgroup {
   line-height: 1.55;
   color: var(--text-primary);
 }
+
+/* ---------------------------------------------------------------
+   Análisis de producto — estimación de mercado.
+   Son cifras APROXIMADAS del modelo, no mediciones. El aviso va
+   arriba y con peso visual propio, no en letra chica al final:
+   quien las lee decide con ellas en qué gastar su dinero.
+   --------------------------------------------------------------- */
+
+.analisis-mercado {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.analisis-mercado-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 18px;
+  padding: 11px 13px;
+  border-radius: var(--radius-md);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.analisis-mercado-aviso svg {
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.analisis-mercado-aviso p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+
+.analisis-mercado-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+
+.analisis-mercado-etiqueta {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.analisis-mercado-etiqueta strong {
+  color: var(--text-primary);
+}
+
+.analisis-mercado-medidores {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.analisis-medidor-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 7px;
+}
+
+.analisis-medidor-fila strong {
+  color: var(--text-primary);
+}
+
+.analisis-medidor-barras {
+  display: flex;
+  gap: 5px;
+}
+
+.analisis-medidor-barras span {
+  flex: 1;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--card-hover);
+  border: 1px solid var(--border);
+}
+
+.analisis-medidor-barras .analisis-medidor-lleno {
+  background: var(--modulo-color);
+  border-color: var(--modulo-color);
+}
+
+.analisis-mercado-nota {
+  margin: 18px 0 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+@media (max-width: 720px) {
+  .analisis-mercado-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}

@@ -1,9 +1,15 @@
 import { supabase } from "./supabase";
 
+import type { EstimacionMercado } from "./promptsIA";
+
 export interface ResultadoAnalisisIA {
   nombre: string;
   categoria: string;
   descripcion: string;
+  // Lo que el modelo estima del mercado para este tipo de producto.
+  // Opcional: las respuestas anteriores a esta función no lo traen, y un
+  // modelo puede omitirlo. Ver lib/promptsIA.ts.
+  mercado?: EstimacionMercado;
 }
 
 // Lleva el status HTTP para que quien llama pueda distinguir "sin
