@@ -258,14 +258,6 @@ function AnalisisProductoContenido() {
               </div>
               <p style={{ color: "var(--text-secondary)", margin: 0 }}>{resultadoIA.descripcion}</p>
 
-              {resultadoIA.mercado && (
-                <EstimacionDeMercado
-                  mercado={resultadoIA.mercado}
-                  margenPropio={estadisticas?.margenPromedioPct ?? null}
-                  t={t}
-                />
-              )}
-
               <Link
                 href={{
                   pathname: "/productos",
@@ -283,17 +275,32 @@ function AnalisisProductoContenido() {
           )}
           </div>
 
-          {/* El historial del propio negocio va A LO ANCHO, debajo de
-              las dos columnas. Metido en la columna derecha dejaba la
-              mitad izquierda de la pantalla vacía justo donde hay más
-              que enseñar, y sus gráficas se apretaban a media anchura. */}
-          {resultadoIA && (
-            <div className="card fade-up analisis-historial">
+          {/* Las dos gráficas se dibujan SIEMPRE, aunque todavía no se
+              haya analizado nada: con sus ejes, vacías y con una línea
+              que dice qué va a aparecer ahí. Una pantalla que enseña de
+              entrada la forma que va a tener se entiende antes que una
+              que aparece a trozos según lo que vayas haciendo. */}
+          <div className="analisis-graficas">
+            <div className="card analisis-mercado-tarjeta">
+              <h3 className="analisis-panel-titulo">
+                <Globe size={17} /> {t("analisis.mercado_titulo")}
+              </h3>
+
+              <EstimacionDeMercado
+                mercado={resultadoIA?.mercado ?? null}
+                margenPropio={estadisticas?.margenPromedioPct ?? null}
+                t={t}
+              />
+            </div>
+
+            <div className="card analisis-historial">
               <h3 className="analisis-panel-titulo">
                 <LineChart size={17} /> {t("analisis.historial_titulo")}
               </h3>
 
-              {estadisticas?.tieneProductos ? (
+              {!resultadoIA ? (
+                <GraficaHistorialVacia t={t} />
+              ) : estadisticas?.tieneProductos ? (
                 <ResultadoEstadisticas estadisticas={estadisticas} t={t} />
               ) : (
                 <div className="analisis-vacio">
@@ -301,7 +308,7 @@ function AnalisisProductoContenido() {
                 </div>
               )}
             </div>
-          )}
+          </div>
         </>
       )}
     </main>
@@ -448,30 +455,37 @@ function EstimacionDeMercado({
   margenPropio,
   t,
 }: {
-  mercado: EstimacionMercado;
+  // null = todavía no se ha analizado nada. Se dibuja igual, con los
+  // ejes y los medidores en cero, para que la pantalla no aparezca a
+  // trozos según lo que hayas hecho.
+  mercado: EstimacionMercado | null;
   margenPropio: number | null;
   t: (clave: string) => string;
 }) {
   const { tema } = useTheme();
   const paleta = obtenerPaletaGrafica(tema);
-  const margenMedio = Math.round((mercado.margenMin + mercado.margenMax) / 2);
+  const vacio = mercado === null;
+  const margenMedio = mercado ? Math.round((mercado.margenMin + mercado.margenMax) / 2) : 0;
 
   // La comparación solo se dibuja si el negocio YA vende esa categoría:
   // sin margen propio no hay nada contra qué comparar, y una barra sola
   // en un gráfico de dos parece un dato faltante.
-  const datosMargen = [
-    { nombre: t("analisis.mercado_tipico"), valor: margenMedio },
-    ...(margenPropio !== null
-      ? [{ nombre: t("analisis.mercado_tuyo"), valor: Math.round(margenPropio) }]
-      : []),
-  ];
+  // Vacío: las dos barras existen pero valen cero, así el eje y las
+  // etiquetas se dibujan y se ve DÓNDE va a aparecer cada cosa.
+  const datosMargen = vacio
+    ? [
+        { nombre: t("analisis.mercado_tipico"), valor: 0 },
+        { nombre: t("analisis.mercado_tuyo"), valor: 0 },
+      ]
+    : [
+        { nombre: t("analisis.mercado_tipico"), valor: margenMedio },
+        ...(margenPropio !== null
+          ? [{ nombre: t("analisis.mercado_tuyo"), valor: Math.round(margenPropio) }]
+          : []),
+      ];
 
   return (
     <div className="analisis-mercado">
-      <h3 className="analisis-panel-titulo">
-        <Globe size={17} /> {t("analisis.mercado_titulo")}
-      </h3>
-
       <div className="analisis-mercado-aviso">
         <Info size={15} />
         <p>{t("analisis.mercado_aviso")}</p>
@@ -481,9 +495,7 @@ function EstimacionDeMercado({
         <div>
           <p className="analisis-mercado-etiqueta">
             {t("analisis.mercado_margen")}{" "}
-            <strong>
-              {mercado.margenMin}% – {mercado.margenMax}%
-            </strong>
+            <strong>{mercado ? `${mercado.margenMin}% – ${mercado.margenMax}%` : "—"}</strong>
           </p>
           {/* Mismos ejes, mismo tooltip y misma paleta que las gráficas
               del dashboard: sin rejilla de fondo, sin colores fuera del
@@ -525,12 +537,24 @@ function EstimacionDeMercado({
         </div>
 
         <div className="analisis-mercado-medidores">
-          <Medidor etiqueta={t("analisis.mercado_rotacion")} valor={mercado.rotacion} color={paleta[0]} />
-          <Medidor etiqueta={t("analisis.mercado_demanda")} valor={mercado.demanda} color={paleta[1] ?? paleta[0]} />
+          <Medidor
+            etiqueta={t("analisis.mercado_rotacion")}
+            valor={mercado?.rotacion ?? 0}
+            color={paleta[0]}
+          />
+          <Medidor
+            etiqueta={t("analisis.mercado_demanda")}
+            valor={mercado?.demanda ?? 0}
+            color={paleta[1] ?? paleta[0]}
+          />
         </div>
       </div>
 
-      {mercado.nota && <p className="analisis-mercado-nota">{mercado.nota}</p>}
+      {mercado?.nota ? (
+        <p className="analisis-mercado-nota">{mercado.nota}</p>
+      ) : vacio ? (
+        <p className="analisis-mercado-nota">{t("analisis.mercado_pendiente")}</p>
+      ) : null}
     </div>
   );
 }
@@ -550,7 +574,7 @@ function Medidor({
     <div className="analisis-medidor">
       <div className="analisis-medidor-fila">
         <span>{etiqueta}</span>
-        <strong>{valor} / 5</strong>
+        <strong>{valor > 0 ? `${valor} / 5` : "—"}</strong>
       </div>
       <div className="analisis-medidor-barras" role="img" aria-label={`${etiqueta}: ${valor} / 5`}>
         {[1, 2, 3, 4, 5].map((n) => (
@@ -561,5 +585,29 @@ function Medidor({
         ))}
       </div>
     </div>
+  );
+}
+
+
+// Historial del negocio antes de haber analizado nada: los mismos ejes
+// que tendrá con datos, sin barras. Se dibuja para que la pantalla
+// enseñe de entrada la forma que va a tener, en vez de aparecer a
+// trozos conforme se usa.
+function GraficaHistorialVacia({ t }: { t: (clave: string) => string }) {
+  const meses = [1, 2, 3, 4, 5, 6].map((n) => ({ mes: String(n), unidades: 0 }));
+
+  return (
+    <>
+      <div style={{ width: "100%", height: 220 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={meses} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <XAxis dataKey="mes" stroke="var(--text-muted)" fontSize={11} tickLine={false} hide />
+            <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
+            <Bar dataKey="unidades" fill="var(--card-hover)" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <p className="analisis-mercado-nota">{t("analisis.historial_pendiente")}</p>
+    </>
   );
 }
