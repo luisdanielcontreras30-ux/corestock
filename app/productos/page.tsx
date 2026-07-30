@@ -924,7 +924,7 @@ function ProductosInterno() {
           ))}
         </div>
       ) : (
-        <div className="tabla" style={{ marginTop: 24 }}>
+        <div className="tabla tabla-productos" style={{ marginTop: 24 }}>
           <table>
             <thead>
               <tr>
@@ -962,20 +962,24 @@ function ProductosInterno() {
 
                     {grupo.items.map((p) => (
                       <tr key={p.id}>
-                        <td>
+                        <td data-label={t("productos.col_imagen")}>
                           {p.imagen ? (
                             <img src={p.imagen} alt={p.nombre} className="product-image" />
                           ) : "—"}
                         </td>
 
-                        <td>{p.nombre}</td>
-                        <td>{p.categoria?.trim() ? p.categoria : t("productos.sin_categoria")}</td>
-                        <td>{formatoMoneda(p.precio_venta)}</td>
-                        {puede("ver_ganancias") && <td>{formatoMoneda(p.costo ?? 0)}</td>}
-                        <td>{p.stock}</td>
+                        <td data-label={t("productos.col_producto")}>{p.nombre}</td>
+                        <td data-label={t("productos.categoria")}>
+                          {p.categoria?.trim() ? p.categoria : t("productos.sin_categoria")}
+                        </td>
+                        <td data-label={t("productos.precio")}>{formatoMoneda(p.precio_venta)}</td>
+                        {puede("ver_ganancias") && (
+                          <td data-label={t("productos.costo")}>{formatoMoneda(p.costo ?? 0)}</td>
+                        )}
+                        <td data-label={t("productos.stock")}>{p.stock}</td>
 
                         {puede("gestionar_inventario") && (
-                          <td>
+                          <td className="tabla-productos-td-acciones">
                             <div className="productos-actions">
                               <button onClick={() => editar(p)} className="btn-edit">
                                 {t("productos.editar")}

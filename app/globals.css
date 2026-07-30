@@ -542,6 +542,75 @@ body {
   border-bottom: none;
 }
 
+/* Productos en celular: antes esta tabla dependía por completo del
+   scroll horizontal para ver Costo/Stock, sin ninguna pista de que
+   hubiera más columnas — se veía cortada, no "arrástrame". Bajo el
+   quiebre se convierte cada fila en una tarjeta apilada (patrón
+   "data-label": cada <td> ya trae su encabezado en el atributo, así
+   que no hace falta duplicar el JSX para desktop/celular). Es la única
+   tabla de la app con este tratamiento por ahora — las demás siguen
+   con scroll horizontal.
+   */
+@media (max-width: 640px) {
+  .tabla-productos table,
+  .tabla-productos thead,
+  .tabla-productos tbody,
+  .tabla-productos tr,
+  .tabla-productos th,
+  .tabla-productos td {
+    display: block;
+    width: 100%;
+  }
+
+  .tabla-productos thead {
+    /* Los nombres de columna pasan a la etiqueta de cada celda —
+       repetirlos arriba, ya sin columnas que encabezar, no aporta. */
+    display: none;
+  }
+
+  .tabla-productos tbody tr {
+    padding: 4px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tabla-productos tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .tabla-productos td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: none;
+    text-align: right;
+  }
+
+  .tabla-productos td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: left;
+  }
+
+  /* El banner de categoría (FilaGrupo) y el mensaje de "sin resultados"
+     (FilaVacia) son un único <td colSpan>, no una celda de producto:
+     ninguno de los dos trae data-label, así que no deben partirse en
+     "etiqueta | valor" — se dejan en bloque para que su propio
+     centrado/alineación (definido inline en cada componente) siga
+     mandando, igual que en escritorio. */
+  .tabla-productos td[colspan] {
+    display: block;
+  }
+
+  .tabla-productos-td-acciones {
+    justify-content: flex-end;
+  }
+}
+
 /* ==========================================================================
    INPUTS, SCROLLBARS Y AJUSTES MENORES
    ========================================================================== */
