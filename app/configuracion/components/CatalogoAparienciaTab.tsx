@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { EmpresaConfig, EMPRESA_VACIA } from "../types";
 import { cargarEmpresa, guardarEmpresa } from "../acciones";
 import { supabase } from "../../../lib/supabase";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { contrasteInsuficiente } from "../../../lib/contraste";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
@@ -183,6 +184,32 @@ export default function CatalogoAparienciaTab() {
   const colorTitulo = empresa.catalogo_color_titulo || "";
   const colorPrecio = empresa.catalogo_color_precio || empresa.color_principal;
   const colorBoton = empresa.catalogo_color_boton || empresa.color_principal;
+
+  // Fondo real contra el que se lee el texto de una tarjeta: el de la
+  // tarjeta si está definido, y si no el de la página.
+  const fondoDelTexto = HEX.test(colorProducto)
+    ? colorProducto
+    : HEX.test(colorFondo)
+      ? colorFondo
+      : "";
+
+  // Solo se comparan combinaciones que la persona eligió de verdad. Con
+  // los valores por defecto no hay nada que avisar: los del tema ya
+  // contrastan entre sí.
+  const avisosContraste: string[] = [];
+  if (fondoDelTexto) {
+    if (HEX.test(colorTitulo) && contrasteInsuficiente(colorTitulo, fondoDelTexto)) {
+      avisosContraste.push(t("catalogo_apariencia.color_titulo"));
+    }
+    if (HEX.test(colorPrecio) && contrasteInsuficiente(colorPrecio, fondoDelTexto)) {
+      avisosContraste.push(t("catalogo_apariencia.color_precio"));
+    }
+  }
+  // El texto de los botones es blanco, así que un botón claro se queda
+  // sin etiqueta legible.
+  if (HEX.test(colorBoton) && contrasteInsuficiente("#ffffff", colorBoton)) {
+    avisosContraste.push(t("catalogo_apariencia.color_boton"));
+  }
 
   return (
     <div className="card">
@@ -366,6 +393,22 @@ export default function CatalogoAparienciaTab() {
             })}
           </div>
         </>
+      )}
+
+      {/* No bloquea el guardado: es una elección de diseño de quien
+          manda, y puede haber razones. Pero quien lo sufre es el cliente
+          que abre el catálogo en su teléfono, no quien lo configuró, así
+          que al menos se dice. */}
+      {avisosContraste.length > 0 && (
+        <div className="cat-apariencia-aviso">
+          <AlertTriangle size={16} />
+          <p>
+            {t("catalogo_apariencia.aviso_contraste").replace(
+              "{campos}",
+              avisosContraste.join(", ")
+            )}
+          </p>
+        </div>
       )}
 
       <button className="btn-primary" onClick={alGuardar} disabled={guardando}>

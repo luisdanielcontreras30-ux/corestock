@@ -756,15 +756,20 @@ function ProductosInterno() {
             {t("productos.importar_excel")}
           </button>
 
-          {/* Vaciar el formulario sin salir de él. Antes solo se podía
-              con "Cancelar", y ese únicamente existe al editar. */}
-          <button
-            onClick={borrarTodo}
-            className="btn-secondary"
-            disabled={!hayAlgoQueBorrar || guardando}
-          >
-            <Eraser size={15} /> {t("productos.borrar_todo")}
-          </button>
+          {/* Solo al dar de alta uno nuevo. Editando no aparece: ahí
+              vaciar el formulario dejaría "Actualizar <producto>" con
+              todo en blanco, y el botón —justo al lado de Cancelar— se
+              leería como si borrara el producto de la base. Cancelar ya
+              hace lo correcto en ese caso. */}
+          {editando === null && (
+            <button
+              onClick={borrarTodo}
+              className="btn-secondary"
+              disabled={!hayAlgoQueBorrar || guardando}
+            >
+              <Eraser size={15} /> {t("productos.borrar_todo")}
+            </button>
+          )}
 
           {editando !== null && (
             <button onClick={limpiar} className="btn-delete">

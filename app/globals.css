@@ -7496,3 +7496,30 @@ select optgroup {
 .cat-apariencia-quitar:hover {
   color: #ef4444;
 }
+
+/* Aviso de contraste en la apariencia del catálogo. No bloquea nada:
+   solo hace visible que una combinación de colores dejaría el texto
+   ilegible para los clientes del negocio. */
+.cat-apariencia-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 0 18px 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.cat-apariencia-aviso svg {
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cat-apariencia-aviso p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
