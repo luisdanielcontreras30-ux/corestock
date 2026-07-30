@@ -28,6 +28,7 @@ import {
   ScanSearch,
   RotateCcw,
   HandCoins,
+  Wrench,
   LucideIcon,
 } from "lucide-react";
 
@@ -82,6 +83,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { claveNombre: "sidebar.cuentas_por_cobrar", href: "/cuentas-por-cobrar", Icono: HandCoins, colorMovil: "#facc15" },
       { claveNombre: "sidebar.clientes", href: "/clientes", Icono: Users, colorMovil: "#ec4899" },
       { claveNombre: "sidebar.compras", href: "/compras", Icono: ShoppingCart, colorMovil: "#14b8a6" },
+      { claveNombre: "sidebar.servicios", href: "/servicios", Icono: Wrench, colorMovil: "#65a30d" },
       { claveNombre: "sidebar.cotizaciones", href: "/cotizaciones", Icono: FileText, colorMovil: "#3b82f6" },
       { claveNombre: "sidebar.facturas", href: "/facturas", Icono: Receipt, colorMovil: "#f43f5e" },
       { claveNombre: "sidebar.facturas_globales", href: "/facturas-globales", Icono: Files, colorMovil: "#d946ef" },

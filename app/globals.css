@@ -1122,6 +1122,35 @@ select optgroup {
   flex-wrap: wrap;
 }
 
+/* Servicios: insignia del estado del trabajo (pendiente/hecho/cobrado)
+   dentro de la tabla. Colores fijos con sentido propio (ámbar = falta
+   hacerlo, azul = falta cobrarlo, verde = ya está cerrado) — no usan
+   var(--modulo-color) a propósito, porque el color aquí es información
+   (en qué punto va el trabajo), no identidad del módulo. */
+.serv-estado {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.serv-estado-pendiente {
+  background: color-mix(in srgb, #f59e0b 16%, transparent);
+  color: #f59e0b;
+}
+
+.serv-estado-hecho {
+  background: color-mix(in srgb, #3b82f6 16%, transparent);
+  color: #3b82f6;
+}
+
+.serv-estado-cobrado {
+  background: color-mix(in srgb, #10b981 16%, transparent);
+  color: #10b981;
+}
+
 /* Distinta de .productos-grid (genérica, reusada por otros módulos) —
    esta es solo para las parejas precio/costo y stock/stock mínimo del
    formulario rediseñado de Productos. */
