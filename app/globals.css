@@ -7583,6 +7583,34 @@ select optgroup {
   color: var(--text-primary);
 }
 
+/* Leyenda de los anillos de margen: el color, de qué es y cuánto vale.
+   Sin ella los arcos no se pueden identificar. */
+.analisis-mercado-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.analisis-mercado-leyenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.analisis-mercado-leyenda i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.analisis-mercado-leyenda strong {
+  color: var(--text-primary);
+}
+
 .analisis-mercado-medidores {
   display: flex;
   flex-direction: column;

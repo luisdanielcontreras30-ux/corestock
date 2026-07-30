@@ -4,13 +4,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   ResponsiveContainer,
   Tooltip,
   YAxis,
-  Cell,
+  RadialBarChart,
+  RadialBar,
+  PolarAngleAxis,
 } from "recharts";
 import CargandoLista from "../../components/CargandoLista";
 import { ImagePlus, ScanSearch, TrendingUp, DollarSign, Percent, Repeat, Camera, Sparkles, LineChart, Info, Globe } from "lucide-react";
@@ -402,11 +404,16 @@ function ResultadoEstadisticas({
 
             <div style={{ width: "100%", height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={ventasPorMes} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={ventasPorMes} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="analisisHistorial" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.9} />
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.25} />
+                    </linearGradient>
+                  </defs>
                   <XAxis dataKey="mes" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                   <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
                   <Tooltip
-                    cursor={{ fill: "var(--card-hover)" }}
                     contentStyle={{
                       backgroundColor: "var(--bg-secondary)",
                       border: "1px solid var(--border)",
@@ -416,13 +423,16 @@ function ResultadoEstadisticas({
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                     formatter={(valor) => `${Number(valor)} ${t("analisis.unidades")}`}
                   />
-                  <Bar
+                  <Area
+                    type="monotone"
                     dataKey="unidades"
                     name={t("analisis.unidades")}
-                    fill="var(--primary)"
-                    radius={[4, 4, 0, 0]}
+                    stroke="var(--primary)"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#analisisHistorial)"
                   />
-                </BarChart>
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -472,17 +482,19 @@ function EstimacionDeMercado({
   // en un gráfico de dos parece un dato faltante.
   // Vacío: las dos barras existen pero valen cero, así el eje y las
   // etiquetas se dibujan y se ve DÓNDE va a aparecer cada cosa.
-  const datosMargen = vacio
-    ? [
-        { nombre: t("analisis.mercado_tipico"), valor: 0 },
-        { nombre: t("analisis.mercado_tuyo"), valor: 0 },
-      ]
-    : [
-        { nombre: t("analisis.mercado_tipico"), valor: margenMedio },
-        ...(margenPropio !== null
-          ? [{ nombre: t("analisis.mercado_tuyo"), valor: Math.round(margenPropio) }]
-          : []),
-      ];
+  const datosMargen = (
+    vacio
+      ? [
+          { nombre: t("analisis.mercado_tipico"), valor: 0 },
+          { nombre: t("analisis.mercado_tuyo"), valor: 0 },
+        ]
+      : [
+          { nombre: t("analisis.mercado_tipico"), valor: margenMedio },
+          ...(margenPropio !== null
+            ? [{ nombre: t("analisis.mercado_tuyo"), valor: Math.round(margenPropio) }]
+            : []),
+        ]
+  ).map((fila, i) => ({ ...fila, fill: paleta[i % paleta.length] }));
 
   return (
     <div className="analisis-mercado">
@@ -497,22 +509,31 @@ function EstimacionDeMercado({
             {t("analisis.mercado_margen")}{" "}
             <strong>{mercado ? `${mercado.margenMin}% – ${mercado.margenMax}%` : "—"}</strong>
           </p>
-          {/* Mismos ejes, mismo tooltip y misma paleta que las gráficas
-              del dashboard: sin rejilla de fondo, sin colores fuera del
-              tema y sin bordes de neón. Que se vean de la misma app. */}
+          {/* Anillos, no barras. El margen ya es un porcentaje sobre 100,
+              así que un medidor circular lo dice sin necesidad de eje: el
+              arco lleno ES la fracción. Los colores salen de la paleta del
+              tema, igual que las gráficas del dashboard — nada de neón. */}
           <div style={{ width: "100%", height: 190 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={datosMargen} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="nombre" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
-                <YAxis
-                  stroke="var(--text-muted)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(valor) => `${valor}%`}
+              <RadialBarChart
+                data={datosMargen}
+                innerRadius="42%"
+                outerRadius="95%"
+                startAngle={90}
+                endAngle={-270}
+                barSize={13}
+              >
+                {/* El dominio fijo 0-100 es lo que convierte el anillo en
+                    medidor: sin él recharts escala al valor más grande y
+                    un margen del 30% se vería lleno. */}
+                <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                <RadialBar
+                  dataKey="valor"
+                  name={t("analisis.mercado_margen_corto")}
+                  background={{ fill: "var(--card-hover)" }}
+                  cornerRadius={7}
                 />
                 <Tooltip
-                  cursor={{ fill: "var(--card-hover)" }}
                   contentStyle={{
                     backgroundColor: "var(--bg-secondary)",
                     border: "1px solid var(--border)",
@@ -522,17 +543,20 @@ function EstimacionDeMercado({
                   itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                   formatter={(valor) => `${Number(valor) || 0}%`}
                 />
-                <Bar
-                  dataKey="valor"
-                  name={t("analisis.mercado_margen_corto")}
-                  radius={[4, 4, 0, 0]}
-                >
-                  {datosMargen.map((_, i) => (
-                    <Cell key={i} fill={paleta[i % paleta.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
+              </RadialBarChart>
             </ResponsiveContainer>
+          </div>
+
+          {/* El anillo por sí solo no dice cuál es cuál: la leyenda lleva
+              el color, el nombre y el número, que es lo que se busca. */}
+          <div className="analisis-mercado-leyenda">
+            {datosMargen.map((fila) => (
+              <span key={fila.nombre}>
+                <i style={{ background: fila.fill }} />
+                {fila.nombre}
+                <strong>{vacio ? "—" : `${fila.valor}%`}</strong>
+              </span>
+            ))}
           </div>
         </div>
 
@@ -590,9 +614,9 @@ function Medidor({
 
 
 // Historial del negocio antes de haber analizado nada: los mismos ejes
-// que tendrá con datos, sin barras. Se dibuja para que la pantalla
-// enseñe de entrada la forma que va a tener, en vez de aparecer a
-// trozos conforme se usa.
+// y la misma área que tendrá con datos, pero plana en cero. Se dibuja
+// para que la pantalla enseñe de entrada la forma que va a tener, en
+// vez de aparecer a trozos conforme se usa.
 function GraficaHistorialVacia({ t }: { t: (clave: string) => string }) {
   const meses = [1, 2, 3, 4, 5, 6].map((n) => ({ mes: String(n), unidades: 0 }));
 
@@ -600,11 +624,24 @@ function GraficaHistorialVacia({ t }: { t: (clave: string) => string }) {
     <>
       <div style={{ width: "100%", height: 220 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={meses} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <AreaChart data={meses} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="analisisHistorialVacio" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--text-muted)" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="var(--text-muted)" stopOpacity={0.05} />
+              </linearGradient>
+            </defs>
             <XAxis dataKey="mes" stroke="var(--text-muted)" fontSize={11} tickLine={false} hide />
             <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
-            <Bar dataKey="unidades" fill="var(--card-hover)" radius={[4, 4, 0, 0]} />
-          </BarChart>
+            <Area
+              type="monotone"
+              dataKey="unidades"
+              stroke="var(--text-muted)"
+              strokeWidth={2}
+              fillOpacity={1}
+              fill="url(#analisisHistorialVacio)"
+            />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
       <p className="analisis-mercado-nota">{t("analisis.historial_pendiente")}</p>
