@@ -9,11 +9,14 @@ import {
   XAxis,
   ResponsiveContainer,
   Tooltip,
-  CartesianGrid,
+  YAxis,
+  Cell,
 } from "recharts";
 import CargandoLista from "../../components/CargandoLista";
 import { ImagePlus, ScanSearch, TrendingUp, DollarSign, Percent, Repeat, Camera, Sparkles, LineChart, Info, Globe } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
+import { useTheme } from "../../components/ThemeProvider";
+import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import RequierePlus from "../../components/RequierePlus";
@@ -149,7 +152,8 @@ function AnalisisProductoContenido() {
       {!IA_DISPONIBLE ? (
         <IaNoDisponible />
       ) : (
-        <div className="analisis-layout">
+        <>
+          <div className="analisis-layout">
           <div className="card analisis-panel-subida">
             <h2 className="analisis-panel-titulo">
               <Camera size={17} /> {t("analisis.paso_subir")}
@@ -262,14 +266,6 @@ function AnalisisProductoContenido() {
                 />
               )}
 
-              {estadisticas?.tieneProductos ? (
-                <ResultadoEstadisticas estadisticas={estadisticas} t={t} />
-              ) : (
-                <div className="analisis-vacio">
-                  <p>{t("analisis.msg_categoria_nueva")}</p>
-                </div>
-              )}
-
               <Link
                 href={{
                   pathname: "/productos",
@@ -279,14 +275,34 @@ function AnalisisProductoContenido() {
                     descripcion_sugerida: resultadoIA.descripcion,
                   },
                 }}
-                className="btn-secondary"
-                style={{ display: "inline-block", marginTop: 16, textDecoration: "none", textAlign: "center" }}
+                className="btn-primary analisis-boton-agregar"
               >
                 {t("analisis.agregar_al_inventario")}
               </Link>
             </div>
           )}
-        </div>
+          </div>
+
+          {/* El historial del propio negocio va A LO ANCHO, debajo de
+              las dos columnas. Metido en la columna derecha dejaba la
+              mitad izquierda de la pantalla vacía justo donde hay más
+              que enseñar, y sus gráficas se apretaban a media anchura. */}
+          {resultadoIA && (
+            <div className="card fade-up analisis-historial">
+              <h3 className="analisis-panel-titulo">
+                <LineChart size={17} /> {t("analisis.historial_titulo")}
+              </h3>
+
+              {estadisticas?.tieneProductos ? (
+                <ResultadoEstadisticas estadisticas={estadisticas} t={t} />
+              ) : (
+                <div className="analisis-vacio">
+                  <p>{t("analisis.msg_categoria_nueva")}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </main>
   );
@@ -377,16 +393,28 @@ function ResultadoEstadisticas({
               </strong>
             </p>
 
-            <div style={{ width: "100%", height: 140 }}>
+            <div style={{ width: "100%", height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={ventasPorMes}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="mes" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
+                <BarChart data={ventasPorMes} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="mes" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 8 }}
+                    cursor={{ fill: "var(--card-hover)" }}
+                    contentStyle={{
+                      backgroundColor: "var(--bg-secondary)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "8px",
+                    }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                     formatter={(valor) => `${Number(valor)} ${t("analisis.unidades")}`}
                   />
-                  <Bar dataKey="unidades" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="unidades"
+                    name={t("analisis.unidades")}
+                    fill="var(--primary)"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -424,6 +452,8 @@ function EstimacionDeMercado({
   margenPropio: number | null;
   t: (clave: string) => string;
 }) {
+  const { tema } = useTheme();
+  const paleta = obtenerPaletaGrafica(tema);
   const margenMedio = Math.round((mercado.margenMin + mercado.margenMax) / 2);
 
   // La comparación solo se dibuja si el negocio YA vende esa categoría:
@@ -455,30 +485,48 @@ function EstimacionDeMercado({
               {mercado.margenMin}% – {mercado.margenMax}%
             </strong>
           </p>
-          <div style={{ height: 150 }}>
+          {/* Mismos ejes, mismo tooltip y misma paleta que las gráficas
+              del dashboard: sin rejilla de fondo, sin colores fuera del
+              tema y sin bordes de neón. Que se vean de la misma app. */}
+          <div style={{ width: "100%", height: 190 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={datosMargen} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="nombre" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
+              <BarChart data={datosMargen} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey="nombre" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                <YAxis
+                  stroke="var(--text-muted)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(valor) => `${valor}%`}
+                />
                 <Tooltip
                   cursor={{ fill: "var(--card-hover)" }}
                   contentStyle={{
-                    background: "var(--card-bg)",
+                    backgroundColor: "var(--bg-secondary)",
                     border: "1px solid var(--border)",
-                    borderRadius: 10,
-                    fontSize: 12,
+                    borderRadius: "8px",
                   }}
-                  formatter={(v) => [`${Number(v) || 0}%`, t("analisis.mercado_margen_corto")]}
+                  labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                  itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                  formatter={(valor) => `${Number(valor) || 0}%`}
                 />
-                <Bar dataKey="valor" fill="var(--modulo-color)" radius={[6, 6, 0, 0]} />
+                <Bar
+                  dataKey="valor"
+                  name={t("analisis.mercado_margen_corto")}
+                  radius={[4, 4, 0, 0]}
+                >
+                  {datosMargen.map((_, i) => (
+                    <Cell key={i} fill={paleta[i % paleta.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="analisis-mercado-medidores">
-          <Medidor etiqueta={t("analisis.mercado_rotacion")} valor={mercado.rotacion} />
-          <Medidor etiqueta={t("analisis.mercado_demanda")} valor={mercado.demanda} />
+          <Medidor etiqueta={t("analisis.mercado_rotacion")} valor={mercado.rotacion} color={paleta[0]} />
+          <Medidor etiqueta={t("analisis.mercado_demanda")} valor={mercado.demanda} color={paleta[1] ?? paleta[0]} />
         </div>
       </div>
 
@@ -489,7 +537,15 @@ function EstimacionDeMercado({
 
 // Barra de 1 a 5. Se dibujan los cinco segmentos siempre, llenos o
 // vacíos: así el 3 se lee como "3 de 5" y no como un porcentaje suelto.
-function Medidor({ etiqueta, valor }: { etiqueta: string; valor: number }) {
+function Medidor({
+  etiqueta,
+  valor,
+  color,
+}: {
+  etiqueta: string;
+  valor: number;
+  color: string;
+}) {
   return (
     <div className="analisis-medidor">
       <div className="analisis-medidor-fila">
@@ -498,7 +554,10 @@ function Medidor({ etiqueta, valor }: { etiqueta: string; valor: number }) {
       </div>
       <div className="analisis-medidor-barras" role="img" aria-label={`${etiqueta}: ${valor} / 5`}>
         {[1, 2, 3, 4, 5].map((n) => (
-          <span key={n} className={n <= valor ? "analisis-medidor-lleno" : ""} />
+          <span
+            key={n}
+            style={n <= valor ? { background: color, borderColor: color } : undefined}
+          />
         ))}
       </div>
     </div>
