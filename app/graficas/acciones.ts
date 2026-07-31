@@ -33,3 +33,45 @@ export async function obtenerDatosGraficas(): Promise<VentaCruda[]> {
     total: Number(venta.total) || 0,
   }));
 }
+
+// Trabajos de Servicios ya cobrados, en la misma forma que VentaCruda
+// para poder sumarlos a los ingresos con las mismas funciones de
+// utils.ts — pero con producto vacío y cantidad 0 para que NUNCA
+// entren a "Top productos" ni a "Productos vendidos" (una fila de
+// servicio no es un producto). Solo se combinan con las ventas para el
+// KPI de ingresos y la gráfica de tendencia; el resto de las tarjetas
+// (total de ventas, productos vendidos, venta promedio) se calculan
+// aparte, solo con ventas.
+//
+// Tolerante a que la tabla no exista todavía (falta correr
+// supabase_servicios.sql): en ese caso devuelve un arreglo vacío en
+// vez de romper toda la pantalla de Gráficas.
+export async function obtenerIngresosServicios(): Promise<VentaCruda[]> {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return [];
+    }
+
+    const { data: servicios, error } = await supabase
+      .from("servicios_trabajos")
+      .select("fecha, precio")
+      .eq("estado", "cobrado")
+      .order("fecha", { ascending: true });
+
+    if (error) throw error;
+
+    return (servicios ?? []).map((s) => ({
+      fecha: s.fecha as string,
+      producto: "",
+      cantidad: 0,
+      total: Number(s.precio) || 0,
+    }));
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}

@@ -289,6 +289,29 @@ export default function DashboardPremium() {
         setVentasRecientes(recientes as VentaReciente[]);
       }
 
+      // Aparte y tolerante a fallos: si Servicios todavía no tiene su
+      // migración corrida en este proyecto (la tabla servicios_trabajos
+      // no existe), el resto del dashboard no debe dejar de mostrarse
+      // por eso. Solo cuenta lo ya cobrado — un trabajo pendiente o
+      // hecho-sin-cobrar todavía no es dinero que entró al negocio.
+      let serviciosCobrados: { fecha: string; precio: number }[] = [];
+      try {
+        const { data: servicios, error: errorServicios } = await supabase
+          .from("servicios_trabajos")
+          .select("fecha, precio")
+          .eq("estado", "cobrado")
+          .gte("fecha", corteISO);
+
+        if (errorServicios) throw errorServicios;
+
+        serviciosCobrados = (servicios ?? []).map((s) => ({
+          fecha: s.fecha as string,
+          precio: Number(s.precio) || 0,
+        }));
+      } catch (errorServicios) {
+        console.error(errorServicios);
+      }
+
       // Aparte y tolerante a fallos: el ranking "todo" depende de dos
       // funciones de Postgres (ver supabase_dashboard_agregado.sql)
       // que hay que correr a mano en Supabase — si un proyecto todavía
@@ -344,12 +367,32 @@ export default function DashboardPremium() {
           return f.getMonth() === ahora.getMonth() && f.getFullYear() === ahora.getFullYear();
         });
 
-        setVentasHoy(hoyFiltradas.reduce((sum, v) => sum + Number(v.total), 0));
+        // Mismo filtro hoy/mes, pero sobre lo cobrado en Servicios — las
+        // tarjetas "Ingresos de hoy/del mes" sí las cuentan; "tickets"
+        // se queda como conteo de ventas de producto nada más, porque
+        // un trabajo cobrado no es un "ticket" en el sentido de venta.
+        const serviciosHoy = serviciosCobrados.filter((s) => {
+          const f = new Date(s.fecha);
+          return f.getDate() === ahora.getDate() && f.getMonth() === ahora.getMonth() && f.getFullYear() === ahora.getFullYear();
+        });
+
+        const serviciosMes = serviciosCobrados.filter((s) => {
+          const f = new Date(s.fecha);
+          return f.getMonth() === ahora.getMonth() && f.getFullYear() === ahora.getFullYear();
+        });
+
+        setVentasHoy(
+          hoyFiltradas.reduce((sum, v) => sum + Number(v.total), 0) +
+            serviciosHoy.reduce((sum, s) => sum + s.precio, 0)
+        );
         setTicketsHoy(hoyFiltradas.length);
-        setVentasMes(mesFiltradas.reduce((sum, v) => sum + Number(v.total), 0));
+        setVentasMes(
+          mesFiltradas.reduce((sum, v) => sum + Number(v.total), 0) +
+            serviciosMes.reduce((sum, s) => sum + s.precio, 0)
+        );
 
         // ==========================================
-        // SPARKLINE "VENTAS DE HOY": por hora (00:00 a la hora actual)
+        // SPARKLINE "INGRESOS DE HOY": por hora (00:00 a la hora actual)
         // ==========================================
         const mapaHoras: { [key: string]: number } = {};
         for (let h = 0; h <= ahora.getHours(); h++) {
@@ -362,12 +405,19 @@ export default function DashboardPremium() {
             mapaHoras[label] += Number(v.total);
           }
         });
+        serviciosHoy.forEach((s) => {
+          const f = new Date(s.fecha);
+          const label = String(f.getHours()).padStart(2, "0") + ":00";
+          if (mapaHoras[label] !== undefined) {
+            mapaHoras[label] += s.precio;
+          }
+        });
         setDataHoyPorHora(
           Object.keys(mapaHoras).map((hora) => ({ hora, monto: mapaHoras[hora] }))
         );
 
         // ==========================================
-        // SPARKLINE "VENTAS DEL MES": por día (día 1 al día actual)
+        // SPARKLINE "INGRESOS DEL MES": por día (día 1 al día actual)
         // ==========================================
         const mapaDiasMes: { [key: string]: number } = {};
         for (let d = 1; d <= ahora.getDate(); d++) {
@@ -378,6 +428,13 @@ export default function DashboardPremium() {
           const label = String(f.getDate());
           if (mapaDiasMes[label] !== undefined) {
             mapaDiasMes[label] += Number(v.total);
+          }
+        });
+        serviciosMes.forEach((s) => {
+          const f = new Date(s.fecha);
+          const label = String(f.getDate());
+          if (mapaDiasMes[label] !== undefined) {
+            mapaDiasMes[label] += s.precio;
           }
         });
         setDataMesPorDia(
@@ -400,6 +457,13 @@ export default function DashboardPremium() {
           const label = f.toLocaleDateString(LOCALES[idioma], { day: "numeric", month: "short" });
           if (mapaDias[label] !== undefined) {
             mapaDias[label] += Number(v.total);
+          }
+        });
+        serviciosCobrados.forEach((s) => {
+          const f = new Date(s.fecha);
+          const label = f.toLocaleDateString(LOCALES[idioma], { day: "numeric", month: "short" });
+          if (mapaDias[label] !== undefined) {
+            mapaDias[label] += s.precio;
           }
         });
 

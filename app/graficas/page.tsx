@@ -20,7 +20,7 @@ import {
   CartesianGrid,
 } from "recharts";
 
-import { obtenerDatosGraficas } from "./acciones";
+import { obtenerDatosGraficas, obtenerIngresosServicios } from "./acciones";
 import {
   agruparPorPeriodo,
   filtrarPorPeriodo,
@@ -52,6 +52,7 @@ export default function GraficasPage() {
   const COLORES_PIE = obtenerPaletaGrafica(tema);
   const [loading, setLoading] = useState(true);
   const [ventasCrudas, setVentasCrudas] = useState<VentaCruda[]>([]);
+  const [serviciosCrudos, setServiciosCrudos] = useState<VentaCruda[]>([]);
   const [periodo, setPeriodo] = useState<Periodo>("semanal");
 
   useEffect(() => {
@@ -68,8 +69,13 @@ export default function GraficasPage() {
   async function cargarDatos() {
     try {
       setLoading(true);
-      const datos = await obtenerDatosGraficas();
+      // obtenerIngresosServicios() ya devuelve [] si algo falla (tabla
+      // sin migrar, etc.) en vez de rechazar, así que un problema ahí
+      // nunca debe tumbar el resto de Gráficas — solo obtenerDatosGraficas
+      // (ventas) es indispensable para que la pantalla tenga sentido.
+      const [datos, servicios] = await Promise.all([obtenerDatosGraficas(), obtenerIngresosServicios()]);
       setVentasCrudas(datos);
+      setServiciosCrudos(servicios);
     } catch (error) {
       console.error(error);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
@@ -77,6 +83,15 @@ export default function GraficasPage() {
       setLoading(false);
     }
   }
+
+  // Ventas + servicios cobrados, solo para el KPI de "Ingresos" y su
+  // gráfica de tendencia — las demás tarjetas (total de ventas,
+  // productos vendidos, venta promedio) y "Top productos" se quedan
+  // calculadas solo con ventasCrudas, sin tocar.
+  const ingresosCrudos = useMemo(
+    () => [...ventasCrudas, ...serviciosCrudos],
+    [ventasCrudas, serviciosCrudos]
+  );
 
   const ventasActual = useMemo(
     () => filtrarPorPeriodo(ventasCrudas, periodo, 0),
@@ -88,34 +103,52 @@ export default function GraficasPage() {
     [ventasCrudas, periodo]
   );
 
+  // Mismo filtro de periodo, pero sobre ventas + servicios cobrados —
+  // solo alimenta el KPI de ingresos y la gráfica de tendencia; el
+  // resto de estadisticas sigue viniendo de ventasActual/Anterior.
+  const ingresosActual = useMemo(
+    () => filtrarPorPeriodo(ingresosCrudos, periodo, 0),
+    [ingresosCrudos, periodo]
+  );
+
+  const ingresosAnterior = useMemo(
+    () => filtrarPorPeriodo(ingresosCrudos, periodo, 1),
+    [ingresosCrudos, periodo]
+  );
+
   const puntosGrafica = useMemo(
-    () => agruparPorPeriodo(ventasActual, periodo),
-    [ventasActual, periodo]
+    () => agruparPorPeriodo(ingresosActual, periodo),
+    [ingresosActual, periodo]
   );
 
   const estadisticas = useMemo(() => {
     const totalVentas = ventasActual.length;
-    const ingresos = ventasActual.reduce((acc, v) => acc + v.total, 0);
+    const ingresosVentas = ventasActual.reduce((acc, v) => acc + v.total, 0);
     const productosVendidos = ventasActual.reduce(
       (acc, v) => acc + v.cantidad,
       0
     );
-    const ventaPromedio = totalVentas > 0 ? ingresos / totalVentas : 0;
+    // La venta promedio se queda solo con ventas: mezclar ingresos de
+    // servicios aquí infla el "ticket promedio" con dinero que no vino
+    // de ninguna de las totalVentas del denominador.
+    const ventaPromedio = totalVentas > 0 ? ingresosVentas / totalVentas : 0;
+    const ingresos = ingresosActual.reduce((acc, v) => acc + v.total, 0);
 
     return { totalVentas, ingresos, productosVendidos, ventaPromedio };
-  }, [ventasActual]);
+  }, [ventasActual, ingresosActual]);
 
   const estadisticasAnterior = useMemo(() => {
     const totalVentas = ventasAnterior.length;
-    const ingresos = ventasAnterior.reduce((acc, v) => acc + v.total, 0);
+    const ingresosVentas = ventasAnterior.reduce((acc, v) => acc + v.total, 0);
     const productosVendidos = ventasAnterior.reduce(
       (acc, v) => acc + v.cantidad,
       0
     );
-    const ventaPromedio = totalVentas > 0 ? ingresos / totalVentas : 0;
+    const ventaPromedio = totalVentas > 0 ? ingresosVentas / totalVentas : 0;
+    const ingresos = ingresosAnterior.reduce((acc, v) => acc + v.total, 0);
 
     return { totalVentas, ingresos, productosVendidos, ventaPromedio };
-  }, [ventasAnterior]);
+  }, [ventasAnterior, ingresosAnterior]);
 
   const cambio = {
     totalVentas: calcularPorcentaje(
