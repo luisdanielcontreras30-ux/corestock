@@ -65,6 +65,51 @@ El interruptor `IA_DISPONIBLE` en `lib/soporte.ts` controla si el análisis de f
 
 Cuando la IA sí está activa, la ruta le pasa como contexto un resumen de los números reales del negocio (ventas del día/semana/mes, valor del inventario, agotados, producto y cliente top), leído con el JWT de quien pregunta, así que RLS decide qué puede ver cada quien. Hay un tope de 60 preguntas por hora y por usuario, para que un bucle accidental no consuma la cuota.
 
+## Migraciones SQL
+
+CoreStock no usa un sistema de migraciones automático: cada archivo `supabase_*.sql` en la raíz del repo se corre a mano, UNA vez, en el SQL Editor de tu proyecto de Supabase. Todos son idempotentes (usan `if not exists` / `drop policy if exists`) — si no recuerdas si ya corriste alguno, volver a correrlo no rompe nada ni duplica datos.
+
+Sin la migración correspondiente, el módulo relacionado no truena la app entera: normalmente el formulario falla al guardar con un error de Postgres, o la pantalla se ve pero con una función faltando (por ejemplo la calificación de un proveedor, o el color del catálogo). El error suele traer el nombre de la columna o tabla que falta.
+
+Orden sugerido — primero seguridad, luego cada módulo según lo vayas usando:
+
+| Archivo | Para qué es |
+| --- | --- |
+| `supabase_seguridad_rls.sql` | Habilita Row Level Security en todas las tablas. Correr primero, antes que cualquier otro. |
+| `supabase_seguridad_suscripcion.sql` | Cierra un hueco de RLS en `empresa_config` (cualquiera podía editar la suscripción de otro negocio). Correr cuanto antes. |
+| `supabase_permisos_miembros.sql` | Da a los miembros del equipo (no el dueño) acceso a las tablas del negocio con su propia sesión, en vez de la del dueño. |
+| `supabase_password_miembros.sql` | Contraseña individual por miembro del equipo. |
+| `supabase_miembros_nombre_unico.sql` | Evita que dos miembros del mismo negocio compartan nombre (rompía "entrar como miembro"). |
+| `supabase_clientes.sql` | Campos de contacto/notas en Clientes. |
+| `supabase_clientes_scorecard.sql` | Categoría y calificación en Clientes (rediseño estilo Proveedores). |
+| `supabase_proveedores_scorecard.sql` | Categoría, calificación y días de entrega en Proveedores. |
+| `supabase_compras.sql` | Tabla del módulo Compras. |
+| `supabase_cotizaciones.sql` | Tabla del módulo Cotizaciones. |
+| `supabase_cotizaciones_items.sql` | Cotizaciones a varias líneas, con productos, servicios y mano de obra (después de `supabase_cotizaciones.sql`). |
+| `supabase_ajustes_stock.sql` | Tabla del módulo Ajustes de Stock. |
+| `supabase_promociones.sql` | Tabla del módulo Promociones. |
+| `supabase_caja.sql` | Tabla del módulo Caja. |
+| `supabase_caja_atomico.sql` | Valida en el servidor que no se saque más de lo que hay en caja (después de `supabase_caja.sql`). |
+| `supabase_facturas_globales.sql` | Tabla del módulo Facturas Globales. |
+| `supabase_fabricacion.sql` | Tablas del módulo Fabricación (materias primas, recetas, producciones). |
+| `supabase_conciliaciones.sql` | Tabla del módulo Conciliaciones. |
+| `supabase_traspasos.sql` | Tablas del módulo Traspasos (stock por ubicación). |
+| `supabase_devoluciones.sql` | Tabla del módulo Devoluciones. |
+| `supabase_servicios.sql` | Tabla del módulo Servicios (negocios que cobran trabajos, no productos). |
+| `supabase_cuentas_por_cobrar.sql` | Seguimiento de ventas fiadas (método de pago "préstamo"). |
+| `supabase_catalogo_linea.sql` | Catálogo en línea público (sin sesión), interruptor en Configuración. |
+| `supabase_catalogo_apariencia.sql` | Colores del catálogo en línea (después de `supabase_catalogo_linea.sql`). |
+| `supabase_portal_clientes.sql` | Enlace único por cliente para ver su historial sin cuenta. |
+| `supabase_productos_descripcion.sql` | Columna `descripcion` en Productos (la llena el análisis por IA). Ver [más arriba](#análisis-de-fotos-de-producto-con-ia-google-ai-studio-opcional). |
+| `supabase_productos_stock_minimo.sql` | Stock mínimo configurable por producto, usado por Alertas. |
+| `supabase_ventas_metodo_pago.sql` | Método de pago por venta (efectivo, tarjeta, transferencia, préstamo). |
+| `supabase_ventas_validacion_precio.sql` | Valida en el servidor el precio de cada venta (antes solo se calculaba en el navegador). |
+| `supabase_dashboard_agregado.sql` | Función agregada para que el Dashboard no traiga toda la tabla de ventas en cada visita. |
+| `supabase_modo_interfaz.sql` | Preferencia CoreStock Easy / Completo por negocio. |
+| `supabase_offline_sync.sql` | Columna `uuid` en ventas y caja para sincronizar sin duplicar al recuperar conexión. |
+| `supabase_whatsapp_vendedor.sql` | Guarda el Phone Number ID de WhatsApp Business para el vendedor automático. |
+| `supabase_suscripciones.sql` | Estado del plan (free/plus) y datos de Stripe. Ver [más arriba](#corestock-plus-suscripciones-con-stripe-opcional). |
+
 ## Desarrollo
 
 ```bash
