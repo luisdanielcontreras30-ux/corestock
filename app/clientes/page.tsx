@@ -17,6 +17,7 @@ import {
 } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
 import { formatoMoneda } from "../ventas/utils";
+import { exportarExcel } from "./utils";
 
 export default function ClientesPage() {
   const { t } = useIdioma();
@@ -306,6 +307,12 @@ export default function ClientesPage() {
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
+
+            {clientes.length > 0 && (
+              <button className="btn-secondary" onClick={() => exportarExcel(clientesFiltrados)}>
+                {t("productos.exportar_excel")}
+              </button>
+            )}
           </div>
 
           {categorias.length > 0 && (

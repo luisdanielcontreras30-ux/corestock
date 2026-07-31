@@ -16,6 +16,7 @@ import FilaVacia from "../../components/FilaVacia";
 import { ClienteOpcion, EstadoTrabajo, Trabajo } from "./types";
 import { cargarDatos, registrarTrabajo, cambiarEstadoTrabajo, eliminarTrabajo } from "./acciones";
 import { formatoMoneda } from "../ventas/utils";
+import { exportarExcel } from "./utils";
 
 function hoyISO(): string {
   return new Date().toISOString().slice(0, 10);
@@ -321,6 +322,12 @@ function ServiciosContenido() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+
+        {trabajos.length > 0 && (
+          <button className="btn-secondary" onClick={() => exportarExcel(trabajosFiltrados)}>
+            {t("productos.exportar_excel")}
+          </button>
+        )}
       </div>
 
       {loading ? (

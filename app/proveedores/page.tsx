@@ -20,6 +20,7 @@ import {
 } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
 import { formatoMoneda } from "../ventas/utils";
+import { exportarExcel } from "./utils";
 
 export default function ProveedoresPage() {
   return (
@@ -350,6 +351,12 @@ function ProveedoresContenido() {
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
+
+            {proveedores.length > 0 && (
+              <button className="btn-secondary" onClick={() => exportarExcel(proveedoresFiltrados)}>
+                {t("productos.exportar_excel")}
+              </button>
+            )}
           </div>
 
           {categorias.length > 0 && (
