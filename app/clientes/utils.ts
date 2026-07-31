@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { ClienteConResumen } from "./types";
+import { ClienteConResumen, estrellasPorCompras } from "./types";
 
 export function exportarExcel(clientes: ClienteConResumen[]) {
   const datos = clientes.map((c) => ({
@@ -7,7 +7,7 @@ export function exportarExcel(clientes: ClienteConResumen[]) {
     Teléfono: c.telefono ?? "",
     Correo: c.correo ?? "",
     Categoría: c.categoria ?? "",
-    Calificación: typeof c.calificacion === "number" ? c.calificacion : "",
+    Calificación: estrellasPorCompras(c.compras) ?? "",
     Compras: Number(c.compras),
     // total_gastado es numeric en Postgres — Supabase lo devuelve como
     // string. Sin convertir, json_to_sheet lo escribe como texto en la

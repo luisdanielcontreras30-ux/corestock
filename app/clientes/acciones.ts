@@ -67,31 +67,14 @@ export async function cargarClientes() {
   return { clientes: clientesConResumen };
 }
 
-// El rango se repite aquí a propósito, igual que la validación del
-// nombre: esta acción es exportada y podría llamarse sin pasar por la
-// pantalla. La base también lo restringe
-// (supabase_clientes_scorecard.sql), pero su error llega como un
-// mensaje de Postgres que nadie puede leer — esto lo convierte en un
-// sentinel que la pantalla sabe traducir.
-function validarPanel(cambios: Partial<Cliente>) {
-  const calificacion = cambios.calificacion;
-  if (
-    calificacion !== undefined &&
-    calificacion !== null &&
-    (!Number.isInteger(calificacion) || calificacion < 1 || calificacion > 5)
-  ) {
-    throw new Error("CALIFICACION_INVALIDA");
-  }
-}
-
 export async function crearCliente(
   nombre: string,
   telefono: string,
   correo: string,
   notas: string,
-  // Categoría y calificación. Van aparte y solo con lo que de verdad se
-  // llenó: en una base sin la migración corrida, la petición no
-  // menciona esas columnas y el alta sigue funcionando.
+  // Categoría. Va aparte y solo con lo que de verdad se llenó: en una
+  // base sin la migración corrida, la petición no menciona esa columna
+  // y el alta sigue funcionando.
   extras: Partial<Cliente> = {}
 ) {
   const {
@@ -110,8 +93,6 @@ export async function crearCliente(
   if (!nombre.trim()) {
     throw new Error("Falta el nombre del cliente.");
   }
-
-  validarPanel(extras);
 
   const { error } = await supabase.from("clientes").insert({
     nombre: nombre.trim(),
@@ -139,8 +120,6 @@ export async function actualizarCliente(id: number, cambios: Partial<Cliente>) {
   if (cambios.nombre !== undefined && !cambios.nombre.trim()) {
     throw new Error("Falta el nombre del cliente.");
   }
-
-  validarPanel(cambios);
 
   const { error } = await supabase
     .from("clientes")

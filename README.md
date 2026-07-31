@@ -81,7 +81,7 @@ Orden sugerido — primero seguridad, luego cada módulo según lo vayas usando:
 | `supabase_password_miembros.sql` | Contraseña individual por miembro del equipo. |
 | `supabase_miembros_nombre_unico.sql` | Evita que dos miembros del mismo negocio compartan nombre (rompía "entrar como miembro"). |
 | `supabase_clientes.sql` | Campos de contacto/notas en Clientes. |
-| `supabase_clientes_scorecard.sql` | Categoría y calificación en Clientes (rediseño estilo Proveedores). |
+| `supabase_clientes_scorecard.sql` | Categoría en Clientes (rediseño estilo Proveedores). La calificación por estrellas es automática, según compras — no necesita columna. |
 | `supabase_proveedores_scorecard.sql` | Categoría, calificación y días de entrega en Proveedores. |
 | `supabase_compras.sql` | Tabla del módulo Compras. |
 | `supabase_cotizaciones.sql` | Tabla del módulo Cotizaciones. |

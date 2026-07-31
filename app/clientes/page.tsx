@@ -7,7 +7,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import HistorialModal from "./components/HistorialModal";
-import { Cliente, ClienteConResumen, CompraCliente } from "./types";
+import { Cliente, ClienteConResumen, CompraCliente, estrellasPorCompras } from "./types";
 import {
   cargarClientes,
   crearCliente,
@@ -43,7 +43,6 @@ export default function ClientesPage() {
   const [correo, setCorreo] = useState("");
   const [notas, setNotas] = useState("");
   const [categoriaForm, setCategoriaForm] = useState("");
-  const [calificacionForm, setCalificacionForm] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [categoria, setCategoria] = useState("");
 
@@ -73,7 +72,6 @@ export default function ClientesPage() {
     setCorreo("");
     setNotas("");
     setCategoriaForm("");
-    setCalificacionForm("");
     setMostrarForm(true);
   }
 
@@ -84,7 +82,6 @@ export default function ClientesPage() {
     setCorreo(c.correo ?? "");
     setNotas(c.notas ?? "");
     setCategoriaForm(c.categoria ?? "");
-    setCalificacionForm(c.calificacion != null ? String(c.calificacion) : "");
     setMostrarForm(true);
   }
 
@@ -117,41 +114,29 @@ export default function ClientesPage() {
       return;
     }
 
-    // Se valida ANTES de guardar y se avisa. Descartar en silencio lo
-    // que alguien acaba de escribir es peor que rechazarlo de frente.
-    const calif = Number(calificacionForm);
-    if (calificacionForm.trim() && (!Number.isFinite(calif) || calif < 1 || calif > 5)) {
-      mostrarToast(t("clientes.msg_calificacion_invalida"), "error");
-      return;
-    }
-
     setGuardando(true);
 
     try {
-      // Categoría y calificación solo pueden viajar si sus columnas
-      // existen. Se detecta mirando si la fila cargada TRAE la clave:
-      // la consulta usa select("*"), así que la clave está presente
-      // —aunque valga null— cuando la columna existe, y falta por
-      // completo cuando no.
+      // Categoría solo puede viajar si su columna existe. Se detecta
+      // mirando si la fila cargada TRAE la clave: la consulta usa
+      // select("*"), así que la clave está presente —aunque valga
+      // null— cuando la columna existe, y falta por completo cuando no.
       //
       // La distinción no es cosmética: si se omite el campo cuando está
       // vacío, borrar una categoría ya guardada es IMPOSIBLE (la
       // petición no la menciona, la base conserva el valor viejo, y al
       // recargar reaparece como si el guardado hubiera fallado). Cuando
-      // las columnas existen se manda null explícito para poder vaciar.
-      const columnasDelPanel = editando ? "categoria" in editando : false;
-      const hayCalificacion = !!calificacionForm.trim();
+      // la columna existe se manda null explícito para poder vaciarla.
+      const columnaDelPanel = editando ? "categoria" in editando : false;
 
       const extras: Partial<Cliente> = {};
 
-      if (columnasDelPanel) {
+      if (columnaDelPanel) {
         extras.categoria = categoriaForm.trim() || null;
-        extras.calificacion = hayCalificacion ? Math.round(calif) : null;
-      } else {
+      } else if (categoriaForm.trim()) {
         // Sin migración (o dando de alta uno nuevo, donde omitir un
-        // campo vacío es idéntico a mandar null): solo lo que se llenó.
-        if (categoriaForm.trim()) extras.categoria = categoriaForm.trim();
-        if (hayCalificacion) extras.calificacion = Math.round(calif);
+        // campo vacío es idéntico a mandar null): solo si se llenó.
+        extras.categoria = categoriaForm.trim();
       }
 
       if (editando) {
@@ -172,17 +157,10 @@ export default function ClientesPage() {
       console.error(error);
       const texto = error instanceof Error ? error.message : "";
 
-      // Sentinel de acciones.ts (sin traducir a propósito, ver
-      // lib/errores.ts): se convierte aquí al idioma de la app.
-      if (texto === "CALIFICACION_INVALIDA") {
-        mostrarToast(t("clientes.msg_calificacion_invalida"), "error");
-        return;
-      }
-
       // Si falta la columna nueva, Postgres lo dice con claridad y no
       // tiene sentido esconderlo tras un "no se pudo guardar": la
       // solución es correr un archivo SQL, y hay que decirlo.
-      const faltaMigracion = /column .* does not exist|categoria|calificacion/i.test(texto);
+      const faltaMigracion = /column .* does not exist|categoria/i.test(texto);
       mostrarToast(
         t(faltaMigracion ? "clientes.msg_falta_migracion" : "clientes.msg_error_guardar"),
         "error"
@@ -231,11 +209,11 @@ export default function ClientesPage() {
   // Cifras de la tira superior. Todas salen de lo ya cargado.
   const global = useMemo(() => {
     const gastoTotal = clientes.reduce((s, c) => s + c.totalGastado, 0);
-    const calificados = clientes.filter((c) => typeof c.calificacion === "number");
+    const calificados = clientes
+      .map((c) => estrellasPorCompras(c.compras))
+      .filter((estrellas): estrellas is number => estrellas !== null);
     const promedio =
-      calificados.length > 0
-        ? calificados.reduce((s, c) => s + (c.calificacion ?? 0), 0) / calificados.length
-        : null;
+      calificados.length > 0 ? calificados.reduce((s, n) => s + n, 0) / calificados.length : null;
     return { gastoTotal, promedio };
   }, [clientes]);
 
@@ -360,23 +338,25 @@ export default function ClientesPage() {
         </div>
       ) : (
         <div className="clientes-rejilla">
-          {clientesFiltrados.map((c) => (
+          {clientesFiltrados.map((c) => {
+            const estrellas = estrellasPorCompras(c.compras);
+            return (
             <div key={c.id} className="cli-tarjeta">
               <div className="cli-cabecera">
                 <span className="cli-avatar">{c.nombre.trim().charAt(0).toUpperCase() || "?"}</span>
 
                 <div className="cli-identidad">
                   <h3 className="cli-nombre">{c.nombre}</h3>
-                  {typeof c.calificacion === "number" ? (
-                    <span className="cli-estrellas" title={`${c.calificacion} / 5`}>
+                  {estrellas !== null ? (
+                    <span className="cli-estrellas" title={`${estrellas} / 5`}>
                       {[1, 2, 3, 4, 5].map((n) => (
                         <Star
                           key={n}
                           size={13}
-                          fill={n <= (c.calificacion ?? 0) ? "currentColor" : "none"}
+                          fill={n <= estrellas ? "currentColor" : "none"}
                         />
                       ))}
-                      <span className="cli-estrellas-texto">{c.calificacion} / 5</span>
+                      <span className="cli-estrellas-texto">{estrellas} / 5</span>
                     </span>
                   ) : (
                     <span className="cli-sin-calificar">{t("clientes.sin_calificar")}</span>
@@ -427,7 +407,8 @@ export default function ClientesPage() {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -496,29 +477,17 @@ export default function ClientesPage() {
                 />
               </div>
 
-              {/* Los dos del panel. Si no se ha corrido
-                  supabase_clientes_scorecard.sql, dejarlos vacíos hace
-                  que la petición ni los mencione y todo sigue
-                  funcionando igual que antes. */}
+              {/* Si no se ha corrido supabase_clientes_scorecard.sql,
+                  dejarla vacía hace que la petición ni la mencione y
+                  todo sigue funcionando igual que antes. La
+                  calificación (estrellas) ya no se captura aquí: se
+                  calcula sola según cuántas compras tiene el cliente. */}
               <div>
                 <label>{t("clientes.categoria")}</label>
                 <input
                   value={categoriaForm}
                   onChange={(e) => setCategoriaForm(e.target.value)}
                   placeholder={t("clientes.categoria_placeholder")}
-                />
-              </div>
-
-              <div>
-                <label>{t("clientes.calificacion")}</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="5"
-                  step="1"
-                  value={calificacionForm}
-                  onChange={(e) => setCalificacionForm(e.target.value)}
-                  placeholder="1 - 5"
                 />
               </div>
 
