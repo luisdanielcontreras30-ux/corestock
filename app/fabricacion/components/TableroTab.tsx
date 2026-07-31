@@ -12,6 +12,7 @@ import { LOCALES } from "../../../lib/i18n";
 import SelectorPersonalizado, { OpcionSelector } from "../../../components/SelectorPersonalizado";
 import { Producto, MateriaPrima, IngredienteReceta, Produccion } from "../types";
 import { producir, ErrorStockInsuficienteMateria } from "../acciones";
+import { exportarExcel } from "../utils";
 
 interface Props {
   productos: Producto[];
@@ -409,7 +410,14 @@ export default function TableroTab({
       </div>
 
       <div className="card">
-        <h2 style={{ marginBottom: 16 }}>{t("fabricacion.actividad_reciente")}</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+          <h2 style={{ margin: 0 }}>{t("fabricacion.actividad_reciente")}</h2>
+          {producciones.length > 0 && (
+            <button className="btn-secondary" onClick={() => exportarExcel(producciones)}>
+              {t("productos.exportar_excel")}
+            </button>
+          )}
+        </div>
         {actividadReciente.length === 0 ? (
           <p style={{ color: "var(--text-secondary)", fontSize: 13.5 }}>{t("fabricacion.sin_producciones")}</p>
         ) : (
