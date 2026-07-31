@@ -122,3 +122,64 @@ export async function analizarProductoConIA(
 
   return datos as ResultadoAnalisisIA;
 }
+
+// Resultado del análisis con IA de un cliente o proveedor (ver
+// app/api/ia/analizar-cliente y analizar-proveedor). mensaje viene
+// null cuando compras === 0 — no hay historial del que partir, así
+// que no tiene sentido pedirle un mensaje a la IA.
+export interface ResultadoAnalisisEntidad {
+  compras: number;
+  totalGastado: number;
+  ticketPromedio: number;
+  frecuenciaDias: number | null;
+  prediccionMensual: number | null;
+  productoTop: string | null;
+  diasDesdeUltimaCompra: number | null;
+  mensaje: string | null;
+}
+
+async function pedirAnalisisEntidad(
+  ruta: string,
+  cuerpo: Record<string, unknown>
+): Promise<ResultadoAnalisisEntidad> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+
+  if (!token) {
+    throw new Error("Usuario no autenticado");
+  }
+
+  const respuesta = await fetch(ruta, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(cuerpo),
+  });
+
+  let datos: unknown;
+  try {
+    datos = await respuesta.json();
+  } catch {
+    throw new ErrorAnalisisIA(
+      `El servidor respondió con un error inesperado (HTTP ${respuesta.status}).`,
+      respuesta.status
+    );
+  }
+
+  if (!respuesta.ok) {
+    const mensaje = (datos as { error?: string })?.error;
+    throw new ErrorAnalisisIA(mensaje || "No se pudo analizar.", respuesta.status);
+  }
+
+  return datos as ResultadoAnalisisEntidad;
+}
+
+export function analizarClienteConIA(clienteId: number, idioma: string): Promise<ResultadoAnalisisEntidad> {
+  return pedirAnalisisEntidad("/api/ia/analizar-cliente", { clienteId, idioma });
+}
+
+export function analizarProveedorConIA(proveedorId: string, idioma: string): Promise<ResultadoAnalisisEntidad> {
+  return pedirAnalisisEntidad("/api/ia/analizar-proveedor", { proveedorId, idioma });
+}

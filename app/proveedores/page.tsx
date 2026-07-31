@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Phone, Mail, Plus, Truck, History, Star, TrendingUp, TrendingDown, Minus, Wallet, CalendarClock} from "lucide-react";
+import { Phone, Mail, Plus, Truck, History, Star, TrendingUp, TrendingDown, Minus, Wallet, CalendarClock, Sparkles} from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { obtenerNegocioId } from "../../lib/negocioActual";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -10,6 +10,7 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import HistorialModal from "./components/HistorialModal";
+import AnalisisModal from "./components/AnalisisModal";
 import { Proveedor, ProveedorConResumen, CompraProveedor } from "./types";
 import {
   cargarProveedores,
@@ -42,6 +43,8 @@ function ProveedoresContenido() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState<ProveedorConResumen | null>(null);
   const [guardando, setGuardando] = useState(false);
+
+  const [proveedorAnalisis, setProveedorAnalisis] = useState<ProveedorConResumen | null>(null);
 
   const [proveedorHistorial, setProveedorHistorial] = useState<ProveedorConResumen | null>(null);
   const [comprasHistorial, setComprasHistorial] = useState<CompraProveedor[]>([]);
@@ -512,6 +515,9 @@ function ProveedoresContenido() {
                   <button className="btn-secondary prov-accion" onClick={() => verHistorial(p)}>
                     <History size={14} /> {t("proveedores.ver_historial")}
                   </button>
+                  <button className="btn-secondary prov-accion" onClick={() => setProveedorAnalisis(p)}>
+                    <Sparkles size={14} /> {t("analisis_ia.boton_analizar")}
+                  </button>
                   <button className="btn-edit prov-accion" onClick={() => abrirEditar(p)}>
                     {t("proveedores.editar")}
                   </button>
@@ -674,6 +680,10 @@ function ProveedoresContenido() {
           cargando={cargandoHistorial}
           onClose={() => setProveedorHistorial(null)}
         />
+      )}
+
+      {proveedorAnalisis && (
+        <AnalisisModal proveedor={proveedorAnalisis} onClose={() => setProveedorAnalisis(null)} />
       )}
     </main>
   );

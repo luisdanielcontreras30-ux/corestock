@@ -8033,80 +8033,23 @@ select optgroup {
   margin-top: 0;
 }
 
-/* Análisis de Clientes: mismo patrón de tarjeta que .cli-*
-   (Clientes) — con su propio prefijo por el mismo criterio que el
-   resto de la app: cada módulo con sus propias clases, aunque el CSS
-   sea casi idéntico, para que el nombre siga diciendo de qué módulo
-   es. Todo usa var(--modulo-color), publicado por EncabezadoModulo con
-   el rosa/magenta de esta pantalla. */
-.analisis-clientes-rejilla {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-.analisis-clientes-tarjeta {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  transition: var(--transition-fast);
-}
-
-.analisis-clientes-tarjeta:hover {
-  border-color: color-mix(in srgb, var(--modulo-color) 45%, var(--border));
-  transform: translateY(-2px);
-}
-
-.analisis-clientes-cabecera {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.analisis-clientes-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  font-size: 17px;
-  font-weight: 700;
-  background: color-mix(in srgb, var(--modulo-color) 16%, transparent);
-  color: var(--modulo-color);
-}
-
-.analisis-clientes-identidad {
-  flex: 1;
-  min-width: 0;
-}
-
-.analisis-clientes-nombre {
-  font-size: 15.5px;
-  font-weight: 700;
-  margin: 0 0 3px 0;
-  overflow-wrap: anywhere;
-}
-
-.analisis-clientes-producto {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.analisis-clientes-metricas {
+/* Análisis con IA: el modal por tarjeta en Clientes y Proveedores
+   (components/AnalisisModal.tsx de cada módulo), montado dentro de
+   .factura-modal igual que HistorialModal. Clases compartidas (sin
+   prefijo por módulo) porque el modal es idéntico en los dos —
+   duplicar aquí no aporta nada, a diferencia de las tarjetas de lista
+   de cada módulo. var(--modulo-color) resuelve al rosa de Clientes o
+   al color de Proveedores según en qué página esté montado. */
+.analisis-ia-metricas {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  padding: 12px 0;
+  padding: 14px 0;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
 
-.analisis-clientes-metricas > div {
+.analisis-ia-metricas > div {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -8115,7 +8058,7 @@ select optgroup {
   color: var(--modulo-color);
 }
 
-.analisis-clientes-metrica-valor {
+.analisis-ia-metrica-valor {
   display: block;
   font-size: 14.5px;
   font-weight: 700;
@@ -8123,7 +8066,7 @@ select optgroup {
   overflow-wrap: anywhere;
 }
 
-.analisis-clientes-metrica-etiqueta {
+.analisis-ia-metrica-etiqueta {
   display: block;
   font-size: 10px;
   text-transform: uppercase;
@@ -8131,14 +8074,14 @@ select optgroup {
   color: var(--text-secondary);
 }
 
-.analisis-clientes-disclaimer {
+.analisis-ia-disclaimer {
   font-size: 12px;
   color: var(--text-muted);
-  margin: -8px 0 4px 0;
+  margin: 4px 0 0 0;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .analisis-clientes-tarjeta:hover {
-    transform: none;
-  }
+.analisis-ia-producto {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin: 0 0 14px 0;
 }

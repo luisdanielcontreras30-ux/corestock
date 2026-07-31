@@ -215,113 +215,69 @@ export function extraerResultadoProducto(texto: string): ResultadoAnalisisProduc
   throw new Error("La respuesta de Google AI no tiene el formato esperado.");
 }
 
-// Un cliente con historial suficiente para que valga la pena sugerirle
-// recompra — ya viene resumido (no las ventas en crudo) porque lo único
-// que necesita el modelo es "qué le gusta y hace cuánto no viene", no
-// cada fila de la tabla ventas.
-export interface ClienteFrecuenteInfo {
-  id: number;
+// Un cliente o proveedor con historial suficiente para analizar — ya
+// viene resumido (no las ventas/compras en crudo) porque lo único que
+// necesita el modelo es "qué le gusta y hace cuánto no viene", no cada
+// fila de la tabla.
+export interface DatosAnalisisEntidad {
   nombre: string;
   compras: number;
   productoTop: string | null;
   diasDesdeUltimaCompra: number | null;
 }
 
-export interface SugerenciaRecompra {
-  clienteId: number;
-  mensaje: string;
-}
-
-export function construirPromptRecompra(
-  clientes: ClienteFrecuenteInfo[],
+// El mensaje sale en texto plano (no JSON): al ser una sola entidad por
+// llamada, no hace falta la maquinaria de "reparar JSON de una lista"
+// que sí se necesitaba cuando esto analizaba varios clientes a la vez.
+export function construirPromptMensajeCliente(
+  datos: DatosAnalisisEntidad,
   nombreNegocio: string | null,
   idioma: string
 ): string {
   const idiomaTexto = NOMBRE_IDIOMA[idioma] ?? "español";
   const negocio = nombreNegocio?.trim() || "el negocio";
-
-  const listaTexto = clientes
-    .map((c) => {
-      const producto = c.productoTop ? `suele comprar "${c.productoTop}"` : "sin un producto favorito claro";
-      const ultima =
-        c.diasDesdeUltimaCompra === null
-          ? "sin fecha de última compra registrada"
-          : `su última compra fue hace ${c.diasDesdeUltimaCompra} días`;
-      return `- id ${c.id}: ${c.nombre}, ${c.compras} compras en total, ${producto}, ${ultima}.`;
-    })
-    .join("\n");
+  const producto = datos.productoTop ? `suele comprar "${datos.productoTop}"` : "sin un producto favorito claro";
+  const ultima =
+    datos.diasDesdeUltimaCompra === null
+      ? "sin fecha de última compra registrada"
+      : `su última compra fue hace ${datos.diasDesdeUltimaCompra} días`;
 
   return (
     `Eres un asistente de marketing para ${negocio}, un negocio pequeño que usa CoreStock. ` +
-    "Te doy una lista de sus clientes más frecuentes con su historial de compras. " +
-    "Para CADA UNO, escribe un mensaje corto de WhatsApp (máximo 3 frases) invitándolo a " +
-    "volver a comprar, mencionando el producto que más le gusta cuando lo tengas. " +
+    `Te doy el historial de un cliente: ${datos.nombre}, ${datos.compras} compras en total, ${producto}, ${ultima}. ` +
+    "Escribe UN mensaje corto de WhatsApp (máximo 3 frases) invitándolo a volver a comprar, " +
+    "mencionando el producto que más le gusta cuando lo tengas. " +
     `Escribe en ${idiomaTexto}, en tono cercano y amable, tuteando. ` +
     "NUNCA inventes descuentos, promociones, precios ni fechas límite que no te haya dado — " +
     "si quieres invitarlo, hazlo sin prometer nada que no esté en los datos. " +
     "NUNCA uses un tono de urgencia o presión (nada de \"última oportunidad\", \"solo hoy\"). " +
-    'Responde ÚNICAMENTE con un JSON de la forma {"sugerencias": [{"cliente_id": 1, "mensaje": "..."}, ...]}, ' +
-    "un objeto por cada cliente de la lista, en el mismo orden, sin texto fuera del JSON.\n\n" +
-    `Clientes:\n${listaTexto}`
+    "Responde ÚNICAMENTE con el mensaje, sin comillas, sin explicación ni texto adicional."
   );
 }
 
-// Mismo enfoque de reparación por capas que extraerResultadoProducto:
-// el modelo puede devolver el JSON sin cerrar bien, o con texto extra
-// alrededor — se intenta cada vez de forma más tolerante antes de
-// darse por vencido.
-export function extraerSugerenciasRecompra(texto: string): SugerenciaRecompra[] {
-  const limpio = texto
-    .trim()
-    .replace(/^```(?:json)?/i, "")
-    .replace(/```$/, "")
-    .trim();
+export function construirPromptMensajeProveedor(
+  datos: DatosAnalisisEntidad,
+  nombreNegocio: string | null,
+  idioma: string
+): string {
+  const idiomaTexto = NOMBRE_IDIOMA[idioma] ?? "español";
+  const negocio = nombreNegocio?.trim() || "el negocio";
+  const producto = datos.productoTop ? `lo que más le compra es "${datos.productoTop}"` : "sin un producto principal claro";
+  const ultima =
+    datos.diasDesdeUltimaCompra === null
+      ? "sin fecha del último pedido registrada"
+      : `el último pedido fue hace ${datos.diasDesdeUltimaCompra} días`;
 
-  function normalizarLista(json: unknown): SugerenciaRecompra[] | null {
-    const bruto = (json as { sugerencias?: unknown })?.sugerencias;
-    if (!Array.isArray(bruto)) return null;
-
-    const lista: SugerenciaRecompra[] = [];
-    for (const item of bruto) {
-      const clienteIdBruto = (item as { cliente_id?: unknown })?.cliente_id;
-      const mensajeBruto = (item as { mensaje?: unknown })?.mensaje;
-      const clienteId = typeof clienteIdBruto === "number" ? clienteIdBruto : Number(clienteIdBruto);
-      const mensaje = typeof mensajeBruto === "string" ? mensajeBruto.trim() : "";
-      if (Number.isFinite(clienteId) && mensaje) {
-        lista.push({ clienteId, mensaje });
-      }
-    }
-    return lista.length > 0 ? lista : null;
-  }
-
-  try {
-    const directo = normalizarLista(JSON.parse(limpio));
-    if (directo) return directo;
-  } catch {
-    // sigue abajo
-  }
-
-  const inicio = limpio.indexOf("{");
-  if (inicio !== -1) {
-    let profundidad = 0;
-    for (let i = inicio; i < limpio.length; i++) {
-      if (limpio[i] === "{") profundidad++;
-      else if (limpio[i] === "}") {
-        profundidad--;
-        if (profundidad === 0) {
-          try {
-            const balanceado = normalizarLista(JSON.parse(limpio.slice(inicio, i + 1)));
-            if (balanceado) return balanceado;
-          } catch {
-            // sigue abajo
-          }
-          break;
-        }
-      }
-    }
-  }
-
-  throw new Error("La respuesta de la IA no tiene el formato esperado.");
+  return (
+    `Eres un asistente de compras para ${negocio}, un negocio pequeño que usa CoreStock. ` +
+    `Te doy el historial de un proveedor: ${datos.nombre}, ${datos.compras} pedidos en total, ${producto}, ${ultima}. ` +
+    "Escribe UN mensaje corto de WhatsApp (máximo 3 frases) preguntándole si puede volver a surtir o " +
+    "cotizar lo que más le has comprado, mencionando que ya le compraste antes. " +
+    `Escribe en ${idiomaTexto}, en tono profesional y directo, tuteando. ` +
+    "NUNCA inventes cantidades, precios ni fechas de entrega que no te haya dado — pregunta " +
+    "disponibilidad y precio en vez de darlos por hecho. " +
+    "Responde ÚNICAMENTE con el mensaje, sin comillas, sin explicación ni texto adicional."
+  );
 }
 
 export interface ProductoParaVendedor {

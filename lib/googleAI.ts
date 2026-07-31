@@ -5,13 +5,12 @@
 import {
   construirPromptProducto,
   construirPromptVendedor,
-  construirPromptRecompra,
+  construirPromptMensajeCliente,
+  construirPromptMensajeProveedor,
   extraerResultadoProducto,
-  extraerSugerenciasRecompra,
   ResultadoAnalisisProducto,
   ProductoParaVendedor,
-  ClienteFrecuenteInfo,
-  SugerenciaRecompra,
+  DatosAnalisisEntidad,
 } from "./promptsIA";
 
 // Los prompts y la reparación del JSON que devuelve el modelo viven en
@@ -303,19 +302,29 @@ export async function generarRespuestaVendedor(
   );
 }
 
-// "Análisis de Clientes": un mensaje de recompra sugerido por cliente
-// frecuente, en el mismo JSON que ya sabe repararse con
-// extraerSugerenciasRecompra (ver lib/promptsIA.ts).
-export async function generarSugerenciasRecompra(
-  clientes: ClienteFrecuenteInfo[],
+// Análisis de un cliente o proveedor: un mensaje de WhatsApp sugerido a
+// partir de su historial. Devuelve texto plano, no JSON — al ser una
+// sola entidad por llamada no hace falta parsear una lista.
+export async function generarMensajeCliente(
+  datos: DatosAnalisisEntidad,
   nombreNegocio: string | null,
   idioma: string
-): Promise<SugerenciaRecompra[]> {
-  const texto = await pedirTexto(
-    [{ text: construirPromptRecompra(clientes, nombreNegocio, idioma) }],
+): Promise<string> {
+  return pedirTexto(
+    [{ text: construirPromptMensajeCliente(datos, nombreNegocio, idioma) }],
     { temperature: 0.6, thinkingConfig: { thinkingBudget: 0 } },
-    45000
+    30000
   );
+}
 
-  return extraerSugerenciasRecompra(texto);
+export async function generarMensajeProveedor(
+  datos: DatosAnalisisEntidad,
+  nombreNegocio: string | null,
+  idioma: string
+): Promise<string> {
+  return pedirTexto(
+    [{ text: construirPromptMensajeProveedor(datos, nombreNegocio, idioma) }],
+    { temperature: 0.5, thinkingConfig: { thinkingBudget: 0 } },
+    30000
+  );
 }

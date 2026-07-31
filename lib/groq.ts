@@ -1,13 +1,12 @@
 import {
   construirPromptProducto,
   construirPromptVendedor,
-  construirPromptRecompra,
+  construirPromptMensajeCliente,
+  construirPromptMensajeProveedor,
   extraerResultadoProducto,
-  extraerSugerenciasRecompra,
   ResultadoAnalisisProducto,
   ProductoParaVendedor,
-  ClienteFrecuenteInfo,
-  SugerenciaRecompra,
+  DatosAnalisisEntidad,
 } from "./promptsIA";
 
 // Cliente para Groq (chat). Uso EXCLUSIVO en código de servidor
@@ -339,24 +338,32 @@ export async function generarRespuestaVendedorGroq(
   );
 }
 
-// Un mensaje corto por cliente, así que el tope de tokens crece con la
-// lista en vez de quedarse fijo como en las otras llamadas — 12
-// clientes (el máximo que manda la ruta) con ~60 tokens cada uno más
-// margen para el JSON no caben en los 400/700 de las demás funciones.
-export async function generarSugerenciasRecompraGroq(
-  clientes: ClienteFrecuenteInfo[],
+export async function generarMensajeClienteGroq(
+  datos: DatosAnalisisEntidad,
   nombreNegocio: string | null,
   idioma: string
-): Promise<SugerenciaRecompra[]> {
+): Promise<string> {
   const { modelo } = modeloTextoEnUso();
 
-  const texto = await pedirTexto(
+  return pedirTexto(
     modelo,
-    [{ role: "user", content: construirPromptRecompra(clientes, nombreNegocio, idioma) }],
-    { temperatura: 0.6, maxTokens: 200 + clientes.length * 100, plazoMs: 45000 }
+    [{ role: "user", content: construirPromptMensajeCliente(datos, nombreNegocio, idioma) }],
+    { temperatura: 0.6, maxTokens: 250, plazoMs: 30000 }
   );
+}
 
-  return extraerSugerenciasRecompra(texto);
+export async function generarMensajeProveedorGroq(
+  datos: DatosAnalisisEntidad,
+  nombreNegocio: string | null,
+  idioma: string
+): Promise<string> {
+  const { modelo } = modeloTextoEnUso();
+
+  return pedirTexto(
+    modelo,
+    [{ role: "user", content: construirPromptMensajeProveedor(datos, nombreNegocio, idioma) }],
+    { temperatura: 0.5, maxTokens: 250, plazoMs: 30000 }
+  );
 }
 
 // Prueba mínima de que el modelo de visión existe y acepta imágenes.

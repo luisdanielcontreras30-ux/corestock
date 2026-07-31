@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Phone, Mail, Plus, Users, History, Star, Wallet } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Phone, Mail, Plus, Users, History, Star, Wallet, Sparkles } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
+import { useSuscripcion } from "../../components/SuscripcionProvider";
+import { BLOQUEO_PLUS_ACTIVO } from "../../lib/suscripcion";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import HistorialModal from "./components/HistorialModal";
+import AnalisisModal from "./components/AnalisisModal";
 import { Cliente, ClienteConResumen, CompraCliente, estrellasPorCompras } from "./types";
 import {
   cargarClientes,
@@ -20,9 +24,11 @@ import { formatoMoneda } from "../ventas/utils";
 import { exportarExcel } from "./utils";
 
 export default function ClientesPage() {
+  const router = useRouter();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
+  const { esPlus } = useSuscripcion();
 
   const [clientes, setClientes] = useState<ClienteConResumen[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -30,6 +36,8 @@ export default function ClientesPage() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState<ClienteConResumen | null>(null);
   const [guardando, setGuardando] = useState(false);
+
+  const [clienteAnalisis, setClienteAnalisis] = useState<ClienteConResumen | null>(null);
 
   const [clienteHistorial, setClienteHistorial] = useState<ClienteConResumen | null>(null);
   const [comprasHistorial, setComprasHistorial] = useState<CompraCliente[]>([]);
@@ -83,6 +91,17 @@ export default function ClientesPage() {
     setNotas(c.notas ?? "");
     setCategoriaForm(c.categoria ?? "");
     setMostrarForm(true);
+  }
+
+  function alAnalizar(c: ClienteConResumen) {
+    // Clientes es de plan gratuito, pero este botón en concreto usa IA
+    // (costo por llamada) — se gatea solo la acción, no la página
+    // entera, mismo BLOQUEO_PLUS_ACTIVO que usa RequierePlus.
+    if (BLOQUEO_PLUS_ACTIVO && !esPlus) {
+      router.push("/suscripcion");
+      return;
+    }
+    setClienteAnalisis(c);
   }
 
   async function verHistorial(c: ClienteConResumen) {
@@ -399,6 +418,14 @@ export default function ClientesPage() {
                 <button className="btn-secondary cli-accion" onClick={() => verHistorial(c)}>
                   <History size={14} /> {t("clientes.ver_historial")}
                 </button>
+                <button className="btn-secondary cli-accion" onClick={() => alAnalizar(c)}>
+                  <Sparkles size={14} /> {t("analisis_ia.boton_analizar")}
+                  {BLOQUEO_PLUS_ACTIVO && !esPlus && (
+                    <span className="mas-card-badge-plus" title={t("plus.badge_tooltip")}>
+                      Plus+
+                    </span>
+                  )}
+                </button>
                 <button className="btn-edit cli-accion" onClick={() => abrirEditar(c)}>
                   {t("clientes.editar")}
                 </button>
@@ -528,6 +555,10 @@ export default function ClientesPage() {
           cargando={cargandoHistorial}
           onClose={() => setClienteHistorial(null)}
         />
+      )}
+
+      {clienteAnalisis && (
+        <AnalisisModal cliente={clienteAnalisis} onClose={() => setClienteAnalisis(null)} />
       )}
     </main>
   );
