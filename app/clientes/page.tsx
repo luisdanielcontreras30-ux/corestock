@@ -23,6 +23,16 @@ import CargandoLista from "../../components/CargandoLista";
 import { formatoMoneda } from "../ventas/utils";
 import { exportarExcel } from "./utils";
 
+// Paleta cíclica para el avatar de cada cliente (debe coincidir con las
+// clases .cli-avatar-color-0..N de globals.css). Con todas las tarjetas
+// del mismo color la lista se veía plana; el id decide el color para
+// que cada cliente se quede siempre con el mismo, en vez de cambiar en
+// cada carga.
+const PALETA_AVATAR_CLIENTE = 8;
+function colorAvatarCliente(id: number): string {
+  return `cli-avatar-color-${Math.abs(id) % PALETA_AVATAR_CLIENTE}`;
+}
+
 export default function ClientesPage() {
   const router = useRouter();
   const { t } = useIdioma();
@@ -362,7 +372,9 @@ export default function ClientesPage() {
             return (
             <div key={c.id} className="cli-tarjeta">
               <div className="cli-cabecera">
-                <span className="cli-avatar">{c.nombre.trim().charAt(0).toUpperCase() || "?"}</span>
+                <span className={`cli-avatar ${colorAvatarCliente(c.id)}`}>
+                  {c.nombre.trim().charAt(0).toUpperCase() || "?"}
+                </span>
 
                 <div className="cli-identidad">
                   <h3 className="cli-nombre">{c.nombre}</h3>

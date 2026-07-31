@@ -96,6 +96,15 @@ export default function CuentasPorCobrarPage() {
 
   const totalPendiente = useMemo(() => ventas.reduce((acc, v) => acc + Number(v.total), 0), [ventas]);
 
+  // Referencia para marcar "debe mucho" en rojo: no hay forma de saber
+  // qué es "mucho" en términos absolutos (cada negocio y moneda es
+  // distinto), así que se compara contra el promedio de las propias
+  // deudas pendientes del negocio en vez de inventar un monto fijo.
+  const promedioPendiente = useMemo(
+    () => (deudas.length ? totalPendiente / deudas.length : 0),
+    [deudas, totalPendiente]
+  );
+
   async function cobrar(venta: VentaFiada) {
     if (cobrando !== null || !puedeCobrar) return;
 
@@ -186,6 +195,7 @@ export default function CuentasPorCobrarPage() {
             cobrando={cobrando}
             onCobrar={cobrar}
             referenciaFecha={referenciaFecha}
+            promedioPendiente={promedioPendiente}
             t={t}
           />
         ))
@@ -197,12 +207,19 @@ export default function CuentasPorCobrarPage() {
 }
 
 
-// Días desde la venta fiada más antigua a partir de los cuales la deuda
-// se resalta en rojo. NO es una fecha de vencimiento: CoreStock no
-// guarda plazos de crédito por cliente, así que inventarse un "vencida"
-// sería afirmar algo que el sistema no sabe. Lo que sí sabe es cuánto
-// lleva sin cobrarse, y eso es lo que se muestra.
-const DIAS_PARA_RESALTAR = 30;
+// Umbrales de días para clasificar la deuda por color. NO son fechas de
+// vencimiento: CoreStock no guarda plazos de crédito por cliente, así
+// que inventarse un "vencida" sería afirmar algo que el sistema no
+// sabe. Lo que sí sabe es cuánto lleva sin cobrarse (y cuánto es, en
+// comparación con el resto), y eso es lo que se colorea.
+const DIAS_VERDE = 7;
+const DIAS_ROJO = 30;
+// Cuánto más grande que el promedio de las deudas actuales tiene que
+// ser un saldo para contar como "debe mucho" y resaltarse en rojo
+// aunque sea reciente.
+const MULTIPLO_DEBE_MUCHO = 2;
+
+type Severidad = "baja" | "media" | "alta";
 
 function TarjetaDeuda({
   deuda,
@@ -210,6 +227,7 @@ function TarjetaDeuda({
   cobrando,
   onCobrar,
   referenciaFecha,
+  promedioPendiente,
   t,
 }: {
   deuda: DeudaCliente;
@@ -217,6 +235,7 @@ function TarjetaDeuda({
   cobrando: number | null;
   onCobrar: (venta: VentaFiada) => void;
   referenciaFecha: number;
+  promedioPendiente: number;
   t: (clave: string) => string;
 }) {
   const [abierta, setAbierta] = useState(false);
@@ -229,7 +248,9 @@ function TarjetaDeuda({
     masAntigua && referenciaFecha
       ? Math.floor((referenciaFecha - new Date(masAntigua).getTime()) / 86400000)
       : 0;
-  const vieja = dias >= DIAS_PARA_RESALTAR;
+  const debeMucho = promedioPendiente > 0 && deuda.totalPendiente >= promedioPendiente * MULTIPLO_DEBE_MUCHO;
+  const severidad: Severidad =
+    dias >= DIAS_ROJO || debeMucho ? "alta" : dias < DIAS_VERDE ? "baja" : "media";
 
   // La inicial como avatar: con diez clientes en la lista, un círculo
   // con letra se localiza de un vistazo mejor que diez filas de texto.
@@ -243,13 +264,13 @@ function TarjetaDeuda({
         onClick={() => setAbierta((v) => !v)}
         aria-expanded={abierta}
       >
-        <span className={`deuda-avatar ${vieja ? "deuda-avatar-vieja" : ""}`}>{inicial}</span>
+        <span className={`deuda-avatar deuda-avatar-${severidad}`}>{inicial}</span>
 
         <span className="deuda-datos">
           <span className="deuda-nombre-fila">
             <span className="deuda-nombre">{deuda.nombre}</span>
-            <span className={`deuda-insignia ${vieja ? "deuda-insignia-vieja" : ""}`}>
-              {t(vieja ? "cuentas_por_cobrar.insignia_vieja" : "cuentas_por_cobrar.insignia_reciente")}
+            <span className={`deuda-insignia deuda-insignia-${severidad}`}>
+              {t(`cuentas_por_cobrar.insignia_${severidad}`)}
             </span>
           </span>
           <span className="deuda-meta">
@@ -262,7 +283,7 @@ function TarjetaDeuda({
 
         <span className="deuda-monto">
           <span className="deuda-monto-etiqueta">{t("cuentas_por_cobrar.saldo_pendiente")}</span>
-          <span className={`deuda-monto-valor ${vieja ? "deuda-monto-vieja" : ""}`}>
+          <span className={`deuda-monto-valor deuda-monto-${severidad}`}>
             {formatoMoneda(deuda.totalPendiente)}
           </span>
         </span>

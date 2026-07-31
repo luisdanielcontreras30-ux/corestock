@@ -1464,8 +1464,9 @@ export const TRADUCCIONES: Diccionario = {
   // Cuentas por Cobrar
   "cuentas_por_cobrar.subtitulo": { es: "Ventas fiadas que todavía no se han cobrado, agrupadas por cliente.", en: "Credit sales that haven't been collected yet, grouped by customer.", pt: "Vendas fiadas que ainda não foram cobradas, agrupadas por cliente.", fr: "Ventes à crédit non encore encaissées, regroupées par client.", de: "Noch nicht eingezogene Kreditverkäufe, gruppiert nach Kunde.", zh: "尚未收款的赊销，按客户分组。", it: "Vendite a credito non ancora riscosse, raggruppate per cliente." },
   "cuentas_por_cobrar.saldo_pendiente": { es: "Saldo pendiente", en: "Outstanding balance", pt: "Saldo pendente", fr: "Solde à recouvrer", de: "Offener Betrag", zh: "待收余额", it: "Saldo da incassare" },
-  "cuentas_por_cobrar.insignia_reciente": { es: "Reciente", en: "Recent", pt: "Recente", fr: "Récent", de: "Aktuell", zh: "近期", it: "Recente" },
-  "cuentas_por_cobrar.insignia_vieja": { es: "Lleva tiempo", en: "Long overdue", pt: "Há muito tempo", fr: "Depuis longtemps", de: "Schon lange", zh: "拖欠较久", it: "Da parecchio" },
+  "cuentas_por_cobrar.insignia_baja": { es: "Reciente", en: "Recent", pt: "Recente", fr: "Récent", de: "Aktuell", zh: "近期", it: "Recente" },
+  "cuentas_por_cobrar.insignia_media": { es: "Con tiempo", en: "A while now", pt: "Já tem tempo", fr: "Depuis un moment", de: "Seit einiger Zeit", zh: "已有一段时间", it: "Da un po'" },
+  "cuentas_por_cobrar.insignia_alta": { es: "Lleva tiempo", en: "Long overdue", pt: "Há muito tempo", fr: "Depuis longtemps", de: "Schon lange", zh: "拖欠较久", it: "Da parecchio" },
   "cuentas_por_cobrar.dias_sin_cobrar": { es: "{dias} días sin cobrar", en: "{dias} days uncollected", pt: "{dias} dias sem cobrar", fr: "{dias} jours sans encaissement", de: "Seit {dias} Tagen offen", zh: "已 {dias} 天未收款", it: "{dias} giorni senza incasso" },
   "cuentas_por_cobrar.n_pendientes": { es: "{n} pendientes", en: "{n} pending", pt: "{n} pendentes", fr: "{n} en attente", de: "{n} offen", zh: "{n} 笔待收", it: "{n} in sospeso" },
   "cuentas_por_cobrar.total_pendiente": { es: "Total pendiente", en: "Total pending", pt: "Total pendente", fr: "Total en attente", de: "Ausstehender Gesamtbetrag", zh: "待收总额", it: "Totale in sospeso" },

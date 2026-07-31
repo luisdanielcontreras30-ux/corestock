@@ -7058,11 +7058,19 @@ select optgroup {
   flex-shrink: 0;
   font-size: 17px;
   font-weight: 700;
+}
+
+.deuda-avatar-baja {
+  background: color-mix(in srgb, #22c55e 20%, transparent);
+  color: #22c55e;
+}
+
+.deuda-avatar-media {
   background: color-mix(in srgb, #facc15 20%, transparent);
   color: #facc15;
 }
 
-.deuda-avatar-vieja {
+.deuda-avatar-alta {
   background: color-mix(in srgb, #ef4444 20%, transparent);
   color: #ef4444;
 }
@@ -7094,11 +7102,19 @@ select optgroup {
   text-transform: uppercase;
   padding: 3px 8px;
   border-radius: 999px;
+}
+
+.deuda-insignia-baja {
+  background: color-mix(in srgb, #22c55e 18%, transparent);
+  color: #22c55e;
+}
+
+.deuda-insignia-media {
   background: color-mix(in srgb, #facc15 18%, transparent);
   color: #facc15;
 }
 
-.deuda-insignia-vieja {
+.deuda-insignia-alta {
   background: color-mix(in srgb, #ef4444 18%, transparent);
   color: #ef4444;
 }
@@ -7127,11 +7143,18 @@ select optgroup {
 .deuda-monto-valor {
   font-size: 19px;
   font-weight: 700;
-  color: #facc15;
   white-space: nowrap;
 }
 
-.deuda-monto-vieja {
+.deuda-monto-baja {
+  color: #22c55e;
+}
+
+.deuda-monto-media {
+  color: #facc15;
+}
+
+.deuda-monto-alta {
   color: #ef4444;
 }
 
@@ -7424,9 +7447,21 @@ select optgroup {
   flex-shrink: 0;
   font-size: 17px;
   font-weight: 700;
-  background: color-mix(in srgb, var(--modulo-color) 16%, transparent);
-  color: var(--modulo-color);
+  background: color-mix(in srgb, var(--avatar-color, var(--modulo-color)) 16%, transparent);
+  color: var(--avatar-color, var(--modulo-color));
 }
+
+/* Paleta cíclica de app/clientes/page.tsx (colorAvatarCliente) — ocho
+   colores fijos para que las tarjetas se distingan de un vistazo, en
+   vez de repetir siempre var(--modulo-color). */
+.cli-avatar-color-0 { --avatar-color: #ec4899; }
+.cli-avatar-color-1 { --avatar-color: #3b82f6; }
+.cli-avatar-color-2 { --avatar-color: #22c55e; }
+.cli-avatar-color-3 { --avatar-color: #a855f7; }
+.cli-avatar-color-4 { --avatar-color: #f97316; }
+.cli-avatar-color-5 { --avatar-color: #06b6d4; }
+.cli-avatar-color-6 { --avatar-color: #ef4444; }
+.cli-avatar-color-7 { --avatar-color: #eab308; }
 
 .cli-identidad {
   flex: 1;
