@@ -175,6 +175,13 @@ export default function DashboardPremium() {
   // los últimos 40 días).
   const [topArticulosTodo, setTopArticulosTodo] = useState<DataGraficoPie[]>([]);
   const [mejoresClientesTodo, setMejoresClientesTodo] = useState<ClienteTop[]>([]);
+  // "todo" es el período con el que arrancan ambas tarjetas, y depende
+  // de dos funciones de Postgres (supabase_dashboard_agregado.sql). Sin
+  // esto, si la migración no está corrida, las tarjetas se veían vacías
+  // desde el primer vistazo con el mismo "Sin datos suficientes" que un
+  // negocio que de verdad no tiene ventas — nada distinguía "no hay
+  // datos" de "no se pudo cargar el ranking".
+  const [errorRankingTodo, setErrorRankingTodo] = useState(false);
 
   // Cada tarjeta tiene su propio selector de período — son controles
   // independientes, no deben cambiar juntos al mover uno solo.
@@ -340,8 +347,10 @@ export default function DashboardPremium() {
             total: Number(r.total),
           }))
         );
+        setErrorRankingTodo(false);
       } catch (errorRanking) {
         console.error(errorRanking);
+        setErrorRankingTodo(true);
       }
 
       if (productos) {
@@ -900,7 +909,11 @@ export default function DashboardPremium() {
           </div>
           <div style={{ width: "100%", height: "220px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {dataPie.length === 0 ? (
-              <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{t("dashboard.sin_datos")}</p>
+              <p style={{ color: "var(--text-secondary)", fontSize: "13px", textAlign: "center", padding: "0 12px" }}>
+                {periodoTopArticulos === "todo" && errorRankingTodo
+                  ? t("dashboard.msg_error_ranking_todo")
+                  : t("dashboard.sin_datos")}
+              </p>
             ) : tipoDistribucion === "barras" ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dataPie} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
@@ -1054,7 +1067,11 @@ export default function DashboardPremium() {
           </div>
 
           {mejoresClientes.length === 0 ? (
-            <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{t("dashboard.sin_datos")}</p>
+            <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
+              {periodoMejoresClientes === "todo" && errorRankingTodo
+                ? t("dashboard.msg_error_ranking_todo")
+                : t("dashboard.sin_datos")}
+            </p>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px" }}>
               {mejoresClientes.map((cliente, i) => (
