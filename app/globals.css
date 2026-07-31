@@ -8032,3 +8032,11 @@ select optgroup {
 .analisis-historial {
   margin-top: 0;
 }
+
+/* Análisis de Clientes: una tarjeta por sugerencia, mismo patrón de
+   rejilla que .clientes-rejilla. */
+.analisis-clientes-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}

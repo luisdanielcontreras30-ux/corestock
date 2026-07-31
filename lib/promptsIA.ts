@@ -215,6 +215,115 @@ export function extraerResultadoProducto(texto: string): ResultadoAnalisisProduc
   throw new Error("La respuesta de Google AI no tiene el formato esperado.");
 }
 
+// Un cliente con historial suficiente para que valga la pena sugerirle
+// recompra — ya viene resumido (no las ventas en crudo) porque lo único
+// que necesita el modelo es "qué le gusta y hace cuánto no viene", no
+// cada fila de la tabla ventas.
+export interface ClienteFrecuenteInfo {
+  id: number;
+  nombre: string;
+  compras: number;
+  productoTop: string | null;
+  diasDesdeUltimaCompra: number | null;
+}
+
+export interface SugerenciaRecompra {
+  clienteId: number;
+  mensaje: string;
+}
+
+export function construirPromptRecompra(
+  clientes: ClienteFrecuenteInfo[],
+  nombreNegocio: string | null,
+  idioma: string
+): string {
+  const idiomaTexto = NOMBRE_IDIOMA[idioma] ?? "español";
+  const negocio = nombreNegocio?.trim() || "el negocio";
+
+  const listaTexto = clientes
+    .map((c) => {
+      const producto = c.productoTop ? `suele comprar "${c.productoTop}"` : "sin un producto favorito claro";
+      const ultima =
+        c.diasDesdeUltimaCompra === null
+          ? "sin fecha de última compra registrada"
+          : `su última compra fue hace ${c.diasDesdeUltimaCompra} días`;
+      return `- id ${c.id}: ${c.nombre}, ${c.compras} compras en total, ${producto}, ${ultima}.`;
+    })
+    .join("\n");
+
+  return (
+    `Eres un asistente de marketing para ${negocio}, un negocio pequeño que usa CoreStock. ` +
+    "Te doy una lista de sus clientes más frecuentes con su historial de compras. " +
+    "Para CADA UNO, escribe un mensaje corto de WhatsApp (máximo 3 frases) invitándolo a " +
+    "volver a comprar, mencionando el producto que más le gusta cuando lo tengas. " +
+    `Escribe en ${idiomaTexto}, en tono cercano y amable, tuteando. ` +
+    "NUNCA inventes descuentos, promociones, precios ni fechas límite que no te haya dado — " +
+    "si quieres invitarlo, hazlo sin prometer nada que no esté en los datos. " +
+    "NUNCA uses un tono de urgencia o presión (nada de \"última oportunidad\", \"solo hoy\"). " +
+    'Responde ÚNICAMENTE con un JSON de la forma {"sugerencias": [{"cliente_id": 1, "mensaje": "..."}, ...]}, ' +
+    "un objeto por cada cliente de la lista, en el mismo orden, sin texto fuera del JSON.\n\n" +
+    `Clientes:\n${listaTexto}`
+  );
+}
+
+// Mismo enfoque de reparación por capas que extraerResultadoProducto:
+// el modelo puede devolver el JSON sin cerrar bien, o con texto extra
+// alrededor — se intenta cada vez de forma más tolerante antes de
+// darse por vencido.
+export function extraerSugerenciasRecompra(texto: string): SugerenciaRecompra[] {
+  const limpio = texto
+    .trim()
+    .replace(/^```(?:json)?/i, "")
+    .replace(/```$/, "")
+    .trim();
+
+  function normalizarLista(json: unknown): SugerenciaRecompra[] | null {
+    const bruto = (json as { sugerencias?: unknown })?.sugerencias;
+    if (!Array.isArray(bruto)) return null;
+
+    const lista: SugerenciaRecompra[] = [];
+    for (const item of bruto) {
+      const clienteIdBruto = (item as { cliente_id?: unknown })?.cliente_id;
+      const mensajeBruto = (item as { mensaje?: unknown })?.mensaje;
+      const clienteId = typeof clienteIdBruto === "number" ? clienteIdBruto : Number(clienteIdBruto);
+      const mensaje = typeof mensajeBruto === "string" ? mensajeBruto.trim() : "";
+      if (Number.isFinite(clienteId) && mensaje) {
+        lista.push({ clienteId, mensaje });
+      }
+    }
+    return lista.length > 0 ? lista : null;
+  }
+
+  try {
+    const directo = normalizarLista(JSON.parse(limpio));
+    if (directo) return directo;
+  } catch {
+    // sigue abajo
+  }
+
+  const inicio = limpio.indexOf("{");
+  if (inicio !== -1) {
+    let profundidad = 0;
+    for (let i = inicio; i < limpio.length; i++) {
+      if (limpio[i] === "{") profundidad++;
+      else if (limpio[i] === "}") {
+        profundidad--;
+        if (profundidad === 0) {
+          try {
+            const balanceado = normalizarLista(JSON.parse(limpio.slice(inicio, i + 1)));
+            if (balanceado) return balanceado;
+          } catch {
+            // sigue abajo
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  throw new Error("La respuesta de la IA no tiene el formato esperado.");
+}
+
 export interface ProductoParaVendedor {
   nombre: string;
   categoria: string | null;

@@ -29,6 +29,7 @@ import {
   RotateCcw,
   HandCoins,
   Wrench,
+  UserSearch,
   LucideIcon,
 } from "lucide-react";
 
@@ -67,6 +68,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
     items: [
       { claveNombre: "sidebar.productos", href: "/productos", Icono: Package, colorMovil: "#22c55e" },
       { claveNombre: "sidebar.analisis_producto", href: "/analisis-producto", Icono: ScanSearch, colorMovil: "#c026d3" },
+      { claveNombre: "sidebar.analisis_clientes", href: "/analisis-clientes", Icono: UserSearch, colorMovil: "#e879f9" },
       { claveNombre: "sidebar.proveedores", href: "/proveedores", Icono: Truck, colorMovil: "#b45309" },
       { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell, colorMovil: "#ef4444" },
       { claveNombre: "sidebar.ajustes_stock", href: "/ajustes-stock", Icono: SlidersHorizontal, colorMovil: "#0ea5e9" },

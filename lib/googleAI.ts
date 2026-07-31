@@ -5,9 +5,13 @@
 import {
   construirPromptProducto,
   construirPromptVendedor,
+  construirPromptRecompra,
   extraerResultadoProducto,
+  extraerSugerenciasRecompra,
   ResultadoAnalisisProducto,
   ProductoParaVendedor,
+  ClienteFrecuenteInfo,
+  SugerenciaRecompra,
 } from "./promptsIA";
 
 // Los prompts y la reparación del JSON que devuelve el modelo viven en
@@ -297,4 +301,21 @@ export async function generarRespuestaVendedor(
     { temperature: 0.5, thinkingConfig: { thinkingBudget: 0 } },
     30000
   );
+}
+
+// "Análisis de Clientes": un mensaje de recompra sugerido por cliente
+// frecuente, en el mismo JSON que ya sabe repararse con
+// extraerSugerenciasRecompra (ver lib/promptsIA.ts).
+export async function generarSugerenciasRecompra(
+  clientes: ClienteFrecuenteInfo[],
+  nombreNegocio: string | null,
+  idioma: string
+): Promise<SugerenciaRecompra[]> {
+  const texto = await pedirTexto(
+    [{ text: construirPromptRecompra(clientes, nombreNegocio, idioma) }],
+    { temperature: 0.6, thinkingConfig: { thinkingBudget: 0 } },
+    45000
+  );
+
+  return extraerSugerenciasRecompra(texto);
 }

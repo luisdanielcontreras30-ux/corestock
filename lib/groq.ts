@@ -1,9 +1,13 @@
 import {
   construirPromptProducto,
   construirPromptVendedor,
+  construirPromptRecompra,
   extraerResultadoProducto,
+  extraerSugerenciasRecompra,
   ResultadoAnalisisProducto,
   ProductoParaVendedor,
+  ClienteFrecuenteInfo,
+  SugerenciaRecompra,
 } from "./promptsIA";
 
 // Cliente para Groq (chat). Uso EXCLUSIVO en código de servidor
@@ -333,6 +337,26 @@ export async function generarRespuestaVendedorGroq(
     [{ role: "user", content: construirPromptVendedor(pregunta, productos, idioma) }],
     { temperatura: 0.5, maxTokens: 400, plazoMs: 30000 }
   );
+}
+
+// Un mensaje corto por cliente, así que el tope de tokens crece con la
+// lista en vez de quedarse fijo como en las otras llamadas — 12
+// clientes (el máximo que manda la ruta) con ~60 tokens cada uno más
+// margen para el JSON no caben en los 400/700 de las demás funciones.
+export async function generarSugerenciasRecompraGroq(
+  clientes: ClienteFrecuenteInfo[],
+  nombreNegocio: string | null,
+  idioma: string
+): Promise<SugerenciaRecompra[]> {
+  const { modelo } = modeloTextoEnUso();
+
+  const texto = await pedirTexto(
+    modelo,
+    [{ role: "user", content: construirPromptRecompra(clientes, nombreNegocio, idioma) }],
+    { temperatura: 0.6, maxTokens: 200 + clientes.length * 100, plazoMs: 45000 }
+  );
+
+  return extraerSugerenciasRecompra(texto);
 }
 
 // Prueba mínima de que el modelo de visión existe y acepta imágenes.
