@@ -4,5 +4,9 @@ export interface SugerenciaCliente {
   telefono: string | null;
   compras: number;
   productoTop: string | null;
+  totalGastado: number;
+  ticketPromedio: number;
+  frecuenciaDias: number | null;
+  prediccionMensual: number | null;
   mensaje: string;
 }

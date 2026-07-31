@@ -8033,10 +8033,112 @@ select optgroup {
   margin-top: 0;
 }
 
-/* Análisis de Clientes: una tarjeta por sugerencia, mismo patrón de
-   rejilla que .clientes-rejilla. */
+/* Análisis de Clientes: mismo patrón de tarjeta que .cli-*
+   (Clientes) — con su propio prefijo por el mismo criterio que el
+   resto de la app: cada módulo con sus propias clases, aunque el CSS
+   sea casi idéntico, para que el nombre siga diciendo de qué módulo
+   es. Todo usa var(--modulo-color), publicado por EncabezadoModulo con
+   el rosa/magenta de esta pantalla. */
 .analisis-clientes-rejilla {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 16px;
+}
+
+.analisis-clientes-tarjeta {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: var(--transition-fast);
+}
+
+.analisis-clientes-tarjeta:hover {
+  border-color: color-mix(in srgb, var(--modulo-color) 45%, var(--border));
+  transform: translateY(-2px);
+}
+
+.analisis-clientes-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analisis-clientes-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 17px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--modulo-color) 16%, transparent);
+  color: var(--modulo-color);
+}
+
+.analisis-clientes-identidad {
+  flex: 1;
+  min-width: 0;
+}
+
+.analisis-clientes-nombre {
+  font-size: 15.5px;
+  font-weight: 700;
+  margin: 0 0 3px 0;
+  overflow-wrap: anywhere;
+}
+
+.analisis-clientes-producto {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.analisis-clientes-metricas {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.analisis-clientes-metricas > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  color: var(--modulo-color);
+}
+
+.analisis-clientes-metrica-valor {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.analisis-clientes-metrica-etiqueta {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
+}
+
+.analisis-clientes-disclaimer {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: -8px 0 4px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analisis-clientes-tarjeta:hover {
+    transform: none;
+  }
 }

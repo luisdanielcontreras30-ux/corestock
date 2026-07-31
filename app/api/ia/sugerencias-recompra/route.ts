@@ -40,6 +40,15 @@ interface ClienteCandidato {
   compras: number;
   productoTop: string | null;
   diasDesdeUltimaCompra: number | null;
+  totalGastado: number;
+  ticketPromedio: number;
+  // null cuando no hay suficiente historial para estimar un ritmo (una
+  // sola fecha no dice nada de cada cuánto vuelve).
+  frecuenciaDias: number | null;
+  // Proyección simple (ticket promedio × 30 / frecuencia), no una cifra
+  // de la IA — un modelo de lenguaje no debe inventar montos de dinero.
+  // null junto con frecuenciaDias por la misma razón.
+  prediccionMensual: number | null;
 }
 
 export async function POST(request: Request) {
@@ -83,7 +92,7 @@ export async function POST(request: Request) {
       supabase.from("clientes").select("id, nombre, telefono"),
       supabase
         .from("ventas")
-        .select("cliente_id, producto, fecha")
+        .select("cliente_id, producto, fecha, total")
         .not("cliente_id", "is", null),
       supabase.from("empresa_config").select("nombre_negocio").maybeSingle(),
     ]);
@@ -104,7 +113,9 @@ export async function POST(request: Request) {
   interface Acumulado {
     compras: number;
     porProducto: Map<string, number>;
+    primeraFecha: string | null;
     ultimaFecha: string | null;
+    totalGastado: number;
   }
 
   const porCliente = new Map<number, Acumulado>();
@@ -113,8 +124,15 @@ export async function POST(request: Request) {
     const clienteId = venta.cliente_id as number | null;
     if (clienteId == null) continue;
 
-    const actual = porCliente.get(clienteId) ?? { compras: 0, porProducto: new Map(), ultimaFecha: null };
+    const actual = porCliente.get(clienteId) ?? {
+      compras: 0,
+      porProducto: new Map(),
+      primeraFecha: null,
+      ultimaFecha: null,
+      totalGastado: 0,
+    };
     actual.compras += 1;
+    actual.totalGastado += Number(venta.total) || 0;
 
     const producto = (venta.producto as string | null)?.trim();
     if (producto) {
@@ -122,6 +140,9 @@ export async function POST(request: Request) {
     }
 
     const fecha = venta.fecha as string;
+    if (!actual.primeraFecha || fecha < actual.primeraFecha) {
+      actual.primeraFecha = fecha;
+    }
     if (!actual.ultimaFecha || fecha > actual.ultimaFecha) {
       actual.ultimaFecha = fecha;
     }
@@ -152,6 +173,23 @@ export async function POST(request: Request) {
       ? Math.max(0, Math.round((ahora - new Date(datos.ultimaFecha).getTime()) / (24 * 60 * 60 * 1000)))
       : null;
 
+    const ticketPromedio = datos.totalGastado / datos.compras;
+
+    // El intervalo promedio entre compras: el lapso completo entre la
+    // primera y la última, repartido entre las veces que volvió. Con 2
+    // compras es una sola brecha; con más, un promedio más confiable.
+    // Si las dos fechas caen el mismo día, se usa 1 día como piso en vez
+    // de dividir entre casi cero — una brecha de "0.02 días" dispararía
+    // la predicción a un monto absurdo.
+    let frecuenciaDias: number | null = null;
+    let prediccionMensual: number | null = null;
+    if (datos.compras > 1 && datos.primeraFecha && datos.ultimaFecha) {
+      const spanDias =
+        (new Date(datos.ultimaFecha).getTime() - new Date(datos.primeraFecha).getTime()) / (24 * 60 * 60 * 1000);
+      frecuenciaDias = Math.max(1, Math.round(spanDias / (datos.compras - 1)));
+      prediccionMensual = Math.round((ticketPromedio * 30) / frecuenciaDias);
+    }
+
     candidatos.push({
       id: clienteId,
       nombre: identidad.nombre,
@@ -159,6 +197,10 @@ export async function POST(request: Request) {
       compras: datos.compras,
       productoTop,
       diasDesdeUltimaCompra,
+      totalGastado: datos.totalGastado,
+      ticketPromedio,
+      frecuenciaDias,
+      prediccionMensual,
     });
   }
 
@@ -198,6 +240,10 @@ export async function POST(request: Request) {
         telefono: c.telefono,
         compras: c.compras,
         productoTop: c.productoTop,
+        totalGastado: c.totalGastado,
+        ticketPromedio: c.ticketPromedio,
+        frecuenciaDias: c.frecuenciaDias,
+        prediccionMensual: c.prediccionMensual,
         mensaje: mensajePorCliente.get(c.id) ?? null,
       }))
       .filter((s): s is typeof s & { mensaje: string } => !!s.mensaje);
