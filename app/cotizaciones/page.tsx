@@ -326,7 +326,7 @@ function CotizacionesContenido() {
           <OpcionSelector value="rechazada">{t("cotizaciones.estado_rechazada")}</OpcionSelector>
         </SelectorPersonalizado>
 
-        {cotizaciones.length > 0 && (
+        {cotizacionesFiltradas.length > 0 && (
           <button className="btn-secondary" onClick={() => exportarExcel(cotizacionesFiltradas)}>
             {t("productos.exportar_excel")}
           </button>

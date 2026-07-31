@@ -352,7 +352,7 @@ function ProveedoresContenido() {
               onChange={(e) => setBusqueda(e.target.value)}
             />
 
-            {proveedores.length > 0 && (
+            {proveedoresFiltrados.length > 0 && (
               <button className="btn-secondary" onClick={() => exportarExcel(proveedoresFiltrados)}>
                 {t("productos.exportar_excel")}
               </button>

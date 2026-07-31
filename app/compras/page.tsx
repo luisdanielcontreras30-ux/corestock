@@ -344,7 +344,7 @@ function ComprasContenido() {
           onChange={(e) => setBusqueda(e.target.value)}
         />
 
-        {compras.length > 0 && (
+        {comprasFiltradas.length > 0 && (
           <button className="btn-secondary" onClick={() => exportarExcel(comprasFiltradas)}>
             {t("productos.exportar_excel")}
           </button>

@@ -308,7 +308,7 @@ export default function ClientesPage() {
               onChange={(e) => setBusqueda(e.target.value)}
             />
 
-            {clientes.length > 0 && (
+            {clientesFiltrados.length > 0 && (
               <button className="btn-secondary" onClick={() => exportarExcel(clientesFiltrados)}>
                 {t("productos.exportar_excel")}
               </button>

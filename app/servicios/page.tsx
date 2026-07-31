@@ -323,7 +323,7 @@ function ServiciosContenido() {
           onChange={(e) => setBusqueda(e.target.value)}
         />
 
-        {trabajos.length > 0 && (
+        {trabajosFiltrados.length > 0 && (
           <button className="btn-secondary" onClick={() => exportarExcel(trabajosFiltrados)}>
             {t("productos.exportar_excel")}
           </button>
