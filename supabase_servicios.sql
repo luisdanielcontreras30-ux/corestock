@@ -46,6 +46,22 @@ create policy "servicios_trabajos_por_dueno" on servicios_trabajos
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
+-- Un miembro del equipo escribe con SU PROPIO auth.uid(), no con el
+-- del dueño — la política de arriba (auth.uid() = user_id) nunca la
+-- cumple un miembro, aunque acciones.ts guarde el trabajo con el
+-- user_id correcto del negocio. Sin esta segunda política, cualquier
+-- miembro vería la lista siempre vacía y no podría registrar nada; es
+-- el mismo tratamiento que ya tienen clientes/proveedores/compras/etc.
+-- en supabase_permisos_miembros.sql, solo que esa tabla no existía
+-- todavía cuando se corrió ese archivo. Las políticas "for all" se
+-- combinan con OR, así que esta se suma a la del dueño en vez de
+-- reemplazarla.
+drop policy if exists "servicios_trabajos_miembro_activo" on servicios_trabajos;
+create policy "servicios_trabajos_miembro_activo" on servicios_trabajos
+  for all
+  using (public.es_miembro_activo(user_id))
+  with check (public.es_miembro_activo(user_id));
+
 -- La pantalla ordena por fecha al cargar; el índice la sostiene cuando
 -- la lista de trabajos crece.
 create index if not exists servicios_trabajos_user_fecha_idx

@@ -48,6 +48,12 @@ function ServiciosContenido() {
   const [notas, setNotas] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  // Id del trabajo cuyo estado se está cambiando o borrando en este
+  // momento — deshabilita SOLO los botones de esa fila mientras la
+  // petición está en camino, para que dos clics rápidos (o un dedo
+  // lento en celular) no disparen dos peticiones sobre el mismo
+  // trabajo a la vez.
+  const [procesandoId, setProcesandoId] = useState<number | null>(null);
 
   // acciones.ts lanza sentinels sin traducir (ver comentario en
   // lib/errores.ts) — esta función los traduce; null si el error no es
@@ -138,39 +144,58 @@ function ServiciosContenido() {
   }
 
   async function avanzarEstado(trabajo: Trabajo) {
+    if (procesandoId !== null) return;
+
     const siguiente: EstadoTrabajo | null =
       trabajo.estado === "pendiente" ? "hecho" : trabajo.estado === "hecho" ? "cobrado" : null;
     if (!siguiente) return;
 
+    setProcesandoId(trabajo.id);
     try {
       await cambiarEstadoTrabajo(trabajo.id, siguiente);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
       mostrarToast(t("servicios.msg_error_estado"), "error");
+    } finally {
+      setProcesandoId(null);
     }
   }
 
   async function borrar(id: number) {
+    if (procesandoId !== null) return;
     if (!(await confirmar(t("servicios.confirmar_eliminar"), { peligroso: true }))) return;
 
+    setProcesandoId(id);
     try {
       await eliminarTrabajo(id);
       await obtenerDatos();
     } catch (error) {
       console.error(error);
       mostrarToast(t("servicios.msg_error_eliminar"), "error");
+    } finally {
+      setProcesandoId(null);
     }
   }
 
   // Resumen del mes con lo que YA está cargado: ninguna consulta nueva.
+  //
+  // fecha es una fecha de calendario elegida a mano (input type="date"),
+  // no un instante — comparar el ISO completo contra un inicio de mes
+  // calculado en hora LOCAL (como hacía esto antes) desalinea los dos
+  // lados del huso horario: en cualquier país al oeste de UTC, un
+  // trabajo cobrado el día 1 se guarda como "...T00:00:00Z" pero
+  // inicioMes cae varias horas más tarde ese mismo día, así que la
+  // comparación lo dejaba fuera de "cobrado este mes". Comparando solo
+  // la fecha (YYYY-MM-DD) de los dos lados, sin hora ni huso, no hay
+  // ambigüedad que resolver.
   const resumen = useMemo(() => {
     const ahora = new Date();
-    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString();
+    const inicioMes = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-01`;
     let cobradoMes = 0;
     let pendientes = 0;
     for (const trab of trabajos) {
-      if (trab.estado === "cobrado" && trab.fecha >= inicioMes) {
+      if (trab.estado === "cobrado" && trab.fecha.slice(0, 10) >= inicioMes) {
         cobradoMes += Number(trab.precio) || 0;
       }
       if (trab.estado !== "cobrado") {
@@ -339,12 +364,18 @@ function ServiciosContenido() {
                             className="btn-success"
                             style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
                             onClick={() => avanzarEstado(trab)}
+                            disabled={procesandoId !== null}
                           >
                             <Check size={13} />
                             {t(`servicios.marcar_${trab.estado === "pendiente" ? "hecho" : "cobrado"}`)}
                           </button>
                         )}
-                        <button className="btn-delete" onClick={() => borrar(trab.id)} aria-label={t("productos.eliminar")}>
+                        <button
+                          className="btn-delete"
+                          onClick={() => borrar(trab.id)}
+                          disabled={procesandoId !== null}
+                          aria-label={t("productos.eliminar")}
+                        >
                           <Trash2 size={14} />
                         </button>
                       </div>
