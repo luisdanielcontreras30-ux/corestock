@@ -11,6 +11,7 @@ import EncabezadoModulo from "../../components/EncabezadoModulo";
 import ConfigTabs from "./components/ConfigTabs";
 import ApariciarenciaTab from "./components/ApariciarenciaTab";
 import EmpresaTab from "./components/EmpresaTab";
+import PersonalizacionTab from "./components/PersonalizacionTab";
 import UsuariosTab from "./components/UsuariosTab";
 import CuentaTab from "./components/CuentaTab";
 import IdiomaTab from "./components/IdiomaTab";
@@ -53,6 +54,7 @@ export default function ConfiguracionPage() {
 
       {tab === "apariencia" && <ApariciarenciaTab />}
       {tab === "empresa" && (puede("configuracion") ? <EmpresaTab /> : <SinPermiso />)}
+      {tab === "personalizacion" && (puede("configuracion") ? <PersonalizacionTab /> : <SinPermiso />)}
       {tab === "usuarios" && (puede("configuracion") ? <UsuariosTab /> : <SinPermiso />)}
       {tab === "cuenta" && <CuentaTab />}
       {tab === "idioma" && <IdiomaTab />}

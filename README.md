@@ -107,6 +107,7 @@ Orden sugerido — primero seguridad, luego cada módulo según lo vayas usando:
 | `supabase_ventas_validacion_precio.sql` | Valida en el servidor el precio de cada venta (antes solo se calculaba en el navegador). |
 | `supabase_dashboard_agregado.sql` | Función agregada para que el Dashboard no traiga toda la tabla de ventas en cada visita. |
 | `supabase_modo_interfaz.sql` | Preferencia CoreStock Easy / Completo por negocio. |
+| `supabase_personalizacion_negocio.sql` | Tipo de negocio y accesos de menú recomendados según ese tipo (Configuración > Personalización). |
 | `supabase_offline_sync.sql` | Columna `uuid` en ventas y caja para sincronizar sin duplicar al recuperar conexión. |
 | `supabase_whatsapp_vendedor.sql` | Guarda el Phone Number ID de WhatsApp Business para el vendedor automático. |
 | `supabase_suscripciones.sql` | Estado del plan (free/plus) y datos de Stripe. Ver [más arriba](#corestock-plus-suscripciones-con-stripe-opcional). |

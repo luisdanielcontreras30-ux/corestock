@@ -5,10 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useIdioma } from "./LanguageProvider";
 import { SECCIONES_NAV, RUTAS_PERMITIDAS_MIEMBRO, RUTAS_EASY, ItemNav } from "../lib/navegacion";
+import { RUTAS_SIEMPRE_VISIBLES } from "../lib/tiposNegocio";
 import { esRutaPlus } from "../lib/suscripcion";
 import { esRutaBetaCerrada, tieneAccesoBeta } from "../lib/betaAcceso";
 import { useMiembroActivo } from "./MiembroActivoProvider";
 import { useModoInterfaz } from "./ModoInterfazProvider";
+import { useTipoNegocio } from "./TipoNegocioProvider";
 import { useAuth } from "./AuthProvider";
 
 export default function Sidebar({
@@ -23,6 +25,7 @@ export default function Sidebar({
   const { user } = useAuth();
   const { miembroActivo, puede } = useMiembroActivo();
   const { esEasy } = useModoInterfaz();
+  const { rutasActivas } = useTipoNegocio();
 
   // En modo Easy (y solo para el dueño — un miembro del equipo ya
   // tiene su propia navegación reducida más abajo), el sidebar
@@ -89,6 +92,17 @@ export default function Sidebar({
                 // Empleados IA / WhatsApp: en beta cerrada, solo visibles
                 // para la cuenta que los está probando (ver lib/betaAcceso.ts).
                 if (esRutaBetaCerrada(item.href) && !tieneAccesoBeta(user?.email)) return false;
+                // Personalización por tipo de negocio (Configuración >
+                // Personalización): NUNCA bloquea, solo decide qué se
+                // ve de entrada en el menú — la ruta sigue funcionando
+                // por URL directa o desde "Más". rutasActivas === null
+                // significa "sin personalizar", se ve todo.
+                if (
+                  rutasActivas !== null &&
+                  !RUTAS_SIEMPRE_VISIBLES.includes(item.href) &&
+                  !rutasActivas.includes(item.href)
+                )
+                  return false;
                 return true;
               });
 

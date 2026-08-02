@@ -6,10 +6,12 @@ import { useIdioma } from "./LanguageProvider";
 import { useToast } from "./ToastProvider";
 import { useModoInterfaz, ModoInterfaz } from "./ModoInterfazProvider";
 import { useMiembroActivo } from "./MiembroActivoProvider";
+import { useTipoNegocio } from "./TipoNegocioProvider";
 import SelectorModoInterfaz from "./SelectorModoInterfaz";
 
 // Pantalla de bienvenida "¿Cómo quieres usar CoreStock?" — se muestra
-// una sola vez, antes del tutorial, a cualquier cuenta que todavía no
+// una sola vez, DESPUÉS de SeleccionNegocioModal (¿qué tipo de negocio
+// tienes?) y antes del tutorial, a cualquier cuenta que todavía no
 // eligió modo_interfaz (ver ModoInterfazProvider). No tiene botón de
 // cerrar a propósito: es una decisión de una sola pantalla, pero la
 // nota de abajo deja claro que no es permanente.
@@ -17,6 +19,7 @@ export default function ModoInicialModal() {
   const { user, cargando: cargandoAuth } = useAuth();
   const { modoInterfaz, cargando: cargandoModo, cambiarModo } = useModoInterfaz();
   const { miembroActivo, cargando: cargandoMiembro } = useMiembroActivo();
+  const { tipoNegocio, cargando: cargandoTipoNegocio } = useTipoNegocio();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const [guardando, setGuardando] = useState<ModoInterfaz | null>(null);
@@ -27,12 +30,18 @@ export default function ModoInicialModal() {
   // pantalla sin poder llegar a su panel restringido, y su elección
   // sobrescribía la del dueño para toda la cuenta (cambiarModo() guarda
   // por user.id, no por miembro).
+  //
+  // tipoNegocio !== null espera a que SeleccionNegocioModal ya haya
+  // resuelto su propia pregunta primero — sin esto, las dos pantallas
+  // de bienvenida podrían mostrarse a la vez.
   const debeMostrarse =
     !cargandoAuth &&
     !!user &&
     !cargandoModo &&
     !cargandoMiembro &&
+    !cargandoTipoNegocio &&
     !miembroActivo &&
+    tipoNegocio !== null &&
     modoInterfaz === null;
 
   if (!debeMostrarse) return null;

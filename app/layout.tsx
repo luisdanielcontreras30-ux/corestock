@@ -9,6 +9,7 @@ import AuthProvider from "../components/AuthProvider";
 import DemoSeedProvider from "../components/DemoSeedProvider";
 import SuscripcionProvider from "../components/SuscripcionProvider";
 import ModoInterfazProvider from "../components/ModoInterfazProvider";
+import TipoNegocioProvider from "../components/TipoNegocioProvider";
 import ToastProvider from "../components/ToastProvider";
 import ConfirmProvider from "../components/ConfirmProvider";
 import MiembroActivoProvider from "../components/MiembroActivoProvider";
@@ -73,17 +74,19 @@ export default function RootLayout({
             <DemoSeedProvider>
               <MiembroActivoProvider>
                 <SuscripcionProvider>
-                  <ModoInterfazProvider>
-                    <ThemeProvider>
-                      <LanguageProvider>
-                        <ToastProvider>
-                          <ConfirmProvider>
-                            <AppShell>{children}</AppShell>
-                          </ConfirmProvider>
-                        </ToastProvider>
-                      </LanguageProvider>
-                    </ThemeProvider>
-                  </ModoInterfazProvider>
+                  <TipoNegocioProvider>
+                    <ModoInterfazProvider>
+                      <ThemeProvider>
+                        <LanguageProvider>
+                          <ToastProvider>
+                            <ConfirmProvider>
+                              <AppShell>{children}</AppShell>
+                            </ConfirmProvider>
+                          </ToastProvider>
+                        </LanguageProvider>
+                      </ThemeProvider>
+                    </ModoInterfazProvider>
+                  </TipoNegocioProvider>
                 </SuscripcionProvider>
               </MiembroActivoProvider>
             </DemoSeedProvider>
