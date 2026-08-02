@@ -96,6 +96,7 @@ Orden sugerido — primero seguridad, luego cada módulo según lo vayas usando:
 | `supabase_traspasos.sql` | Tablas del módulo Traspasos (stock por ubicación). |
 | `supabase_devoluciones.sql` | Tabla del módulo Devoluciones. |
 | `supabase_servicios.sql` | Tabla del módulo Servicios (negocios que cobran trabajos, no productos). |
+| `supabase_servicios_fecha_cobro.sql` | Columna `fecha_cobro` en Servicios, para que Dashboard/Gráficas cuenten el ingreso el día en que se cobró (después de `supabase_servicios.sql`). |
 | `supabase_cuentas_por_cobrar.sql` | Seguimiento de ventas fiadas (método de pago "préstamo"). |
 | `supabase_catalogo_linea.sql` | Catálogo en línea público (sin sesión), interruptor en Configuración. |
 | `supabase_catalogo_apariencia.sql` | Colores del catálogo en línea (después de `supabase_catalogo_linea.sql`). |

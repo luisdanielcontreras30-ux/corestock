@@ -181,22 +181,30 @@ function ServiciosContenido() {
 
   // Resumen del mes con lo que YA está cargado: ninguna consulta nueva.
   //
-  // fecha es una fecha de calendario elegida a mano (input type="date"),
-  // no un instante — comparar el ISO completo contra un inicio de mes
-  // calculado en hora LOCAL (como hacía esto antes) desalinea los dos
-  // lados del huso horario: en cualquier país al oeste de UTC, un
-  // trabajo cobrado el día 1 se guarda como "...T00:00:00Z" pero
-  // inicioMes cae varias horas más tarde ese mismo día, así que la
-  // comparación lo dejaba fuera de "cobrado este mes". Comparando solo
-  // la fecha (YYYY-MM-DD) de los dos lados, sin hora ni huso, no hay
-  // ambigüedad que resolver.
+  // fecha_cobro (no fecha) decide si un trabajo cuenta en "cobrado este
+  // mes": fecha es la fecha del TRABAJO, elegida a mano en el
+  // formulario, y no cambia cuando el trabajo pasa a "cobrado" después
+  // — un trabajo con fecha de la semana pasada cobrado hoy quedaba
+  // fuera del mes equivocado. Se usa fecha ?? fecha_cobro solo como
+  // respaldo para trabajos marcados "cobrado" antes de que existiera
+  // esta columna (ver supabase_servicios_fecha_cobro.sql).
+  //
+  // Es una fecha de calendario (input type="date"), no un instante —
+  // comparar el ISO completo contra un inicio de mes calculado en hora
+  // LOCAL (como hacía esto antes) desalinea los dos lados del huso
+  // horario: en cualquier país al oeste de UTC, un trabajo cobrado el
+  // día 1 se guarda como "...T00:00:00Z" pero inicioMes cae varias
+  // horas más tarde ese mismo día, así que la comparación lo dejaba
+  // fuera de "cobrado este mes". Comparando solo la fecha (YYYY-MM-DD)
+  // de los dos lados, sin hora ni huso, no hay ambigüedad que resolver.
   const resumen = useMemo(() => {
     const ahora = new Date();
     const inicioMes = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-01`;
     let cobradoMes = 0;
     let pendientes = 0;
     for (const trab of trabajos) {
-      if (trab.estado === "cobrado" && trab.fecha.slice(0, 10) >= inicioMes) {
+      const fechaCobro = trab.fecha_cobro ?? trab.fecha;
+      if (trab.estado === "cobrado" && fechaCobro.slice(0, 10) >= inicioMes) {
         cobradoMes += Number(trab.precio) || 0;
       }
       if (trab.estado !== "cobrado") {

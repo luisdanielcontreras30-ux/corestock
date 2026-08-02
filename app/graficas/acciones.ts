@@ -56,16 +56,20 @@ export async function obtenerIngresosServicios(): Promise<VentaCruda[]> {
       return [];
     }
 
+    // fecha_cobro (cuándo se cobró de verdad), no fecha (cuándo fue el
+    // trabajo) — ver supabase_servicios_fecha_cobro.sql. Se cae a
+    // "fecha" solo para trabajos marcados "cobrado" antes de que
+    // existiera esa columna.
     const { data: servicios, error } = await supabase
       .from("servicios_trabajos")
-      .select("fecha, precio")
+      .select("fecha, fecha_cobro, precio")
       .eq("estado", "cobrado")
       .order("fecha", { ascending: true });
 
     if (error) throw error;
 
     return (servicios ?? []).map((s) => ({
-      fecha: s.fecha as string,
+      fecha: (s.fecha_cobro as string | null) ?? (s.fecha as string),
       producto: "",
       cantidad: 0,
       total: Number(s.precio) || 0,

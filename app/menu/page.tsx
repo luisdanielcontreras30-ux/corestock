@@ -301,20 +301,32 @@ export default function DashboardPremium() {
       // no existe), el resto del dashboard no debe dejar de mostrarse
       // por eso. Solo cuenta lo ya cobrado — un trabajo pendiente o
       // hecho-sin-cobrar todavía no es dinero que entró al negocio.
+      //
+      // El corte de 40 días se aplica sobre fecha_cobro (cuándo se
+      // cobró de verdad), no sobre fecha (la fecha del trabajo, elegida
+      // a mano y que no cambia al cobrarlo) — filtrar por "fecha" acá
+      // dejaba fuera del dashboard un trabajo cobrado hoy si se había
+      // registrado hace más de 40 días. Sin filtro de fecha en la
+      // consulta porque no se puede filtrar en el servidor por una
+      // columna que puede ser null (fecha_cobro en trabajos cobrados
+      // antes de supabase_servicios_fecha_cobro.sql); la tabla de
+      // Servicios es chica comparada con ventas, así que traerla
+      // completa y filtrar aquí no pesa.
       let serviciosCobrados: { fecha: string; precio: number }[] = [];
       try {
         const { data: servicios, error: errorServicios } = await supabase
           .from("servicios_trabajos")
-          .select("fecha, precio")
-          .eq("estado", "cobrado")
-          .gte("fecha", corteISO);
+          .select("fecha, fecha_cobro, precio")
+          .eq("estado", "cobrado");
 
         if (errorServicios) throw errorServicios;
 
-        serviciosCobrados = (servicios ?? []).map((s) => ({
-          fecha: s.fecha as string,
-          precio: Number(s.precio) || 0,
-        }));
+        serviciosCobrados = (servicios ?? [])
+          .map((s) => ({
+            fecha: (s.fecha_cobro as string | null) ?? (s.fecha as string),
+            precio: Number(s.precio) || 0,
+          }))
+          .filter((s) => s.fecha >= corteISO);
       } catch (errorServicios) {
         console.error(errorServicios);
       }

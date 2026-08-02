@@ -88,9 +88,14 @@ export async function cambiarEstadoTrabajo(id: number, estado: EstadoTrabajo) {
     throw new Error("Usuario no autenticado");
   }
 
+  // fecha_cobro marca CUÁNDO se cobró de verdad, para que Dashboard y
+  // Gráficas cuenten el ingreso el día correcto (ver
+  // supabase_servicios_fecha_cobro.sql) — se pone al pasar a "cobrado"
+  // y se limpia si el trabajo se regresa a otro estado, para no dejar
+  // una fecha de cobro de una vez que ya no cuenta.
   const { error } = await supabase
     .from("servicios_trabajos")
-    .update({ estado })
+    .update({ estado, fecha_cobro: estado === "cobrado" ? new Date().toISOString() : null })
     .eq("id", id);
 
   if (error) {
