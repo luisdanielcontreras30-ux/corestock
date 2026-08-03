@@ -6,6 +6,8 @@ import { useTheme, Tema } from "../../../components/ThemeProvider";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
 import { useModoInterfaz, ModoInterfaz } from "../../../components/ModoInterfazProvider";
+import { useAuth } from "../../../components/AuthProvider";
+import { tieneAccesoBeta } from "../../../lib/betaAcceso";
 import SelectorModoInterfaz from "../../../components/SelectorModoInterfaz";
 import CatalogoAparienciaTab from "./CatalogoAparienciaTab";
 
@@ -43,6 +45,16 @@ const opciones: OpcionTema[] = [
   { valor: "teal", claveNombre: "tema.teal.nombre", claveDesc: "tema.teal.desc", colores: ["#eafbf9", "#ffffff", "#0d9488"] },
 ];
 
+// Tema exclusivo — solo visible para la cuenta de prueba beta (ver
+// lib/betaAcceso.ts), igual criterio que ya oculta /whatsapp para
+// todos menos ese correo.
+const OPCION_TEMA_NEON: OpcionTema = {
+  valor: "neon",
+  claveNombre: "tema.neon.nombre",
+  claveDesc: "tema.neon.desc",
+  colores: ["#000000", "#0a0a0a", "#39ff14"],
+};
+
 const OPCIONES_TENDENCIA: { valor: "area" | "barras" | "velas"; clave: string }[] = [
   { valor: "area", clave: "tema.grafica_area" },
   { valor: "barras", clave: "tema.grafica_barras" },
@@ -66,8 +78,13 @@ export default function ApariciarenciaTab() {
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const { modoInterfaz, cambiarModo } = useModoInterfaz();
+  const { user } = useAuth();
   const [guardandoModo, setGuardandoModo] = useState<ModoInterfaz | null>(null);
   const [subSeccion, setSubSeccion] = useState<SubSeccion>("interfaz");
+
+  const opcionesTema = tieneAccesoBeta(user?.email)
+    ? [...opciones, OPCION_TEMA_NEON]
+    : opciones;
 
   async function elegirModo(modo: ModoInterfaz) {
     if (guardandoModo || modo === modoInterfaz) return;
@@ -143,7 +160,7 @@ export default function ApariciarenciaTab() {
           gap: 16,
         }}
       >
-        {opciones.map((opcion) => {
+        {opcionesTema.map((opcion) => {
           const activo = tema === opcion.valor;
 
           return (

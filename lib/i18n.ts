@@ -335,6 +335,8 @@ export const TRADUCCIONES: Diccionario = {
   "tema.sunset.desc": { es: "Oscuro y cálido, acento naranja", en: "Dark and warm, orange accent", pt: "Escuro e quente, destaque laranja", fr: "Sombre et chaleureux, accent orange", de: "Dunkel und warm, oranger Akzent", zh: "深色暖调，橙色点缀", it: "Scuro e caldo, accento arancione" },
   "tema.teal.nombre": { es: "Turquesa", en: "Teal", pt: "Turquesa", fr: "Turquoise", de: "Türkis", zh: "青绿色", it: "Turchese" },
   "tema.teal.desc": { es: "Claro y fresco, acento verde azulado", en: "Light and fresh, teal accent", pt: "Claro e fresco, destaque azul-esverdeado", fr: "Clair et frais, accent turquoise", de: "Hell und frisch, türkiser Akzent", zh: "清新明亮的青绿色点缀", it: "Chiaro e fresco, accento verde acqua" },
+  "tema.neon.nombre": { es: "Neón", en: "Neon", pt: "Néon", fr: "Néon", de: "Neon", zh: "霓虹", it: "Neon" },
+  "tema.neon.desc": { es: "Negro puro con verde neón y blanco", en: "Pure black with neon green and white", pt: "Preto puro com verde neon e branco", fr: "Noir pur avec vert néon et blanc", de: "Reines Schwarz mit Neongrün und Weiß", zh: "纯黑配霓虹绿与白色", it: "Nero puro con verde neon e bianco" },
   "tema.light.nombre": { es: "Claro", en: "Light", pt: "Claro", fr: "Clair", de: "Hell", zh: "浅色", it: "Chiaro" },
   "tema.light.desc": { es: "Fondo lavanda suave, ideal para el día", en: "Soft lavender background, great for daytime", pt: "Fundo lavanda suave, ideal para o dia", fr: "Fond lavande doux, idéal pour la journée", de: "Sanfter Lavendelhintergrund, ideal für den Tag", zh: "柔和薰衣草背景，适合白天使用", it: "Sfondo lavanda tenue, ideale per il giorno" },
   "tema.pink.nombre": { es: "Rosa pastel", en: "Pastel pink", pt: "Rosa pastel", fr: "Rose pastel", de: "Pastellrosa", zh: "粉彩色", it: "Rosa pastello" },

@@ -16,6 +16,7 @@ export const PALETAS_GRAFICA: Record<Tema, string[]> = {
   mint: ["#10b981", "#34d399", "#059669", "#0d9488", "#22d3ee", "#65a30d"],
   sunset: ["#f97316", "#fb923c", "#fdba74", "#ea580c", "#c2410c", "#facc15"],
   teal: ["#0d9488", "#2dd4bf", "#5eead4", "#0f766e", "#0e7490", "#84cc16"],
+  neon: ["#39ff14", "#7cff5a", "#adff9e", "#00ff41", "#2ecc0f", "#c8ffb8"],
 };
 
 export function obtenerPaletaGrafica(tema: Tema): string[] {
