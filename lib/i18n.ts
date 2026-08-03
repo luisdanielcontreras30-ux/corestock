@@ -1483,6 +1483,7 @@ export const TRADUCCIONES: Diccionario = {
 
   "menu_easy.saludo": { es: "Hola", en: "Hi", pt: "Olá", fr: "Bonjour", de: "Hallo", zh: "你好", it: "Ciao" },
   "menu_easy.vender": { es: "Vender", en: "Sell", pt: "Vender", fr: "Vendre", de: "Verkaufen", zh: "销售", it: "Vendi" },
+  "menu_easy.registrar_servicio": { es: "Registrar servicio", en: "Register service", pt: "Registrar serviço", fr: "Enregistrer un service", de: "Dienstleistung erfassen", zh: "登记服务", it: "Registra servizio" },
   "menu_easy.ventas_hoy": { es: "Ventas de hoy", en: "Today's sales", pt: "Vendas de hoje", fr: "Ventes du jour", de: "Heutige Verkäufe", zh: "今日销售额", it: "Vendite di oggi" },
   "menu_easy.tickets_hoy": { es: "Tickets de hoy", en: "Today's tickets", pt: "Vendas de hoje (nº)", fr: "Tickets du jour", de: "Belege heute", zh: "今日订单数", it: "Scontrini di oggi" },
   "menu_easy.caja_actual": { es: "Caja actual", en: "Current cash", pt: "Caixa atual", fr: "Caisse actuelle", de: "Aktuelle Kasse", zh: "当前现金", it: "Cassa attuale" },

@@ -32,7 +32,13 @@ export default function PersonalizacionTab() {
   );
 
   async function cambiarTipo(tipo: TipoNegocio, descripcion: string) {
-    if (guardandoTipo || tipo === tipoNegocio) return;
+    // "otro" es la excepción: aunque el tipo (id) siga siendo el
+    // mismo, la persona puede estar cambiando la DESCRIPCIÓN de su
+    // negocio para pedirle a la IA una recomendación distinta — si se
+    // bloqueara igual que los demás tipos, tocar "Continuar" con un
+    // texto nuevo no hacía nada cuando ya se había elegido "otro"
+    // antes.
+    if (guardandoTipo || (tipo === tipoNegocio && tipo !== "otro")) return;
 
     // Cambiar el tipo de negocio le pide a la IA una recomendación
     // nueva y REEMPLAZA rutas_activas — si la persona ya personalizó

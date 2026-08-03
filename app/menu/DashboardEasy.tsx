@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, DollarSign, Receipt, Inbox, AlertTriangle } from "lucide-react";
+import { Zap, Wrench, DollarSign, Receipt, Inbox, AlertTriangle } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
 import { LOCALES } from "../../lib/i18n";
@@ -13,6 +13,11 @@ interface Props {
   ticketsHoy: number;
   cajaActual: number;
   productosBajos: number;
+  // true para negocios de puro servicio (lavado de autos, taller —
+  // ver TIPOS_NEGOCIO_SERVICIOS en lib/tiposNegocio.ts), donde la
+  // acción protagonista debe ser "Registrar servicio" en vez de
+  // "Vender": ese tipo de negocio no vende productos sueltos.
+  accionServicios: boolean;
 }
 
 // text-transform:capitalize pone en mayúscula CADA palabra ("Sábado, 18
@@ -29,6 +34,7 @@ export default function DashboardEasy({
   ticketsHoy,
   cajaActual,
   productosBajos,
+  accionServicios,
 }: Props) {
   const { t, idioma } = useIdioma();
   const { user } = useAuth();
@@ -51,10 +57,17 @@ export default function DashboardEasy({
         </p>
       </header>
 
-      <Link href="/ventas-rapidas" className="dashboard-easy-vender">
-        <Zap size={26} />
-        {t("menu_easy.vender")}
-      </Link>
+      {accionServicios ? (
+        <Link href="/servicios" className="dashboard-easy-vender">
+          <Wrench size={26} />
+          {t("menu_easy.registrar_servicio")}
+        </Link>
+      ) : (
+        <Link href="/ventas-rapidas" className="dashboard-easy-vender">
+          <Zap size={26} />
+          {t("menu_easy.vender")}
+        </Link>
+      )}
 
       <div className="dashboard-easy-grid">
         <Link href="/ventas" className="dashboard-easy-tile">

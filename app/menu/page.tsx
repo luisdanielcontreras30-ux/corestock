@@ -21,6 +21,8 @@ import { LOCALES } from "../../lib/i18n";
 import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { useModoInterfaz } from "../../components/ModoInterfazProvider";
+import { useTipoNegocio } from "../../components/TipoNegocioProvider";
+import { TIPOS_NEGOCIO_SERVICIOS } from "../../lib/tiposNegocio";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import { useToast } from "../../components/ToastProvider";
@@ -148,6 +150,7 @@ export default function DashboardPremium() {
   const { user, cargando: cargandoAuth } = useAuth();
   const { miembroActivo, puede, limpiarMiembroActivo } = useMiembroActivo();
   const { esEasy } = useModoInterfaz();
+  const { tipoNegocio } = useTipoNegocio();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
 
   // Estados analíticos de tarjetas
@@ -629,6 +632,7 @@ export default function DashboardPremium() {
         ticketsHoy={ticketsHoy}
         cajaActual={cajaActual}
         productosBajos={alertasStockCount}
+        accionServicios={!!tipoNegocio && TIPOS_NEGOCIO_SERVICIOS.includes(tipoNegocio)}
       />
     );
   }

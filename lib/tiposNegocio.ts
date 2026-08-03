@@ -118,3 +118,12 @@ export const RUTAS_SIEMPRE_VISIBLES = [
 export const MODULOS_PERSONALIZABLES = SECCIONES_NAV.flatMap((s) => s.items).filter(
   (item) => !RUTAS_SIEMPRE_VISIBLES.includes(item.href) && !item.proximamente
 );
+
+// CoreStock Easy (DashboardEasy) tiene un solo botón protagonista —
+// hasta ahora era siempre "Vender" -> /ventas-rapidas, sin importar el
+// tipo de negocio, lo cual no tenía sentido para un negocio de puros
+// servicios (nunca vende un producto suelto, registra trabajos). Estos
+// son los tipos donde ese botón debe ser "Registrar servicio" ->
+// /servicios en su lugar — el resto de Easy (los 4 números grandes)
+// no cambia, solo esta acción principal.
+export const TIPOS_NEGOCIO_SERVICIOS: TipoNegocio[] = ["lavado_autos", "taller_servicios"];
