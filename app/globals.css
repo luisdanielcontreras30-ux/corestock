@@ -789,23 +789,25 @@ html[data-theme="terminator"] {
 }
 
 html[data-theme="strangerthings"] {
+  /* Cielo nocturno azul oscuro (el "Upside Down") con el rojo neón del
+     título como acento — no solo rojo sobre negro. */
   color-scheme: dark;
-  --bg-primary: #030000;
-  --bg-secondary: #0a0202;
-  --card-bg: #140505;
-  --card-hover: #200909;
-  --border: #360d0d;
+  --bg-primary: #01050f;
+  --bg-secondary: #020a1a;
+  --card-bg: #061024;
+  --card-hover: #0a1830;
+  --border: #14275a;
   --primary: #e10600;
   --primary-hover: #b80500;
   --primary-soft: rgba(225, 6, 0, 0.15);
   --text-primary: #ffffff;
-  --text-secondary: #ff8a80;
-  --text-muted: #e07a70;
+  --text-secondary: #8fb3ff;
+  --text-muted: #7096e0;
   --glass-bg: rgba(225, 6, 0, 0.04);
-  --glass-border: rgba(225, 6, 0, 0.15);
-  --input-bg: rgba(3, 0, 0, 0.6);
-  --btn-secondary-bg: #200909;
-  --table-header-bg: rgba(3, 0, 0, 0.5);
+  --glass-border: rgba(60, 120, 255, 0.18);
+  --input-bg: rgba(1, 5, 15, 0.6);
+  --btn-secondary-bg: #0a1830;
+  --table-header-bg: rgba(1, 5, 15, 0.5);
 }
 
 body {

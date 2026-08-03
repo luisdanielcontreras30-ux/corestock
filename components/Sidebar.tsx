@@ -4,8 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useIdioma } from "./LanguageProvider";
-import { SECCIONES_NAV, RUTAS_PERMITIDAS_MIEMBRO, RUTAS_EASY, ItemNav } from "../lib/navegacion";
-import { RUTAS_SIEMPRE_VISIBLES } from "../lib/tiposNegocio";
+import { SECCIONES_NAV, RUTAS_PERMITIDAS_MIEMBRO, ItemNav } from "../lib/navegacion";
+import { RUTAS_SIEMPRE_VISIBLES, obtenerRutasEasy } from "../lib/tiposNegocio";
 import { esRutaPlus } from "../lib/suscripcion";
 import { esRutaBetaCerrada, tieneAccesoBeta } from "../lib/betaAcceso";
 import { useMiembroActivo } from "./MiembroActivoProvider";
@@ -25,13 +25,14 @@ export default function Sidebar({
   const { user } = useAuth();
   const { miembroActivo, puede } = useMiembroActivo();
   const { esEasy } = useModoInterfaz();
-  const { rutasActivas } = useTipoNegocio();
+  const { rutasActivas, tipoNegocio } = useTipoNegocio();
 
   // En modo Easy (y solo para el dueño — un miembro del equipo ya
   // tiene su propia navegación reducida más abajo), el sidebar
-  // colapsa a lo esencial, sin secciones ni categorías.
+  // colapsa a lo esencial, sin secciones ni categorías — la lista
+  // exacta depende del tipo de negocio (ver obtenerRutasEasy).
   const itemsEasy = esEasy && !miembroActivo
-    ? RUTAS_EASY.map((href) =>
+    ? obtenerRutasEasy(tipoNegocio).map((href) =>
         SECCIONES_NAV.flatMap((s) => s.items).find((item) => item.href === href)
       ).filter((item): item is NonNullable<typeof item> => !!item)
     : null;

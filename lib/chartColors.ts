@@ -35,7 +35,7 @@ export const PALETAS_GRAFICA: Record<Tema, string[]> = {
   tron: ["#00f6ff", "#4ff9ff", "#9efcff", "#00c9d1", "#00a2a8", "#c9feff"],
   joker: ["#7cff2e", "#a3ff6e", "#c9ffa6", "#64d922", "#4fb019", "#e0ffcc"],
   terminator: ["#ff0a0a", "#ff4f4f", "#ff9494", "#d90808", "#b00606", "#ffd6d6"],
-  strangerthings: ["#e10600", "#f24940", "#ff8a80", "#b80500", "#8f0400", "#ffcfcc"],
+  strangerthings: ["#e10600", "#3c78ff", "#f24940", "#8fb3ff", "#b80500", "#14275a"],
 };
 
 export function obtenerPaletaGrafica(tema: Tema): string[] {

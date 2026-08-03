@@ -7,7 +7,7 @@ import {
   Sparkles,
   LucideIcon,
 } from "lucide-react";
-import { SECCIONES_NAV } from "./navegacion";
+import { SECCIONES_NAV, RUTAS_EASY } from "./navegacion";
 
 // Tipos de negocio que CoreStock reconoce para recomendar qué módulos
 // mostrar de entrada (ver RUTAS_RECOMENDADAS más abajo). Agregar uno
@@ -127,3 +127,20 @@ export const MODULOS_PERSONALIZABLES = SECCIONES_NAV.flatMap((s) => s.items).fil
 // /servicios en su lugar — el resto de Easy (los 4 números grandes)
 // no cambia, solo esta acción principal.
 export const TIPOS_NEGOCIO_SERVICIOS: TipoNegocio[] = ["lavado_autos", "taller_servicios"];
+
+// El sidebar de CoreStock Easy (ver Sidebar.tsx) colapsaba SIEMPRE a
+// RUTAS_EASY tal cual, ignorando el tipo de negocio por completo — a
+// un lavado de autos en modo Easy le seguía apareciendo "Venta
+// rápida" en vez de "Servicios", aunque el dashboard Easy (arriba) ya
+// supiera cuál de los dos le tocaba. Esta función es la misma
+// decisión aplicada al menú: mismo RUTAS_EASY de siempre, solo
+// cambiando /ventas-rapidas por /servicios para los negocios de puro
+// servicio.
+const RUTAS_EASY_SERVICIOS = ["/menu", "/servicios", "/productos", "/caja", "/configuracion"];
+
+export function obtenerRutasEasy(tipoNegocio: TipoNegocio | null): string[] {
+  if (tipoNegocio && TIPOS_NEGOCIO_SERVICIOS.includes(tipoNegocio)) {
+    return RUTAS_EASY_SERVICIOS;
+  }
+  return RUTAS_EASY;
+}
