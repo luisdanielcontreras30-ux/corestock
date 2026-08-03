@@ -8302,10 +8302,17 @@ select optgroup {
 }
 
 /* Joker: cara blanca, ojos oscuros, sonrisa roja y mechones de pelo
-   verde, con el traje/carcasa en morado en vez del color del tema. */
+   verde, con el traje/carcasa en morado en vez del color del tema —
+   incluidos brazos y piernas, que si no se quedan del verde del tema
+   y chocan feo contra el morado del traje. */
 .mascota-especial-joker .mascota-cabeza,
 .mascota-especial-joker .mascota-cuerpo {
   background: linear-gradient(160deg, #7b4fb0, #4a1f77);
+}
+
+.mascota-especial-joker .mascota-brazo,
+.mascota-especial-joker .mascota-pata {
+  background: linear-gradient(180deg, #6a3d9e, #3d1a63);
 }
 
 .mascota-especial-joker .mascota-pantalla {
@@ -8338,28 +8345,48 @@ select optgroup {
 
 .mascota-pelo-joker {
   position: absolute;
-  top: -9px;
+  top: -7px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 2px;
+  gap: 1px;
 }
 
 .mascota-mechon {
-  width: 4px;
-  height: 12px;
-  background: #1fd65f;
-  border-radius: 40% 40% 0 0;
+  width: 5px;
+  height: 13px;
+  background: linear-gradient(180deg, #2ee85f, #16a34a);
+  border-radius: 50% 50% 0 0;
 }
 
 .mascota-mechon:nth-child(1) {
-  height: 9px;
-  transform: rotate(-18deg);
+  height: 10px;
+  transform: rotate(-22deg);
 }
 
 .mascota-mechon:nth-child(3) {
-  height: 9px;
-  transform: rotate(18deg);
+  height: 10px;
+  transform: rotate(22deg);
+}
+
+/* Pajarita del traje — dos triángulos apuntando al centro del pecho. */
+.mascota-pajarita {
+  position: absolute;
+  top: 2px;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+.mascota-pajarita-izq {
+  left: 6px;
+  border-right: 6px solid #1a1420;
+}
+
+.mascota-pajarita-der {
+  right: 6px;
+  border-left: 6px solid #1a1420;
 }
 
 /* Matrix: gabardina negra con solapas, lentes oscuros con brillo

@@ -335,6 +335,12 @@ export default function MascotaAsistente({ activo, pensando = false, emocion = n
           </>
         )}
         {especial === "tron" && <span className="mascota-disco-tron" />}
+        {especial === "joker" && (
+          <>
+            <span className="mascota-pajarita mascota-pajarita-izq" />
+            <span className="mascota-pajarita mascota-pajarita-der" />
+          </>
+        )}
       </span>
 
       <span className="mascota-patas" aria-hidden="true">

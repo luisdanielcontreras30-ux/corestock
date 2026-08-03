@@ -147,13 +147,13 @@ function AsistenteContenido() {
   const [ultimoTema, setUltimoTema] = useState<string | null>(null);
   const finRef = useRef<HTMLDivElement>(null);
 
-  // La mascota camina por la pantalla mientras la persona no está
-  // escribiendo — un instante de gracia (1.5s) antes de que aparezca,
-  // para que no salte a la vista con cada tecla que se borra. En
-  // cuanto se vuelve a escribir se esconde de inmediato; mientras el
-  // asistente está pensando, en cambio, se queda a la vista (con la
-  // cara de "pensando") en lugar de desaparecer — es lo que la
-  // conecta con la conversación real en vez de ser un adorno aparte.
+  // La mascota se queda siempre a la vista, recorriendo los bordes de
+  // la pantalla — también mientras se escribe, ya que solo camina por
+  // el perímetro y no tapa el campo de texto. Un pequeño instante de
+  // gracia (1s) al entrar a la pantalla antes de que aparezca. Mientras
+  // el asistente está pensando se queda quieta (con la cara de
+  // "pensando") en vez de seguir caminando — es lo que la conecta con
+  // la conversación real en vez de ser un adorno aparte.
   const [mascotaActiva, setMascotaActiva] = useState(false);
   // La emoción de la última respuesta (de la IA o del motor de
   // reglas). Dura unos segundos y luego se apaga sola.
@@ -174,17 +174,9 @@ function AsistenteContenido() {
   }, []);
 
   useEffect(() => {
-    if (entrada.trim() !== "") {
-      setMascotaActiva(false);
-      return;
-    }
-    if (pensando) {
-      setMascotaActiva(true);
-      return;
-    }
-    const id = setTimeout(() => setMascotaActiva(true), 1500);
+    const id = setTimeout(() => setMascotaActiva(true), 1000);
     return () => clearTimeout(id);
-  }, [entrada, pensando]);
+  }, []);
 
   useEffect(() => {
     setMensajes([
