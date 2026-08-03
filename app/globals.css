@@ -7807,6 +7807,43 @@ select optgroup {
 }
 
 /* ---------------------------------------------------------------
+   Fondo de lluvia de código — solo con el tema Matrix. Fijo, detrás
+   de todo (z-index bajo, pointer-events: none) y con opacidad baja a
+   propósito: se nota el ambiente sin restarle legibilidad al texto
+   de encima — ver components/FondoMatrix.tsx. */
+.fondo-matrix {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fondo-matrix-columna {
+  position: absolute;
+  top: 0;
+  display: block;
+  white-space: pre;
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 15px;
+  color: var(--primary);
+  opacity: 0.12;
+  animation-name: fondoMatrixCaer;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes fondoMatrixCaer {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0%);
+  }
+}
+
+/* ---------------------------------------------------------------
    Corebot — mascota del Asistente IA. Toma el color del tema activo
    (var(--primary)/var(--primary-hover)) en vez de un morado fijo, así
    que cambia junto con los 33 temas. En los 6 temas de referencia
@@ -8244,12 +8281,21 @@ select optgroup {
 }
 
 .mascota-especial-cyberpunk .mascota-ojo {
+  width: 9px;
+  height: 9px;
   background: #21d4fd;
   box-shadow: 0 0 6px rgba(33, 212, 253, 0.9);
 }
 
 .mascota-especial-cyberpunk .mascota-brazo {
   background: linear-gradient(180deg, #21d4fd, #0a84ff);
+}
+
+.mascota-especial-cyberpunk .mascota-oreja {
+  background: #ff5a1f;
+  width: 11px;
+  height: 11px;
+  box-shadow: 0 0 5px rgba(255, 90, 31, 0.7);
 }
 
 .mascota-chaqueta-franja {
@@ -8301,10 +8347,10 @@ select optgroup {
   box-shadow: 0 0 6px rgba(255, 26, 26, 0.9);
 }
 
-/* Joker: cara blanca, ojos oscuros, sonrisa roja y mechones de pelo
-   verde, con el traje/carcasa en morado en vez del color del tema —
-   incluidos brazos y piernas, que si no se quedan del verde del tema
-   y chocan feo contra el morado del traje. */
+/* Joker: cara blanca con ojos de maquillaje oscuro, sonrisa roja bien
+   marcada con dientes, orejeras rojas, pelo verde en dos picos, y el
+   traje/carcasa en morado con camisa verde y pajarita — nunca el
+   color del tema, que chocaría feo contra el disfraz. */
 .mascota-especial-joker .mascota-cabeza,
 .mascota-especial-joker .mascota-cuerpo {
   background: linear-gradient(160deg, #7b4fb0, #4a1f77);
@@ -8316,16 +8362,22 @@ select optgroup {
 }
 
 .mascota-especial-joker .mascota-pantalla {
-  background: #f4ede0;
+  background: #fdfaf5;
 }
 
 .mascota-especial-joker .mascota-ojo {
-  background: #1a1420;
+  background: #17101c;
+  box-shadow: 0 0 0 2.5px rgba(23, 16, 28, 0.35);
 }
 
-.mascota-especial-joker .mascota-antena,
-.mascota-especial-joker .mascota-oreja {
+.mascota-especial-joker .mascota-antena {
   display: none;
+}
+
+.mascota-especial-joker .mascota-oreja {
+  background: #e0115f;
+  width: 11px;
+  height: 11px;
 }
 
 .mascota-especial-joker .mascota-marca {
@@ -8334,39 +8386,61 @@ select optgroup {
 
 .mascota-sonrisa-joker {
   position: absolute;
-  bottom: 2px;
+  bottom: 1px;
   left: 50%;
   transform: translateX(-50%);
-  width: 16px;
-  height: 6px;
-  border-bottom: 2px solid #d81159;
-  border-radius: 0 0 10px 10px;
+  width: 20px;
+  height: 8px;
+  background: #e0115f;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
 }
 
+.mascota-sonrisa-joker::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 2px;
+  right: 2px;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, #ffffff 0 3px, transparent 3px 5px);
+}
+
+/* Pelo en dos picos, como un peinado de payaso más que unas antenas. */
 .mascota-pelo-joker {
   position: absolute;
-  top: -7px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 1px;
+  gap: 5px;
 }
 
 .mascota-mechon {
-  width: 5px;
-  height: 13px;
-  background: linear-gradient(180deg, #2ee85f, #16a34a);
-  border-radius: 50% 50% 0 0;
+  width: 10px;
+  height: 16px;
+  background: linear-gradient(180deg, #3dfb6f, #159c43);
+  clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
 }
 
 .mascota-mechon:nth-child(1) {
-  height: 10px;
-  transform: rotate(-22deg);
+  transform: rotate(-16deg) translateY(2px);
 }
 
-.mascota-mechon:nth-child(3) {
-  height: 10px;
-  transform: rotate(22deg);
+.mascota-mechon:nth-child(2) {
+  transform: rotate(16deg) translateY(2px);
+}
+
+/* Camisa verde asomando detrás de la pajarita. */
+.mascota-cuello-camisa-joker {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 9px;
+  height: 6px;
+  background: #1fd65f;
+  clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
 }
 
 /* Pajarita del traje — dos triángulos apuntando al centro del pecho. */
@@ -8389,9 +8463,48 @@ select optgroup {
   border-left: 6px solid #1a1420;
 }
 
-/* Matrix: gabardina negra con solapas, lentes oscuros con brillo
-   verde neón sobre los ojos, y una lluvia de código apenas insinuada
-   detrás del personaje. */
+/* Cartas flotando alrededor — un par de fichas blancas que suben y
+   bajan despacio, como en la hoja de referencia. */
+.mascota-especial-joker::before,
+.mascota-especial-joker::after {
+  content: "";
+  position: absolute;
+  width: 7px;
+  height: 10px;
+  background: #f5f0e8;
+  border: 1px solid #1a1420;
+  border-radius: 1px;
+  z-index: -1;
+  animation: mascotaCartaFlotar 3s ease-in-out infinite;
+}
+
+.mascota-especial-joker::before {
+  top: -6px;
+  left: -12px;
+  transform: rotate(-18deg);
+}
+
+.mascota-especial-joker::after {
+  top: 8px;
+  right: -12px;
+  transform: rotate(14deg);
+  animation-delay: 1.2s;
+}
+
+@keyframes mascotaCartaFlotar {
+  0%,
+  100% {
+    margin-top: 0;
+  }
+  50% {
+    margin-top: -4px;
+  }
+}
+
+/* Matrix: cabeza y gabardina negras, goggles verde neón grandes
+   (cubren casi toda la carita, no solo una franja) y una lluvia de
+   código apenas insinuada detrás del personaje. */
+.mascota-especial-matrix .mascota-cabeza,
 .mascota-especial-matrix .mascota-cuerpo {
   background: linear-gradient(160deg, #0a0a0a, #000000);
 }
@@ -8405,12 +8518,12 @@ select optgroup {
 }
 
 .mascota-lentes-matrix {
-  width: 26px;
-  height: 8px;
-  background: #050505;
-  border: 1px solid var(--primary);
-  border-radius: 4px;
-  box-shadow: 0 0 6px var(--primary);
+  width: 28px;
+  height: 14px;
+  background: radial-gradient(circle at 35% 30%, #0a1f0a, #020502);
+  border: 2px solid var(--primary);
+  border-radius: 50% / 60%;
+  box-shadow: 0 0 8px var(--primary), inset 0 0 6px rgba(57, 255, 20, 0.5);
 }
 
 .mascota-abrigo-matrix-cuello-izq {
@@ -8421,28 +8534,8 @@ select optgroup {
   border-bottom: 8px solid #050505;
 }
 
-.mascota-especial-matrix::before {
-  content: "";
-  position: absolute;
-  inset: -10px -6px;
-  z-index: -1;
-  background-image: repeating-linear-gradient(
-    180deg,
-    rgba(57, 255, 20, 0.35) 0 2px,
-    transparent 2px 10px
-  );
-  opacity: 0.5;
-  animation: mascotaCodigoCaer 1.6s linear infinite;
-}
-
-@keyframes mascotaCodigoCaer {
-  from {
-    background-position-y: 0;
-  }
-  to {
-    background-position-y: 20px;
-  }
-}
+/* La lluvia de código detrás de Corebot ya la pone .fondo-matrix a
+   nivel de página (ver más arriba) — no hace falta repetirla acá. */
 
 /* Tron: cuerpo negro con circuitos cian brillantes y un disco
    luminoso en la espalda. */
@@ -8627,8 +8720,11 @@ select optgroup {
     animation: none !important;
   }
 
-  .mascota-gesto-durmiendo .mascota-cabeza::after,
-  .mascota-especial-matrix::before {
+  .mascota-gesto-durmiendo .mascota-cabeza::after {
+    animation: none !important;
+  }
+
+  .fondo-matrix-columna {
     animation: none !important;
   }
 }

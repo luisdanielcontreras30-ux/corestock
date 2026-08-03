@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import AppShell from "../components/AppShell";
 import SwRegister from "../components/SwRegister";
 import ThemeProvider from "../components/ThemeProvider";
+import FondoMatrix from "../components/FondoMatrix";
 import LanguageProvider from "../components/LanguageProvider";
 import AuthProvider from "../components/AuthProvider";
 import DemoSeedProvider from "../components/DemoSeedProvider";
@@ -80,6 +81,7 @@ export default function RootLayout({
                         <LanguageProvider>
                           <ToastProvider>
                             <ConfirmProvider>
+                              <FondoMatrix />
                               <AppShell>{children}</AppShell>
                             </ConfirmProvider>
                           </ToastProvider>

@@ -312,7 +312,6 @@ export default function MascotaAsistente({ activo, pensando = false, emocion = n
           <span className="mascota-pelo-joker" aria-hidden="true">
             <span className="mascota-mechon" />
             <span className="mascota-mechon" />
-            <span className="mascota-mechon" />
           </span>
         )}
       </span>
@@ -337,6 +336,7 @@ export default function MascotaAsistente({ activo, pensando = false, emocion = n
         {especial === "tron" && <span className="mascota-disco-tron" />}
         {especial === "joker" && (
           <>
+            <span className="mascota-cuello-camisa-joker" />
             <span className="mascota-pajarita mascota-pajarita-izq" />
             <span className="mascota-pajarita mascota-pajarita-der" />
           </>
