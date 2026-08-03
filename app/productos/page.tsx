@@ -305,9 +305,18 @@ function ProductosInterno() {
     }
 
     try {
+      // Acotado a los últimos 90 días — sin esto se traía TODO el
+      // historial de ventas de la cuenta solo para pintar 1-5
+      // estrellitas de popularidad, una consulta cada vez más pesada
+      // y lenta con cada año de operación. La calificación es "qué
+      // tanto se vende ahora", no un acumulado histórico completo.
+      const hace90Dias = new Date();
+      hace90Dias.setDate(hace90Dias.getDate() - 90);
+
       const { data: ventasData, error: errorVentas } = await supabase
         .from("ventas")
-        .select("producto_id, cantidad");
+        .select("producto_id, cantidad")
+        .gte("fecha", hace90Dias.toISOString());
 
       if (!errorVentas && ventasData) {
         const unidadesPorProducto = new Map<number, number>();
@@ -1026,7 +1035,16 @@ function ProductosInterno() {
               <div className="productos-tarjetas">
                 {grupo.items.map((p) => {
                   const estrellas = calificacionPorProducto.get(p.id) ?? 0;
-                  const ubicacion = ubicacionPorProducto.get(p.id) ?? t("traspasos.ubicacion_desconocida");
+                  // Si la cuenta nunca usó Traspasos, el mapa completo
+                  // queda vacío — mostrar "Ubicación desconocida" en
+                  // CADA tarjeta sería ruido constante para casi todos
+                  // los usuarios (Traspasos es una función opcional).
+                  // Solo se muestra el dato una vez que existe al
+                  // menos una ubicación registrada en la cuenta.
+                  const ubicacion =
+                    ubicacionPorProducto.size > 0
+                      ? ubicacionPorProducto.get(p.id) ?? t("traspasos.ubicacion_desconocida")
+                      : null;
 
                   return (
                     <div key={p.id} className="producto-tarjeta">
@@ -1068,9 +1086,11 @@ function ProductosInterno() {
                           <span className="producto-tarjeta-stock">
                             {t("productos.stock")}: <strong>{p.stock}</strong>
                           </span>
-                          <span className="producto-tarjeta-ubicacion">
-                            <MapPin size={11} /> {ubicacion}
-                          </span>
+                          {ubicacion && (
+                            <span className="producto-tarjeta-ubicacion">
+                              <MapPin size={11} /> {ubicacion}
+                            </span>
+                          )}
                         </div>
 
                         {puede("gestionar_inventario") && (

@@ -29,6 +29,18 @@ export default function MascotaAsistente({ activo }: { activo: boolean }) {
     };
   }, []);
 
+  // Si la persona empieza a escribir a mitad del salto, el padre pone
+  // activo=false y este componente deja de pintarse — pero sin esto,
+  // el setTimeout de alTocar() seguía vivo y, si volvía a quedar
+  // inactiva antes de que se cumpliera, la mascota reaparecía "a
+  // mitad de salto" con el mensaje viejo en vez de en reposo.
+  useEffect(() => {
+    if (activo) return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setMensaje(null);
+    setSaltando(false);
+  }, [activo]);
+
   function alTocar() {
     const frase = CLAVES_FRASES[Math.floor(Math.random() * CLAVES_FRASES.length)];
     setMensaje(t(frase));

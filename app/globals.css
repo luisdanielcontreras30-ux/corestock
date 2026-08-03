@@ -7992,6 +7992,14 @@ select optgroup {
   .mascota-pata {
     animation: none;
   }
+
+  /* Sin la animación de caminar, .mascota-personaje se quedaba
+     congelada en su posición inicial (left: -60px, fuera de la
+     pantalla) — invisible e imposible de tocar para cualquiera con
+     "reducir movimiento" activado. Se ancla visible, quieta. */
+  .mascota-personaje {
+    left: 20px;
+  }
 }
 
 /* ---------------------------------------------------------------
