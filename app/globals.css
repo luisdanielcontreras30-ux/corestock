@@ -826,7 +826,14 @@ body {
    ESTRUCTURA DE CONTENEDORES (SIDEBAR + MAIN)
    ========================================================================== */
 
-/* Contenedor divisor maestro */
+/* Contenedor divisor maestro. position + z-index a propósito: sin
+   esto, el fondo fijo de la lluvia de código de Matrix (.fondo-matrix,
+   position: fixed) terminaba pintándose ENCIMA de las tarjetas/gráficas
+   en vez de detrás — un elemento posicionado con z-index se pinta
+   después que el contenido normal sin posición, sin importar el orden
+   en el HTML. Al darle su propio contexto de apilamiento por encima,
+   todo lo de adentro (sidebar, tarjetas, gráficas) queda garantizado
+   por delante del fondo. */
 .app-layout {
   display: flex;
   width: 100vw;
@@ -834,6 +841,8 @@ body {
   overflow: hidden;
   background-color: var(--bg-primary);
   transition: background-color 0.25s ease;
+  position: relative;
+  z-index: 1;
 }
 
 /* Barra Lateral Izquierda */
