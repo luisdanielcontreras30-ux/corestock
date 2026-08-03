@@ -7811,9 +7811,10 @@ select optgroup {
    #5945e4, el color principal de CoreStock — negro/blanco/amarillo de
    acento), no los del tema activo: es un personaje con identidad
    propia, no un adorno que combina con la paleta de turno.
-   Deambula por la pantalla (posición aleatoria + se sienta un rato)
-   en vez de un ida-y-vuelta fijo de lado a lado — ver
-   components/MascotaAsistente.tsx. */
+   Recorre el perímetro de la pantalla (piso -> pared -> techo ->
+   pared -> piso), nunca por encima del chat: camina/se sienta en el
+   piso, y escala/cuelga sostenida con los brazos en las paredes y el
+   techo — ver components/MascotaAsistente.tsx. */
 .mascota-personaje {
   position: fixed;
   width: 46px;
@@ -7934,6 +7935,109 @@ select optgroup {
   clip-path: polygon(60% 0%, 0% 60%, 45% 60%, 40% 100%, 100% 40%, 55% 40%);
 }
 
+.mascota-brazo {
+  position: absolute;
+  top: 1px;
+  width: 6px;
+  height: 12px;
+  border-radius: 3px;
+  background: #4b39c4;
+  transform-origin: top center;
+  transition: transform 0.3s ease, top 0.3s ease;
+}
+
+.mascota-brazo-izq {
+  left: -5px;
+  transform: rotate(10deg);
+}
+
+.mascota-brazo-der {
+  right: -5px;
+  transform: rotate(-10deg);
+}
+
+.mascota-caminando .mascota-brazo-izq {
+  animation: mascotaBrazoCaminarIzq 0.4s ease-in-out infinite alternate;
+}
+
+.mascota-caminando .mascota-brazo-der {
+  animation: mascotaBrazoCaminarDer 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes mascotaBrazoCaminarIzq {
+  from {
+    transform: rotate(10deg);
+  }
+  to {
+    transform: rotate(-14deg);
+  }
+}
+
+@keyframes mascotaBrazoCaminarDer {
+  from {
+    transform: rotate(-10deg);
+  }
+  to {
+    transform: rotate(14deg);
+  }
+}
+
+/* Escalando (paredes): brazos estirados hacia arriba, agarrándose,
+   con un balanceo continuo que simula el esfuerzo de trepar. */
+.mascota-escalando .mascota-brazo {
+  top: -6px;
+}
+
+.mascota-escalando .mascota-brazo-izq {
+  animation: mascotaBrazoEscalarIzq 0.6s ease-in-out infinite;
+}
+
+.mascota-escalando .mascota-brazo-der {
+  animation: mascotaBrazoEscalarDer 0.6s ease-in-out infinite;
+}
+
+@keyframes mascotaBrazoEscalarIzq {
+  0%,
+  100% {
+    transform: rotate(150deg);
+  }
+  50% {
+    transform: rotate(115deg);
+  }
+}
+
+@keyframes mascotaBrazoEscalarDer {
+  0%,
+  100% {
+    transform: rotate(-150deg);
+  }
+  50% {
+    transform: rotate(-115deg);
+  }
+}
+
+.mascota-escalando .mascota-cabeza {
+  animation: mascotaBob 0.5s ease-in-out infinite alternate;
+}
+
+/* Colgando (techo): brazos rectos hacia el techo, sostenida del
+   agarre, con las patas colgando sueltas. */
+.mascota-colgando .mascota-brazo {
+  top: -9px;
+}
+
+.mascota-colgando .mascota-brazo-izq {
+  transform: rotate(172deg);
+}
+
+.mascota-colgando .mascota-brazo-der {
+  transform: rotate(-172deg);
+}
+
+.mascota-colgando .mascota-cabeza {
+  animation: mascotaBob 1.1s ease-in-out infinite alternate;
+}
+
 .mascota-patas {
   display: flex;
   gap: 8px;
@@ -7958,6 +8062,30 @@ select optgroup {
 .mascota-sentado .mascota-pata {
   height: 4px;
   border-radius: 2px;
+}
+
+.mascota-escalando .mascota-pata {
+  height: 4px;
+  border-radius: 2px;
+}
+
+.mascota-colgando .mascota-pata {
+  height: 5px;
+  border-radius: 2px 2px 4px 4px;
+  animation: mascotaPataColgar 1.4s ease-in-out infinite alternate;
+}
+
+.mascota-colgando .mascota-pata:last-child {
+  animation-delay: 0.3s;
+}
+
+@keyframes mascotaPataColgar {
+  from {
+    transform: rotate(-6deg);
+  }
+  to {
+    transform: rotate(6deg);
+  }
 }
 
 @keyframes mascotaBob {
@@ -8038,7 +8166,8 @@ select optgroup {
 
   .mascota-cabeza,
   .mascota-cuerpo,
-  .mascota-pata {
+  .mascota-pata,
+  .mascota-brazo {
     animation: none !important;
   }
 }
