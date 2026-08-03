@@ -93,14 +93,18 @@ function posturaDeZona(zona: Zona, enMovimiento: boolean): Postura {
 
 // En los temas de referencia (estilo Matrix), Corebot no solo cambia
 // de color con var(--primary) — se disfraza del personaje que
-// inspira al tema. En el resto de los 33 temas sigue siendo el mismo
-// robot, solo con otro color.
-type PersonajeEspecial = "demogorgon" | "cyberpunk" | "joker" | null;
+// inspira al tema, sin perder su forma base (cabeza, pantalla, ojos,
+// antena) como marca la hoja oficial de skins. En el resto de los 33
+// temas sigue siendo el mismo robot, solo con otro color.
+type PersonajeEspecial = "upsidedown" | "cyberpunk" | "joker" | "terminator" | "matrix" | "tron" | null;
 
 function personajeEspecialDeTema(tema: string): PersonajeEspecial {
-  if (tema === "strangerthings") return "demogorgon";
+  if (tema === "strangerthings") return "upsidedown";
   if (tema === "cyberpunk") return "cyberpunk";
   if (tema === "joker") return "joker";
+  if (tema === "terminator") return "terminator";
+  if (tema === "matrix") return "matrix";
+  if (tema === "tron") return "tron";
   return null;
 }
 
@@ -294,14 +298,14 @@ export default function MascotaAsistente({ activo, pensando = false, emocion = n
           <span className="mascota-boca" />
           {gesto === "analizando" && <span className="mascota-escaner" />}
           {especial === "joker" && <span className="mascota-sonrisa-joker" />}
+          {especial === "matrix" && <span className="mascota-lentes-matrix" />}
         </span>
-        {especial === "demogorgon" && (
-          <span className="mascota-petalos" aria-hidden="true">
-            <span className="mascota-petalo" />
-            <span className="mascota-petalo" />
-            <span className="mascota-petalo" />
-            <span className="mascota-petalo" />
-            <span className="mascota-petalo" />
+        {especial === "upsidedown" && (
+          <span className="mascota-tentaculos" aria-hidden="true">
+            <span className="mascota-tentaculo" />
+            <span className="mascota-tentaculo" />
+            <span className="mascota-tentaculo" />
+            <span className="mascota-tentaculo" />
           </span>
         )}
         {especial === "joker" && (
@@ -324,6 +328,13 @@ export default function MascotaAsistente({ activo, pensando = false, emocion = n
             <span className="mascota-chaqueta-franja" />
           </>
         )}
+        {especial === "matrix" && (
+          <>
+            <span className="mascota-chaqueta-cuello mascota-abrigo-matrix-cuello-izq" />
+            <span className="mascota-chaqueta-cuello mascota-abrigo-matrix-cuello-der" />
+          </>
+        )}
+        {especial === "tron" && <span className="mascota-disco-tron" />}
       </span>
 
       <span className="mascota-patas" aria-hidden="true">
