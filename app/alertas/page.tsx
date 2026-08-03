@@ -42,9 +42,13 @@ export default function Alertas() {
     setLoading(true);
     setError(false);
 
+    // Solo estas 6 columnas se usan aquí (ver ProductoAlerta) — select("*")
+    // traía la fila completa de CADA producto (precio, costo, descripción,
+    // etc.) solo para filtrar por stock bajo, un desperdicio que crece con
+    // el catálogo.
     const { data, error: errorConsulta } = await supabase
       .from("productos")
-      .select("*")
+      .select("id, nombre, categoria, stock, stock_minimo, imagen")
       .order("stock");
 
     if (errorConsulta) {
