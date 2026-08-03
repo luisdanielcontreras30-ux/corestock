@@ -14,6 +14,7 @@ import { useAuth } from "./AuthProvider";
 import { EMPRESA_VACIA } from "../app/configuracion/types";
 import { TipoNegocio, RUTAS_RECOMENDADAS } from "../lib/tiposNegocio";
 import { recomendarModulosConIA } from "../lib/iaAcciones";
+import { sembrarEjemplosTipoNegocio } from "../lib/datosNegocioSemilla";
 
 interface TipoNegocioContexto {
   // null = todavía no se sabe (cargando) o la cuenta nunca eligió — en
@@ -165,6 +166,19 @@ export default function TipoNegocioProvider({ children }: { children: ReactNode 
     await guardar({ tipo_negocio: tipo, rutas_activas: rutas });
     setTipoNegocio(tipo);
     setRutasActivas(rutas);
+
+    // Mejor esfuerzo: agrega productos/servicios de ejemplo del tipo
+    // elegido para que el módulo no se sienta vacío — nunca pisa datos
+    // reales (ver lib/datosNegocioSemilla.ts) y un fallo aquí no debe
+    // tirar la elección del tipo de negocio, que ya se guardó arriba.
+    if (user) {
+      try {
+        const negocioId = await obtenerNegocioId(user.id);
+        await sembrarEjemplosTipoNegocio(negocioId, tipo);
+      } catch (error) {
+        console.error("No se pudieron sembrar los ejemplos del tipo de negocio:", error);
+      }
+    }
   }
 
   async function actualizarRutasActivas(rutas: string[]) {
