@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Files, Trash2 } from "lucide-react";
+import { Files, Trash2, Wallet, Receipt } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
@@ -115,6 +115,14 @@ function FacturasGlobalesContenido() {
     }
   }
 
+  const resumen = useMemo(
+    () => ({
+      totalFacturado: globales.reduce((sum, g) => sum + Number(g.total), 0),
+      ventasIncluidas: globales.reduce((sum, g) => sum + g.cantidad_ventas, 0),
+    }),
+    [globales]
+  );
+
   async function borrar(id: number) {
     if (!(await confirmar(t("facturas_globales.confirmar_eliminar"), { peligroso: true }))) return;
 
@@ -143,6 +151,38 @@ function FacturasGlobalesContenido() {
         titulo={t("sidebar.facturas_globales")}
         subtitulo={t("facturas_globales.subtitulo")}
       />
+
+      {globales.length > 0 && (
+        <div className="modulo-resumen">
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <Wallet size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{formatoMoneda(resumen.totalFacturado)}</span>
+              <span className="modulo-resumen-etiqueta">{t("facturas_globales.resumen_total_facturado")}</span>
+            </div>
+          </div>
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <Files size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{globales.length}</span>
+              <span className="modulo-resumen-etiqueta">{t("facturas_globales.resumen_generadas")}</span>
+            </div>
+          </div>
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <Receipt size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{resumen.ventasIncluidas}</span>
+              <span className="modulo-resumen-etiqueta">{t("facturas_globales.resumen_ventas_incluidas")}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("facturas_globales.generar")}</h2>

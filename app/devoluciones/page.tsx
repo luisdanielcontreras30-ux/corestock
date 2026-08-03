@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RotateCcw, Trash2 } from "lucide-react";
+import { RotateCcw, Trash2, Wallet } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -88,6 +88,8 @@ export default function DevolucionesPage() {
     () => ordenarPorCategoria(productos, t("productos.sin_categoria")),
     [productos, t]
   );
+
+  const totalReembolsado = devoluciones.reduce((sum, d) => sum + Number(d.monto_reembolsado), 0);
 
   const producto = productos.find((p) => p.id === Number(productoId));
   const cantidadNum = Number(cantidad) || 0;
@@ -181,6 +183,29 @@ export default function DevolucionesPage() {
         </div>
       ) : (
       <>
+      {devoluciones.length > 0 && (
+        <div className="modulo-resumen">
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <Wallet size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{formatoMoneda(totalReembolsado)}</span>
+              <span className="modulo-resumen-etiqueta">{t("devoluciones.resumen_reembolsado")}</span>
+            </div>
+          </div>
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <RotateCcw size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{devoluciones.length}</span>
+              <span className="modulo-resumen-etiqueta">{t("devoluciones.resumen_total")}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("devoluciones.registrar")}</h2>
 

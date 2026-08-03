@@ -633,6 +633,8 @@ export const TRADUCCIONES: Diccionario = {
 
   // Facturas
   "facturas.subtitulo": { es: "Todas tus ventas como facturas — búscalas, imprímelas o compártelas por WhatsApp.", en: "All your sales as invoices — search, print or share them on WhatsApp.", pt: "Todas as suas vendas como faturas — busque, imprima ou compartilhe pelo WhatsApp.", fr: "Toutes vos ventes sous forme de factures — recherchez, imprimez ou partagez-les sur WhatsApp.", de: "Alle deine Verkäufe als Rechnungen — suchen, drucken oder per WhatsApp teilen.", zh: "您所有销售的发票 — 搜索、打印或通过 WhatsApp 分享。", it: "Tutte le tue vendite come fatture — cercale, stampale o condividile su WhatsApp." },
+  "facturas.resumen_total_facturado": { es: "Total facturado", en: "Total invoiced", pt: "Total faturado", fr: "Total facturé", de: "Gesamt fakturiert", zh: "累计开票金额", it: "Totale fatturato" },
+  "facturas.resumen_total": { es: "Facturas", en: "Invoices", pt: "Faturas", fr: "Factures", de: "Rechnungen", zh: "发票数", it: "Fatture" },
   "facturas.buscar_placeholder": { es: "Buscar por folio, cliente o producto...", en: "Search by folio, customer or product...", pt: "Buscar por número, cliente ou produto...", fr: "Rechercher par folio, client ou produit...", de: "Nach Beleg, Kunde oder Produkt suchen...", zh: "按单号、客户或产品搜索...", it: "Cerca per numero, cliente o prodotto..." },
   "facturas.col_folio": { es: "Folio", en: "Invoice #", pt: "Número", fr: "N° de facture", de: "Beleg-Nr.", zh: "单号", it: "Numero" },
   "facturas.sin_facturas": { es: "No hay facturas todavía — registra una venta para generar la primera.", en: "No invoices yet — register a sale to generate the first one.", pt: "Ainda não há faturas — registre uma venda para gerar a primeira.", fr: "Pas encore de factures — enregistrez une vente pour générer la première.", de: "Noch keine Rechnungen — erfasse einen Verkauf, um die erste zu erstellen.", zh: "还没有发票 — 登记一笔销售即可生成第一张。", it: "Non ci sono ancora fatture — registra una vendita per generare la prima." },
@@ -719,6 +721,8 @@ export const TRADUCCIONES: Diccionario = {
 
   // Promociones
   "promociones.subtitulo": { es: "Descuentos por producto o generales, con fecha de inicio y fin opcionales.", en: "Discounts by product or store-wide, with optional start and end dates.", pt: "Descontos por produto ou gerais, com datas de início e fim opcionais.", fr: "Remises par produit ou générales, avec dates de début et de fin facultatives.", de: "Rabatte pro Produkt oder allgemein, mit optionalem Start- und Enddatum.", zh: "按产品或全场的折扣，可选开始和结束日期。", it: "Sconti per prodotto o generali, con date di inizio e fine facoltative." },
+  "promociones.resumen_activas": { es: "Promociones activas", en: "Active promotions", pt: "Promoções ativas", fr: "Promotions actives", de: "Aktive Aktionen", zh: "进行中的促销", it: "Promozioni attive" },
+  "promociones.resumen_total": { es: "Total de promociones", en: "Total promotions", pt: "Total de promoções", fr: "Total des promotions", de: "Aktionen insgesamt", zh: "促销总数", it: "Totale promozioni" },
   "promociones.crear": { es: "Crear promoción", en: "Create promotion", pt: "Criar promoção", fr: "Créer une promotion", de: "Aktion erstellen", zh: "创建促销", it: "Crea promozione" },
   "promociones.nombre_placeholder": { es: "Nombre de la promoción", en: "Promotion name", pt: "Nome da promoção", fr: "Nom de la promotion", de: "Name der Aktion", zh: "促销名称", it: "Nome della promozione" },
   "promociones.todos_productos": { es: "Todos los productos", en: "All products", pt: "Todos os produtos", fr: "Tous les produits", de: "Alle Produkte", zh: "所有产品", it: "Tutti i prodotti" },
@@ -780,6 +784,9 @@ export const TRADUCCIONES: Diccionario = {
 
   // Facturas Globales
   "facturas_globales.subtitulo": { es: "Consolida todas las ventas de un rango de fechas en una sola factura global.", en: "Consolidate all sales in a date range into a single global invoice.", pt: "Consolide todas as vendas de um período em uma única fatura global.", fr: "Consolidez toutes les ventes d'une période en une seule facture globale.", de: "Fasse alle Verkäufe eines Zeitraums in einer einzigen Sammelrechnung zusammen.", zh: "将某个日期范围内的所有销售合并为一张汇总发票。", it: "Consolida tutte le vendite di un intervallo di date in un'unica fattura globale." },
+  "facturas_globales.resumen_total_facturado": { es: "Total facturado", en: "Total invoiced", pt: "Total faturado", fr: "Total facturé", de: "Gesamt fakturiert", zh: "累计开票金额", it: "Totale fatturato" },
+  "facturas_globales.resumen_generadas": { es: "Facturas generadas", en: "Invoices generated", pt: "Faturas geradas", fr: "Factures générées", de: "Erstellte Rechnungen", zh: "已生成发票", it: "Fatture generate" },
+  "facturas_globales.resumen_ventas_incluidas": { es: "Ventas incluidas", en: "Sales included", pt: "Vendas incluídas", fr: "Ventes incluses", de: "Enthaltene Verkäufe", zh: "包含的销售", it: "Vendite incluse" },
   "facturas_globales.generar": { es: "Generar factura global", en: "Generate global invoice", pt: "Gerar fatura global", fr: "Générer la facture globale", de: "Sammelrechnung erstellen", zh: "生成汇总发票", it: "Genera fattura globale" },
   "facturas_globales.msg_faltan_fechas": { es: "Selecciona la fecha de inicio y fin.", en: "Select the start and end dates.", pt: "Selecione a data de início e fim.", fr: "Sélectionnez les dates de début et de fin.", de: "Wähle Start- und Enddatum aus.", zh: "请选择开始和结束日期。", it: "Seleziona la data di inizio e fine." },
   "facturas_globales.msg_rango_invalido": { es: "La fecha de inicio no puede ser después de la fecha de fin.", en: "The start date can't be after the end date.", pt: "A data de início não pode ser depois da data de fim.", fr: "La date de début ne peut pas être après la date de fin.", de: "Das Startdatum darf nicht nach dem Enddatum liegen.", zh: "开始日期不能晚于结束日期。", it: "La data di inizio non può essere successiva alla data di fine." },
@@ -1142,6 +1149,9 @@ export const TRADUCCIONES: Diccionario = {
 
   // Traspasos
   "traspasos.subtitulo": { es: "Mueve stock entre tu tienda y tus almacenes secundarios.", en: "Move stock between your store and your secondary warehouses.", pt: "Mova estoque entre sua loja e seus depósitos secundários.", fr: "Déplacez du stock entre votre boutique et vos entrepôts secondaires.", de: "Verschiebe Bestand zwischen deinem Laden und deinen Nebenlagern.", zh: "在您的门店和辅助仓库之间调拨库存。", it: "Sposta la scorta tra il tuo negozio e i tuoi magazzini secondari." },
+  "traspasos.resumen_ubicaciones": { es: "Ubicaciones", en: "Locations", pt: "Localizações", fr: "Emplacements", de: "Standorte", zh: "库位", it: "Ubicazioni" },
+  "traspasos.resumen_traspasos": { es: "Traspasos registrados", en: "Transfers recorded", pt: "Transferências registradas", fr: "Transferts enregistrés", de: "Erfasste Transfers", zh: "已登记调拨", it: "Trasferimenti registrati" },
+  "traspasos.resumen_unidades": { es: "Unidades movidas", en: "Units moved", pt: "Unidades movidas", fr: "Unités déplacées", de: "Bewegte Einheiten", zh: "移动数量", it: "Unità spostate" },
   "traspasos.ubicaciones": { es: "Ubicaciones", en: "Locations", pt: "Locais", fr: "Emplacements", de: "Standorte", zh: "库位", it: "Sedi" },
   "traspasos.nombre_ubicacion_placeholder": { es: "Nombre de la ubicación (ej. Bodega Norte)", en: "Location name (e.g. North Warehouse)", pt: "Nome do local (ex. Depósito Norte)", fr: "Nom de l'emplacement (ex. Entrepôt Nord)", de: "Standortname (z.B. Lager Nord)", zh: "库位名称（如：北仓）", it: "Nome della sede (es. Magazzino Nord)" },
   "traspasos.agregar_ubicacion": { es: "Agregar ubicación", en: "Add location", pt: "Adicionar local", fr: "Ajouter un emplacement", de: "Standort hinzufügen", zh: "添加库位", it: "Aggiungi sede" },
@@ -1466,6 +1476,8 @@ export const TRADUCCIONES: Diccionario = {
 
   // Devoluciones
   "devoluciones.subtitulo": { es: "Registra devoluciones de productos y decide si repones el stock.", en: "Record product returns and decide whether to restock them.", pt: "Registre devoluções de produtos e decida se repõe o estoque.", fr: "Enregistrez les retours de produits et décidez si vous réapprovisionnez le stock.", de: "Erfasse Produktrückgaben und entscheide, ob der Bestand wieder aufgefüllt wird.", zh: "登记产品退货，并决定是否补充库存。", it: "Registra i resi dei prodotti e decidi se ripristinare le scorte." },
+  "devoluciones.resumen_reembolsado": { es: "Total reembolsado", en: "Total refunded", pt: "Total reembolsado", fr: "Total remboursé", de: "Gesamt erstattet", zh: "累计退款", it: "Totale rimborsato" },
+  "devoluciones.resumen_total": { es: "Devoluciones", en: "Returns", pt: "Devoluções", fr: "Retours", de: "Rückgaben", zh: "退货数", it: "Resi" },
   "devoluciones.registrar": { es: "Registrar devolución", en: "Record return", pt: "Registrar devolução", fr: "Enregistrer un retour", de: "Rückgabe erfassen", zh: "登记退货", it: "Registra reso" },
   "devoluciones.selecciona_producto": { es: "Selecciona un producto", en: "Select a product", pt: "Selecione um produto", fr: "Sélectionnez un produit", de: "Produkt auswählen", zh: "选择一个产品", it: "Seleziona un prodotto" },
   "devoluciones.monto_reembolsado": { es: "Monto reembolsado", en: "Amount refunded", pt: "Valor reembolsado", fr: "Montant remboursé", de: "Erstatteter Betrag", zh: "退款金额", it: "Importo rimborsato" },

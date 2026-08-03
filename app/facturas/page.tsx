@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Receipt } from "lucide-react";
+import { Receipt, Wallet, FileText } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -56,6 +56,13 @@ function FacturasContenido() {
       .finally(() => setLoading(false));
   }, [cargandoAuth, user]);
 
+  const resumen = useMemo(
+    () => ({
+      totalFacturado: ventas.reduce((sum, v) => sum + Number(v.total), 0),
+    }),
+    [ventas]
+  );
+
   const texto = busqueda.trim().toLowerCase();
 
   const filtradas = useMemo(
@@ -101,6 +108,29 @@ function FacturasContenido() {
         titulo={t("sidebar.facturas")}
         subtitulo={t("facturas.subtitulo")}
       />
+
+      {ventas.length > 0 && (
+        <div className="modulo-resumen">
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <Wallet size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{formatoMoneda(resumen.totalFacturado)}</span>
+              <span className="modulo-resumen-etiqueta">{t("facturas.resumen_total_facturado")}</span>
+            </div>
+          </div>
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <FileText size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{ventas.length}</span>
+              <span className="modulo-resumen-etiqueta">{t("facturas.resumen_total")}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <input
         value={busqueda}

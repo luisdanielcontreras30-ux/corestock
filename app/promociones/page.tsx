@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Percent, Trash2 } from "lucide-react";
+import { Percent, Trash2, BadgeCheck } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -155,6 +155,8 @@ function PromocionesContenido() {
     }
   }
 
+  const promocionesActivas = promociones.filter((p) => p.activa).length;
+
   function formatoDescuento(promo: Promocion) {
     return promo.tipo === "porcentaje"
       ? `${promo.valor}%`
@@ -203,6 +205,29 @@ function PromocionesContenido() {
         </div>
       ) : (
       <>
+      {promociones.length > 0 && (
+        <div className="modulo-resumen">
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <BadgeCheck size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{promocionesActivas}</span>
+              <span className="modulo-resumen-etiqueta">{t("promociones.resumen_activas")}</span>
+            </div>
+          </div>
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <Percent size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{promociones.length}</span>
+              <span className="modulo-resumen-etiqueta">{t("promociones.resumen_total")}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="card">
         <h2 style={{ marginBottom: 16 }}>{t("promociones.crear")}</h2>
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRightLeft, Trash2 } from "lucide-react";
+import { ArrowRightLeft, Trash2, MapPin, Package } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -196,6 +196,8 @@ function TraspasosContenido() {
     }
   }
 
+  const unidadesTraspasadas = traspasos.reduce((sum, tr) => sum + tr.cantidad, 0);
+
   const stockEnUbicacionVista = stockUbicaciones.filter(
     (s) => String(s.ubicacion_id) === ubicacionVistaActual
   );
@@ -216,6 +218,38 @@ function TraspasosContenido() {
         titulo={t("sidebar.traspasos")}
         subtitulo={t("traspasos.subtitulo")}
       />
+
+      {!loading && (
+        <div className="modulo-resumen">
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <MapPin size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{ubicaciones.length}</span>
+              <span className="modulo-resumen-etiqueta">{t("traspasos.resumen_ubicaciones")}</span>
+            </div>
+          </div>
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <ArrowRightLeft size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{traspasos.length}</span>
+              <span className="modulo-resumen-etiqueta">{t("traspasos.resumen_traspasos")}</span>
+            </div>
+          </div>
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <Package size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{unidadesTraspasadas}</span>
+              <span className="modulo-resumen-etiqueta">{t("traspasos.resumen_unidades")}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <CargandoLista />
