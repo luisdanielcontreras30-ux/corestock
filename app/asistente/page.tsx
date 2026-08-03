@@ -7,6 +7,7 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { Idioma } from "../../lib/i18n";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import MascotaAsistente from "../../components/MascotaAsistente";
 import {
   analizarQueComprar,
   analizarGanancias,
@@ -144,6 +145,22 @@ function AsistenteContenido() {
   // para que "cuéntame más" o "dame un ejemplo" tengan a qué referirse.
   const [ultimoTema, setUltimoTema] = useState<string | null>(null);
   const finRef = useRef<HTMLDivElement>(null);
+
+  // La mascota camina por la pantalla mientras la persona no está
+  // escribiendo — un instante de gracia (1.5s) antes de que aparezca,
+  // para que no salte a la vista con cada tecla que se borra. En
+  // cuanto se vuelve a escribir o el asistente está pensando, se
+  // esconde de inmediato.
+  const [mascotaActiva, setMascotaActiva] = useState(false);
+
+  useEffect(() => {
+    if (entrada.trim() !== "" || pensando) {
+      setMascotaActiva(false);
+      return;
+    }
+    const id = setTimeout(() => setMascotaActiva(true), 1500);
+    return () => clearTimeout(id);
+  }, [entrada, pensando]);
 
   useEffect(() => {
     setMensajes([
@@ -597,6 +614,8 @@ function AsistenteContenido() {
           <Send size={15} />
         </button>
       </div>
+
+      <MascotaAsistente activo={mascotaActiva} />
     </main>
   );
 }

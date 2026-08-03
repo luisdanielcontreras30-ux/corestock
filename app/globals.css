@@ -769,23 +769,25 @@ html[data-theme="joker"] {
 }
 
 html[data-theme="terminator"] {
+  /* Endoesqueleto cromado (gris metálico) con el ojo rojo del HUD como
+     acento — no solo negro y rojo. */
   color-scheme: dark;
-  --bg-primary: #000000;
-  --bg-secondary: #0a0303;
-  --card-bg: #140505;
-  --card-hover: #200a0a;
-  --border: #330f0f;
+  --bg-primary: #050505;
+  --bg-secondary: #0a0a0c;
+  --card-bg: #131316;
+  --card-hover: #1c1c20;
+  --border: #35353c;
   --primary: #ff0a0a;
   --primary-hover: #d90808;
   --primary-soft: rgba(255, 10, 10, 0.15);
   --text-primary: #ffffff;
-  --text-secondary: #ff9494;
-  --text-muted: #e07d7d;
-  --glass-bg: rgba(255, 10, 10, 0.04);
+  --text-secondary: #c8c8d0;
+  --text-muted: #9a9aa4;
+  --glass-bg: rgba(200, 200, 210, 0.04);
   --glass-border: rgba(255, 10, 10, 0.15);
-  --input-bg: rgba(0, 0, 0, 0.6);
-  --btn-secondary-bg: #200a0a;
-  --table-header-bg: rgba(0, 0, 0, 0.5);
+  --input-bg: rgba(5, 5, 5, 0.6);
+  --btn-secondary-bg: #1c1c20;
+  --table-header-bg: rgba(5, 5, 5, 0.5);
 }
 
 html[data-theme="strangerthings"] {
@@ -7801,6 +7803,194 @@ select optgroup {
 @media (max-width: 768px) {
   .asistente-hilo {
     height: 64vh;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Mascota del Asistente IA — decorativa: camina de un lado a otro
+   mientras no se está escribiendo, y salta con un globo de texto al
+   tocarla (ver components/MascotaAsistente.tsx). */
+.mascota-contenedor {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  height: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+@media (max-width: 768px) {
+  .mascota-contenedor {
+    /* Encima de la barra de pestañas móvil (72px + margen). */
+    bottom: 84px;
+  }
+}
+
+.mascota-personaje {
+  position: absolute;
+  bottom: 0;
+  left: -60px;
+  width: 46px;
+  height: 46px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  animation: mascotaCaminar 16s linear infinite;
+}
+
+.mascota-personaje.mascota-saltando {
+  animation-play-state: paused;
+}
+
+@keyframes mascotaCaminar {
+  from {
+    left: -60px;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+.mascota-cuerpo {
+  position: relative;
+  display: block;
+  width: 40px;
+  height: 34px;
+  margin: 0 auto;
+  background: linear-gradient(160deg, var(--primary), var(--primary-hover));
+  border-radius: 10px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  animation: mascotaBob 0.5s ease-in-out infinite alternate;
+}
+
+.mascota-saltando .mascota-cuerpo {
+  animation: mascotaSalto 0.5s ease-in-out 3;
+}
+
+@keyframes mascotaBob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes mascotaSalto {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  30% {
+    transform: translateY(-16px) rotate(-8deg);
+  }
+  60% {
+    transform: translateY(0) rotate(6deg);
+  }
+}
+
+.mascota-antena {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 10px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+.mascota-antena::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: -2.5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffe066;
+  box-shadow: 0 0 6px #ffe066;
+}
+
+.mascota-ojo {
+  position: absolute;
+  top: 12px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.mascota-ojo-izq {
+  left: 9px;
+}
+
+.mascota-ojo-der {
+  right: 9px;
+}
+
+.mascota-pata {
+  position: absolute;
+  bottom: -12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--primary-hover);
+  animation: mascotaPata 0.5s ease-in-out infinite alternate;
+}
+
+.mascota-pata-izq {
+  left: 6px;
+}
+
+.mascota-pata-der {
+  right: 6px;
+  animation-delay: 0.25s;
+}
+
+@keyframes mascotaPata {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(3px);
+  }
+}
+
+.mascota-globo {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.mascota-globo::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--card-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascota-personaje,
+  .mascota-cuerpo,
+  .mascota-pata {
+    animation: none;
   }
 }
 

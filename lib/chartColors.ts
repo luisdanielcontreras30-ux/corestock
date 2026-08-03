@@ -34,7 +34,7 @@ export const PALETAS_GRAFICA: Record<Tema, string[]> = {
   cyberpunk: ["#fcee0a", "#00f0ff", "#ff2df7", "#d9cd09", "#00c9d1", "#e619dd"],
   tron: ["#00f6ff", "#4ff9ff", "#9efcff", "#00c9d1", "#00a2a8", "#c9feff"],
   joker: ["#7cff2e", "#a3ff6e", "#c9ffa6", "#64d922", "#4fb019", "#e0ffcc"],
-  terminator: ["#ff0a0a", "#ff4f4f", "#ff9494", "#d90808", "#b00606", "#ffd6d6"],
+  terminator: ["#ff0a0a", "#9a9aa4", "#ff4f4f", "#c8c8d0", "#d90808", "#e5e5ea"],
   strangerthings: ["#e10600", "#3c78ff", "#f24940", "#8fb3ff", "#b80500", "#14275a"],
 };
 

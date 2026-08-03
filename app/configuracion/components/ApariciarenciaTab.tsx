@@ -59,7 +59,7 @@ const opciones: OpcionTema[] = [
   { valor: "cyberpunk", claveNombre: "tema.cyberpunk.nombre", claveDesc: "tema.cyberpunk.desc", colores: ["#050014", "#0f0329", "#fcee0a"] },
   { valor: "tron", claveNombre: "tema.tron.nombre", claveDesc: "tema.tron.desc", colores: ["#000000", "#061619", "#00f6ff"] },
   { valor: "joker", claveNombre: "tema.joker.nombre", claveDesc: "tema.joker.desc", colores: ["#050208", "#120a1e", "#7cff2e"] },
-  { valor: "terminator", claveNombre: "tema.terminator.nombre", claveDesc: "tema.terminator.desc", colores: ["#000000", "#140505", "#ff0a0a"] },
+  { valor: "terminator", claveNombre: "tema.terminator.nombre", claveDesc: "tema.terminator.desc", colores: ["#050505", "#35353c", "#ff0a0a"] },
   { valor: "strangerthings", claveNombre: "tema.strangerthings.nombre", claveDesc: "tema.strangerthings.desc", colores: ["#01050f", "#061024", "#e10600"] },
 ];
 
