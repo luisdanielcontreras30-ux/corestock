@@ -61,16 +61,20 @@ export async function crearPromocion(
   // exportada y podría llamarse directamente sin pasar por ese
   // formulario, y un valor fuera de rango aquí produciría un precio
   // más caro en vez de un descuento (ver calcularPrecioConDescuento).
+  //
+  // Sentinels sin traducir a propósito (ver lib/errores.ts): page.tsx
+  // los traduce a los mismos mensajes que ya usa su validación en el
+  // navegador, mismo patrón que Traspasos/Cotizaciones/Compras.
   if (!Number.isFinite(valor) || valor <= 0) {
-    throw new Error("Valor de descuento inválido");
+    throw new Error("VALOR_INVALIDO");
   }
 
   if (tipo === "porcentaje" && valor > 100) {
-    throw new Error("El porcentaje de descuento no puede ser mayor a 100");
+    throw new Error("PORCENTAJE_INVALIDO");
   }
 
   if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
-    throw new Error("La fecha de fin no puede ser anterior a la fecha de inicio");
+    throw new Error("RANGO_FECHAS_INVALIDO");
   }
 
   const negocioId = await obtenerNegocioId(user.id);

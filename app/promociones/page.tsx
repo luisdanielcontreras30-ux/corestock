@@ -87,6 +87,25 @@ function PromocionesContenido() {
     setFechaFin("");
   }
 
+  // acciones.ts lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce a los mismos mensajes
+  // que ya usa la validación del formulario más abajo; null si el
+  // error no es ninguno de los esperados (deja pasar al genérico).
+  function mensajePromocion(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "VALOR_INVALIDO":
+        return t("promociones.msg_valor_invalido");
+      case "PORCENTAJE_INVALIDO":
+        return t("promociones.msg_porcentaje_invalido");
+      case "RANGO_FECHAS_INVALIDO":
+        return t("promociones.msg_rango_invalido");
+      default:
+        return null;
+    }
+  }
+
   async function guardar() {
     if (guardando) return;
 
@@ -122,7 +141,7 @@ function PromocionesContenido() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      mostrarToast(t("promociones.msg_error_guardar"), "error");
+      mostrarToast(mensajePromocion(error) || t("promociones.msg_error_guardar"), "error");
     } finally {
       setGuardando(false);
     }
