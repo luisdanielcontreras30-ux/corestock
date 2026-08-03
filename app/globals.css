@@ -7807,67 +7807,156 @@ select optgroup {
 }
 
 /* ---------------------------------------------------------------
-   Mascota del Asistente IA — decorativa: camina de un lado a otro
-   mientras no se está escribiendo, y salta con un globo de texto al
-   tocarla (ver components/MascotaAsistente.tsx). */
-.mascota-contenedor {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 24px;
-  height: 0;
-  pointer-events: none;
-  z-index: 50;
-}
-
-@media (max-width: 768px) {
-  .mascota-contenedor {
-    /* Encima de la barra de pestañas móvil (72px + margen). */
-    bottom: 84px;
-  }
-}
-
+   Corebot — mascota del Asistente IA. Colores propios y fijos (rojo/
+   negro/blanco/amarillo), no los del tema activo: es un personaje con
+   identidad propia, no un adorno que combina con la paleta de turno.
+   Deambula por la pantalla (posición aleatoria + se sienta un rato)
+   en vez de un ida-y-vuelta fijo de lado a lado — ver
+   components/MascotaAsistente.tsx. */
 .mascota-personaje {
-  position: absolute;
-  bottom: 0;
-  left: -60px;
+  position: fixed;
   width: 46px;
-  height: 46px;
+  z-index: 50;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
   pointer-events: auto;
-  animation: mascotaCaminar 16s linear infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: left 2.4s ease-in-out, top 2.4s ease-in-out, transform 0.15s ease;
 }
 
-.mascota-personaje.mascota-saltando {
-  animation-play-state: paused;
+.mascota-personaje.mascota-volteada {
+  transform: scaleX(-1);
 }
 
-@keyframes mascotaCaminar {
-  from {
-    left: -60px;
-  }
-  to {
-    left: 100%;
-  }
+.mascota-personaje:hover {
+  transform: scale(1.08);
+}
+
+.mascota-personaje.mascota-volteada:hover {
+  transform: scaleX(-1) scale(1.08);
+}
+
+.mascota-cabeza {
+  position: relative;
+  width: 42px;
+  height: 36px;
+  background: linear-gradient(160deg, #ff4141, #e01f1f);
+  border-radius: 14px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+.mascota-caminando .mascota-cabeza {
+  animation: mascotaBob 0.4s ease-in-out infinite alternate;
+}
+
+.mascota-antena {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 9px;
+  background: #e01f1f;
+  border-radius: 2px;
+}
+
+.mascota-antena::after {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: -2.5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd33d;
+  box-shadow: 0 0 6px rgba(255, 211, 61, 0.8);
+}
+
+.mascota-oreja {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e01f1f;
+}
+
+.mascota-oreja-izq {
+  left: -5px;
+}
+
+.mascota-oreja-der {
+  right: -5px;
+}
+
+.mascota-pantalla {
+  position: absolute;
+  inset: 5px 6px;
+  background: #0f0f10;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mascota-ojo {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffffff;
 }
 
 .mascota-cuerpo {
   position: relative;
-  display: block;
-  width: 40px;
-  height: 34px;
-  margin: 0 auto;
-  background: linear-gradient(160deg, var(--primary), var(--primary-hover));
-  border-radius: 10px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
-  animation: mascotaBob 0.5s ease-in-out infinite alternate;
+  width: 26px;
+  height: 16px;
+  margin-top: 2px;
+  background: linear-gradient(160deg, #ff4141, #e01f1f);
+  border-radius: 8px;
 }
 
-.mascota-saltando .mascota-cuerpo {
-  animation: mascotaSalto 0.5s ease-in-out 3;
+.mascota-marca {
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 12px;
+  background: #ffffff;
+  opacity: 0.85;
+  clip-path: polygon(60% 0%, 0% 60%, 45% 60%, 40% 100%, 100% 40%, 55% 40%);
+}
+
+.mascota-patas {
+  display: flex;
+  gap: 8px;
+  margin-top: 1px;
+}
+
+.mascota-pata {
+  width: 7px;
+  height: 7px;
+  border-radius: 3px;
+  background: #e01f1f;
+}
+
+.mascota-caminando .mascota-pata {
+  animation: mascotaPata 0.4s ease-in-out infinite alternate;
+}
+
+.mascota-caminando .mascota-pata:last-child {
+  animation-delay: 0.2s;
+}
+
+.mascota-sentado .mascota-pata {
+  height: 4px;
+  border-radius: 2px;
 }
 
 @keyframes mascotaBob {
@@ -7875,8 +7964,22 @@ select optgroup {
     transform: translateY(0);
   }
   to {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
   }
+}
+
+@keyframes mascotaPata {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(2px);
+  }
+}
+
+.mascota-reaccion .mascota-cabeza,
+.mascota-reaccion .mascota-cuerpo {
+  animation: mascotaSalto 0.45s ease-in-out;
 }
 
 @keyframes mascotaSalto {
@@ -7885,84 +7988,16 @@ select optgroup {
     transform: translateY(0) rotate(0deg);
   }
   30% {
-    transform: translateY(-16px) rotate(-8deg);
+    transform: translateY(-10px) rotate(-6deg);
   }
   60% {
-    transform: translateY(0) rotate(6deg);
-  }
-}
-
-.mascota-antena {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 3px;
-  height: 10px;
-  background: var(--primary);
-  border-radius: 2px;
-}
-
-.mascota-antena::after {
-  content: "";
-  position: absolute;
-  top: -6px;
-  left: -2.5px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ffe066;
-  box-shadow: 0 0 6px #ffe066;
-}
-
-.mascota-ojo {
-  position: absolute;
-  top: 12px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ffffff;
-}
-
-.mascota-ojo-izq {
-  left: 9px;
-}
-
-.mascota-ojo-der {
-  right: 9px;
-}
-
-.mascota-pata {
-  position: absolute;
-  bottom: -12px;
-  width: 8px;
-  height: 8px;
-  border-radius: 3px;
-  background: var(--primary-hover);
-  animation: mascotaPata 0.5s ease-in-out infinite alternate;
-}
-
-.mascota-pata-izq {
-  left: 6px;
-}
-
-.mascota-pata-der {
-  right: 6px;
-  animation-delay: 0.25s;
-}
-
-@keyframes mascotaPata {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(3px);
+    transform: translateY(0) rotate(5deg);
   }
 }
 
 .mascota-globo {
   position: absolute;
-  bottom: 52px;
+  bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   background: var(--card-bg);
@@ -7972,8 +8007,17 @@ select optgroup {
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  white-space: nowrap;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  line-height: 1.35;
+  width: max-content;
+  max-width: 200px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.mascota-volteada .mascota-globo {
+  /* El globo no debe voltearse junto con el personaje — el texto
+     tiene que seguir leyéndose de izquierda a derecha. */
+  transform: translateX(-50%) scaleX(-1);
 }
 
 .mascota-globo::after {
@@ -7987,18 +8031,14 @@ select optgroup {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mascota-personaje,
-  .mascota-cuerpo,
-  .mascota-pata {
-    animation: none;
+  .mascota-personaje {
+    transition: none;
   }
 
-  /* Sin la animación de caminar, .mascota-personaje se quedaba
-     congelada en su posición inicial (left: -60px, fuera de la
-     pantalla) — invisible e imposible de tocar para cualquiera con
-     "reducir movimiento" activado. Se ancla visible, quieta. */
-  .mascota-personaje {
-    left: 20px;
+  .mascota-cabeza,
+  .mascota-cuerpo,
+  .mascota-pata {
+    animation: none !important;
   }
 }
 
