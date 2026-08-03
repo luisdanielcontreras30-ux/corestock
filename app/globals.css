@@ -1151,6 +1151,85 @@ select optgroup {
   color: #10b981;
 }
 
+/* Servicios rápidos: plantillas con precio fijo (ver
+   registrarServicioRapido en acciones.ts) — un chip grande, fácil de
+   tocar en celular, con el nombre y el precio a la vista. El botón de
+   borrar es chico y aparte para que un toque impaciente no borre la
+   plantilla en vez de cobrarla. */
+.serv-rapidos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.serv-rapido-chip {
+  position: relative;
+  display: flex;
+}
+
+.serv-rapido-boton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--modulo-color) 8%, var(--card-bg));
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.serv-rapido-boton:hover:not(:disabled) {
+  border-color: var(--modulo-color);
+  transform: translateY(-2px);
+}
+
+.serv-rapido-boton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.serv-rapido-nombre {
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.serv-rapido-precio {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--modulo-color);
+}
+
+.serv-rapido-borrar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.serv-rapido-borrar:hover:not(:disabled) {
+  background: color-mix(in srgb, #ef4444 18%, transparent);
+  color: #ef4444;
+}
+
+.serv-rapido-borrar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* Distinta de .productos-grid (genérica, reusada por otros módulos) —
    esta es solo para las parejas precio/costo y stock/stock mínimo del
    formulario rediseñado de Productos. */
@@ -5767,6 +5846,23 @@ select optgroup {
 .tipo-negocio-card:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.tipo-negocio-card-activa {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.tipo-negocio-otro {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.tipo-negocio-otro input {
+  flex: 1;
+  min-width: 220px;
 }
 
 .tipo-negocio-icono {

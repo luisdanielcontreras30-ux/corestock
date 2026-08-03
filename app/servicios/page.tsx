@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Wrench, Trash2, CalendarClock, Wallet, ClipboardList, Check } from "lucide-react";
+import { Wrench, Trash2, CalendarClock, Wallet, ClipboardList, Check, Zap, Plus, X } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -13,8 +13,16 @@ import RequierePlus from "../../components/RequierePlus";
 import CampoConSugerencias from "../../components/CampoConSugerencias";
 import CargandoLista from "../../components/CargandoLista";
 import FilaVacia from "../../components/FilaVacia";
-import { ClienteOpcion, EstadoTrabajo, Trabajo } from "./types";
-import { cargarDatos, registrarTrabajo, cambiarEstadoTrabajo, eliminarTrabajo } from "./acciones";
+import { ClienteOpcion, EstadoTrabajo, Trabajo, PlantillaServicio } from "./types";
+import {
+  cargarDatos,
+  registrarTrabajo,
+  cambiarEstadoTrabajo,
+  eliminarTrabajo,
+  crearPlantilla,
+  eliminarPlantilla,
+  registrarServicioRapido,
+} from "./acciones";
 import { formatoMoneda } from "../ventas/utils";
 import { exportarExcel } from "./utils";
 
@@ -40,6 +48,15 @@ function ServiciosContenido() {
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<ClienteOpcion[]>([]);
   const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
+  const [plantillas, setPlantillas] = useState<PlantillaServicio[]>([]);
+
+  const [mostrarFormPlantilla, setMostrarFormPlantilla] = useState(false);
+  const [nombrePlantilla, setNombrePlantilla] = useState("");
+  const [precioPlantilla, setPrecioPlantilla] = useState("");
+  const [guardandoPlantilla, setGuardandoPlantilla] = useState(false);
+  // Plantilla que se está cobrando o borrando ahora mismo — bloquea
+  // solo ese chip, mismo criterio que procesandoId para la tabla.
+  const [procesandoPlantillaId, setProcesandoPlantillaId] = useState<number | null>(null);
 
   const [clienteId, setClienteId] = useState<number | null>(null);
   const [clienteNombre, setClienteNombre] = useState("");
@@ -79,6 +96,7 @@ function ServiciosContenido() {
       const datos = await cargarDatos();
       setClientes(datos.clientes);
       setTrabajos(datos.trabajos);
+      setPlantillas(datos.plantillas);
     } catch (error) {
       console.error(error);
       mostrarToast(t("comun.msg_error_cargar_datos"), "error");
@@ -179,6 +197,67 @@ function ServiciosContenido() {
     }
   }
 
+  async function cobrarPlantilla(plantilla: PlantillaServicio) {
+    if (procesandoPlantillaId !== null) return;
+
+    setProcesandoPlantillaId(plantilla.id);
+    try {
+      await registrarServicioRapido(plantilla.nombre, plantilla.precio);
+      await obtenerDatos();
+      mostrarToast(t("servicios.msg_cobrado_rapido").replace("{servicio}", plantilla.nombre), "exito");
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("servicios.msg_error_registrar"), "error");
+    } finally {
+      setProcesandoPlantillaId(null);
+    }
+  }
+
+  async function agregarPlantilla() {
+    if (guardandoPlantilla) return;
+
+    const precioNum = Number(precioPlantilla);
+
+    if (!nombrePlantilla.trim()) {
+      mostrarToast(t("servicios.msg_falta_nombre_plantilla"), "error");
+      return;
+    }
+    if (!Number.isFinite(precioNum) || precioNum <= 0) {
+      mostrarToast(t("servicios.msg_precio_invalido"), "error");
+      return;
+    }
+
+    try {
+      setGuardandoPlantilla(true);
+      await crearPlantilla(nombrePlantilla, precioNum);
+      setNombrePlantilla("");
+      setPrecioPlantilla("");
+      setMostrarFormPlantilla(false);
+      await obtenerDatos();
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("servicios.msg_error_plantilla"), "error");
+    } finally {
+      setGuardandoPlantilla(false);
+    }
+  }
+
+  async function borrarPlantilla(id: number) {
+    if (procesandoPlantillaId !== null) return;
+    if (!(await confirmar(t("servicios.confirmar_eliminar_plantilla"), { peligroso: true }))) return;
+
+    setProcesandoPlantillaId(id);
+    try {
+      await eliminarPlantilla(id);
+      await obtenerDatos();
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("servicios.msg_error_plantilla"), "error");
+    } finally {
+      setProcesandoPlantillaId(null);
+    }
+  }
+
   // Resumen del mes con lo que YA está cargado: ninguna consulta nueva.
   //
   // fecha_cobro (no fecha) decide si un trabajo cuenta en "cobrado este
@@ -272,6 +351,77 @@ function ServiciosContenido() {
             <span className="modulo-resumen-etiqueta">{t("servicios.resumen_total")}</span>
           </div>
         </div>
+      </div>
+
+      <div className="card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Zap size={18} /> {t("servicios.rapidos_titulo")}
+          </h2>
+          <button
+            className="btn-secondary"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            onClick={() => setMostrarFormPlantilla((v) => !v)}
+          >
+            {mostrarFormPlantilla ? <X size={14} /> : <Plus size={14} />}
+            {t("servicios.rapidos_agregar")}
+          </button>
+        </div>
+        <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 16 }}>
+          {t("servicios.rapidos_ayuda")}
+        </p>
+
+        {mostrarFormPlantilla && (
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+            <input
+              value={nombrePlantilla}
+              onChange={(e) => setNombrePlantilla(e.target.value)}
+              placeholder={t("servicios.rapidos_nombre_placeholder")}
+              style={{ flex: 1, minWidth: 160 }}
+            />
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={precioPlantilla}
+              onChange={(e) => setPrecioPlantilla(e.target.value)}
+              placeholder={t("servicios.precio")}
+              style={{ maxWidth: 140 }}
+            />
+            <button className="btn-primary" onClick={agregarPlantilla} disabled={guardandoPlantilla}>
+              {guardandoPlantilla ? t("servicios.guardando") : t("servicios.rapidos_agregar")}
+            </button>
+          </div>
+        )}
+
+        {plantillas.length === 0 ? (
+          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("servicios.rapidos_sin_plantillas")}</p>
+        ) : (
+          <div className="serv-rapidos-grid">
+            {plantillas.map((plantilla) => (
+              <div key={plantilla.id} className="serv-rapido-chip">
+                <button
+                  type="button"
+                  className="serv-rapido-boton"
+                  disabled={procesandoPlantillaId !== null}
+                  onClick={() => cobrarPlantilla(plantilla)}
+                >
+                  <span className="serv-rapido-nombre">{plantilla.nombre}</span>
+                  <span className="serv-rapido-precio">{formatoMoneda(plantilla.precio)}</span>
+                </button>
+                <button
+                  type="button"
+                  className="serv-rapido-borrar"
+                  aria-label={t("productos.eliminar")}
+                  disabled={procesandoPlantillaId !== null}
+                  onClick={() => borrarPlantilla(plantilla.id)}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <TarjetaDesplegable

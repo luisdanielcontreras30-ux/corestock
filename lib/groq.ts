@@ -3,10 +3,12 @@ import {
   construirPromptVendedor,
   construirPromptMensajeCliente,
   construirPromptMensajeProveedor,
+  construirPromptRecomendarModulos,
   extraerResultadoProducto,
   ResultadoAnalisisProducto,
   ProductoParaVendedor,
   DatosAnalisisEntidad,
+  ModuloCatalogo,
 } from "./promptsIA";
 
 // Cliente para Groq (chat). Uso EXCLUSIVO en código de servidor
@@ -363,6 +365,22 @@ export async function generarMensajeProveedorGroq(
     modelo,
     [{ role: "user", content: construirPromptMensajeProveedor(datos, nombreNegocio, idioma) }],
     { temperatura: 0.5, maxTokens: 250, plazoMs: 30000 }
+  );
+}
+
+// Devuelve el texto crudo del modelo (un array JSON, en teoría) — quien
+// llama lo pasa por extraerHrefsRecomendados de promptsIA.ts para
+// validarlo contra el catálogo real antes de confiar en nada.
+export async function generarModulosRecomendadosGroq(
+  descripcionNegocio: string,
+  catalogo: ModuloCatalogo[]
+): Promise<string> {
+  const { modelo } = modeloTextoEnUso();
+
+  return pedirTexto(
+    modelo,
+    [{ role: "user", content: construirPromptRecomendarModulos(descripcionNegocio, catalogo) }],
+    { temperatura: 0.3, maxTokens: 300, plazoMs: 20000 }
   );
 }
 

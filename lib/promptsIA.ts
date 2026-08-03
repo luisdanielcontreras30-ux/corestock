@@ -280,6 +280,91 @@ export function construirPromptMensajeProveedor(
   );
 }
 
+// Un módulo del catálogo cerrado que se le ofrece a elegir a la IA
+// (ver lib/tiposNegocio.ts MODULOS_PERSONALIZABLES) — nombre y
+// descripción ya en el idioma de la cuenta, para que el modelo
+// entienda qué hace cada uno sin adivinar por el href.
+export interface ModuloCatalogo {
+  href: string;
+  nombre: string;
+  descripcion: string;
+}
+
+// Recomendación de qué módulos activar de entrada en el menú, según el
+// tipo de negocio (o su descripción libre, para "otro"). SOLO puede
+// elegir de la lista cerrada que se le da — nunca inventa una ruta
+// nueva, ver extraerHrefsRecomendados más abajo, que descarta
+// cualquier cosa fuera del catálogo.
+export function construirPromptRecomendarModulos(
+  descripcionNegocio: string,
+  catalogo: ModuloCatalogo[]
+): string {
+  const listaTexto = catalogo
+    .map((m) => `- "${m.href}": ${m.nombre} — ${m.descripcion}`)
+    .join("\n");
+
+  return (
+    "Eres un consultor que configura CoreStock (un sistema de inventario y " +
+    "punto de venta) para un negocio pequeño. " +
+    `El negocio es: "${descripcionNegocio}". ` +
+    "Del siguiente catálogo de módulos disponibles, elige SOLO los que este " +
+    "negocio usaría de verdad — ni más (no agregues módulos irrelevantes " +
+    "por si acaso) ni menos (no dejes fuera algo que claramente necesita). " +
+    "Incluye siempre ventas/cobro y clientes si el negocio trata con clientes. " +
+    `Catálogo:\n\n${listaTexto}\n\n` +
+    "Responde ÚNICAMENTE con un array JSON de los \"href\" elegidos, por " +
+    'ejemplo ["/menu","/clientes","/servicios"] — sin explicación, sin ' +
+    "markdown, sin texto antes ni después."
+  );
+}
+
+// Extrae el array de hrefs de la respuesta del modelo y lo filtra
+// contra el catálogo real — si el modelo inventa una ruta que no
+// estaba en la lista (o responde cualquier cosa que no sea JSON), esa
+// entrada se descarta en vez de colarse a rutas_activas. Un arreglo
+// vacío (o que no se pudo interpretar nada) se trata como "no se pudo
+// recomendar" — quien llama decide el respaldo.
+export function extraerHrefsRecomendados(texto: string, hrefsValidos: string[]): string[] {
+  const limpio = texto
+    .trim()
+    .replace(/^```(?:json)?/i, "")
+    .replace(/```$/, "")
+    .trim();
+
+  function normalizar(json: unknown): string[] {
+    if (!Array.isArray(json)) return [];
+    const validos = new Set(hrefsValidos);
+    return json.filter((v): v is string => typeof v === "string" && validos.has(v));
+  }
+
+  try {
+    const directo = normalizar(JSON.parse(limpio));
+    if (directo.length > 0) return directo;
+  } catch {
+    // sigue abajo
+  }
+
+  const inicio = limpio.indexOf("[");
+  if (inicio !== -1) {
+    let profundidad = 0;
+    for (let i = inicio; i < limpio.length; i++) {
+      if (limpio[i] === "[") profundidad++;
+      else if (limpio[i] === "]") {
+        profundidad--;
+        if (profundidad === 0) {
+          try {
+            return normalizar(JSON.parse(limpio.slice(inicio, i + 1)));
+          } catch {
+            return [];
+          }
+        }
+      }
+    }
+  }
+
+  return [];
+}
+
 export interface ProductoParaVendedor {
   nombre: string;
   categoria: string | null;

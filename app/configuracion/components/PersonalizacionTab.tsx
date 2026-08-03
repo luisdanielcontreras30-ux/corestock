@@ -4,33 +4,24 @@ import { useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
+import { useConfirm } from "../../../components/ConfirmProvider";
 import { useTipoNegocio } from "../../../components/TipoNegocioProvider";
 import { useModoInterfaz } from "../../../components/ModoInterfazProvider";
-import { SECCIONES_NAV } from "../../../lib/navegacion";
-import { TIPOS_NEGOCIO, RUTAS_SIEMPRE_VISIBLES, TipoNegocio } from "../../../lib/tiposNegocio";
-
-// Todos los accesos que la personalización puede prender/apagar: todo
-// lo de SECCIONES_NAV menos lo que siempre se ve (navegación/cuenta,
-// ver RUTAS_SIEMPRE_VISIBLES) y lo que todavía no tiene funcionalidad
-// real (no tiene sentido ocultar algo que ya está oculto detrás de
-// "Próximamente").
-const MODULOS_PERSONALIZABLES = SECCIONES_NAV.flatMap((s) => s.items).filter(
-  (item) => !RUTAS_SIEMPRE_VISIBLES.includes(item.href) && !item.proximamente
-);
+import { TIPOS_NEGOCIO, MODULOS_PERSONALIZABLES, TipoNegocio } from "../../../lib/tiposNegocio";
 
 export default function PersonalizacionTab() {
-  const { t } = useIdioma();
+  const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
   const { modoInterfaz } = useModoInterfaz();
-  const {
-    tipoNegocio,
-    rutasActivas,
-    cargando,
-    actualizarTipoNegocio,
-    actualizarRutasActivas,
-  } = useTipoNegocio();
+  const { tipoNegocio, rutasActivas, cargando, elegirTipoNegocio, actualizarRutasActivas } =
+    useTipoNegocio();
   const [guardandoTipo, setGuardandoTipo] = useState(false);
   const [guardandoRuta, setGuardandoRuta] = useState<string | null>(null);
+  // "otro" pide describir el negocio en vez de aplicarse solo al
+  // tocarlo — sin texto, la IA no tiene con qué elegir módulos.
+  const [otroActivo, setOtroActivo] = useState(false);
+  const [descripcionOtro, setDescripcionOtro] = useState("");
 
   // rutasActivas === null significa "sin personalizar" — para la
   // grilla de checkboxes eso equivale a que todo esté marcado, mismo
@@ -40,17 +31,34 @@ export default function PersonalizacionTab() {
     [rutasActivas]
   );
 
-  async function cambiarTipo(tipo: TipoNegocio) {
+  async function cambiarTipo(tipo: TipoNegocio, descripcion: string) {
     if (guardandoTipo || tipo === tipoNegocio) return;
+
+    // Cambiar el tipo de negocio le pide a la IA una recomendación
+    // nueva y REEMPLAZA rutas_activas — si la persona ya personalizó
+    // sus accesos a mano, eso se pierde, así que se avisa antes.
+    if (!(await confirmar(t("personalizacion.confirmar_cambio_tipo")))) return;
+
     setGuardandoTipo(true);
     try {
-      await actualizarTipoNegocio(tipo);
+      await elegirTipoNegocio(tipo, descripcion, idioma);
+      setOtroActivo(false);
+      setDescripcionOtro("");
     } catch (error) {
       console.error(error);
       mostrarToast(t("tipo_negocio.msg_error"), "error");
     } finally {
       setGuardandoTipo(false);
     }
+  }
+
+  function alTocarTipo(opcion: (typeof TIPOS_NEGOCIO)[number]) {
+    if (guardandoTipo) return;
+    if (opcion.id === "otro") {
+      setOtroActivo(true);
+      return;
+    }
+    cambiarTipo(opcion.id, t(opcion.claveNombre));
   }
 
   async function alternar(href: string) {
@@ -89,7 +97,7 @@ export default function PersonalizacionTab() {
                 type="button"
                 className={`personalizacion-tipo-chip${activo ? " personalizacion-tipo-chip-activo" : ""}`}
                 disabled={guardandoTipo}
-                onClick={() => cambiarTipo(opcion.id)}
+                onClick={() => alTocarTipo(opcion)}
               >
                 <Icono size={15} />
                 {t(opcion.claveNombre)}
@@ -97,6 +105,32 @@ export default function PersonalizacionTab() {
             );
           })}
         </div>
+
+        {otroActivo && (
+          <div className="tipo-negocio-otro" style={{ marginTop: 12 }}>
+            <input
+              value={descripcionOtro}
+              onChange={(e) => setDescripcionOtro(e.target.value)}
+              placeholder={t("tipo_negocio.otro_placeholder")}
+              disabled={guardandoTipo}
+              autoFocus
+            />
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={guardandoTipo || !descripcionOtro.trim()}
+              onClick={() => cambiarTipo("otro", descripcionOtro.trim())}
+            >
+              {t("tipo_negocio.continuar")}
+            </button>
+          </div>
+        )}
+
+        {guardandoTipo && (
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "12px 0 0" }}>
+            {t("tipo_negocio.analizando")}
+          </p>
+        )}
 
         <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "16px 0 0" }}>
           {t("personalizacion.modo_actual")}{" "}

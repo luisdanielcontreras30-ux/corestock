@@ -13,6 +13,7 @@ import { obtenerNegocioId } from "../lib/negocioActual";
 import { useAuth } from "./AuthProvider";
 import { EMPRESA_VACIA } from "../app/configuracion/types";
 import { TipoNegocio, RUTAS_RECOMENDADAS } from "../lib/tiposNegocio";
+import { recomendarModulosConIA } from "../lib/iaAcciones";
 
 interface TipoNegocioContexto {
   // null = todavía no se sabe (cargando) o la cuenta nunca eligió — en
@@ -24,14 +25,13 @@ interface TipoNegocioContexto {
   rutasActivas: string[] | null;
   cargando: boolean;
   refrescar: () => Promise<void>;
-  // Elección inicial (pantalla de bienvenida): guarda el tipo Y siembra
-  // rutas_activas con su recomendación de una sola vez.
-  elegirTipoNegocio: (tipo: TipoNegocio) => Promise<void>;
-  // Edición manual desde Configuración > Personalización: cambia solo
-  // lo que se le pide, sin tocar lo otro (cambiar el tipo de negocio
-  // ahí NO resiembra rutas_activas, para no borrar personalizaciones
-  // que la persona ya hizo a mano).
-  actualizarTipoNegocio: (tipo: TipoNegocio) => Promise<void>;
+  // Elección de tipo de negocio (pantalla de bienvenida O Configuración
+  // > Personalización, ambas usan esta misma función): guarda el tipo
+  // Y le pide a la IA qué módulos conviene activar para ese negocio
+  // (descripcion es el nombre del tipo elegido, o el texto libre para
+  // "otro") — si la IA no está disponible o no da una respuesta útil,
+  // se cae a la recomendación fija de RUTAS_RECOMENDADAS.
+  elegirTipoNegocio: (tipo: TipoNegocio, descripcion: string, idioma: string) => Promise<void>;
   actualizarRutasActivas: (rutas: string[]) => Promise<void>;
 }
 
@@ -41,7 +41,6 @@ const Contexto = createContext<TipoNegocioContexto>({
   cargando: true,
   refrescar: async () => {},
   elegirTipoNegocio: async () => {},
-  actualizarTipoNegocio: async () => {},
   actualizarRutasActivas: async () => {},
 });
 
@@ -152,16 +151,20 @@ export default function TipoNegocioProvider({ children }: { children: ReactNode 
     }
   }
 
-  async function elegirTipoNegocio(tipo: TipoNegocio) {
-    const rutas = RUTAS_RECOMENDADAS[tipo] ?? null;
-    await guardar({ tipo_negocio: tipo, rutas_activas: rutas ?? undefined });
-    setTipoNegocio(tipo);
-    if (rutas) setRutasActivas(rutas);
-  }
+  async function elegirTipoNegocio(tipo: TipoNegocio, descripcion: string, idioma: string) {
+    // La IA elige de la lista real de módulos (ver
+    // /api/ia/recomendar-modulos) — si no está disponible, no responde
+    // nada usable, o falla, se cae a la lista fija de
+    // RUTAS_RECOMENDADAS en vez de dejar el menú a medias.
+    const hrefsIA = await recomendarModulosConIA(descripcion, idioma);
+    const rutas = hrefsIA.length > 0 ? hrefsIA : RUTAS_RECOMENDADAS[tipo] ?? null;
 
-  async function actualizarTipoNegocio(tipo: TipoNegocio) {
-    await guardar({ tipo_negocio: tipo });
+    // rutas se manda explícito (incluso null) — cambiar de tipo de
+    // negocio SIEMPRE resiembra rutas_activas, nunca deja la
+    // recomendación del tipo anterior a medias.
+    await guardar({ tipo_negocio: tipo, rutas_activas: rutas });
     setTipoNegocio(tipo);
+    setRutasActivas(rutas);
   }
 
   async function actualizarRutasActivas(rutas: string[]) {
@@ -177,7 +180,6 @@ export default function TipoNegocioProvider({ children }: { children: ReactNode 
         cargando,
         refrescar,
         elegirTipoNegocio,
-        actualizarTipoNegocio,
         actualizarRutasActivas,
       }}
     >

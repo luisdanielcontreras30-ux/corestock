@@ -18,9 +18,13 @@ export default function SeleccionNegocioModal() {
   const { user, cargando: cargandoAuth } = useAuth();
   const { tipoNegocio, cargando: cargandoTipo, elegirTipoNegocio } = useTipoNegocio();
   const { miembroActivo, cargando: cargandoMiembro } = useMiembroActivo();
-  const { t } = useIdioma();
+  const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
-  const [guardando, setGuardando] = useState<TipoNegocio | null>(null);
+  const [guardando, setGuardando] = useState(false);
+  // "otro" pide describir el negocio en vez de enviarse solo al tocarlo
+  // — sin texto, la IA no tiene con qué elegir módulos.
+  const [otroActivo, setOtroActivo] = useState(false);
+  const [descripcionOtro, setDescripcionOtro] = useState("");
 
   // Mismo motivo que en ModoInicialModal: un miembro del equipo no
   // debe quedar atrapado eligiendo por el dueño de la cuenta.
@@ -34,17 +38,26 @@ export default function SeleccionNegocioModal() {
 
   if (!debeMostrarse) return null;
 
-  async function elegir(tipo: TipoNegocio) {
+  async function elegir(tipo: TipoNegocio, descripcion: string) {
     if (guardando) return;
-    setGuardando(tipo);
+    setGuardando(true);
 
     try {
-      await elegirTipoNegocio(tipo);
+      await elegirTipoNegocio(tipo, descripcion, idioma);
     } catch (error) {
       console.error(error);
       mostrarToast(t("tipo_negocio.msg_error"), "error");
-      setGuardando(null);
+      setGuardando(false);
     }
+  }
+
+  function alTocar(opcion: (typeof TIPOS_NEGOCIO)[number]) {
+    if (guardando) return;
+    if (opcion.id === "otro") {
+      setOtroActivo(true);
+      return;
+    }
+    elegir(opcion.id, t(opcion.claveNombre));
   }
 
   return (
@@ -59,21 +72,40 @@ export default function SeleccionNegocioModal() {
               <button
                 key={opcion.id}
                 type="button"
-                className="tipo-negocio-card"
-                disabled={guardando !== null}
-                onClick={() => elegir(opcion.id)}
+                className={`tipo-negocio-card${otroActivo && opcion.id === "otro" ? " tipo-negocio-card-activa" : ""}`}
+                disabled={guardando}
+                onClick={() => alTocar(opcion)}
               >
                 <span className="tipo-negocio-icono">
                   <Icono size={22} />
                 </span>
-                <span className="tipo-negocio-nombre">
-                  {guardando === opcion.id ? t("tipo_negocio.guardando") : t(opcion.claveNombre)}
-                </span>
+                <span className="tipo-negocio-nombre">{t(opcion.claveNombre)}</span>
               </button>
             );
           })}
         </div>
 
+        {otroActivo && (
+          <div className="tipo-negocio-otro">
+            <input
+              value={descripcionOtro}
+              onChange={(e) => setDescripcionOtro(e.target.value)}
+              placeholder={t("tipo_negocio.otro_placeholder")}
+              disabled={guardando}
+              autoFocus
+            />
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={guardando || !descripcionOtro.trim()}
+              onClick={() => elegir("otro", descripcionOtro.trim())}
+            >
+              {t("tipo_negocio.continuar")}
+            </button>
+          </div>
+        )}
+
+        {guardando && <p className="modo-inicial-nota">{t("tipo_negocio.analizando")}</p>}
         <p className="modo-inicial-nota">{t("tipo_negocio.nota")}</p>
       </div>
     </div>

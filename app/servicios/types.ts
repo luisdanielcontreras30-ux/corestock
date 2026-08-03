@@ -21,3 +21,13 @@ export interface Trabajo {
   // la fecha del trabajo, no la del cobro, y no cambia sola.
   fecha_cobro: string | null;
 }
+
+// Un servicio predefinido con precio fijo (ej. "Lavado básico $150") —
+// tocarlo en la pantalla registra el trabajo y lo marca cobrado en un
+// solo paso, sin llenar el formulario completo. Ver
+// registrarServicioRapido() en acciones.ts.
+export interface PlantillaServicio {
+  id: number;
+  nombre: string;
+  precio: number;
+}

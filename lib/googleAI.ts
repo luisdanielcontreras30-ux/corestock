@@ -7,10 +7,12 @@ import {
   construirPromptVendedor,
   construirPromptMensajeCliente,
   construirPromptMensajeProveedor,
+  construirPromptRecomendarModulos,
   extraerResultadoProducto,
   ResultadoAnalisisProducto,
   ProductoParaVendedor,
   DatosAnalisisEntidad,
+  ModuloCatalogo,
 } from "./promptsIA";
 
 // Los prompts y la reparación del JSON que devuelve el modelo viven en
@@ -326,5 +328,19 @@ export async function generarMensajeProveedor(
     [{ text: construirPromptMensajeProveedor(datos, nombreNegocio, idioma) }],
     { temperature: 0.5, thinkingConfig: { thinkingBudget: 0 } },
     30000
+  );
+}
+
+// Devuelve el texto crudo del modelo (un array JSON, en teoría) — quien
+// llama lo pasa por extraerHrefsRecomendados de promptsIA.ts para
+// validarlo contra el catálogo real antes de confiar en nada.
+export async function generarModulosRecomendados(
+  descripcionNegocio: string,
+  catalogo: ModuloCatalogo[]
+): Promise<string> {
+  return pedirTexto(
+    [{ text: construirPromptRecomendarModulos(descripcionNegocio, catalogo) }],
+    { temperature: 0.3, thinkingConfig: { thinkingBudget: 0 } },
+    20000
   );
 }

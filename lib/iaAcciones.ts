@@ -183,3 +183,33 @@ export function analizarClienteConIA(clienteId: number, idioma: string): Promise
 export function analizarProveedorConIA(proveedorId: string, idioma: string): Promise<ResultadoAnalisisEntidad> {
   return pedirAnalisisEntidad("/api/ia/analizar-proveedor", { proveedorId, idioma });
 }
+
+// Qué accesos del menú activar para un tipo de negocio (ver
+// TipoNegocioProvider) — devuelve [] si la IA no está disponible o no
+// se pudo interpretar su respuesta; quien llama decide el respaldo
+// (la lista estática de lib/tiposNegocio.ts).
+export async function recomendarModulosConIA(descripcion: string, idioma: string): Promise<string[]> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+
+  if (!token) return [];
+
+  try {
+    const respuesta = await fetch("/api/ia/recomendar-modulos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ descripcion, idioma }),
+    });
+
+    if (!respuesta.ok) return [];
+
+    const datos = (await respuesta.json()) as { hrefs?: unknown };
+    return Array.isArray(datos.hrefs) ? datos.hrefs.filter((h): h is string => typeof h === "string") : [];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}

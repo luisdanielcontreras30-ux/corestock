@@ -7,6 +7,7 @@ import {
   Sparkles,
   LucideIcon,
 } from "lucide-react";
+import { SECCIONES_NAV } from "./navegacion";
 
 // Tipos de negocio que CoreStock reconoce para recomendar qué módulos
 // mostrar de entrada (ver RUTAS_RECOMENDADAS más abajo). Agregar uno
@@ -107,3 +108,13 @@ export const RUTAS_SIEMPRE_VISIBLES = [
   "/suscripcion",
   "/tutoriales",
 ];
+
+// Módulos que sí puede elegir la personalización (todo lo de
+// SECCIONES_NAV menos lo siempre-visible y lo que todavía no tiene
+// funcionalidad real) — fuente única para: la grilla de checkboxes de
+// Configuración > Personalización, Y el catálogo que se le manda a la
+// IA en /api/ia/recomendar-modulos para que elija de una lista
+// cerrada y real en vez de inventar rutas que no existen.
+export const MODULOS_PERSONALIZABLES = SECCIONES_NAV.flatMap((s) => s.items).filter(
+  (item) => !RUTAS_SIEMPRE_VISIBLES.includes(item.href) && !item.proximamente
+);
