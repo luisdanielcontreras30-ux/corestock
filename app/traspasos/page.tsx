@@ -338,7 +338,7 @@ function TraspasosContenido() {
             step="0.01"
             value={cantidad}
             onChange={(e) => setCantidad(e.target.value)}
-            placeholder={t("fabricacion.cantidad_a_producir")}
+            placeholder={t("traspasos.cantidad_a_transferir")}
           />
         </div>
 

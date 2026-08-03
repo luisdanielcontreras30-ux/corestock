@@ -16,7 +16,11 @@ export const PALETAS_GRAFICA: Record<Tema, string[]> = {
   mint: ["#10b981", "#34d399", "#059669", "#0d9488", "#22d3ee", "#65a30d"],
   sunset: ["#f97316", "#fb923c", "#fdba74", "#ea580c", "#c2410c", "#facc15"],
   teal: ["#0d9488", "#2dd4bf", "#5eead4", "#0f766e", "#0e7490", "#84cc16"],
-  neon: ["#39ff14", "#7cff5a", "#adff9e", "#00ff41", "#2ecc0f", "#c8ffb8"],
+  matrix: ["#39ff14", "#7cff5a", "#adff9e", "#00ff41", "#2ecc0f", "#c8ffb8"],
+  neonpink: ["#ff2df7", "#ff70fa", "#ffb3fa", "#e619dd", "#d61fd1", "#ffd9fc"],
+  neonblue: ["#00baff", "#4fd0ff", "#99e3ff", "#00a0e6", "#0090c2", "#cceffc"],
+  neonpurple: ["#b026ff", "#c661ff", "#d9a6ff", "#9a1fe6", "#8f1ecc", "#ecd1ff"],
+  neonorange: ["#ff6a00", "#ff9142", "#ffbb80", "#e65f00", "#cc5500", "#ffdcc2"],
 };
 
 export function obtenerPaletaGrafica(tema: Tema): string[] {

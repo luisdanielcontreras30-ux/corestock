@@ -352,6 +352,7 @@ export default function BienvenidaPage() {
 
       <footer className="landing-footer">
         <p>© {new Date().getFullYear()} {t("bienvenida.footer")}</p>
+        <p className="landing-footer-creditos">{t("bienvenida.creditos")}</p>
       </footer>
     </main>
   );

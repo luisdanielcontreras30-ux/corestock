@@ -6,8 +6,6 @@ import { useTheme, Tema } from "../../../components/ThemeProvider";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useToast } from "../../../components/ToastProvider";
 import { useModoInterfaz, ModoInterfaz } from "../../../components/ModoInterfazProvider";
-import { useAuth } from "../../../components/AuthProvider";
-import { tieneAccesoBeta } from "../../../lib/betaAcceso";
 import SelectorModoInterfaz from "../../../components/SelectorModoInterfaz";
 import CatalogoAparienciaTab from "./CatalogoAparienciaTab";
 
@@ -43,17 +41,12 @@ const opciones: OpcionTema[] = [
   { valor: "mint", claveNombre: "tema.mint.nombre", claveDesc: "tema.mint.desc", colores: ["#eafaf3", "#ffffff", "#10b981"] },
   { valor: "sunset", claveNombre: "tema.sunset.nombre", claveDesc: "tema.sunset.desc", colores: ["#170a05", "#2a150a", "#f97316"] },
   { valor: "teal", claveNombre: "tema.teal.nombre", claveDesc: "tema.teal.desc", colores: ["#eafbf9", "#ffffff", "#0d9488"] },
+  { valor: "matrix", claveNombre: "tema.matrix.nombre", claveDesc: "tema.matrix.desc", colores: ["#000000", "#0a0a0a", "#39ff14"] },
+  { valor: "neonpink", claveNombre: "tema.neonpink.nombre", claveDesc: "tema.neonpink.desc", colores: ["#000000", "#0a0a0a", "#ff2df7"] },
+  { valor: "neonblue", claveNombre: "tema.neonblue.nombre", claveDesc: "tema.neonblue.desc", colores: ["#000000", "#0a0a0a", "#00baff"] },
+  { valor: "neonpurple", claveNombre: "tema.neonpurple.nombre", claveDesc: "tema.neonpurple.desc", colores: ["#000000", "#0a0a0a", "#b026ff"] },
+  { valor: "neonorange", claveNombre: "tema.neonorange.nombre", claveDesc: "tema.neonorange.desc", colores: ["#000000", "#0a0a0a", "#ff6a00"] },
 ];
-
-// Tema exclusivo — solo visible para la cuenta de prueba beta (ver
-// lib/betaAcceso.ts), igual criterio que ya oculta /whatsapp para
-// todos menos ese correo.
-const OPCION_TEMA_NEON: OpcionTema = {
-  valor: "neon",
-  claveNombre: "tema.neon.nombre",
-  claveDesc: "tema.neon.desc",
-  colores: ["#000000", "#0a0a0a", "#39ff14"],
-};
 
 const OPCIONES_TENDENCIA: { valor: "area" | "barras" | "velas"; clave: string }[] = [
   { valor: "area", clave: "tema.grafica_area" },
@@ -78,13 +71,8 @@ export default function ApariciarenciaTab() {
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const { modoInterfaz, cambiarModo } = useModoInterfaz();
-  const { user } = useAuth();
   const [guardandoModo, setGuardandoModo] = useState<ModoInterfaz | null>(null);
   const [subSeccion, setSubSeccion] = useState<SubSeccion>("interfaz");
-
-  const opcionesTema = tieneAccesoBeta(user?.email)
-    ? [...opciones, OPCION_TEMA_NEON]
-    : opciones;
 
   async function elegirModo(modo: ModoInterfaz) {
     if (guardandoModo || modo === modoInterfaz) return;
@@ -160,7 +148,7 @@ export default function ApariciarenciaTab() {
           gap: 16,
         }}
       >
-        {opcionesTema.map((opcion) => {
+        {opciones.map((opcion) => {
           const activo = tema === opcion.valor;
 
           return (

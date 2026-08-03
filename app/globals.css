@@ -381,9 +381,10 @@ html[data-theme="sunset"] {
   --table-header-bg: rgba(10, 5, 2, 0.4);
 }
 
-/* Tema exclusivo (ver lib/betaAcceso.ts, tieneAccesoBeta) — negro puro
-   con acento verde neón, no un tema para el público general. */
-html[data-theme="neon"] {
+/* Familia de temas neón — negro puro con un acento neón distinto cada
+   uno y texto blanco. "Matrix" es el original (verde); los otros 4
+   son variantes de color para el mismo estilo. */
+html[data-theme="matrix"] {
   color-scheme: dark;
   --bg-primary: #000000;
   --bg-secondary: #050505;
@@ -398,6 +399,86 @@ html[data-theme="neon"] {
   --text-muted: #8fd98a;
   --glass-bg: rgba(57, 255, 20, 0.04);
   --glass-border: rgba(57, 255, 20, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.6);
+  --btn-secondary-bg: #111111;
+  --table-header-bg: rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="neonpink"] {
+  color-scheme: dark;
+  --bg-primary: #000000;
+  --bg-secondary: #050505;
+  --card-bg: #0a0a0a;
+  --card-hover: #111111;
+  --border: #2e1a2c;
+  --primary: #ff2df7;
+  --primary-hover: #d61fd1;
+  --primary-soft: rgba(255, 45, 247, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #ffb3fa;
+  --text-muted: #e2a0dd;
+  --glass-bg: rgba(255, 45, 247, 0.04);
+  --glass-border: rgba(255, 45, 247, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.6);
+  --btn-secondary-bg: #111111;
+  --table-header-bg: rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="neonblue"] {
+  color-scheme: dark;
+  --bg-primary: #000000;
+  --bg-secondary: #050505;
+  --card-bg: #0a0a0a;
+  --card-hover: #111111;
+  --border: #1a2530;
+  --primary: #00baff;
+  --primary-hover: #0090c2;
+  --primary-soft: rgba(0, 186, 255, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #99e3ff;
+  --text-muted: #7fd0f0;
+  --glass-bg: rgba(0, 186, 255, 0.04);
+  --glass-border: rgba(0, 186, 255, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.6);
+  --btn-secondary-bg: #111111;
+  --table-header-bg: rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="neonpurple"] {
+  color-scheme: dark;
+  --bg-primary: #000000;
+  --bg-secondary: #050505;
+  --card-bg: #0a0a0a;
+  --card-hover: #111111;
+  --border: #241a2e;
+  --primary: #b026ff;
+  --primary-hover: #8f1ecc;
+  --primary-soft: rgba(176, 38, 255, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #d9a6ff;
+  --text-muted: #c48eef;
+  --glass-bg: rgba(176, 38, 255, 0.04);
+  --glass-border: rgba(176, 38, 255, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.6);
+  --btn-secondary-bg: #111111;
+  --table-header-bg: rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="neonorange"] {
+  color-scheme: dark;
+  --bg-primary: #000000;
+  --bg-secondary: #050505;
+  --card-bg: #0a0a0a;
+  --card-hover: #111111;
+  --border: #2e2318;
+  --primary: #ff6a00;
+  --primary-hover: #cc5500;
+  --primary-soft: rgba(255, 106, 0, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #ffbb80;
+  --text-muted: #f0a868;
+  --glass-bg: rgba(255, 106, 0, 0.04);
+  --glass-border: rgba(255, 106, 0, 0.15);
   --input-bg: rgba(0, 0, 0, 0.6);
   --btn-secondary-bg: #111111;
   --table-header-bg: rgba(0, 0, 0, 0.5);
@@ -1464,6 +1545,139 @@ select optgroup {
   border-radius: 12px;
   object-fit: cover;
   border: 1px solid var(--border);
+}
+
+/* Tarjetas de Productos — reemplazan la tabla clásica: mismo
+   contenido pero en tarjetas pequeñas, más fáciles de leer en
+   celular (y en general) que filas angostas con muchas columnas. */
+.productos-tarjetas-grupo-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin: 0 0 10px 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.productos-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.producto-tarjeta {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.producto-tarjeta:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.producto-tarjeta-imagen {
+  width: 100%;
+  height: 84px;
+  border-radius: 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.producto-tarjeta-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.producto-tarjeta-cuerpo {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.producto-tarjeta-nombre {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.producto-tarjeta-categoria {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.producto-tarjeta-calificacion {
+  display: flex;
+  gap: 1px;
+  margin: 2px 0;
+}
+
+.producto-tarjeta-precios {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 2px;
+}
+
+.producto-tarjeta-precio {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.producto-tarjeta-costo {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.producto-tarjeta-fila-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.producto-tarjeta-stock strong {
+  color: var(--text-primary);
+}
+
+.producto-tarjeta-ubicacion {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.producto-tarjeta-acciones {
+  margin-top: 10px;
+}
+
+.productos-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  color: var(--text-secondary);
 }
 
 .upload-box-preview {
@@ -3270,6 +3484,12 @@ select optgroup {
   margin-top: 60px;
   color: #4e5264;
   font-size: 12.5px;
+}
+
+.landing-footer-creditos {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: #6b7086;
 }
 
 @media (max-width: 900px) {

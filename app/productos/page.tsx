@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { obtenerNegocioId } from "../../lib/negocioActual";
@@ -12,7 +12,7 @@ import { mensajeErrorSeguro } from "../../lib/errores";
 import { normalizarTexto } from "../../lib/normalizarTexto";
 import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
-import { ImagePlus, Package, Plus, Sparkles, Eraser } from "lucide-react";
+import { ImagePlus, Package, Plus, Sparkles, Eraser, Inbox, Star, MapPin } from "lucide-react";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import CampoConSugerencias from "../../components/CampoConSugerencias";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -23,8 +23,6 @@ import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import SinPermiso from "../../components/SinPermiso";
 import { guardarBorrador, leerBorrador, borrarBorrador } from "../../lib/borrador";
-import FilaVacia from "../../components/FilaVacia";
-import FilaGrupo from "../../components/FilaGrupo";
 
 const CLAVE_BORRADOR = "corestock-borrador-producto";
 
@@ -72,6 +70,13 @@ function ProductosInterno() {
   const searchParams = useSearchParams();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
+  // Ubicación (traspasos) y calificación por ventas de cada producto —
+  // se cargan aparte de "productos" porque dependen de otras tablas
+  // (stock_ubicaciones/ubicaciones, ventas) que pueden no existir
+  // todavía en cuentas viejas; un fallo ahí nunca debe tumbar la lista
+  // de productos en sí. Mapa producto_id -> valor calculado.
+  const [ubicacionPorProducto, setUbicacionPorProducto] = useState<Map<number, string>>(new Map());
+  const [calificacionPorProducto, setCalificacionPorProducto] = useState<Map<number, number>>(new Map());
 
   // Los tres campos leen su valor inicial de la URL (?nombre_sugerido=,
   // ?categoria_sugerida=, ?descripcion_sugerida=) cuando se llega desde
@@ -142,7 +147,11 @@ function ProductosInterno() {
   const excelInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user) cargar();
+    if (user) {
+      cargar();
+      cargarUbicacionesYCalificaciones();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Viene del FAB móvil "Nuevo producto (con cámara)" — abre el
@@ -262,6 +271,68 @@ function ProductosInterno() {
 
     if (data) setProductos(data);
     setCargando(false);
+  }
+
+  // Mejor esfuerzo, nunca bloquea la lista de productos: la ubicación
+  // viene de stock_ubicaciones (supabase_traspasos.sql, puede no
+  // existir todavía en cuentas viejas) y la calificación se deriva de
+  // ventas.producto_id. Un producto sin filas en stock_ubicaciones no
+  // está "mal" — solo nunca se registró en ningún traspaso, así que se
+  // muestra como ubicación desconocida en vez de dejarlo en blanco.
+  async function cargarUbicacionesYCalificaciones() {
+    try {
+      const { data: filasUbicacion, error: errorUbicacion } = await supabase
+        .from("stock_ubicaciones")
+        .select("producto_id, ubicaciones(nombre)")
+        .gt("stock", 0);
+
+      if (!errorUbicacion && filasUbicacion) {
+        const mapa = new Map<number, string>();
+        for (const fila of filasUbicacion as {
+          producto_id: number;
+          ubicaciones: { nombre: string } | { nombre: string }[] | null;
+        }[]) {
+          const relacion = fila.ubicaciones;
+          const nombre = Array.isArray(relacion) ? relacion[0]?.nombre : relacion?.nombre;
+          if (!nombre) continue;
+          const actual = mapa.get(fila.producto_id);
+          mapa.set(fila.producto_id, actual && !actual.includes(nombre) ? `${actual}, ${nombre}` : actual ?? nombre);
+        }
+        setUbicacionPorProducto(mapa);
+      }
+    } catch (error) {
+      console.error("No se pudo cargar la ubicación de los productos:", error);
+    }
+
+    try {
+      const { data: ventasData, error: errorVentas } = await supabase
+        .from("ventas")
+        .select("producto_id, cantidad");
+
+      if (!errorVentas && ventasData) {
+        const unidadesPorProducto = new Map<number, number>();
+        for (const v of ventasData as { producto_id: number | null; cantidad: number }[]) {
+          if (v.producto_id == null) continue;
+          unidadesPorProducto.set(v.producto_id, (unidadesPorProducto.get(v.producto_id) ?? 0) + Number(v.cantidad));
+        }
+
+        // Calificación relativa (1-5 estrellas) por percentil de
+        // unidades vendidas entre los productos que sí han tenido
+        // ventas — sin ventas no aparece en el mapa (0 estrellas en la
+        // tarjeta). Es relativa al propio catálogo porque no hay un
+        // umbral universal de "cuánto es vender mucho".
+        const ordenados = Array.from(unidadesPorProducto.entries()).sort((a, b) => b[1] - a[1]);
+        const nuevasCalificaciones = new Map<number, number>();
+        ordenados.forEach(([productoId], indice) => {
+          const percentil = indice / ordenados.length;
+          const estrellas = percentil < 0.2 ? 5 : percentil < 0.4 ? 4 : percentil < 0.6 ? 3 : percentil < 0.8 ? 2 : 1;
+          nuevasCalificaciones.set(productoId, estrellas);
+        });
+        setCalificacionPorProducto(nuevasCalificaciones);
+      }
+    } catch (error) {
+      console.error("No se pudo calcular la calificación de los productos:", error);
+    }
   }
 
   async function guardar() {
@@ -928,94 +999,98 @@ function ProductosInterno() {
       </div>
 
       {cargando ? (
-        <div className="tabla" style={{ marginTop: 24, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="productos-tarjetas" style={{ marginTop: 24 }}>
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                className="skeleton"
-                style={{ width: 44, height: 44, borderRadius: 8, flexShrink: 0, animationDelay: `${i * 0.06}s` }}
-              />
-              <div className="skeleton" style={{ flex: 2, height: 16, borderRadius: 4, animationDelay: `${i * 0.06}s` }} />
-              <div className="skeleton" style={{ flex: 1, height: 16, borderRadius: 4, animationDelay: `${i * 0.06}s` }} />
-              <div className="skeleton" style={{ flex: 1, height: 16, borderRadius: 4, animationDelay: `${i * 0.06}s` }} />
+            <div key={i} className="producto-tarjeta">
+              <div className="skeleton" style={{ width: "100%", height: 84, borderRadius: 10, animationDelay: `${i * 0.06}s` }} />
+              <div className="skeleton" style={{ height: 14, borderRadius: 4, marginTop: 12, animationDelay: `${i * 0.06}s` }} />
+              <div className="skeleton" style={{ height: 12, width: "60%", borderRadius: 4, marginTop: 8, animationDelay: `${i * 0.06}s` }} />
             </div>
           ))}
         </div>
+      ) : filtrados.length === 0 ? (
+        <div className="productos-vacio" style={{ marginTop: 24 }}>
+          <Inbox size={26} color="var(--text-muted)" />
+          <span>
+            {productos.length > 0 ? t("productos.sin_resultados_busqueda") : t("productos.sin_productos")}
+          </span>
+        </div>
       ) : (
-        <div className="tabla tabla-productos" style={{ marginTop: 24 }}>
-          <table>
-            <thead>
-              <tr>
-                <th>{t("productos.col_imagen")}</th>
-                <th>{t("productos.col_producto")}</th>
-                <th>{t("productos.categoria")}</th>
-                <th>{t("productos.precio")}</th>
-                {puede("ver_ganancias") && <th>{t("productos.costo")}</th>}
-                <th>{t("productos.stock")}</th>
-                {puede("gestionar_inventario") && <th>{t("productos.col_acciones")}</th>}
-              </tr>
-            </thead>
+        <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 22 }}>
+          {gruposCategoria.map((grupo) => (
+            <div key={grupo.etiqueta}>
+              <h3 className="productos-tarjetas-grupo-titulo">
+                {grupo.etiqueta} ({grupo.items.length})
+              </h3>
 
-            <tbody>
-              {filtrados.length === 0 ? (
-                <FilaVacia
-                  colSpan={
-                    3 + (puede("ver_ganancias") ? 1 : 0) + 1 + (puede("gestionar_inventario") ? 1 : 0) + 1
-                  }
-                  mensaje={
-                    productos.length > 0
-                      ? t("productos.sin_resultados_busqueda")
-                      : t("productos.sin_productos")
-                  }
-                />
-              ) : (
-                gruposCategoria.map((grupo) => (
-                  <Fragment key={grupo.etiqueta}>
-                    <FilaGrupo
-                      etiqueta={`${grupo.etiqueta} (${grupo.items.length})`}
-                      colSpan={
-                        3 + (puede("ver_ganancias") ? 1 : 0) + 1 + (puede("gestionar_inventario") ? 1 : 0) + 1
-                      }
-                    />
+              <div className="productos-tarjetas">
+                {grupo.items.map((p) => {
+                  const estrellas = calificacionPorProducto.get(p.id) ?? 0;
+                  const ubicacion = ubicacionPorProducto.get(p.id) ?? t("traspasos.ubicacion_desconocida");
 
-                    {grupo.items.map((p) => (
-                      <tr key={p.id}>
-                        <td data-label={t("productos.col_imagen")}>
-                          {p.imagen ? (
-                            <img src={p.imagen} alt={p.nombre} className="product-image" />
-                          ) : "—"}
-                        </td>
-
-                        <td data-label={t("productos.col_producto")}>{p.nombre}</td>
-                        <td data-label={t("productos.categoria")}>
-                          {p.categoria?.trim() ? p.categoria : t("productos.sin_categoria")}
-                        </td>
-                        <td data-label={t("productos.precio")}>{formatoMoneda(p.precio_venta)}</td>
-                        {puede("ver_ganancias") && (
-                          <td data-label={t("productos.costo")}>{formatoMoneda(p.costo ?? 0)}</td>
+                  return (
+                    <div key={p.id} className="producto-tarjeta">
+                      <div className="producto-tarjeta-imagen">
+                        {p.imagen ? (
+                          <img src={p.imagen} alt={p.nombre} />
+                        ) : (
+                          <Package size={26} color="var(--text-muted)" />
                         )}
-                        <td data-label={t("productos.stock")}>{p.stock}</td>
+                      </div>
+
+                      <div className="producto-tarjeta-cuerpo">
+                        <p className="producto-tarjeta-nombre">{p.nombre}</p>
+                        <p className="producto-tarjeta-categoria">
+                          {p.categoria?.trim() ? p.categoria : t("productos.sin_categoria")}
+                        </p>
+
+                        <div className="producto-tarjeta-calificacion" title={t("productos.calificacion")}>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Star
+                              key={n}
+                              size={13}
+                              fill={n <= estrellas ? "#f5b301" : "none"}
+                              color={n <= estrellas ? "#f5b301" : "var(--border)"}
+                            />
+                          ))}
+                        </div>
+
+                        <div className="producto-tarjeta-precios">
+                          <span className="producto-tarjeta-precio">{formatoMoneda(p.precio_venta)}</span>
+                          {puede("ver_ganancias") && (
+                            <span className="producto-tarjeta-costo">
+                              {t("productos.costo")}: {formatoMoneda(p.costo ?? 0)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="producto-tarjeta-fila-info">
+                          <span className="producto-tarjeta-stock">
+                            {t("productos.stock")}: <strong>{p.stock}</strong>
+                          </span>
+                          <span className="producto-tarjeta-ubicacion">
+                            <MapPin size={11} /> {ubicacion}
+                          </span>
+                        </div>
 
                         {puede("gestionar_inventario") && (
-                          <td className="tabla-productos-td-acciones">
-                            <div className="productos-actions">
-                              <button onClick={() => editar(p)} className="btn-edit">
-                                {t("productos.editar")}
-                              </button>
+                          <div className="productos-actions producto-tarjeta-acciones">
+                            <button onClick={() => editar(p)} className="btn-edit">
+                              {t("productos.editar")}
+                            </button>
 
-                              <button onClick={() => eliminar(p.id)} className="btn-delete">
-                                {t("productos.eliminar")}
-                              </button>
-                            </div>
-                          </td>
+                            <button onClick={() => eliminar(p.id)} className="btn-delete">
+                              {t("productos.eliminar")}
+                            </button>
+                          </div>
                         )}
-                      </tr>
-                    ))}
-                  </Fragment>
-                ))
-              )}
-            </tbody>
-          </table>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </>
