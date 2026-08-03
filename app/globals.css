@@ -7807,9 +7807,10 @@ select optgroup {
 }
 
 /* ---------------------------------------------------------------
-   Corebot — mascota del Asistente IA. Colores propios y fijos (rojo/
-   negro/blanco/amarillo), no los del tema activo: es un personaje con
-   identidad propia, no un adorno que combina con la paleta de turno.
+   Corebot — mascota del Asistente IA. Colores propios y fijos (morado
+   #5945e4, el color principal de CoreStock — negro/blanco/amarillo de
+   acento), no los del tema activo: es un personaje con identidad
+   propia, no un adorno que combina con la paleta de turno.
    Deambula por la pantalla (posición aleatoria + se sienta un rato)
    en vez de un ida-y-vuelta fijo de lado a lado — ver
    components/MascotaAsistente.tsx. */
@@ -7844,7 +7845,7 @@ select optgroup {
   position: relative;
   width: 42px;
   height: 36px;
-  background: linear-gradient(160deg, #ff4141, #e01f1f);
+  background: linear-gradient(160deg, #6f5af0, #5945e4);
   border-radius: 14px;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
 }
@@ -7860,7 +7861,7 @@ select optgroup {
   transform: translateX(-50%);
   width: 3px;
   height: 9px;
-  background: #e01f1f;
+  background: #4b39c4;
   border-radius: 2px;
 }
 
@@ -7883,7 +7884,7 @@ select optgroup {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #e01f1f;
+  background: #4b39c4;
 }
 
 .mascota-oreja-izq {
@@ -7917,7 +7918,7 @@ select optgroup {
   width: 26px;
   height: 16px;
   margin-top: 2px;
-  background: linear-gradient(160deg, #ff4141, #e01f1f);
+  background: linear-gradient(160deg, #6f5af0, #5945e4);
   border-radius: 8px;
 }
 
@@ -7943,7 +7944,7 @@ select optgroup {
   width: 7px;
   height: 7px;
   border-radius: 3px;
-  background: #e01f1f;
+  background: #4b39c4;
 }
 
 .mascota-caminando .mascota-pata {
