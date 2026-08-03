@@ -394,6 +394,7 @@ export const TRADUCCIONES: Diccionario = {
   "permiso.eliminar_ventas": { es: "Eliminar ventas", en: "Delete sales", pt: "Excluir vendas", fr: "Supprimer les ventes", de: "Verkäufe löschen", zh: "删除销售", it: "Eliminare vendite" },
   "permiso.ver_ganancias": { es: "Ver ganancias", en: "View profits", pt: "Ver lucros", fr: "Voir les bénéfices", de: "Gewinne ansehen", zh: "查看利润", it: "Vedere i guadagni" },
   "permiso.exportar_datos": { es: "Exportar datos", en: "Export data", pt: "Exportar dados", fr: "Exporter les données", de: "Daten exportieren", zh: "导出数据", it: "Esportare dati" },
+  "permiso.ver_inventario": { es: "Ver inventario", en: "View inventory", pt: "Ver estoque", fr: "Voir l'inventaire", de: "Bestand ansehen", zh: "查看库存", it: "Vedere l'inventario" },
   "permiso.gestionar_inventario": { es: "Gestionar inventario", en: "Manage inventory", pt: "Gerenciar estoque", fr: "Gérer l'inventaire", de: "Bestand verwalten", zh: "管理库存", it: "Gestire l'inventario" },
   "permiso.configuracion": { es: "Configuración", en: "Settings", pt: "Configurações", fr: "Paramètres", de: "Einstellungen", zh: "设置", it: "Impostazioni" },
 

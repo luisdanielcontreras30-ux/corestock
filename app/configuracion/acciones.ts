@@ -223,16 +223,21 @@ export async function establecerContrasenaMiembro(
   }
 }
 
+// Elimina al miembro y cierra cualquier sesión suya que siga abierta
+// (ver app/api/miembros/eliminar) — por eso pasa por el servidor en
+// vez de borrar la fila directo desde aquí con el cliente anónimo.
 export async function eliminarMiembro(id: string): Promise<void> {
-  await obtenerUsuarioActual();
+  const token = await obtenerAccessToken();
 
-  const { error } = await supabase
-    .from("miembros_equipo")
-    .delete()
-    .eq("id", id);
+  const respuesta = await fetch("/api/miembros/eliminar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ miembroId: id }),
+  });
 
-  if (error) {
-    throw error;
+  if (!respuesta.ok) {
+    const datos = await respuesta.json();
+    throw new Error(datos.error || "No se pudo eliminar al miembro.");
   }
 }
 

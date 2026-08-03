@@ -596,12 +596,14 @@ export default function DashboardPremium() {
             </Link>
           )}
 
-          <Link href="/productos" className="dashboard-simple-tile">
-            <span className="dashboard-simple-tile-icono" style={{ background: "#22c55e" }}>
-              <Package size={26} color="#fff" />
-            </span>
-            {t("sidebar.productos")}
-          </Link>
+          {(puede("ver_inventario") || puede("gestionar_inventario")) && (
+            <Link href="/productos" className="dashboard-simple-tile">
+              <span className="dashboard-simple-tile-icono" style={{ background: "#22c55e" }}>
+                <Package size={26} color="#fff" />
+              </span>
+              {t("sidebar.productos")}
+            </Link>
+          )}
 
           {puede("configuracion") && (
             <Link href="/configuracion" className="dashboard-simple-tile">

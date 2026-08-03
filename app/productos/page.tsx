@@ -21,6 +21,7 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import { useAuth } from "../../components/AuthProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import SinPermiso from "../../components/SinPermiso";
 import { guardarBorrador, leerBorrador, borrarBorrador } from "../../lib/borrador";
 import FilaVacia from "../../components/FilaVacia";
 import FilaGrupo from "../../components/FilaGrupo";
@@ -591,6 +592,23 @@ function ProductosInterno() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Productos");
     XLSX.writeFile(wb, "productos.xlsx");
+  }
+
+  if (!puede("ver_inventario") && !puede("gestionar_inventario")) {
+    return (
+      <main
+        className="fade-up"
+        style={{ display: "flex", flexDirection: "column", gap: 24 }}
+      >
+        <EncabezadoModulo
+          Icono={Package}
+          color="#22c55e"
+          titulo={t("productos.titulo")}
+          subtitulo={t("productos.subtitulo")}
+        />
+        <SinPermiso />
+      </main>
+    );
   }
 
   return (

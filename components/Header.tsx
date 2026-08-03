@@ -26,7 +26,7 @@ export default function Header({
   const { user } = useAuth();
   const { miembroActivo, puede } = useMiembroActivo();
   const correo = user?.email ?? "";
-  const puedeVerAlertas = !miembroActivo || puede("gestionar_inventario");
+  const puedeVerAlertas = !miembroActivo || puede("ver_inventario") || puede("gestionar_inventario");
 
   const [notisAbiertas, setNotisAbiertas] = useState(false);
   const [alertas, setAlertas] = useState<ProductoAlerta[]>([]);

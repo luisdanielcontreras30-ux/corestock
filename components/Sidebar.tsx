@@ -89,6 +89,10 @@ export default function Sidebar({
                 // ese acceso en el menú (la página también lo bloquea).
                 if (item.href === "/ventas" && !puede("ver_ventas")) return false;
                 if (item.href === "/ventas-rapidas" && !puede("registrar_ventas")) return false;
+                // Sin "ver inventario" (ni "gestionar inventario", que
+                // lo implica) un miembro no ve el acceso a Productos —
+                // la página también lo bloquea si entra por URL directa.
+                if (item.href === "/productos" && !puede("ver_inventario") && !puede("gestionar_inventario")) return false;
                 // Empleados IA / WhatsApp: en beta cerrada, solo visibles
                 // para la cuenta que los está probando (ver lib/betaAcceso.ts).
                 if (esRutaBetaCerrada(item.href) && !tieneAccesoBeta(user?.email)) return false;
