@@ -484,10 +484,338 @@ html[data-theme="neonorange"] {
   --table-header-bg: rgba(0, 0, 0, 0.5);
 }
 
+/* ==========================================================================
+   10 TEMAS ADICIONALES
+   ========================================================================== */
+
+html[data-theme="rose"] {
+  color-scheme: light;
+  --bg-primary: #fdf1f5;
+  --bg-secondary: #ffffff;
+  --card-bg: #ffffff;
+  --card-hover: #fdf5f8;
+  --border: #f5d9e3;
+  --primary: #e0729a;
+  --primary-hover: #c65a80;
+  --primary-soft: rgba(224, 114, 154, 0.12);
+  --text-primary: #3a1626;
+  --text-secondary: #7a4058;
+  --text-muted: #8f5a6d;
+  --glass-bg: rgba(224, 114, 154, 0.05);
+  --glass-border: rgba(224, 114, 154, 0.12);
+  --shadow-sm: 0 2px 10px rgba(58, 22, 38, 0.06);
+  --shadow-md: 0 8px 24px rgba(58, 22, 38, 0.08);
+  --shadow-lg: 0 14px 40px rgba(58, 22, 38, 0.12);
+  --input-bg: rgba(224, 114, 154, 0.06);
+  --btn-secondary-bg: #fdf1f5;
+  --table-header-bg: rgba(224, 114, 154, 0.06);
+}
+
+html[data-theme="ocean"] {
+  color-scheme: dark;
+  --bg-primary: #041019;
+  --bg-secondary: #061622;
+  --card-bg: #0a1f2e;
+  --card-hover: #0f2a3d;
+  --border: #123245;
+  --primary: #0ea5e9;
+  --primary-hover: #0c8bc4;
+  --primary-soft: rgba(14, 165, 233, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #7fb8d4;
+  --text-muted: #73a6c0;
+  --glass-bg: rgba(14, 165, 233, 0.04);
+  --glass-border: rgba(14, 165, 233, 0.1);
+  --input-bg: rgba(4, 10, 16, 0.6);
+  --btn-secondary-bg: #0f2a3d;
+  --table-header-bg: rgba(4, 10, 16, 0.4);
+}
+
+html[data-theme="coral"] {
+  color-scheme: light;
+  --bg-primary: #fff2ef;
+  --bg-secondary: #ffffff;
+  --card-bg: #ffffff;
+  --card-hover: #fff7f5;
+  --border: #ffd9d1;
+  --primary: #ff6f61;
+  --primary-hover: #e2564a;
+  --primary-soft: rgba(255, 111, 97, 0.12);
+  --text-primary: #451712;
+  --text-secondary: #8a3d33;
+  --text-muted: #9c5147;
+  --glass-bg: rgba(255, 111, 97, 0.05);
+  --glass-border: rgba(255, 111, 97, 0.12);
+  --shadow-sm: 0 2px 10px rgba(69, 23, 18, 0.06);
+  --shadow-md: 0 8px 24px rgba(69, 23, 18, 0.08);
+  --shadow-lg: 0 14px 40px rgba(69, 23, 18, 0.12);
+  --input-bg: rgba(255, 111, 97, 0.06);
+  --btn-secondary-bg: #fff2ef;
+  --table-header-bg: rgba(255, 111, 97, 0.06);
+}
+
+html[data-theme="lavender"] {
+  color-scheme: light;
+  --bg-primary: #f5f2ff;
+  --bg-secondary: #ffffff;
+  --card-bg: #ffffff;
+  --card-hover: #f8f6ff;
+  --border: #e2dbfb;
+  --primary: #9b8afb;
+  --primary-hover: #7f6cf0;
+  --primary-soft: rgba(155, 138, 251, 0.12);
+  --text-primary: #211a3d;
+  --text-secondary: #574c82;
+  --text-muted: #695d94;
+  --glass-bg: rgba(155, 138, 251, 0.05);
+  --glass-border: rgba(155, 138, 251, 0.12);
+  --shadow-sm: 0 2px 10px rgba(33, 26, 61, 0.06);
+  --shadow-md: 0 8px 24px rgba(33, 26, 61, 0.08);
+  --shadow-lg: 0 14px 40px rgba(33, 26, 61, 0.12);
+  --input-bg: rgba(155, 138, 251, 0.06);
+  --btn-secondary-bg: #f5f2ff;
+  --table-header-bg: rgba(155, 138, 251, 0.06);
+}
+
+html[data-theme="midnight"] {
+  color-scheme: dark;
+  --bg-primary: #05050f;
+  --bg-secondary: #08081a;
+  --card-bg: #0e0e26;
+  --card-hover: #151533;
+  --border: #1c1c3d;
+  --primary: #818cf8;
+  --primary-hover: #6a74e0;
+  --primary-soft: rgba(129, 140, 248, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #a3a8e0;
+  --text-muted: #9498cc;
+  --glass-bg: rgba(129, 140, 248, 0.04);
+  --glass-border: rgba(129, 140, 248, 0.1);
+  --input-bg: rgba(5, 5, 15, 0.6);
+  --btn-secondary-bg: #151533;
+  --table-header-bg: rgba(5, 5, 15, 0.4);
+}
+
+html[data-theme="peach"] {
+  color-scheme: light;
+  --bg-primary: #fff5eb;
+  --bg-secondary: #ffffff;
+  --card-bg: #ffffff;
+  --card-hover: #fff8f0;
+  --border: #ffe0bf;
+  --primary: #fb923c;
+  --primary-hover: #e17a26;
+  --primary-soft: rgba(251, 146, 60, 0.12);
+  --text-primary: #401f05;
+  --text-secondary: #855a2a;
+  --text-muted: #966c3c;
+  --glass-bg: rgba(251, 146, 60, 0.05);
+  --glass-border: rgba(251, 146, 60, 0.12);
+  --shadow-sm: 0 2px 10px rgba(64, 31, 5, 0.06);
+  --shadow-md: 0 8px 24px rgba(64, 31, 5, 0.08);
+  --shadow-lg: 0 14px 40px rgba(64, 31, 5, 0.12);
+  --input-bg: rgba(251, 146, 60, 0.06);
+  --btn-secondary-bg: #fff5eb;
+  --table-header-bg: rgba(251, 146, 60, 0.06);
+}
+
+html[data-theme="steel"] {
+  color-scheme: dark;
+  --bg-primary: #0a0f14;
+  --bg-secondary: #0d141b;
+  --card-bg: #131c26;
+  --card-hover: #1a2530;
+  --border: #202c38;
+  --primary: #38bdf8;
+  --primary-hover: #24a3dd;
+  --primary-soft: rgba(56, 189, 248, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #93aabd;
+  --text-muted: #8598ab;
+  --glass-bg: rgba(56, 189, 248, 0.04);
+  --glass-border: rgba(56, 189, 248, 0.1);
+  --input-bg: rgba(10, 15, 20, 0.6);
+  --btn-secondary-bg: #1a2530;
+  --table-header-bg: rgba(10, 15, 20, 0.4);
+}
+
+html[data-theme="ruby"] {
+  color-scheme: dark;
+  --bg-primary: #120505;
+  --bg-secondary: #1a0808;
+  --card-bg: #240d0d;
+  --card-hover: #301212;
+  --border: #3d1717;
+  --primary: #dc2626;
+  --primary-hover: #b81f1f;
+  --primary-soft: rgba(220, 38, 38, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #d99999;
+  --text-muted: #c28888;
+  --glass-bg: rgba(220, 38, 38, 0.04);
+  --glass-border: rgba(220, 38, 38, 0.1);
+  --input-bg: rgba(18, 5, 5, 0.6);
+  --btn-secondary-bg: #301212;
+  --table-header-bg: rgba(18, 5, 5, 0.4);
+}
+
+html[data-theme="gold"] {
+  color-scheme: dark;
+  --bg-primary: #120e02;
+  --bg-secondary: #1a1404;
+  --card-bg: #241c08;
+  --card-hover: #30260c;
+  --border: #3d2f10;
+  --primary: #eab308;
+  --primary-hover: #c99807;
+  --primary-soft: rgba(234, 179, 8, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #d9c286;
+  --text-muted: #c2ac74;
+  --glass-bg: rgba(234, 179, 8, 0.04);
+  --glass-border: rgba(234, 179, 8, 0.1);
+  --input-bg: rgba(18, 14, 2, 0.6);
+  --btn-secondary-bg: #30260c;
+  --table-header-bg: rgba(18, 14, 2, 0.4);
+}
+
+html[data-theme="ice"] {
+  color-scheme: light;
+  --bg-primary: #eff9ff;
+  --bg-secondary: #ffffff;
+  --card-bg: #ffffff;
+  --card-hover: #f4fbff;
+  --border: #cdeefd;
+  --primary: #0ea5e9;
+  --primary-hover: #0c8bc4;
+  --primary-soft: rgba(14, 165, 233, 0.1);
+  --text-primary: #082433;
+  --text-secondary: #3c6a80;
+  --text-muted: #4f7e93;
+  --glass-bg: rgba(14, 165, 233, 0.04);
+  --glass-border: rgba(14, 165, 233, 0.1);
+  --shadow-sm: 0 2px 10px rgba(8, 36, 51, 0.06);
+  --shadow-md: 0 8px 24px rgba(8, 36, 51, 0.08);
+  --shadow-lg: 0 14px 40px rgba(8, 36, 51, 0.12);
+  --input-bg: rgba(14, 165, 233, 0.05);
+  --btn-secondary-bg: #eff9ff;
+  --table-header-bg: rgba(14, 165, 233, 0.05);
+}
+
+/* ==========================================================================
+   5 TEMAS DE REFERENCIA (estilo Matrix: negro + un acento neón + blanco,
+   cada uno inspirado en una estética de cine/pop culture distinta)
+   ========================================================================== */
+
+html[data-theme="cyberpunk"] {
+  color-scheme: dark;
+  --bg-primary: #050014;
+  --bg-secondary: #0a021f;
+  --card-bg: #0f0329;
+  --card-hover: #170538;
+  --border: #240a4d;
+  --primary: #fcee0a;
+  --primary-hover: #d9cd09;
+  --primary-soft: rgba(252, 238, 10, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #d6c9ff;
+  --text-muted: #b8a8e8;
+  --glass-bg: rgba(252, 238, 10, 0.04);
+  --glass-border: rgba(252, 238, 10, 0.15);
+  --input-bg: rgba(5, 0, 20, 0.6);
+  --btn-secondary-bg: #170538;
+  --table-header-bg: rgba(5, 0, 20, 0.4);
+}
+
+html[data-theme="tron"] {
+  color-scheme: dark;
+  --bg-primary: #000000;
+  --bg-secondary: #030b0d;
+  --card-bg: #061619;
+  --card-hover: #0a2025;
+  --border: #0f2e33;
+  --primary: #00f6ff;
+  --primary-hover: #00c9d1;
+  --primary-soft: rgba(0, 246, 255, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #8feef5;
+  --text-muted: #7cd6dd;
+  --glass-bg: rgba(0, 246, 255, 0.04);
+  --glass-border: rgba(0, 246, 255, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.6);
+  --btn-secondary-bg: #0a2025;
+  --table-header-bg: rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="joker"] {
+  color-scheme: dark;
+  --bg-primary: #050208;
+  --bg-secondary: #0a0510;
+  --card-bg: #120a1e;
+  --card-hover: #1c1230;
+  --border: #2a1a42;
+  --primary: #7cff2e;
+  --primary-hover: #64d922;
+  --primary-soft: rgba(124, 255, 46, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #c9a6ff;
+  --text-muted: #b48cef;
+  --glass-bg: rgba(124, 255, 46, 0.04);
+  --glass-border: rgba(124, 255, 46, 0.15);
+  --input-bg: rgba(5, 2, 8, 0.6);
+  --btn-secondary-bg: #1c1230;
+  --table-header-bg: rgba(5, 2, 8, 0.5);
+}
+
+html[data-theme="terminator"] {
+  color-scheme: dark;
+  --bg-primary: #000000;
+  --bg-secondary: #0a0303;
+  --card-bg: #140505;
+  --card-hover: #200a0a;
+  --border: #330f0f;
+  --primary: #ff0a0a;
+  --primary-hover: #d90808;
+  --primary-soft: rgba(255, 10, 10, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #ff9494;
+  --text-muted: #e07d7d;
+  --glass-bg: rgba(255, 10, 10, 0.04);
+  --glass-border: rgba(255, 10, 10, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.6);
+  --btn-secondary-bg: #200a0a;
+  --table-header-bg: rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="strangerthings"] {
+  color-scheme: dark;
+  --bg-primary: #030000;
+  --bg-secondary: #0a0202;
+  --card-bg: #140505;
+  --card-hover: #200909;
+  --border: #360d0d;
+  --primary: #e10600;
+  --primary-hover: #b80500;
+  --primary-soft: rgba(225, 6, 0, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #ff8a80;
+  --text-muted: #e07a70;
+  --glass-bg: rgba(225, 6, 0, 0.04);
+  --glass-border: rgba(225, 6, 0, 0.15);
+  --input-bg: rgba(3, 0, 0, 0.6);
+  --btn-secondary-bg: #200909;
+  --table-header-bg: rgba(3, 0, 0, 0.5);
+}
+
 body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
+  /* Cambiar de tema (o probar los 33 disponibles) ya no "salta" de un
+     color al otro de golpe — el fondo y el texto se desvanecen entre
+     el tema anterior y el nuevo. */
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* ==========================================================================
@@ -501,6 +829,7 @@ body {
   height: 100vh;
   overflow: hidden;
   background-color: var(--bg-primary);
+  transition: background-color 0.25s ease;
 }
 
 /* Barra Lateral Izquierda */
@@ -513,6 +842,7 @@ body {
   padding: 24px 16px;
   height: 100vh;
   flex-shrink: 0;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 /* Contenedor del contenido a la derecha */
@@ -585,7 +915,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 24px;
-  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), background-color 0.25s ease;
 }
 
 .card:hover {
@@ -966,6 +1296,34 @@ select optgroup {
        ningún transform activo. */
     transform: none;
   }
+}
+
+/* Tarjetas del selector de temas (Configuración > Apariencia) — con 33
+   temas disponibles, un poco de vida al pasar el mouse y al aparecer
+   ayuda a que la grilla no se sienta como una pared de cuadros. */
+.tema-opcion-card {
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tema-opcion-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+@keyframes temaOpcionPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.tema-opcion-activo-pop {
+  display: inline-block;
+  animation: temaOpcionPopIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .fade-up {

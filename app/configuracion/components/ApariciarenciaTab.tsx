@@ -46,6 +46,21 @@ const opciones: OpcionTema[] = [
   { valor: "neonblue", claveNombre: "tema.neonblue.nombre", claveDesc: "tema.neonblue.desc", colores: ["#000000", "#0a0a0a", "#00baff"] },
   { valor: "neonpurple", claveNombre: "tema.neonpurple.nombre", claveDesc: "tema.neonpurple.desc", colores: ["#000000", "#0a0a0a", "#b026ff"] },
   { valor: "neonorange", claveNombre: "tema.neonorange.nombre", claveDesc: "tema.neonorange.desc", colores: ["#000000", "#0a0a0a", "#ff6a00"] },
+  { valor: "rose", claveNombre: "tema.rose.nombre", claveDesc: "tema.rose.desc", colores: ["#fdf1f5", "#ffffff", "#e0729a"] },
+  { valor: "ocean", claveNombre: "tema.ocean.nombre", claveDesc: "tema.ocean.desc", colores: ["#041019", "#0a1f2e", "#0ea5e9"] },
+  { valor: "coral", claveNombre: "tema.coral.nombre", claveDesc: "tema.coral.desc", colores: ["#fff2ef", "#ffffff", "#ff6f61"] },
+  { valor: "lavender", claveNombre: "tema.lavender.nombre", claveDesc: "tema.lavender.desc", colores: ["#f5f2ff", "#ffffff", "#9b8afb"] },
+  { valor: "midnight", claveNombre: "tema.midnight.nombre", claveDesc: "tema.midnight.desc", colores: ["#05050f", "#0e0e26", "#818cf8"] },
+  { valor: "peach", claveNombre: "tema.peach.nombre", claveDesc: "tema.peach.desc", colores: ["#fff5eb", "#ffffff", "#fb923c"] },
+  { valor: "steel", claveNombre: "tema.steel.nombre", claveDesc: "tema.steel.desc", colores: ["#0a0f14", "#131c26", "#38bdf8"] },
+  { valor: "ruby", claveNombre: "tema.ruby.nombre", claveDesc: "tema.ruby.desc", colores: ["#120505", "#240d0d", "#dc2626"] },
+  { valor: "gold", claveNombre: "tema.gold.nombre", claveDesc: "tema.gold.desc", colores: ["#120e02", "#241c08", "#eab308"] },
+  { valor: "ice", claveNombre: "tema.ice.nombre", claveDesc: "tema.ice.desc", colores: ["#eff9ff", "#ffffff", "#0ea5e9"] },
+  { valor: "cyberpunk", claveNombre: "tema.cyberpunk.nombre", claveDesc: "tema.cyberpunk.desc", colores: ["#050014", "#0f0329", "#fcee0a"] },
+  { valor: "tron", claveNombre: "tema.tron.nombre", claveDesc: "tema.tron.desc", colores: ["#000000", "#061619", "#00f6ff"] },
+  { valor: "joker", claveNombre: "tema.joker.nombre", claveDesc: "tema.joker.desc", colores: ["#050208", "#120a1e", "#7cff2e"] },
+  { valor: "terminator", claveNombre: "tema.terminator.nombre", claveDesc: "tema.terminator.desc", colores: ["#000000", "#140505", "#ff0a0a"] },
+  { valor: "strangerthings", claveNombre: "tema.strangerthings.nombre", claveDesc: "tema.strangerthings.desc", colores: ["#030000", "#140505", "#e10600"] },
 ];
 
 const OPCIONES_TENDENCIA: { valor: "area" | "barras" | "velas"; clave: string }[] = [
@@ -148,13 +163,14 @@ export default function ApariciarenciaTab() {
           gap: 16,
         }}
       >
-        {opciones.map((opcion) => {
+        {opciones.map((opcion, indice) => {
           const activo = tema === opcion.valor;
 
           return (
             <button
               key={opcion.valor}
               onClick={() => cambiarTema(opcion.valor)}
+              className="tema-opcion-card fade-up"
               style={{
                 textAlign: "left",
                 padding: 16,
@@ -164,8 +180,7 @@ export default function ApariciarenciaTab() {
                   : "1px solid var(--border)",
                 background: "var(--card-hover)",
                 cursor: "pointer",
-                transition:
-                  "border-color .2s ease, transform .15s ease",
+                animationDelay: `${Math.min(indice * 0.02, 0.3)}s`,
               }}
             >
               <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
@@ -198,6 +213,7 @@ export default function ApariciarenciaTab() {
                 {t(opcion.claveNombre)}
                 {activo && (
                   <span
+                    className="tema-opcion-activo-pop"
                     style={{
                       fontSize: 11,
                       color: "var(--primary)",

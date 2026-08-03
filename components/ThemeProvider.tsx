@@ -8,7 +8,11 @@ import React, {
   ReactNode,
 } from "react";
 
-export type Tema = "dark" | "green" | "blue" | "purple" | "amber" | "slate" | "cyan" | "wine" | "light" | "pink" | "mint" | "sunset" | "teal" | "matrix" | "neonpink" | "neonblue" | "neonpurple" | "neonorange";
+export type Tema =
+  | "dark" | "green" | "blue" | "purple" | "amber" | "slate" | "cyan" | "wine" | "light" | "pink" | "mint" | "sunset" | "teal"
+  | "matrix" | "neonpink" | "neonblue" | "neonpurple" | "neonorange"
+  | "rose" | "ocean" | "coral" | "lavender" | "midnight" | "peach" | "steel" | "ruby" | "gold" | "ice"
+  | "cyberpunk" | "tron" | "joker" | "terminator" | "strangerthings";
 
 // Tipo de gráfica para la tendencia de ventas (área/barras/velas) y
 // para la distribución de artículos (pastel/barras) — se pueden
@@ -61,7 +65,12 @@ const CLAVE_STORAGE = "corestock-theme";
 const CLAVE_STORAGE_TENDENCIA = "corestock-grafica-tendencia";
 const CLAVE_STORAGE_DISTRIBUCION = "corestock-grafica-distribucion";
 
-const TEMAS_VALIDOS: Tema[] = ["dark", "green", "blue", "purple", "amber", "slate", "cyan", "wine", "light", "pink", "mint", "sunset", "teal", "matrix", "neonpink", "neonblue", "neonpurple", "neonorange"];
+const TEMAS_VALIDOS: Tema[] = [
+  "dark", "green", "blue", "purple", "amber", "slate", "cyan", "wine", "light", "pink", "mint", "sunset", "teal",
+  "matrix", "neonpink", "neonblue", "neonpurple", "neonorange",
+  "rose", "ocean", "coral", "lavender", "midnight", "peach", "steel", "ruby", "gold", "ice",
+  "cyberpunk", "tron", "joker", "terminator", "strangerthings",
+];
 const TENDENCIAS_VALIDAS: TipoGraficaTendencia[] = ["area", "barras", "velas"];
 const DISTRIBUCIONES_VALIDAS: TipoGraficaDistribucion[] = ["pastel", "barras"];
 
