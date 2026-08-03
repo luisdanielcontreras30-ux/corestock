@@ -379,8 +379,8 @@ export async function POST(request: Request) {
 
   try {
     const contexto = await construirContexto(supabase);
-    const respuesta = await generarRespuestaAsistente(pregunta, historial, contexto, idioma);
-    return NextResponse.json({ respuesta });
+    const { texto, emocion } = await generarRespuestaAsistente(pregunta, historial, contexto, idioma);
+    return NextResponse.json({ respuesta: texto, emocion });
   } catch (error) {
     console.error("Asistente IA:", error);
 

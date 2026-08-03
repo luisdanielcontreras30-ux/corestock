@@ -131,6 +131,58 @@ export class ErrorGroq extends Error {
   }
 }
 
+// Las emociones de Corebot, la mascota del Asistente. "pensando" es
+// la única que NO se le pide al modelo — la pone el navegador solo
+// mientras espera la respuesta, así que dársela también al modelo
+// crearía dos dueños para el mismo estado.
+export type EmocionCorebot =
+  | "feliz"
+  | "pensando"
+  | "sorprendido"
+  | "analizando"
+  | "concentrado"
+  | "ayudando"
+  | "emocionado"
+  | "durmiendo";
+
+const EMOCIONES_VALIDAS: EmocionCorebot[] = [
+  "feliz",
+  "pensando",
+  "sorprendido",
+  "analizando",
+  "concentrado",
+  "ayudando",
+  "emocionado",
+  "durmiendo",
+];
+
+export interface RespuestaAsistente {
+  texto: string;
+  emocion: EmocionCorebot | null;
+}
+
+// El modelo cierra su respuesta con una línea `[[emocion:X]]` que la
+// persona nunca ve — se recorta acá y se usa para que Corebot
+// reaccione con la cara/pose que el propio modelo eligió, en vez de
+// una animación desconectada de lo que se está hablando. Si el
+// modelo no la puso, o puso algo que no está en la lista, se
+// devuelve el texto tal cual y sin emoción forzada.
+function extraerEmocion(textoCrudo: string): RespuestaAsistente {
+  const coincidencia = textoCrudo.match(/\n?\s*\[\[\s*emocion\s*:\s*(\w+)\s*\]\]\s*$/i);
+
+  if (!coincidencia) {
+    return { texto: textoCrudo, emocion: null };
+  }
+
+  const candidata = coincidencia[1].toLowerCase() as EmocionCorebot;
+  const texto = textoCrudo.slice(0, coincidencia.index).trim();
+
+  return {
+    texto: texto || textoCrudo,
+    emocion: EMOCIONES_VALIDAS.includes(candidata) ? candidata : null,
+  };
+}
+
 function listaCorta(nombres: string[], maximo = 8): string {
   if (nombres.length === 0) return "ninguno";
   const visibles = nombres.slice(0, maximo).join(", ");
@@ -185,6 +237,12 @@ function construirSistema(contexto: ContextoNegocio, idioma: string): string {
     "LÍMITES:",
     "- No puedes registrar ventas, cambiar precios ni modificar nada. Solo informas y aconsejas. Si te piden hacer algo, explica en qué pantalla se hace.",
     "- En temas de impuestos, contratos o salud, da la orientación general que sepas y di con claridad cuándo conviene consultar a un profesional.",
+    "",
+    "COREBOT, TU MASCOTA:",
+    "- Eres representado en pantalla por Corebot, un robot animado. Tras escribir tu respuesta completa, agrega una última línea, sola y sin nada más, con el formato exacto `[[emocion:X]]`.",
+    "- X es UNA sola palabra de esta lista, la que mejor refleje el tono de lo que acabas de responder: feliz, sorprendido, analizando, concentrado, ayudando, emocionado, durmiendo.",
+    "- Usa feliz para una respuesta amable o positiva de rutina; sorprendido ante un dato llamativo o inesperado; analizando cuando estás repasando cifras del negocio; concentrado en un tema serio o técnico; ayudando cuando estás guiando paso a paso; emocionado ante buenas noticias o algo para celebrar; durmiendo si la conversación es de despedida, buenas noches o algo relajado.",
+    "- Esa línea es solo una instrucción para animar a Corebot: la persona nunca la ve, así que no la menciones, no la expliques y no la pongas en ningún otro lugar de la respuesta.",
   ].join("\n");
 }
 
@@ -193,7 +251,7 @@ export async function generarRespuestaAsistente(
   historial: MensajeChat[],
   contexto: ContextoNegocio,
   idioma: string
-): Promise<string> {
+): Promise<RespuestaAsistente> {
   const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
@@ -214,7 +272,7 @@ export async function generarRespuestaAsistente(
     { role: "user", content: pregunta },
   ];
 
-  return pedirTexto(modelo, mensajes, {
+  const textoCrudo = await pedirTexto(modelo, mensajes, {
     temperatura: 0.6,
     maxTokens: MAX_TOKENS_RESPUESTA,
     // Menos plazo que analizar una foto: una respuesta de chat que tarda
@@ -222,6 +280,8 @@ export async function generarRespuestaAsistente(
     // caer al motor de reglas dentro del límite de la función.
     plazoMs: 30000,
   });
+
+  return extraerEmocion(textoCrudo);
 }
 
 // ---------------------------------------------------------------------

@@ -13,11 +13,21 @@ export interface MensajeIA {
   texto: string;
 }
 
+// La emoción viene del propio modelo (ver lib/groq.ts): es el mismo
+// que responde el que decide con qué cara/pose reacciona Corebot, en
+// vez de una animación desconectada de la conversación. Puede venir
+// null cuando el motor de reglas contestó (no pasó por la IA) o si el
+// modelo no la incluyó.
+export interface RespuestaAIa {
+  texto: string;
+  emocion: string | null;
+}
+
 export async function preguntarAIa(
   pregunta: string,
   historial: MensajeIA[],
   idioma: string
-): Promise<string | null> {
+): Promise<RespuestaAIa | null> {
   try {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
@@ -40,15 +50,21 @@ export async function preguntarAIa(
       if (respuesta.status === 429) {
         const cuerpo = await respuesta.json().catch(() => null);
         const texto = (cuerpo as { error?: string } | null)?.error;
-        if (texto) return texto;
+        if (texto) return { texto, emocion: null };
       }
       return null;
     }
 
     const cuerpo = await respuesta.json();
     const texto = (cuerpo as { respuesta?: unknown }).respuesta;
+    const emocionBruta = (cuerpo as { emocion?: unknown }).emocion;
 
-    return typeof texto === "string" && texto.trim() ? texto.trim() : null;
+    if (typeof texto !== "string" || !texto.trim()) return null;
+
+    return {
+      texto: texto.trim(),
+      emocion: typeof emocionBruta === "string" ? emocionBruta : null,
+    };
   } catch {
     // Sin conexión, plazo vencido, servidor caído: todo cae al respaldo.
     return null;

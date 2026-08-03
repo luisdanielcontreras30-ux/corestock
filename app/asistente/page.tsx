@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Sparkles, Send, Bot, ChevronDown } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -24,6 +24,7 @@ import {
 import type { IntencionDatos } from "./deteccion";
 import type { TemaConocimiento } from "./conocimiento";
 import { preguntarAIa, MensajeIA } from "./ia";
+import type { EmocionCorebot } from "../../lib/groq";
 import { interpretarCalculo } from "./calculadora";
 import { normalizarTexto } from "../../lib/normalizarTexto";
 
@@ -149,13 +150,36 @@ function AsistenteContenido() {
   // La mascota camina por la pantalla mientras la persona no está
   // escribiendo — un instante de gracia (1.5s) antes de que aparezca,
   // para que no salte a la vista con cada tecla que se borra. En
-  // cuanto se vuelve a escribir o el asistente está pensando, se
-  // esconde de inmediato.
+  // cuanto se vuelve a escribir se esconde de inmediato; mientras el
+  // asistente está pensando, en cambio, se queda a la vista (con la
+  // cara de "pensando") en lugar de desaparecer — es lo que la
+  // conecta con la conversación real en vez de ser un adorno aparte.
   const [mascotaActiva, setMascotaActiva] = useState(false);
+  // La emoción de la última respuesta (de la IA o del motor de
+  // reglas). Dura unos segundos y luego se apaga sola.
+  const [emocionMascota, setEmocionMascota] = useState<EmocionCorebot | null>(null);
+  const timeoutEmocionRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const reaccionarConEmocion = useCallback((emocion: EmocionCorebot | string | null) => {
+    if (!emocion) return;
+    if (timeoutEmocionRef.current) clearTimeout(timeoutEmocionRef.current);
+    setEmocionMascota(emocion as EmocionCorebot);
+    timeoutEmocionRef.current = setTimeout(() => setEmocionMascota(null), 5000);
+  }, []);
 
   useEffect(() => {
-    if (entrada.trim() !== "" || pensando) {
+    return () => {
+      if (timeoutEmocionRef.current) clearTimeout(timeoutEmocionRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (entrada.trim() !== "") {
       setMascotaActiva(false);
+      return;
+    }
+    if (pensando) {
+      setMascotaActiva(true);
       return;
     }
     const id = setTimeout(() => setMascotaActiva(true), 1500);
@@ -221,6 +245,7 @@ function AsistenteContenido() {
       ]);
 
       agregarMensaje("asistente", respuesta);
+      reaccionarConEmocion("analizando");
     } catch (error) {
       console.error(error);
       agregarMensaje("asistente", t("asistente.msg_error"));
@@ -315,7 +340,11 @@ function AsistenteContenido() {
         // La IA lleva su propio hilo en el historial, así que el tema
         // recordado del motor de reglas dejaría de tener sentido.
         setUltimoTema(null);
-        agregarMensaje("asistente", respuestaIA);
+        agregarMensaje("asistente", respuestaIA.texto);
+        // La cara de Corebot la elige la propia IA según el tono de lo
+        // que acaba de responder (ver lib/groq.ts) — no es una
+        // animación aparte.
+        reaccionarConEmocion(respuestaIA.emocion);
         return;
       }
 
@@ -447,7 +476,19 @@ function AsistenteContenido() {
           afecto: "asistente.afecto_respuesta",
         };
 
+        // Este camino no pasa por la IA, así que la emoción no la
+        // "razona" nadie: es un mapeo fijo y simple según el tipo de
+        // charla, para que Corebot no se quede sin cara fuera de Groq.
+        const EMOCION_CHARLA: Record<typeof resultado.tipo, EmocionCorebot> = {
+          desahogo: "ayudando",
+          celebracion: "emocionado",
+          opinion: "concentrado",
+          chiste: "feliz",
+          afecto: "feliz",
+        };
+
         agregarMensaje("asistente", t(RESPUESTAS_CHARLA[resultado.tipo]));
+        reaccionarConEmocion(EMOCION_CHARLA[resultado.tipo]);
         return;
       }
 
@@ -458,6 +499,7 @@ function AsistenteContenido() {
 
       try {
         agregarMensaje("asistente", await FUNCIONES_DATOS[resultado.intencion](idioma));
+        reaccionarConEmocion("analizando");
       } catch (error) {
         console.error(error);
         agregarMensaje("asistente", t("asistente.msg_error"));
@@ -615,7 +657,7 @@ function AsistenteContenido() {
         </button>
       </div>
 
-      <MascotaAsistente activo={mascotaActiva} />
+      <MascotaAsistente activo={mascotaActiva} pensando={pensando} emocion={emocionMascota} />
     </main>
   );
 }

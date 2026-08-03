@@ -7909,6 +7909,7 @@ select optgroup {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  overflow: hidden;
 }
 
 .mascota-ojo {
@@ -8330,6 +8331,142 @@ select optgroup {
   transform: rotate(18deg);
 }
 
+/* --- Emociones de Corebot, conectadas a la conversación real: llegan
+   de app/asistente/page.tsx (pensando mientras espera, o la emoción
+   que trajo la última respuesta) — ver componentes/MascotaAsistente.tsx.
+   Se dibujan con la boca y el escáner nuevos + variaciones de los ojos
+   y los brazos que ya existían, no con arte nuevo. --- */
+
+.mascota-boca {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+}
+
+.mascota-gesto-feliz .mascota-boca,
+.mascota-gesto-emocionado .mascota-boca {
+  width: 10px;
+  height: 5px;
+  border-bottom: 2px solid #ffffff;
+  border-radius: 0 0 10px 10px;
+}
+
+.mascota-gesto-sorprendido .mascota-boca {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.mascota-gesto-sorprendido .mascota-ojo {
+  transform: scale(1.35);
+}
+
+.mascota-gesto-concentrado .mascota-ojo {
+  width: 8px;
+  height: 2px;
+  border-radius: 2px;
+}
+
+.mascota-gesto-pensando .mascota-ojo:nth-child(2) {
+  transform: translateY(-2px);
+}
+
+.mascota-gesto-pensando .mascota-cabeza {
+  animation: mascotaPensarLadeo 1.6s ease-in-out infinite;
+}
+
+@keyframes mascotaPensarLadeo {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-5deg);
+  }
+}
+
+.mascota-gesto-durmiendo .mascota-ojo {
+  height: 2px;
+  border-radius: 2px;
+}
+
+.mascota-gesto-durmiendo .mascota-cabeza::after {
+  content: "z Z z";
+  position: absolute;
+  top: -14px;
+  right: -12px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--primary);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  letter-spacing: 1px;
+  animation: mascotaZzz 2.4s ease-in-out infinite;
+}
+
+@keyframes mascotaZzz {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.mascota-escaner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  animation: mascotaEscanear 1.3s ease-in-out infinite;
+}
+
+@keyframes mascotaEscanear {
+  0%,
+  100% {
+    top: 2px;
+  }
+  50% {
+    top: 18px;
+  }
+}
+
+.mascota-gesto-ayudando .mascota-brazo-der {
+  top: -6px;
+  transform: rotate(-60deg);
+}
+
+.mascota-gesto-emocionado .mascota-brazo-izq {
+  top: -6px;
+  transform: rotate(140deg);
+}
+
+.mascota-gesto-emocionado .mascota-brazo-der {
+  top: -6px;
+  transform: rotate(-140deg);
+}
+
+.mascota-gesto-emocionado .mascota-ojo {
+  animation: mascotaOjoBrinco 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes mascotaOjoBrinco {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mascota-personaje {
     transition: none;
@@ -8339,7 +8476,13 @@ select optgroup {
   .mascota-cuerpo,
   .mascota-pata,
   .mascota-brazo,
-  .mascota-petalos {
+  .mascota-petalos,
+  .mascota-ojo,
+  .mascota-escaner {
+    animation: none !important;
+  }
+
+  .mascota-gesto-durmiendo .mascota-cabeza::after {
     animation: none !important;
   }
 }
