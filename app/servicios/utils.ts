@@ -11,6 +11,11 @@ export function exportarExcel(trabajos: Trabajo[]) {
     // =SUMA(...) sobre esa columna da 0 en vez del total real.
     Precio: Number(trab.precio),
     Estado: trab.estado,
+    // fecha es la fecha del TRABAJO, no cuándo entró el dinero — sin
+    // esta columna, alguien reconciliando su Excel contra su banco no
+    // tenía forma de saber el día real de cobro (ver
+    // supabase_servicios_fecha_cobro.sql). Vacío si nunca se cobró.
+    "Fecha de cobro": trab.fecha_cobro ? new Date(trab.fecha_cobro).toLocaleString() : "",
     Notas: trab.notas ?? "",
   }));
 
