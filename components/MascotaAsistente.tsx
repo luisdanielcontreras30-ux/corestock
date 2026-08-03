@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIdioma } from "./LanguageProvider";
+import { useTheme } from "./ThemeProvider";
 
 // Frases con personalidad + consejos reales de negocio — para que no
 // se sienta como un adorno mudo sino como parte del Asistente.
@@ -77,6 +78,19 @@ function posturaDeZona(zona: Zona, enMovimiento: boolean): Postura {
   return enMovimiento ? "caminando" : "sentado";
 }
 
+// En los temas de referencia (estilo Matrix), Corebot no solo cambia
+// de color con var(--primary) — se disfraza del personaje que
+// inspira al tema. En el resto de los 33 temas sigue siendo el mismo
+// robot, solo con otro color.
+type PersonajeEspecial = "demogorgon" | "cyberpunk" | "joker" | null;
+
+function personajeEspecialDeTema(tema: string): PersonajeEspecial {
+  if (tema === "strangerthings") return "demogorgon";
+  if (tema === "cyberpunk") return "cyberpunk";
+  if (tema === "joker") return "joker";
+  return null;
+}
+
 // Corebot, la mascota del Asistente IA: mientras no se está
 // escribiendo, recorre los bordes de la pantalla — nunca por encima
 // del chat — sentándose o escalando/colgándose según el tramo, y a
@@ -85,6 +99,8 @@ function posturaDeZona(zona: Zona, enMovimiento: boolean): Postura {
 // app/asistente/page.tsx (se esconde en cuanto la persona escribe).
 export default function MascotaAsistente({ activo }: { activo: boolean }) {
   const { t } = useIdioma();
+  const { tema } = useTheme();
+  const especial = personajeEspecialDeTema(tema);
   const [zona, setZona] = useState<Zona>("suelo");
   const [posicion, setPosicion] = useState<Posicion>(() => posicionEnZona("suelo"));
   const [mirandoIzquierda, setMirandoIzquierda] = useState(false);
@@ -195,7 +211,7 @@ export default function MascotaAsistente({ activo }: { activo: boolean }) {
       type="button"
       className={`mascota-personaje mascota-${postura}${reaccionando ? " mascota-reaccion" : ""}${
         mirandoIzquierda ? " mascota-volteada" : ""
-      }`}
+      }${especial ? ` mascota-especial-${especial}` : ""}`}
       style={{ left: posicion.x, top: posicion.y }}
       onClick={alTocar}
       aria-label={t("asistente.mascota.aria")}
@@ -207,13 +223,37 @@ export default function MascotaAsistente({ activo }: { activo: boolean }) {
         <span className="mascota-pantalla" aria-hidden="true">
           <span className="mascota-ojo" />
           <span className="mascota-ojo" />
+          {especial === "joker" && <span className="mascota-sonrisa-joker" />}
         </span>
+        {especial === "demogorgon" && (
+          <span className="mascota-petalos" aria-hidden="true">
+            <span className="mascota-petalo" />
+            <span className="mascota-petalo" />
+            <span className="mascota-petalo" />
+            <span className="mascota-petalo" />
+            <span className="mascota-petalo" />
+          </span>
+        )}
+        {especial === "joker" && (
+          <span className="mascota-pelo-joker" aria-hidden="true">
+            <span className="mascota-mechon" />
+            <span className="mascota-mechon" />
+            <span className="mascota-mechon" />
+          </span>
+        )}
       </span>
 
       <span className="mascota-cuerpo" aria-hidden="true">
         <span className="mascota-brazo mascota-brazo-izq" />
         <span className="mascota-marca" />
         <span className="mascota-brazo mascota-brazo-der" />
+        {especial === "cyberpunk" && (
+          <>
+            <span className="mascota-chaqueta-cuello mascota-chaqueta-cuello-izq" />
+            <span className="mascota-chaqueta-cuello mascota-chaqueta-cuello-der" />
+            <span className="mascota-chaqueta-franja" />
+          </>
+        )}
       </span>
 
       <span className="mascota-patas" aria-hidden="true">

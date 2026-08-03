@@ -7807,14 +7807,17 @@ select optgroup {
 }
 
 /* ---------------------------------------------------------------
-   Corebot — mascota del Asistente IA. Colores propios y fijos (morado
-   #5945e4, el color principal de CoreStock — negro/blanco/amarillo de
-   acento), no los del tema activo: es un personaje con identidad
-   propia, no un adorno que combina con la paleta de turno.
+   Corebot — mascota del Asistente IA. Toma el color del tema activo
+   (var(--primary)/var(--primary-hover)) en vez de un morado fijo, así
+   que cambia junto con los 33 temas. En los temas de referencia
+   (estilo Matrix) además se "disfraza" del personaje que inspira al
+   tema — Demogorgon en Stranger Things, la chaqueta de David en
+   Cyberpunk, el Joker en Joker — ver las reglas .mascota-especial-*
+   más abajo y personajeEspecialDeTema() en MascotaAsistente.tsx.
    Recorre el perímetro de la pantalla (piso -> pared -> techo ->
    pared -> piso), nunca por encima del chat: camina/se sienta en el
    piso, y escala/cuelga sostenida con los brazos en las paredes y el
-   techo — ver components/MascotaAsistente.tsx. */
+   techo. */
 .mascota-personaje {
   position: fixed;
   width: 46px;
@@ -7846,9 +7849,10 @@ select optgroup {
   position: relative;
   width: 42px;
   height: 36px;
-  background: linear-gradient(160deg, #6f5af0, #5945e4);
+  background: linear-gradient(160deg, var(--primary), var(--primary-hover));
   border-radius: 14px;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  transition: background 0.4s ease;
 }
 
 .mascota-caminando .mascota-cabeza {
@@ -7862,7 +7866,7 @@ select optgroup {
   transform: translateX(-50%);
   width: 3px;
   height: 9px;
-  background: #4b39c4;
+  background: var(--primary-hover);
   border-radius: 2px;
 }
 
@@ -7885,7 +7889,7 @@ select optgroup {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #4b39c4;
+  background: var(--primary-hover);
 }
 
 .mascota-oreja-izq {
@@ -7919,8 +7923,9 @@ select optgroup {
   width: 26px;
   height: 16px;
   margin-top: 2px;
-  background: linear-gradient(160deg, #6f5af0, #5945e4);
+  background: linear-gradient(160deg, var(--primary), var(--primary-hover));
   border-radius: 8px;
+  transition: background 0.4s ease;
 }
 
 .mascota-marca {
@@ -7941,9 +7946,9 @@ select optgroup {
   width: 6px;
   height: 12px;
   border-radius: 3px;
-  background: #4b39c4;
+  background: var(--primary-hover);
   transform-origin: top center;
-  transition: transform 0.3s ease, top 0.3s ease;
+  transition: transform 0.3s ease, top 0.3s ease, background 0.4s ease;
 }
 
 .mascota-brazo-izq {
@@ -8048,7 +8053,8 @@ select optgroup {
   width: 7px;
   height: 7px;
   border-radius: 3px;
-  background: #4b39c4;
+  background: var(--primary-hover);
+  transition: background 0.4s ease;
 }
 
 .mascota-caminando .mascota-pata {
@@ -8159,6 +8165,171 @@ select optgroup {
   border-top-color: var(--card-bg);
 }
 
+/* --- Disfraces de Corebot en los temas de referencia --- */
+
+/* Stranger Things: Demogorgon — sin cara, con la "flor" de pétalos
+   típica en vez de pantalla/ojos, y sin antena ni orejas. */
+.mascota-especial-demogorgon .mascota-antena,
+.mascota-especial-demogorgon .mascota-oreja,
+.mascota-especial-demogorgon .mascota-pantalla {
+  display: none;
+}
+
+.mascota-especial-demogorgon .mascota-cabeza {
+  background: radial-gradient(circle at 35% 30%, #6b4a52, #2c1720);
+}
+
+.mascota-petalos {
+  position: absolute;
+  inset: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: mascotaPetalosRespirar 2.2s ease-in-out infinite;
+}
+
+.mascota-petalo {
+  position: absolute;
+  width: 9px;
+  height: 20px;
+  background: linear-gradient(180deg, #c1425c, #7a1f34);
+  border: 1px solid #4a1120;
+  border-radius: 50% 50% 8px 8px;
+  transform-origin: 50% 100%;
+}
+
+.mascota-petalo:nth-child(1) {
+  transform: rotate(0deg) translateY(-10px);
+}
+
+.mascota-petalo:nth-child(2) {
+  transform: rotate(72deg) translateY(-10px);
+}
+
+.mascota-petalo:nth-child(3) {
+  transform: rotate(144deg) translateY(-10px);
+}
+
+.mascota-petalo:nth-child(4) {
+  transform: rotate(216deg) translateY(-10px);
+}
+
+.mascota-petalo:nth-child(5) {
+  transform: rotate(288deg) translateY(-10px);
+}
+
+@keyframes mascotaPetalosRespirar {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Cyberpunk: la chaqueta blanca con franja roja/azul y cuello alzado
+   de David — se dibuja encima del cuerpo, tapando la marca. */
+.mascota-especial-cyberpunk .mascota-cuerpo {
+  background: linear-gradient(160deg, #f4f4f4, #d6d6d6);
+}
+
+.mascota-especial-cyberpunk .mascota-marca {
+  display: none;
+}
+
+.mascota-chaqueta-franja {
+  position: absolute;
+  top: 3px;
+  left: 2px;
+  width: 22px;
+  height: 4px;
+  background: linear-gradient(90deg, #ff2d2d, #0a84ff);
+  border-radius: 2px;
+  transform: rotate(-8deg);
+}
+
+.mascota-chaqueta-cuello {
+  position: absolute;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 8px solid #e8e8e8;
+}
+
+.mascota-chaqueta-cuello-izq {
+  left: 1px;
+  transform: rotate(-20deg);
+}
+
+.mascota-chaqueta-cuello-der {
+  right: 1px;
+  transform: rotate(20deg);
+}
+
+/* Joker: cara blanca, ojos oscuros, sonrisa roja y mechones de pelo
+   verde, con el traje/carcasa en morado en vez del color del tema. */
+.mascota-especial-joker .mascota-cabeza,
+.mascota-especial-joker .mascota-cuerpo {
+  background: linear-gradient(160deg, #7b4fb0, #4a1f77);
+}
+
+.mascota-especial-joker .mascota-pantalla {
+  background: #f4ede0;
+}
+
+.mascota-especial-joker .mascota-ojo {
+  background: #1a1420;
+}
+
+.mascota-especial-joker .mascota-antena,
+.mascota-especial-joker .mascota-oreja {
+  display: none;
+}
+
+.mascota-especial-joker .mascota-marca {
+  display: none;
+}
+
+.mascota-sonrisa-joker {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 6px;
+  border-bottom: 2px solid #d81159;
+  border-radius: 0 0 10px 10px;
+}
+
+.mascota-pelo-joker {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+}
+
+.mascota-mechon {
+  width: 4px;
+  height: 12px;
+  background: #1fd65f;
+  border-radius: 40% 40% 0 0;
+}
+
+.mascota-mechon:nth-child(1) {
+  height: 9px;
+  transform: rotate(-18deg);
+}
+
+.mascota-mechon:nth-child(3) {
+  height: 9px;
+  transform: rotate(18deg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mascota-personaje {
     transition: none;
@@ -8167,7 +8338,8 @@ select optgroup {
   .mascota-cabeza,
   .mascota-cuerpo,
   .mascota-pata,
-  .mascota-brazo {
+  .mascota-brazo,
+  .mascota-petalos {
     animation: none !important;
   }
 }
