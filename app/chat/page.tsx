@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessagesSquare, Send, Inbox } from "lucide-react";
+import Image from "next/image";
+import { MessagesSquare, Send, Inbox, ImagePlus } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -10,8 +11,9 @@ import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import CargandoLista from "../../components/CargandoLista";
 import { MensajeChat } from "./types";
-import { cargarMensajes, enviarMensaje, suscribirseAMensajes } from "./acciones";
+import { cargarMensajes, enviarMensaje, suscribirseAMensajes, subirImagenChat } from "./acciones";
 import { obtenerNegocioId } from "../../lib/negocioActual";
+import { redimensionarParaSubir } from "../../lib/imagenes";
 
 function formatoHora(fecha: string) {
   return new Date(fecha).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -28,7 +30,9 @@ export default function ChatPage() {
   const [mensajes, setMensajes] = useState<MensajeChat[]>([]);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
   const contenedorRef = useRef<HTMLDivElement>(null);
+  const imagenInputRef = useRef<HTMLInputElement>(null);
 
   // El dueño no tiene un "nombre" propio guardado en ningún lado (a
   // diferencia de un miembro del equipo) — se usa la parte del correo
@@ -107,6 +111,36 @@ export default function ChatPage() {
     }
   }
 
+  // Sube y envía en un solo paso (sin vista previa de por medio): el
+  // texto que ya esté escrito en el input, si hay, viaja como
+  // descripción de la foto en el mismo mensaje.
+  async function alElegirImagen(archivo: File | undefined) {
+    if (!archivo || subiendoImagen || enviando) return;
+
+    setSubiendoImagen(true);
+    try {
+      const archivoParaSubir = await redimensionarParaSubir(archivo);
+      const { url, error } = await subirImagenChat(archivoParaSubir);
+
+      if (error === "tipo_invalido") {
+        mostrarToast(t("chat.msg_imagen_tipo_invalido"), "error");
+      } else if (error === "muy_grande") {
+        mostrarToast(t("chat.msg_imagen_muy_grande"), "error");
+      } else if (error || !url) {
+        mostrarToast(t("chat.msg_error_imagen"), "error");
+      } else {
+        await enviarMensaje(texto, nombrePropio, url);
+        setTexto("");
+      }
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("chat.msg_error_imagen"), "error");
+    } finally {
+      setSubiendoImagen(false);
+      if (imagenInputRef.current) imagenInputRef.current.value = "";
+    }
+  }
+
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
@@ -139,7 +173,18 @@ export default function ChatPage() {
               return (
                 <div key={m.id} className={`chat-burbuja ${propio ? "chat-burbuja-propia" : ""}`}>
                   {!propio && <span className="chat-burbuja-autor">{m.autor_nombre}</span>}
-                  <p className="chat-burbuja-texto">{m.texto}</p>
+                  {m.imagen_url && (
+                    <a href={m.imagen_url} target="_blank" rel="noopener noreferrer" className="chat-burbuja-imagen-link">
+                      <Image
+                        src={m.imagen_url}
+                        alt=""
+                        width={320}
+                        height={320}
+                        className="chat-burbuja-imagen"
+                      />
+                    </a>
+                  )}
+                  {m.texto && <p className="chat-burbuja-texto">{m.texto}</p>}
                   <span className="chat-burbuja-hora">{formatoHora(m.creado_en)}</span>
                 </div>
               );
@@ -149,13 +194,36 @@ export default function ChatPage() {
 
         <form className="chat-form" onSubmit={alEnviar}>
           <input
+            ref={imagenInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => alElegirImagen(e.target.files?.[0])}
+          />
+
+          <button
+            type="button"
+            className="btn-secondary chat-form-imagen"
+            disabled={subiendoImagen || enviando}
+            onClick={() => imagenInputRef.current?.click()}
+            aria-label={t("chat.adjuntar_foto")}
+            title={t("chat.adjuntar_foto")}
+          >
+            <ImagePlus size={18} />
+          </button>
+
+          <input
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            placeholder={t("chat.placeholder")}
+            placeholder={subiendoImagen ? t("chat.subiendo_foto") : t("chat.placeholder")}
             maxLength={2000}
-            disabled={enviando}
+            disabled={enviando || subiendoImagen}
           />
-          <button type="submit" className="btn-primary chat-form-enviar" disabled={enviando || !texto.trim()}>
+          <button
+            type="submit"
+            className="btn-primary chat-form-enviar"
+            disabled={enviando || subiendoImagen || !texto.trim()}
+          >
             <Send size={16} />
           </button>
         </form>

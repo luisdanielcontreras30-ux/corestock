@@ -14,6 +14,7 @@ import {
   LogOut,
   Zap,
   Settings,
+  MessagesSquare,
 } from "lucide-react";
 import { useTheme } from "../../components/ThemeProvider";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -607,6 +608,13 @@ export default function DashboardPremium() {
               {t("sidebar.productos")}
             </Link>
           )}
+
+          <Link href="/chat" className="dashboard-simple-tile">
+            <span className="dashboard-simple-tile-icono" style={{ background: "#0ea5e9" }}>
+              <MessagesSquare size={26} color="#fff" />
+            </span>
+            {t("sidebar.chat")}
+          </Link>
 
           {puede("configuracion") && (
             <Link href="/configuracion" className="dashboard-simple-tile">

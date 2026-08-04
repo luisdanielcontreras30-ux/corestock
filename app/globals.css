@@ -1261,12 +1261,27 @@ body {
   flex: 1;
 }
 
-.chat-form-enviar {
+.chat-form-enviar,
+.chat-form-imagen {
   flex-shrink: 0;
   display: grid;
   place-items: center;
   width: 42px;
   padding: 0;
+}
+
+.chat-burbuja-imagen-link {
+  display: block;
+  line-height: 0;
+}
+
+.chat-burbuja-imagen {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 @media (max-width: 640px) {

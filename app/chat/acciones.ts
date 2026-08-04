@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { obtenerNegocioId } from "../../lib/negocioActual";
+import { subirImagenSegura, ErrorSubidaImagen } from "../../lib/uploads";
 import { MensajeChat } from "./types";
 
 // Cuántos mensajes trae la carga inicial — un canal de avisos rápidos
@@ -16,7 +17,7 @@ export async function cargarMensajes(): Promise<MensajeChat[]> {
 
   const { data, error } = await supabase
     .from("mensajes_chat")
-    .select("id, autor_id, autor_nombre, texto, creado_en")
+    .select("id, autor_id, autor_nombre, texto, imagen_url, creado_en")
     .order("creado_en", { ascending: false })
     .limit(LIMITE_MENSAJES);
 
@@ -28,7 +29,13 @@ export async function cargarMensajes(): Promise<MensajeChat[]> {
   return (data ?? []).reverse() as MensajeChat[];
 }
 
-export async function enviarMensaje(texto: string, autorNombre: string): Promise<void> {
+// imagenUrl es opcional: un mensaje puede ser solo texto, solo una
+// foto, o ambos — ver supabase_chat_imagenes.sql.
+export async function enviarMensaje(
+  texto: string,
+  autorNombre: string,
+  imagenUrl: string | null = null
+): Promise<void> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -36,7 +43,7 @@ export async function enviarMensaje(texto: string, autorNombre: string): Promise
   if (!user) throw new Error("Usuario no autenticado");
 
   const limpio = texto.trim();
-  if (!limpio) throw new Error("MENSAJE_VACIO");
+  if (!limpio && !imagenUrl) throw new Error("MENSAJE_VACIO");
 
   const negocioId = await obtenerNegocioId(user.id);
 
@@ -45,9 +52,18 @@ export async function enviarMensaje(texto: string, autorNombre: string): Promise
     autor_id: user.id,
     autor_nombre: autorNombre,
     texto: limpio,
+    imagen_url: imagenUrl,
   });
 
   if (error) throw error;
+}
+
+// Reutiliza el bucket "productos" (mismo que fotos de producto y logo
+// del negocio, ver lib/uploads.ts) con el prefijo "chat-" — evita
+// pedirle al dueño que cree y configure un bucket nuevo solo para el
+// chat.
+export async function subirImagenChat(archivo: File): Promise<{ url: string | null; error: ErrorSubidaImagen | null }> {
+  return subirImagenSegura("productos", archivo, "chat-");
 }
 
 // Suscripción en vivo (Supabase Realtime, ver supabase_chat_equipo.sql)
