@@ -103,12 +103,20 @@ export async function eliminarUbicacion(id: number) {
     throw new Error("UBICACION_CON_STOCK");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("ubicaciones")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) throw error;
+
+  // Sin filas afectadas = RLS lo rechazó en silencio (ubicación de otro
+  // negocio) — sin esto se mostraba como eliminada aunque en la base no
+  // cambió nada.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
+  }
 }
 
 // Suma (o resta, con delta negativo) stock en una ubicación secundaria,

@@ -105,13 +105,21 @@ export async function alternarActivaPromocion(id: number, activa: boolean) {
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("promociones")
     .update({ activa })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  // Sin filas afectadas = RLS lo rechazó en silencio (promoción de
+  // otro negocio) — sin esto se mostraba como activada/desactivada
+  // aunque en la base no cambió nada.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ACTUALIZAR");
   }
 }
 
@@ -124,12 +132,17 @@ export async function eliminarPromocion(id: number) {
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("promociones")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
   }
 }

@@ -100,12 +100,20 @@ export async function eliminarFacturaGlobal(id: number) {
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("facturas_globales")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  // Sin filas afectadas = RLS lo rechazó en silencio (factura de otro
+  // negocio) — sin esto se mostraba como eliminada aunque en la base no
+  // cambió nada.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
   }
 }

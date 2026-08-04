@@ -66,6 +66,17 @@ export default function ChatPage() {
   const fragmentosAudioRef = useRef<Blob[]>([]);
   const inicioGrabacionRef = useRef(0);
   const temporizadorGrabacionRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // true desde que se pide iniciar hasta que la grabación termina —
+  // cubre el hueco entre presionar el botón y que getUserMedia
+  // resuelva, que "grabando" (estado de React) no puede cubrir a
+  // tiempo porque solo se actualiza después de ese await.
+  const grabacionActivaRef = useRef(false);
+  // Se soltó el botón mientras getUserMedia todavía no resolvía.
+  const detenerPendienteRef = useRef(false);
+  // false solo durante el cleanup de desmontaje: ahí se detiene el
+  // MediaRecorder para soltar el micrófono, pero no se debe enviar el
+  // audio a medio grabar como si el usuario hubiera terminado de hablar.
+  const enviarAlDetenerRef = useRef(true);
 
   // El dueño no tiene un "nombre" propio guardado en ningún lado (a
   // diferencia de un miembro del equipo) — se usa la parte del correo
@@ -179,15 +190,32 @@ export default function ChatPage() {
   // de "revisar antes de mandar" a propósito, para que se sienta
   // instantáneo como un walkie-talkie real.
   async function iniciarGrabacion() {
-    if (grabando || enviando || subiendoImagen || subiendoAudio) return;
+    if (grabacionActivaRef.current || enviando || subiendoImagen || subiendoAudio) return;
 
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       mostrarToast(t("chat.msg_sin_microfono"), "error");
       return;
     }
 
+    // Se marca de inmediato, antes del await: un tap-y-suelta muy
+    // rápido puede llamar a detenerGrabacion() mientras getUserMedia
+    // todavía no resuelve y "grabando" (estado de React) sigue en
+    // false — sin este ref esa señal de soltar se perdía y el
+    // micrófono se quedaba grabando indefinidamente.
+    grabacionActivaRef.current = true;
+    detenerPendienteRef.current = false;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      if (detenerPendienteRef.current) {
+        // Ya se soltó el botón mientras se esperaba el permiso del
+        // micrófono — no hay nada que grabar, solo liberar el stream.
+        stream.getTracks().forEach((track) => track.stop());
+        grabacionActivaRef.current = false;
+        return;
+      }
+
       const mimeType = elegirMimeTypeAudio();
       const grabadora = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
 
@@ -197,10 +225,17 @@ export default function ChatPage() {
       };
       grabadora.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
+        grabacionActivaRef.current = false;
         const duracionMs = marcaDeTiempo() - inicioGrabacionRef.current;
         const blob = new Blob(fragmentosAudioRef.current, { type: grabadora.mimeType || "audio/webm" });
         fragmentosAudioRef.current = [];
-        enviarAudioGrabado(blob, duracionMs);
+
+        // Al desmontar (navegar fuera del chat) solo se debe soltar el
+        // micrófono, no enviar el audio a medio grabar como si el
+        // usuario hubiera terminado de hablar (ver cleanup más abajo).
+        if (enviarAlDetenerRef.current) {
+          enviarAudioGrabado(blob, duracionMs);
+        }
       };
 
       grabadoraRef.current = grabadora;
@@ -213,20 +248,29 @@ export default function ChatPage() {
         setSegundosGrabando((s) => s + 1);
       }, 1000);
     } catch (error) {
+      grabacionActivaRef.current = false;
       console.error(error);
       mostrarToast(t("chat.msg_error_microfono"), "error");
     }
   }
 
   function detenerGrabacion() {
-    if (!grabando) return;
+    if (!grabacionActivaRef.current) return;
+
+    if (!grabadoraRef.current) {
+      // getUserMedia todavía no resuelve — se marca para cortar en
+      // cuanto lo haga en vez de no hacer nada (ver iniciarGrabacion).
+      detenerPendienteRef.current = true;
+      return;
+    }
 
     setGrabando(false);
     if (temporizadorGrabacionRef.current) {
       clearInterval(temporizadorGrabacionRef.current);
       temporizadorGrabacionRef.current = null;
     }
-    grabadoraRef.current?.stop();
+    enviarAlDetenerRef.current = true;
+    grabadoraRef.current.stop();
   }
 
   async function enviarAudioGrabado(blob: Blob, duracionMs: number) {
@@ -259,6 +303,11 @@ export default function ChatPage() {
   useEffect(() => {
     return () => {
       if (temporizadorGrabacionRef.current) clearInterval(temporizadorGrabacionRef.current);
+      // Corta cualquier espera de getUserMedia en curso y le dice a
+      // onstop que no envíe el audio: este stop es solo para soltar el
+      // micrófono, no un "el usuario terminó de hablar".
+      detenerPendienteRef.current = true;
+      enviarAlDetenerRef.current = false;
       grabadoraRef.current?.stop();
     };
   }, []);
