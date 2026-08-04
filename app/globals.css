@@ -1174,6 +1174,108 @@ body {
 }
 
 /* ==========================================================================
+   CHAT DE EQUIPO
+   ========================================================================== */
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+  min-height: 420px;
+  max-height: 720px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.chat-mensajes {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.chat-vacio {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+}
+
+.chat-burbuja {
+  align-self: flex-start;
+  max-width: 75%;
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  border-bottom-left-radius: 4px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-burbuja-propia {
+  align-self: flex-end;
+  background: var(--primary);
+  border-color: var(--primary);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: 4px;
+}
+
+.chat-burbuja-propia .chat-burbuja-texto,
+.chat-burbuja-propia .chat-burbuja-hora {
+  color: #fff;
+}
+
+.chat-burbuja-autor {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.chat-burbuja-texto {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-burbuja-hora {
+  align-self: flex-end;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.chat-form {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.chat-form input {
+  flex: 1;
+}
+
+.chat-form-enviar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .chat-burbuja {
+    max-width: 88%;
+  }
+}
+
+/* ==========================================================================
    INPUTS, SCROLLBARS Y AJUSTES MENORES
    ========================================================================== */
 

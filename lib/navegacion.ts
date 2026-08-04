@@ -21,6 +21,7 @@ import {
   UserCircle,
   BookOpen,
   MessageCircle,
+  MessagesSquare,
   Landmark,
   PlayCircle,
   Crown,
@@ -60,6 +61,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { claveNombre: "sidebar.dashboard", href: "/menu", Icono: LayoutDashboard, colorMovil: "#6366f1" },
       { claveNombre: "sidebar.graficas", href: "/graficas", Icono: BarChart3, colorMovil: "#06b6d4" },
       { claveNombre: "sidebar.asistente", href: "/asistente", Icono: Sparkles, colorMovil: "#a855f7" },
+      { claveNombre: "sidebar.chat", href: "/chat", Icono: MessagesSquare, colorMovil: "#0ea5e9" },
     ],
   },
   {
@@ -126,4 +128,4 @@ export const RUTAS_EASY = ["/menu", "/ventas-rapidas", "/productos", "/caja", "/
 // rutas — Dashboard, Caja, Ventas y Productos. Se usa tanto para
 // ocultar el resto de la navegación (Sidebar, MobileTabBar) como para
 // bloquear el acceso directo por URL (AppShell).
-export const RUTAS_PERMITIDAS_MIEMBRO = ["/menu", "/caja", "/ventas", "/ventas-rapidas", "/productos"];
+export const RUTAS_PERMITIDAS_MIEMBRO = ["/menu", "/caja", "/ventas", "/ventas-rapidas", "/productos", "/chat"];

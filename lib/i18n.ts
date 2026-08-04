@@ -18,6 +18,7 @@ export const TRADUCCIONES: Diccionario = {
   "sidebar.dashboard": { es: "Dashboard", en: "Dashboard", pt: "Painel", fr: "Tableau de bord", de: "Übersicht", zh: "仪表盘", it: "Dashboard" },
   "sidebar.graficas": { es: "Gráficas", en: "Charts", pt: "Gráficos", fr: "Graphiques", de: "Diagramme", zh: "图表", it: "Grafici" },
   "sidebar.asistente": { es: "Asistente Chat Bot", en: "Assistant Chat Bot", pt: "Assistente Chat Bot", fr: "Assistant Chat Bot", de: "Assistent Chat Bot", zh: "助手聊天机器人", it: "Assistente Chat Bot" },
+  "sidebar.chat": { es: "Chat de equipo", en: "Team chat", pt: "Chat da equipe", fr: "Chat d'équipe", de: "Team-Chat", zh: "团队聊天", it: "Chat del team" },
   "sidebar.mas": { es: "Más", en: "More", pt: "Mais", fr: "Plus", de: "Mehr", zh: "更多", it: "Altro" },
   "sidebar.mas_opciones": { es: "Más opciones", en: "More options", pt: "Mais opções", fr: "Plus d'options", de: "Weitere Optionen", zh: "更多选项", it: "Altre opzioni" },
   "mobile.acciones_rapidas": { es: "Acciones rápidas", en: "Quick actions", pt: "Ações rápidas", fr: "Actions rapides", de: "Schnellaktionen", zh: "快捷操作", it: "Azioni rapide" },
@@ -830,6 +831,14 @@ export const TRADUCCIONES: Diccionario = {
   "caja.tipo_entrada": { es: "Entrada", en: "Cash in", pt: "Entrada", fr: "Entrée", de: "Einzahlung", zh: "收入", it: "Entrata" },
   "caja.tipo_salida": { es: "Salida", en: "Cash out", pt: "Saída", fr: "Sortie", de: "Auszahlung", zh: "支出", it: "Uscita" },
   "caja.tipo_cierre": { es: "Cierre", en: "Closing", pt: "Fechamento", fr: "Clôture", de: "Abschluss", zh: "结账", it: "Chiusura" },
+
+  // Chat de equipo
+  "chat.titulo": { es: "Chat de equipo", en: "Team chat", pt: "Chat da equipe", fr: "Chat d'équipe", de: "Team-Chat", zh: "团队聊天", it: "Chat del team" },
+  "chat.subtitulo": { es: "Un canal compartido para avisos rápidos entre todos los que usan esta cuenta.", en: "A shared channel for quick messages between everyone using this account.", pt: "Um canal compartilhado para avisos rápidos entre todos que usam esta conta.", fr: "Un canal partagé pour des messages rapides entre tous ceux qui utilisent ce compte.", de: "Ein gemeinsamer Kanal für schnelle Nachrichten zwischen allen, die dieses Konto nutzen.", zh: "用于此账户所有用户之间快速沟通的共享频道。", it: "Un canale condiviso per messaggi rapidi tra tutti quelli che usano questo account." },
+  "chat.placeholder": { es: "Escribe un mensaje...", en: "Write a message...", pt: "Escreva uma mensagem...", fr: "Écrivez un message...", de: "Nachricht schreiben...", zh: "输入消息...", it: "Scrivi un messaggio..." },
+  "chat.sin_mensajes": { es: "Todavía no hay mensajes. Sé el primero en escribir.", en: "No messages yet. Be the first to write.", pt: "Ainda não há mensagens. Seja o primeiro a escrever.", fr: "Pas encore de messages. Soyez le premier à écrire.", de: "Noch keine Nachrichten. Schreib die erste.", zh: "还没有消息，来发第一条吧。", it: "Ancora nessun messaggio. Scrivi il primo." },
+  "chat.dueno": { es: "Dueño", en: "Owner", pt: "Dono", fr: "Propriétaire", de: "Inhaber", zh: "店主", it: "Titolare" },
+  "chat.msg_error_enviar": { es: "No se pudo enviar el mensaje.", en: "Could not send the message.", pt: "Não foi possível enviar a mensagem.", fr: "Impossible d'envoyer le message.", de: "Nachricht konnte nicht gesendet werden.", zh: "消息发送失败。", it: "Impossibile inviare il messaggio." },
 
   // Cortes Históricos
   "cortes_historicos.subtitulo": { es: "Historial de todos tus cierres de caja, con el efectivo contado y la diferencia contra lo esperado.", en: "History of all your register closings, with the cash counted and the difference against what was expected.", pt: "Histórico de todos os seus fechamentos de caixa, com o dinheiro contado e a diferença em relação ao esperado.", fr: "Historique de toutes vos clôtures de caisse, avec les espèces comptées et l'écart par rapport à l'attendu.", de: "Verlauf aller deiner Kassenabschlüsse, mit gezähltem Bargeld und der Differenz zum erwarteten Betrag.", zh: "所有收银台结账的历史记录，包括清点的现金和与预期的差额。", it: "Cronologia di tutte le tue chiusure cassa, con il contante contato e la differenza rispetto al previsto." },
