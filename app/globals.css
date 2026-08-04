@@ -1262,12 +1262,52 @@ body {
 }
 
 .chat-form-enviar,
-.chat-form-imagen {
+.chat-form-imagen,
+.chat-form-mic {
   flex-shrink: 0;
   display: grid;
   place-items: center;
   width: 42px;
   padding: 0;
+}
+
+.chat-form-mic {
+  touch-action: none;
+  user-select: none;
+}
+
+/* Doble clase (en vez de solo .chat-form-mic-activo) para que su
+   especificidad no dependa de si este bloque queda antes o después de
+   .btn-secondary en la hoja de estilos — con la misma especificidad,
+   gana la regla declarada después, y .btn-secondary ya trae su propio
+   background sin condición. */
+.chat-form-mic.chat-form-mic-activo {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+.chat-form-grabando {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.chat-form-grabando-punto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: chat-grabando-pulso 1s ease-in-out infinite;
+}
+
+@keyframes chat-grabando-pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
 
 .chat-burbuja-imagen-link {
@@ -1282,6 +1322,12 @@ body {
   height: auto;
   border-radius: 10px;
   cursor: pointer;
+}
+
+.chat-burbuja-audio {
+  width: 100%;
+  max-width: 260px;
+  height: 38px;
 }
 
 @media (max-width: 640px) {

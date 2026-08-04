@@ -17,7 +17,7 @@ export async function cargarMensajes(): Promise<MensajeChat[]> {
 
   const { data, error } = await supabase
     .from("mensajes_chat")
-    .select("id, autor_id, autor_nombre, texto, imagen_url, creado_en")
+    .select("id, autor_id, autor_nombre, texto, imagen_url, audio_url, creado_en")
     .order("creado_en", { ascending: false })
     .limit(LIMITE_MENSAJES);
 
@@ -29,12 +29,14 @@ export async function cargarMensajes(): Promise<MensajeChat[]> {
   return (data ?? []).reverse() as MensajeChat[];
 }
 
-// imagenUrl es opcional: un mensaje puede ser solo texto, solo una
-// foto, o ambos — ver supabase_chat_imagenes.sql.
+// imagenUrl/audioUrl son opcionales: un mensaje puede ser solo texto,
+// solo una foto, solo un audio, o cualquier combinación — ver
+// supabase_chat_imagenes.sql / supabase_chat_audio.sql.
 export async function enviarMensaje(
   texto: string,
   autorNombre: string,
-  imagenUrl: string | null = null
+  imagenUrl: string | null = null,
+  audioUrl: string | null = null
 ): Promise<void> {
   const {
     data: { user },
@@ -43,7 +45,7 @@ export async function enviarMensaje(
   if (!user) throw new Error("Usuario no autenticado");
 
   const limpio = texto.trim();
-  if (!limpio && !imagenUrl) throw new Error("MENSAJE_VACIO");
+  if (!limpio && !imagenUrl && !audioUrl) throw new Error("MENSAJE_VACIO");
 
   const negocioId = await obtenerNegocioId(user.id);
 
@@ -53,6 +55,7 @@ export async function enviarMensaje(
     autor_nombre: autorNombre,
     texto: limpio,
     imagen_url: imagenUrl,
+    audio_url: audioUrl,
   });
 
   if (error) throw error;
@@ -64,6 +67,45 @@ export async function enviarMensaje(
 // chat.
 export async function subirImagenChat(archivo: File): Promise<{ url: string | null; error: ErrorSubidaImagen | null }> {
   return subirImagenSegura("productos", archivo, "chat-");
+}
+
+const EXTENSION_AUDIO_POR_TIPO: Record<string, string> = {
+  "audio/webm": "webm",
+  "audio/ogg": "ogg",
+  "audio/mp4": "m4a",
+  "audio/mpeg": "mp3",
+};
+
+// Un mensaje de voz "tipo radio" (mantener presionado para hablar) no
+// debería durar más de un par de minutos — 8 MB alcanza de sobra para
+// eso con los códecs comprimidos que usa MediaRecorder (opus/aac).
+const TAMANO_MAXIMO_AUDIO_BYTES = 8 * 1024 * 1024;
+
+export type ErrorSubidaAudio = "muy_grande" | "fallo_subida";
+
+// Mismo bucket y mismo criterio que subirImagenChat — solo cambia el
+// prefijo del nombre de archivo.
+export async function subirAudioChat(
+  blob: Blob
+): Promise<{ url: string | null; error: ErrorSubidaAudio | null }> {
+  if (blob.size > TAMANO_MAXIMO_AUDIO_BYTES) {
+    return { url: null, error: "muy_grande" };
+  }
+
+  const extension = EXTENSION_AUDIO_POR_TIPO[blob.type] ?? "webm";
+  const nombreArchivo = `chat-audio-${crypto.randomUUID()}.${extension}`;
+
+  const { error } = await supabase.storage
+    .from("productos")
+    .upload(nombreArchivo, blob, { contentType: blob.type || "audio/webm" });
+
+  if (error) {
+    return { url: null, error: "fallo_subida" };
+  }
+
+  const { data } = supabase.storage.from("productos").getPublicUrl(nombreArchivo);
+
+  return { url: data.publicUrl, error: null };
 }
 
 // Suscripción en vivo (Supabase Realtime, ver supabase_chat_equipo.sql)

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { MessagesSquare, Send, Inbox, ImagePlus } from "lucide-react";
+import { MessagesSquare, Send, Inbox, ImagePlus, Mic } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -11,12 +11,38 @@ import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import CargandoLista from "../../components/CargandoLista";
 import { MensajeChat } from "./types";
-import { cargarMensajes, enviarMensaje, suscribirseAMensajes, subirImagenChat } from "./acciones";
+import { cargarMensajes, enviarMensaje, suscribirseAMensajes, subirImagenChat, subirAudioChat } from "./acciones";
 import { obtenerNegocioId } from "../../lib/negocioActual";
 import { redimensionarParaSubir } from "../../lib/imagenes";
 
 function formatoHora(fecha: string) {
   return new Date(fecha).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatoDuracion(segundos: number) {
+  const m = Math.floor(segundos / 60);
+  const s = segundos % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+// El primero que el navegador soporte, de mejor a peor compatibilidad
+// (Chrome/Firefox/Android entienden webm+opus; Safari solo mp4/aac).
+const MIME_CANDIDATOS = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+
+function elegirMimeTypeAudio(): string {
+  if (typeof MediaRecorder === "undefined") return "";
+  return MIME_CANDIDATOS.find((tipo) => MediaRecorder.isTypeSupported(tipo)) ?? "";
+}
+
+// Una presión accidental (roce, doble tap) no debería mandar un
+// mensaje de voz de una fracción de segundo.
+const DURACION_MINIMA_MS = 400;
+
+// Mide cuánto duró la grabación — envuelto en su propia función para
+// que quede claro que solo se usa dentro de manejadores de eventos
+// (mantener presionado / soltar el micrófono), nunca durante el render.
+function marcaDeTiempo(): number {
+  return Date.now();
 }
 
 export default function ChatPage() {
@@ -31,8 +57,15 @@ export default function ChatPage() {
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [subiendoImagen, setSubiendoImagen] = useState(false);
+  const [grabando, setGrabando] = useState(false);
+  const [segundosGrabando, setSegundosGrabando] = useState(0);
+  const [subiendoAudio, setSubiendoAudio] = useState(false);
   const contenedorRef = useRef<HTMLDivElement>(null);
   const imagenInputRef = useRef<HTMLInputElement>(null);
+  const grabadoraRef = useRef<MediaRecorder | null>(null);
+  const fragmentosAudioRef = useRef<Blob[]>([]);
+  const inicioGrabacionRef = useRef(0);
+  const temporizadorGrabacionRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // El dueño no tiene un "nombre" propio guardado en ningún lado (a
   // diferencia de un miembro del equipo) — se usa la parte del correo
@@ -141,6 +174,95 @@ export default function ChatPage() {
     }
   }
 
+  // Mantener presionado para hablar, tipo radio: graba mientras el
+  // botón sigue presionado y envía en cuanto se suelta — no hay paso
+  // de "revisar antes de mandar" a propósito, para que se sienta
+  // instantáneo como un walkie-talkie real.
+  async function iniciarGrabacion() {
+    if (grabando || enviando || subiendoImagen || subiendoAudio) return;
+
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      mostrarToast(t("chat.msg_sin_microfono"), "error");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = elegirMimeTypeAudio();
+      const grabadora = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+
+      fragmentosAudioRef.current = [];
+      grabadora.ondataavailable = (evento) => {
+        if (evento.data.size > 0) fragmentosAudioRef.current.push(evento.data);
+      };
+      grabadora.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        const duracionMs = marcaDeTiempo() - inicioGrabacionRef.current;
+        const blob = new Blob(fragmentosAudioRef.current, { type: grabadora.mimeType || "audio/webm" });
+        fragmentosAudioRef.current = [];
+        enviarAudioGrabado(blob, duracionMs);
+      };
+
+      grabadoraRef.current = grabadora;
+      inicioGrabacionRef.current = marcaDeTiempo();
+      grabadora.start();
+
+      setGrabando(true);
+      setSegundosGrabando(0);
+      temporizadorGrabacionRef.current = setInterval(() => {
+        setSegundosGrabando((s) => s + 1);
+      }, 1000);
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("chat.msg_error_microfono"), "error");
+    }
+  }
+
+  function detenerGrabacion() {
+    if (!grabando) return;
+
+    setGrabando(false);
+    if (temporizadorGrabacionRef.current) {
+      clearInterval(temporizadorGrabacionRef.current);
+      temporizadorGrabacionRef.current = null;
+    }
+    grabadoraRef.current?.stop();
+  }
+
+  async function enviarAudioGrabado(blob: Blob, duracionMs: number) {
+    if (duracionMs < DURACION_MINIMA_MS) {
+      mostrarToast(t("chat.msg_audio_muy_corto"), "error");
+      return;
+    }
+
+    setSubiendoAudio(true);
+    try {
+      const { url, error } = await subirAudioChat(blob);
+
+      if (error === "muy_grande") {
+        mostrarToast(t("chat.msg_audio_muy_grande"), "error");
+      } else if (error || !url) {
+        mostrarToast(t("chat.msg_error_audio"), "error");
+      } else {
+        await enviarMensaje("", nombrePropio, null, url);
+      }
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("chat.msg_error_audio"), "error");
+    } finally {
+      setSubiendoAudio(false);
+    }
+  }
+
+  // Si se navega fuera del chat a media grabación, no debe quedar el
+  // micrófono del navegador abierto en segundo plano.
+  useEffect(() => {
+    return () => {
+      if (temporizadorGrabacionRef.current) clearInterval(temporizadorGrabacionRef.current);
+      grabadoraRef.current?.stop();
+    };
+  }, []);
+
   if (cargandoAuth || !user) {
     return (
       <main className="fade-up">
@@ -184,6 +306,7 @@ export default function ChatPage() {
                       />
                     </a>
                   )}
+                  {m.audio_url && <audio controls src={m.audio_url} className="chat-burbuja-audio" />}
                   {m.texto && <p className="chat-burbuja-texto">{m.texto}</p>}
                   <span className="chat-burbuja-hora">{formatoHora(m.creado_en)}</span>
                 </div>
@@ -204,7 +327,7 @@ export default function ChatPage() {
           <button
             type="button"
             className="btn-secondary chat-form-imagen"
-            disabled={subiendoImagen || enviando}
+            disabled={subiendoImagen || enviando || grabando || subiendoAudio}
             onClick={() => imagenInputRef.current?.click()}
             aria-label={t("chat.adjuntar_foto")}
             title={t("chat.adjuntar_foto")}
@@ -212,17 +335,43 @@ export default function ChatPage() {
             <ImagePlus size={18} />
           </button>
 
-          <input
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            placeholder={subiendoImagen ? t("chat.subiendo_foto") : t("chat.placeholder")}
-            maxLength={2000}
-            disabled={enviando || subiendoImagen}
-          />
+          {grabando ? (
+            <div className="chat-form-grabando">
+              <span className="chat-form-grabando-punto" />
+              {t("chat.grabando")} · {formatoDuracion(segundosGrabando)}
+            </div>
+          ) : (
+            <input
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              placeholder={subiendoImagen ? t("chat.subiendo_foto") : subiendoAudio ? t("chat.subiendo_audio") : t("chat.placeholder")}
+              maxLength={2000}
+              disabled={enviando || subiendoImagen || subiendoAudio}
+            />
+          )}
+
+          <button
+            type="button"
+            className={`btn-secondary chat-form-mic ${grabando ? "chat-form-mic-activo" : ""}`}
+            disabled={enviando || subiendoImagen || subiendoAudio}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              iniciarGrabacion();
+            }}
+            onPointerUp={detenerGrabacion}
+            onPointerLeave={detenerGrabacion}
+            onPointerCancel={detenerGrabacion}
+            onContextMenu={(e) => e.preventDefault()}
+            aria-label={t("chat.mantener_para_hablar")}
+            title={t("chat.mantener_para_hablar")}
+          >
+            <Mic size={18} />
+          </button>
+
           <button
             type="submit"
             className="btn-primary chat-form-enviar"
-            disabled={enviando || subiendoImagen || !texto.trim()}
+            disabled={enviando || subiendoImagen || subiendoAudio || grabando || !texto.trim()}
           >
             <Send size={16} />
           </button>
