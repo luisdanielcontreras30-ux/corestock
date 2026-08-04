@@ -833,14 +833,17 @@ body {
    después que el contenido normal sin posición, sin importar el orden
    en el HTML. Al darle su propio contexto de apilamiento por encima,
    todo lo de adentro (sidebar, tarjetas, gráficas) queda garantizado
-   por delante del fondo. */
+   por delante del fondo.
+   Sin background propio (a propósito): body ya pinta var(--bg-primary)
+   detrás de todo con su propia transición — repetirlo acá tapaba la
+   lluvia por completo en cualquier hueco sin tarjeta encima (el
+   sidebar, el header, los márgenes), dejándola invisible siempre en
+   vez de solo detrás del contenido real. */
 .app-layout {
   display: flex;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: var(--bg-primary);
-  transition: background-color 0.25s ease;
   position: relative;
   z-index: 1;
 }
@@ -2706,10 +2709,9 @@ select optgroup {
   width: 100vw;
   height: 100vh;
   display: flex;
-  background: var(--bg-primary);
-  /* Sin posición propia, el fondo fijo de la lluvia de Matrix
-     (.fondo-matrix) se pintaba encima de esta pantalla — ver la
-     misma nota en .app-layout. */
+  /* Sin background propio ni posición: body ya pinta var(--bg-primary)
+     detrás — repetirlo acá tapaba por completo la lluvia de Matrix
+     (.fondo-matrix). Ver la misma nota en .app-layout. */
   position: relative;
   z-index: 1;
 }
@@ -5369,10 +5371,11 @@ select optgroup {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  background: var(--bg-primary);
   color: var(--text-primary);
-  /* Ver la misma nota en .app-layout: sin posición propia, el fondo
-     fijo de la lluvia de Matrix se pintaba encima del catálogo. */
+  /* Sin background propio (a propósito, salvo el que ya llega por
+     style={{background: colorFondo}}): ver la misma nota en
+     .app-layout — repetir var(--bg-primary) acá tapaba por completo
+     la lluvia de Matrix detrás del catálogo. */
   position: relative;
   z-index: 1;
 }
