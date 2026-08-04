@@ -445,6 +445,7 @@ export const TRADUCCIONES: Diccionario = {
   "permiso.exportar_datos": { es: "Exportar datos", en: "Export data", pt: "Exportar dados", fr: "Exporter les données", de: "Daten exportieren", zh: "导出数据", it: "Esportare dati" },
   "permiso.ver_inventario": { es: "Ver inventario", en: "View inventory", pt: "Ver estoque", fr: "Voir l'inventaire", de: "Bestand ansehen", zh: "查看库存", it: "Vedere l'inventario" },
   "permiso.gestionar_inventario": { es: "Gestionar inventario", en: "Manage inventory", pt: "Gerenciar estoque", fr: "Gérer l'inventaire", de: "Bestand verwalten", zh: "管理库存", it: "Gestire l'inventario" },
+  "permiso.ver_caja": { es: "Acceder a Caja", en: "Access Cash Register", pt: "Acessar Caixa", fr: "Accéder à la Caisse", de: "Zugriff auf Kasse", zh: "访问收银台", it: "Accedere alla Cassa" },
   "permiso.configuracion": { es: "Configuración", en: "Settings", pt: "Configurações", fr: "Paramètres", de: "Einstellungen", zh: "设置", it: "Impostazioni" },
 
   // Usuarios y permisos

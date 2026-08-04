@@ -7,7 +7,9 @@ import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useConfirm } from "../../components/ConfirmProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import SinPermiso from "../../components/SinPermiso";
 import { MovimientoCaja } from "./types";
 import { cargarMovimientos, registrarMovimientoOffline } from "./acciones";
 import { formatoMoneda } from "../ventas/utils";
@@ -59,6 +61,7 @@ export default function CajaPage() {
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
+  const { puede } = useMiembroActivo();
 
   const [loading, setLoading] = useState(true);
   const [movimientos, setMovimientos] = useState<MovimientoCaja[]>([]);
@@ -245,6 +248,20 @@ export default function CajaPage() {
     return (
       <main className="fade-up">
         <CargandoLista />
+      </main>
+    );
+  }
+
+  if (!puede("ver_caja")) {
+    return (
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={Inbox}
+          color="#84cc16"
+          titulo={t("sidebar.caja")}
+          subtitulo={t("caja.subtitulo")}
+        />
+        <SinPermiso />
       </main>
     );
   }

@@ -16,6 +16,7 @@ export type Permiso =
   | "exportar_datos"
   | "ver_inventario"
   | "gestionar_inventario"
+  | "ver_caja"
   | "configuracion";
 
 export const PERMISOS: { valor: Permiso; clave: string }[] = [
@@ -27,6 +28,7 @@ export const PERMISOS: { valor: Permiso; clave: string }[] = [
   { valor: "exportar_datos", clave: "permiso.exportar_datos" },
   { valor: "ver_inventario", clave: "permiso.ver_inventario" },
   { valor: "gestionar_inventario", clave: "permiso.gestionar_inventario" },
+  { valor: "ver_caja", clave: "permiso.ver_caja" },
   { valor: "configuracion", clave: "permiso.configuracion" },
 ];
 
@@ -42,8 +44,9 @@ export const PERMISOS_POR_ROL: Record<Rol, Permiso[]> = {
     "exportar_datos",
     "ver_inventario",
     "gestionar_inventario",
+    "ver_caja",
   ],
-  cajero: ["ver_ventas", "registrar_ventas"],
+  cajero: ["ver_ventas", "registrar_ventas", "ver_caja"],
   almacen: ["ver_inventario", "gestionar_inventario", "ver_ventas"],
 };
 

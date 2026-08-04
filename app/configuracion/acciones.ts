@@ -164,6 +164,28 @@ export async function actualizarMiembro(
   }
 }
 
+// Llamada por MiembroActivoProvider para refrescar en segundo plano los
+// permisos de un miembro ya logueado (ver supabase_refrescar_permisos_
+// miembro.sql) — sessionStorage solo guarda una foto del momento del
+// login, así que sin esto un cambio de rol/permisos hecho por el dueño
+// no se nota hasta que ese miembro cierra sesión y vuelve a entrar.
+// null = ya no existe/no corresponde a ningún miembro (ej. la sesión es
+// la del propio dueño, o el rpc todavía no está desplegado).
+export async function obtenerMiMembresia(): Promise<Miembro | null> {
+  const { data, error } = await supabase.rpc("mi_membresia");
+
+  if (error) {
+    // La función puede no existir todavía si no se ha corrido
+    // supabase_refrescar_permisos_miembro.sql — no debe tumbar la app
+    // por eso, solo se queda sin refrescar.
+    console.error(error);
+    return null;
+  }
+
+  const fila = Array.isArray(data) ? data[0] : data;
+  return (fila as Miembro | undefined) ?? null;
+}
+
 async function obtenerAccessToken(): Promise<string> {
   const {
     data: { session },
