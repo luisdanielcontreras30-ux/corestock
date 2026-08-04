@@ -121,13 +121,23 @@ export async function actualizarCliente(id: number, cambios: Partial<Cliente>) {
     throw new Error("Falta el nombre del cliente.");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("clientes")
     .update(cambios)
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  // Sin filas afectadas = RLS lo rechazó en silencio (cliente de otro
+  // negocio, o un miembro sin permiso) — sin esto la pantalla cerraba
+  // el formulario como si se hubiera guardado, aunque en la base no
+  // cambió nada. Mismo cuidado que ya tiene regenerarTokenPortal más
+  // abajo en este archivo.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ACTUALIZAR");
   }
 }
 
@@ -140,13 +150,18 @@ export async function eliminarCliente(id: number) {
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("clientes")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
   }
 }
 

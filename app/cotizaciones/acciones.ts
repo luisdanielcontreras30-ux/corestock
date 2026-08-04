@@ -1,6 +1,7 @@
 import { supabase } from "../../lib/supabase";
 import { ajustarStockConCas } from "../../lib/stockCas";
 import { obtenerNegocioId } from "../../lib/negocioActual";
+import { escaparIlike } from "../../lib/escaparIlike";
 import {
   Producto,
   Cliente,
@@ -356,7 +357,7 @@ export async function convertirEnVenta(cotizacionParam: Cotizacion) {
     const { data: clienteExistente, error: errorBusquedaCliente } = await supabase
       .from("clientes")
       .select("id")
-      .ilike("nombre", cotizacion.cliente_nombre)
+      .ilike("nombre", escaparIlike(cotizacion.cliente_nombre))
       .maybeSingle();
 
     if (errorBusquedaCliente) throw errorBusquedaCliente;

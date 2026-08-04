@@ -1,6 +1,7 @@
 import { supabase } from "../../lib/supabase";
 import { ajustarStockConCas } from "../../lib/stockCas";
 import { obtenerNegocioId } from "../../lib/negocioActual";
+import { escaparIlike } from "../../lib/escaparIlike";
 import { Producto, Cliente, Venta, Promocion, MetodoPago } from "./types";
 
 export async function cargarDatos() {
@@ -120,7 +121,7 @@ export async function registrarVenta(
       await supabase
         .from("clientes")
         .select("*")
-        .ilike("nombre", nombreCliente.trim())
+        .ilike("nombre", escaparIlike(nombreCliente.trim()))
         .maybeSingle();
 
     if (clienteExistente) {
