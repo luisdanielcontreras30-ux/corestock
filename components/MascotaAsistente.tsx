@@ -268,9 +268,16 @@ export default function MascotaAsistente({ activo, pensando = false, emocion = n
   }, [emocion]);
 
   function alTocar() {
+    // Sin esto, el paso ya agendado del ciclo normal (el próximo
+    // cambio de zona) podía disparar a mitad de la reacción y
+    // hacerla saltar de tramo justo cuando se supone que está
+    // reaccionando al toque — el mismo cuidado que ya tiene el efecto
+    // de la emoción de la conversación.
+    limpiarTimeouts();
     setReaccionando(true);
     decirAlgoAlAzar();
     programar(() => setReaccionando(false), 900);
+    programar(() => cicloRef.current(), 900);
   }
 
   if (!activo) return null;

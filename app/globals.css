@@ -2707,6 +2707,11 @@ select optgroup {
   height: 100vh;
   display: flex;
   background: var(--bg-primary);
+  /* Sin posición propia, el fondo fijo de la lluvia de Matrix
+     (.fondo-matrix) se pintaba encima de esta pantalla — ver la
+     misma nota en .app-layout. */
+  position: relative;
+  z-index: 1;
 }
 
 .login-brand-panel {
@@ -3550,6 +3555,10 @@ select optgroup {
 
 .landing {
   position: relative;
+  /* z-index explícito (no solo position: relative) para que el fondo
+     fijo de la lluvia de Matrix (.fondo-matrix) quede garantizado
+     detrás — misma razón que en .app-layout / .login-page. */
+  z-index: 1;
   /* "height" (no "min-height") a propósito: html/body tienen
      overflow:hidden para que solo el panel derecho de la app haga
      scroll (ver la regla de html/body arriba). Con min-height, este
@@ -5362,6 +5371,10 @@ select optgroup {
   -webkit-overflow-scrolling: touch;
   background: var(--bg-primary);
   color: var(--text-primary);
+  /* Ver la misma nota en .app-layout: sin posición propia, el fondo
+     fijo de la lluvia de Matrix se pintaba encima del catálogo. */
+  position: relative;
+  z-index: 1;
 }
 
 .catalogo-publico-header {
@@ -8616,6 +8629,14 @@ select optgroup {
   width: 8px;
   height: 2px;
   border-radius: 2px;
+}
+
+/* "analizando" ya tenía el escáner (.mascota-escaner) pero le
+   faltaba su propia cara — se quedaba con los ojos neutros de
+   siempre, y es la emoción que más se dispara en la práctica
+   (después de casi cualquier respuesta con datos). */
+.mascota-gesto-analizando .mascota-ojo {
+  transform: scaleY(0.6);
 }
 
 .mascota-gesto-pensando .mascota-ojo:nth-child(2) {

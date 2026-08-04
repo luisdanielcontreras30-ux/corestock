@@ -40,7 +40,7 @@ export default function PortalClientePage({ params }: Props) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
+      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", position: "relative", zIndex: 1 }}>
         <p style={{ color: "var(--text-secondary)" }}>{t("header.cargando")}</p>
       </div>
     );
@@ -48,7 +48,17 @@ export default function PortalClientePage({ params }: Props) {
 
   if (!encontrado) {
     return (
-      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, textAlign: "center" }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "grid",
+          placeItems: "center",
+          padding: 24,
+          textAlign: "center",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
         <div>
           <PackageX size={40} style={{ marginBottom: 12, color: "var(--text-muted)" }} />
           <h1 style={{ fontSize: 22, marginBottom: 6 }}>{t("portal_publico.no_disponible")}</h1>
@@ -61,7 +71,7 @@ export default function PortalClientePage({ params }: Props) {
   const totalGastado = compras.reduce((sum, c) => sum + Number(c.total), 0);
 
   return (
-    <div style={{ minHeight: "100vh", padding: "32px 20px", maxWidth: 720, margin: "0 auto" }}>
+    <div style={{ minHeight: "100vh", padding: "32px 20px", maxWidth: 720, margin: "0 auto", position: "relative", zIndex: 1 }}>
       <header style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
         <div
           style={{
