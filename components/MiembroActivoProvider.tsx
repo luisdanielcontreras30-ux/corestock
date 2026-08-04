@@ -6,6 +6,7 @@ import { Miembro, Permiso } from "../app/configuracion/types";
 import { CLAVE_STORAGE_MIEMBRO_ACTIVO, DatosMiembroGuardado, leerMiembroActivoGuardado } from "../lib/negocioActual";
 import { obtenerMiMembresia } from "../app/configuracion/acciones";
 import { supabase } from "../lib/supabase";
+import { tienePermiso } from "../lib/permisos";
 
 // Cada cuánto se revisa si el dueño cambió el rol/permisos/estado de
 // este miembro mientras la pestaña sigue abierta (ver el efecto más
@@ -161,8 +162,7 @@ export default function MiembroActivoProvider({ children }: { children: ReactNod
   }
 
   function puede(permiso: Permiso): boolean {
-    if (!miembroActivo) return true;
-    return miembroActivo.permisos.includes(permiso);
+    return tienePermiso(miembroActivo, permiso);
   }
 
   return (
