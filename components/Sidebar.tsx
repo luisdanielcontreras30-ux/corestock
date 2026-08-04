@@ -27,15 +27,38 @@ export default function Sidebar({
   const { esEasy } = useModoInterfaz();
   const { rutasActivas, tipoNegocio } = useTipoNegocio();
 
-  // En modo Easy (y solo para el dueño — un miembro del equipo ya
-  // tiene su propia navegación reducida más abajo), el sidebar
-  // colapsa a lo esencial, sin secciones ni categorías — la lista
-  // exacta depende del tipo de negocio (ver obtenerRutasEasy).
+  const todosLosItems = SECCIONES_NAV.flatMap((s) => s.items);
+
+  // Un miembro del equipo SIEMPRE ve el sidebar en su forma simple y
+  // plana (sin secciones/categorías) — igual que el modo Easy, pero
+  // con SUS rutas permitidas (RUTAS_PERMITIDAS_MIEMBRO) en vez de las
+  // de Easy, sin importar si el negocio está en modo Easy o Completo.
+  // Antes caía en la rama de abajo (SECCIONES_NAV agrupado por
+  // secciones): terminaba viendo pocos accesos, pero repartidos en
+  // varias categorías con título — se veía como una versión reducida
+  // del panel completo en vez de algo realmente simple.
+  const itemsMiembro = miembroActivo
+    ? RUTAS_PERMITIDAS_MIEMBRO.filter((href) => {
+        if (href === "/ventas" && !puede("ver_ventas")) return false;
+        if (href === "/ventas-rapidas" && !puede("registrar_ventas")) return false;
+        if (href === "/productos" && !puede("ver_inventario") && !puede("gestionar_inventario")) return false;
+        return true;
+      })
+        .concat(puede("configuracion") ? ["/configuracion"] : [])
+        .map((href) => todosLosItems.find((item) => item.href === href))
+        .filter((item): item is NonNullable<typeof item> => !!item)
+    : null;
+
+  // En modo Easy (y solo para el dueño), el sidebar colapsa a lo
+  // esencial, sin secciones ni categorías — la lista exacta depende
+  // del tipo de negocio (ver obtenerRutasEasy).
   const itemsEasy = esEasy && !miembroActivo
     ? obtenerRutasEasy(tipoNegocio).map((href) =>
-        SECCIONES_NAV.flatMap((s) => s.items).find((item) => item.href === href)
+        todosLosItems.find((item) => item.href === href)
       ).filter((item): item is NonNullable<typeof item> => !!item)
     : null;
+
+  const itemsPlanos = itemsMiembro ?? itemsEasy;
 
   function renderLink(item: ItemNav) {
     const isActive = pathname === item.href;
@@ -77,23 +100,15 @@ export default function Sidebar({
         </div>
 
         <nav className="sidebar-nav">
-          {itemsEasy ? (
+          {itemsPlanos ? (
             <div className="sidebar-section">
-              {itemsEasy.map((item) => renderLink(item))}
+              {itemsPlanos.map((item) => renderLink(item))}
             </div>
           ) : (
             SECCIONES_NAV.map((seccion) => {
               const itemsVisibles = seccion.items.filter((item) => {
-                const permitidaPorConfiguracion = item.href === "/configuracion" && puede("configuracion");
-                if (miembroActivo && !RUTAS_PERMITIDAS_MIEMBRO.includes(item.href) && !permitidaPorConfiguracion) return false;
-                // Un miembro del equipo sin permiso "ver_ventas" no ve
-                // ese acceso en el menú (la página también lo bloquea).
-                if (item.href === "/ventas" && !puede("ver_ventas")) return false;
-                if (item.href === "/ventas-rapidas" && !puede("registrar_ventas")) return false;
-                // Sin "ver inventario" (ni "gestionar inventario", que
-                // lo implica) un miembro no ve el acceso a Productos —
-                // la página también lo bloquea si entra por URL directa.
-                if (item.href === "/productos" && !puede("ver_inventario") && !puede("gestionar_inventario")) return false;
+                // Esta rama ya solo corre para el dueño (itemsPlanos
+                // cubre a cualquier miembro del equipo arriba).
                 // Empleados IA / WhatsApp: en beta cerrada, solo visibles
                 // para la cuenta que los está probando (ver lib/betaAcceso.ts).
                 if (esRutaBetaCerrada(item.href) && !tieneAccesoBeta(user?.email)) return false;
