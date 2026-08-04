@@ -233,6 +233,64 @@ export async function registrarVenta(
 
   return { id: ventaCreada.id };
 }
+const CLAVE_LIMPIEZA_VENTAS = "corestock_limpieza_ventas_ultima";
+const UMBRAL_LIMPIEZA_VENTAS = 10000;
+
+// Borra ventas de hace más de un mes por debajo de UMBRAL_LIMPIEZA_VENTAS
+// — SOLO si el dueño activó "Limpieza automática de ventas" en
+// Configuración → Empresa (ver supabase_limpieza_ventas.sql). A
+// diferencia de eliminarVenta() (pensada para corregir un error recién
+// cometido), esto nunca toca el stock: son ventas de hace semanas o
+// meses, y revertir su stock ahora sumaría unidades que ya se movieron
+// muchas veces desde entonces — dejaría un stock inflado y falso, no
+// una corrección real. Se llama cada vez que se abre Ventas, pero no
+// hace nada si ya corrió hoy para este negocio (evita repetir la
+// consulta de borrado en cada carga de la página).
+export async function limpiarVentasAntiguas(): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  let negocioId: string;
+  try {
+    negocioId = await obtenerNegocioId(user.id);
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+
+  const clave = `${CLAVE_LIMPIEZA_VENTAS}_${negocioId}`;
+  const hoy = new Date().toISOString().slice(0, 10);
+  if (localStorage.getItem(clave) === hoy) return;
+  localStorage.setItem(clave, hoy);
+
+  try {
+    const { data: config, error: errorConfig } = await supabase
+      .from("empresa_config")
+      .select("limpieza_ventas_activa")
+      .maybeSingle();
+
+    if (errorConfig || !config?.limpieza_ventas_activa) return;
+
+    const corte = new Date();
+    corte.setMonth(corte.getMonth() - 1);
+
+    const { error: errorBorrar } = await supabase
+      .from("ventas")
+      .delete()
+      .lt("fecha", corte.toISOString())
+      .lt("total", UMBRAL_LIMPIEZA_VENTAS);
+
+    if (errorBorrar) throw errorBorrar;
+  } catch (error) {
+    // Tarea de mantenimiento en segundo plano — nunca debe tumbar ni
+    // avisar con un toast de error la carga normal de Ventas.
+    console.error(error);
+  }
+}
+
 export async function eliminarVenta(
   id: number
 ) {

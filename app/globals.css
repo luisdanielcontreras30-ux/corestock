@@ -1061,6 +1061,119 @@ body {
 }
 
 /* ==========================================================================
+   HISTORIAL DE VENTAS — TARJETAS
+   Antes era una tabla de 7-8 columnas: en celular se veía apretada y
+   obligaba a scroll horizontal sin ninguna pista de que hubiera más
+   columnas. Cada venta es ahora una tarjeta con su propia información
+   completa, sin depender del ancho de la pantalla.
+   ========================================================================== */
+.historial-grupo-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin: 20px 0 12px;
+}
+
+.historial-grupo-titulo:first-child {
+  margin-top: 0;
+}
+
+.historial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.historial-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.historial-tarjeta:hover {
+  border-color: var(--card-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.historial-tarjeta-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.historial-tarjeta-metodo {
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.historial-tarjeta-cliente {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.historial-tarjeta-producto {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.historial-tarjeta-cantidad {
+  flex-shrink: 0;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.historial-tarjeta-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.historial-tarjeta-precio {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.historial-tarjeta-total {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.historial-tarjeta-eliminar {
+  align-self: flex-end;
+}
+
+@media (max-width: 480px) {
+  .historial-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
    INPUTS, SCROLLBARS Y AJUSTES MENORES
    ========================================================================== */
 

@@ -292,6 +292,36 @@ export default function EmpresaTab() {
         </div>
       </div>
 
+      <div
+        style={{
+          marginTop: 22,
+          paddingTop: 20,
+          borderTop: "1px solid var(--border)",
+        }}
+      >
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            cursor: "pointer",
+            fontSize: 13.5,
+            color: "var(--text-primary)",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={!!empresa.limpieza_ventas_activa}
+            onChange={(e) => actualizarCampo("limpieza_ventas_activa", e.target.checked)}
+            style={{ width: 18, height: 18 }}
+          />
+          {t("empresa.limpieza_ventas_activar")}
+        </label>
+        <p style={{ color: "var(--text-secondary)", fontSize: 12.5, marginTop: 6, marginLeft: 28 }}>
+          {t("empresa.limpieza_ventas_desc")}
+        </p>
+      </div>
+
       {mensaje && (
         <p
           style={{

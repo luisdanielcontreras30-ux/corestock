@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
+import { Inbox } from "lucide-react";
 import { Venta } from "./types";
 import {
   formatoFecha,
@@ -9,8 +10,6 @@ import {
   agruparPorFecha,
 } from "./utils";
 import { useIdioma } from "../../components/LanguageProvider";
-import FilaVacia from "../../components/FilaVacia";
-import FilaGrupo from "../../components/FilaGrupo";
 
 interface Props {
   ventas: Venta[];
@@ -99,96 +98,71 @@ export default function Historial({
       </div>
 
       <input
-        style={{ marginBottom: 16 }}
+        style={{ marginBottom: 20 }}
         placeholder={t("ventas.buscar_historial")}
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
       />
 
-      <div className="tabla">
-        <table>
-          <thead>
-            <tr>
-              <th>{t("tabla.fecha")}</th>
-              <th>{t("ventas.cliente")}</th>
-              <th>{t("tabla.producto")}</th>
-              <th>{t("tabla.cantidad")}</th>
-              <th>{t("productos.precio")}</th>
-              <th>{t("tabla.total")}</th>
-              <th>{t("ventas.metodo_pago")}</th>
-              {mostrarAcciones && <th>{t("usuarios.col_acciones")}</th>}
-            </tr>
-          </thead>
+      {ventasFiltradas.length === 0 ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 8,
+            padding: "40px 20px",
+            color: "var(--text-secondary)",
+          }}
+        >
+          <Inbox size={26} color="var(--text-muted)" />
+          <span>{ventas.length === 0 ? t("ventas.sin_ventas") : t("ventas.sin_resultados_busqueda")}</span>
+        </div>
+      ) : (
+        gruposFecha.map((grupo) => (
+          <Fragment key={grupo.etiqueta}>
+            <h3 className="historial-grupo-titulo">{grupo.etiqueta}</h3>
 
-          <tbody>
-            {ventasFiltradas.length === 0 ? (
-              <FilaVacia
-                colSpan={mostrarAcciones ? 8 : 7}
-                mensaje={ventas.length === 0 ? t("ventas.sin_ventas") : t("ventas.sin_resultados_busqueda")}
-              />
-            ) : (
-              gruposFecha.map((grupo) => (
-                <Fragment key={grupo.etiqueta}>
-                  <FilaGrupo etiqueta={grupo.etiqueta} colSpan={mostrarAcciones ? 8 : 7} />
+            <div className="historial-grid">
+              {grupo.items.map((venta) => (
+                <div className="historial-tarjeta" key={venta.id}>
+                  <div className="historial-tarjeta-top">
+                    <span className="historial-tarjeta-fecha">{formatoFecha(venta.fecha)}</span>
+                    <span className="historial-tarjeta-metodo">
+                      {t(CLAVE_METODO_PAGO[venta.metodo_pago] ?? CLAVE_METODO_PAGO.efectivo)}
+                    </span>
+                  </div>
 
-                  {grupo.items.map((venta) => (
-                    <tr key={venta.id}>
-                      <td>
-                        {formatoFecha(
-                          venta.fecha
-                        )}
-                      </td>
+                  <div className="historial-tarjeta-cliente">
+                    {venta.clientes?.nombre ?? t("ventas.cliente_general")}
+                  </div>
 
-                      <td>
-                        {venta.clientes?.nombre ??
-                          t("ventas.cliente_general")}
-                      </td>
+                  <div className="historial-tarjeta-producto">
+                    <span>{venta.producto}</span>
+                    <span className="historial-tarjeta-cantidad">×{venta.cantidad}</span>
+                  </div>
 
-                      <td>{venta.producto}</td>
+                  <div className="historial-tarjeta-footer">
+                    <span className="historial-tarjeta-precio">
+                      {formatoMoneda(venta.precio)} {t("ventas.precio_unidad")}
+                    </span>
+                    <span className="historial-tarjeta-total">{formatoMoneda(venta.total)}</span>
+                  </div>
 
-                      <td>{venta.cantidad}</td>
-
-                      <td>
-                        {formatoMoneda(
-                          venta.precio
-                        )}
-                      </td>
-
-                      <td
-                        style={{
-                          fontWeight: 700,
-                          color: "var(--primary)",
-                        }}
-                      >
-                        {formatoMoneda(
-                          venta.total
-                        )}
-                      </td>
-
-                      <td>{t(CLAVE_METODO_PAGO[venta.metodo_pago] ?? CLAVE_METODO_PAGO.efectivo)}</td>
-
-                      {mostrarAcciones && (
-                        <td>
-                          <button
-                            className="btn-delete"
-                            onClick={() =>
-                              eliminarVenta!(
-                                venta.id
-                              )
-                            }
-                          >
-                            {t("ventas.eliminar")}
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </Fragment>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                  {mostrarAcciones && (
+                    <button
+                      className="btn-delete historial-tarjeta-eliminar"
+                      onClick={() => eliminarVenta!(venta.id)}
+                    >
+                      {t("ventas.eliminar")}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Fragment>
+        ))
+      )}
     </div>
   );
 }

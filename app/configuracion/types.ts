@@ -83,6 +83,9 @@ export interface EmpresaConfig {
   catalogo_color_precio?: string | null;
   catalogo_color_boton?: string | null;
   catalogo_colores_categoria?: Record<string, string> | null;
+  // Ver supabase_limpieza_ventas.sql — opcional porque select("*") no
+  // trae la columna si esa migración todavía no corrió.
+  limpieza_ventas_activa?: boolean;
 }
 
 export const EMPRESA_VACIA: EmpresaConfig = {

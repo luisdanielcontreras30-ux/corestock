@@ -11,6 +11,7 @@ import {
   cargarDatos,
   registrarVenta,
   eliminarVenta,
+  limpiarVentasAntiguas,
 } from "./acciones";
 
 import { exportarExcel } from "./utils";
@@ -121,6 +122,10 @@ export default function VentasPage() {
 
   useEffect(() => {
     obtenerDatos();
+    // Mantenimiento en segundo plano — no bloquea la carga de la
+    // pantalla ni sus errores se muestran como los de arriba (ver
+    // comentario en limpiarVentasAntiguas).
+    limpiarVentasAntiguas();
   }, []);
 
   // Recupera lo que ya se había llenado del formulario de venta si la
