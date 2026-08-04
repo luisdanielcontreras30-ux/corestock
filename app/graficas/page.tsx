@@ -55,17 +55,6 @@ export default function GraficasPage() {
   const [serviciosCrudos, setServiciosCrudos] = useState<VentaCruda[]>([]);
   const [periodo, setPeriodo] = useState<Periodo>("semanal");
 
-  useEffect(() => {
-    if (cargandoAuth) return;
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    cargarDatos();
-  }, [cargandoAuth, user]);
-
   async function cargarDatos() {
     try {
       setLoading(true);
@@ -83,6 +72,17 @@ export default function GraficasPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (cargandoAuth) return;
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    cargarDatos();
+  }, [cargandoAuth, user]);
 
   // Ventas + servicios cobrados, solo para el KPI de "Ingresos" y su
   // gráfica de tendencia — las demás tarjetas (total de ventas,

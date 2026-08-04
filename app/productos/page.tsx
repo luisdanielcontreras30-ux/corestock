@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "../../lib/supabase";
 import { obtenerNegocioId } from "../../lib/negocioActual";
 import { subirImagenSegura } from "../../lib/uploads";
@@ -792,6 +793,10 @@ function ProductosInterno() {
             </>
           ) : (
             <div>
+              {/* preview es un blob: URL de URL.createObjectURL(), nunca
+                  toca la red — no hay nada que next/image optimice aquí,
+                  y ese componente no soporta blob: sin unoptimized. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={preview} alt={t("productos.subir_imagen")} className="upload-box-preview" />
 
               <div className="productos-actions" style={{ marginTop: 10 }}>
@@ -1050,7 +1055,7 @@ function ProductosInterno() {
                     <div key={p.id} className="producto-tarjeta">
                       <div className="producto-tarjeta-imagen">
                         {p.imagen ? (
-                          <img src={p.imagen} alt={p.nombre} />
+                          <Image src={p.imagen} alt={p.nombre} fill sizes="200px" style={{ objectFit: "cover" }} />
                         ) : (
                           <Package size={26} color="var(--text-muted)" />
                         )}

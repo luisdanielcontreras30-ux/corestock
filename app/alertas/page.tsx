@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "../../lib/supabase";
 import { Package, CheckCircle2, XCircle, AlertTriangle, Bell } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -169,15 +170,15 @@ export default function Alertas() {
             <div key={producto.id} className="card">
               <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                 {producto.imagen && !imagenesRotas.has(producto.id) ? (
-                  <img
+                  <Image
                     src={producto.imagen}
                     alt={producto.nombre}
+                    width={52}
+                    height={52}
                     onError={() =>
                       setImagenesRotas((prev) => new Set(prev).add(producto.id))
                     }
                     style={{
-                      width: 52,
-                      height: 52,
                       borderRadius: 10,
                       objectFit: "cover",
                       flexShrink: 0,

@@ -178,6 +178,10 @@ function AnalisisProductoContenido() {
                   <p className="upload-box-subtexto">{t("productos.subir_imagen_subtexto")}</p>
                 </>
               ) : (
+                // preview es un blob: URL de URL.createObjectURL(), nunca
+                // toca la red — no hay nada que next/image optimice aquí,
+                // y ese componente no soporta blob: sin unoptimized.
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={preview} alt={t("analisis.subir_foto")} className="upload-box-preview" />
               )}
             </div>

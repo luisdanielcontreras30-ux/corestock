@@ -202,17 +202,6 @@ export default function DashboardPremium() {
 
   const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    if (cargandoAuth) return;
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    cargarDatosDashboard();
-  }, [cargandoAuth, user]);
-
   const ventasParaTopArticulos = useMemo(
     () => ventasTodas.filter((v) => dentroDePeriodo(v.fecha, periodoTopArticulos)),
     [ventasTodas, periodoTopArticulos]
@@ -523,6 +512,17 @@ export default function DashboardPremium() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (cargandoAuth) return;
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    cargarDatosDashboard();
+  }, [cargandoAuth, user]);
 
   // Esqueleto con la misma silueta del dashboard real (encabezado +
   // grid de tarjetas KPI) en vez de un simple spinner centrado — así

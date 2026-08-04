@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import Image from "next/image";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useRouter } from "next/navigation";
 import {
@@ -490,7 +491,7 @@ export default function VentasRapidasPage() {
 
                         <div className="venta-rapida-card-imagen">
                           {producto.imagen ? (
-                            <img src={producto.imagen} alt={producto.nombre} />
+                            <Image src={producto.imagen} alt={producto.nombre} fill sizes="200px" style={{ objectFit: "cover" }} />
                           ) : (
                             <ShoppingCart size={34} color="var(--text-muted)" />
                           )}

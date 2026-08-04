@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { CheckCircle2, XCircle, ImagePlus, X } from "lucide-react";
 import { EmpresaConfig, EMPRESA_VACIA } from "../types";
 import { cargarEmpresa, guardarEmpresa } from "../acciones";
@@ -146,6 +147,7 @@ export default function EmpresaTab() {
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div
             style={{
+              position: "relative",
               width: 72,
               height: 72,
               borderRadius: 14,
@@ -158,10 +160,12 @@ export default function EmpresaTab() {
             }}
           >
             {empresa.logo_url ? (
-              <img
+              <Image
                 src={empresa.logo_url}
                 alt={t("empresa.logotipo")}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                fill
+                sizes="72px"
+                style={{ objectFit: "cover" }}
               />
             ) : (
               <ImagePlus size={22} color="var(--text-muted)" />
