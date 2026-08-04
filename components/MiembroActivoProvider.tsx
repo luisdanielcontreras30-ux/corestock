@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useAuth } from "./AuthProvider";
 import { Miembro, Permiso } from "../app/configuracion/types";
 import { CLAVE_STORAGE_MIEMBRO_ACTIVO, DatosMiembroGuardado, leerMiembroActivoGuardado } from "../lib/negocioActual";
-import { obtenerMiMembresia } from "../app/configuracion/acciones";
+import { obtenerMiMembresia, obtenerMiMembresiaConNegocio } from "../app/configuracion/acciones";
 import { supabase } from "../lib/supabase";
 import { tienePermiso } from "../lib/permisos";
 
@@ -66,22 +66,49 @@ export default function MiembroActivoProvider({ children }: { children: ReactNod
       return;
     }
 
-    try {
-      const guardado = sessionStorage.getItem(CLAVE_STORAGE_MIEMBRO_ACTIVO);
-      if (guardado) {
-        const datos = JSON.parse(guardado) as DatosMiembroGuardado;
-        if (datos.userId === user.id) {
-          setMiembroActivo(datos.miembro);
-        } else {
+    let cancelado = false;
+
+    async function resolver() {
+      try {
+        const guardado = sessionStorage.getItem(CLAVE_STORAGE_MIEMBRO_ACTIVO);
+        if (guardado) {
+          const datos = JSON.parse(guardado) as DatosMiembroGuardado;
+          if (datos.userId === user!.id) {
+            setMiembroActivo(datos.miembro);
+            setCargando(false);
+            return;
+          }
           // Corresponde a otra cuenta (navegador compartido) — se descarta.
           sessionStorage.removeItem(CLAVE_STORAGE_MIEMBRO_ACTIVO);
         }
+      } catch {
+        sessionStorage.removeItem(CLAVE_STORAGE_MIEMBRO_ACTIVO);
       }
-    } catch {
-      sessionStorage.removeItem(CLAVE_STORAGE_MIEMBRO_ACTIVO);
-    } finally {
+
+      // sessionStorage no tiene nada (pestaña nueva, PWA reabierta,
+      // navegador reiniciado...), pero eso NO significa que esta sesión
+      // sea la del dueño: la sesión real de Supabase Auth de un miembro
+      // sigue viva ahí (persiste en localStorage) aunque sessionStorage
+      // se haya perdido. Asumir "sin restricciones" en ese caso dejaba
+      // a cualquier miembro con acceso total en cuanto sessionStorage
+      // desaparecía — se confirma contra el servidor si este auth.uid()
+      // en realidad pertenece a un miembro antes de decidir.
+      const resultado = await obtenerMiMembresiaConNegocio();
+      if (cancelado) return;
+
+      if (resultado) {
+        establecerMiembroActivo(resultado.miembro, user!.id, resultado.negocioId);
+      } else {
+        setMiembroActivo(null);
+      }
       setCargando(false);
     }
+
+    resolver();
+
+    return () => {
+      cancelado = true;
+    };
   }, [user, cargandoAuth]);
 
   // sessionStorage solo guarda una foto de los permisos tomada al

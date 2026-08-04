@@ -11,7 +11,15 @@
 -- permiso "configuracion" (que es lo que exige la política de SELECT
 -- normal de miembros_equipo — un cajero nunca lo tiene, y por eso no
 -- podía leer ni su propia fila directamente).
-create or replace function public.mi_membresia()
+-- Postgres no deja cambiar las columnas de un RETURNS TABLE con
+-- "create or replace" — hay que tirar la función vieja primero. Si ya
+-- habías corrido este script antes, vuelve a correrlo completo: agrega
+-- la columna negocio_id, que ahora también usa MiembroActivoProvider
+-- para reconstruir la sesión de un miembro sin depender de
+-- sessionStorage (ver el comentario en ese archivo).
+drop function if exists public.mi_membresia();
+
+create function public.mi_membresia()
 returns table (
   id miembros_equipo.id%type,
   nombre miembros_equipo.nombre%type,
@@ -19,14 +27,15 @@ returns table (
   rol miembros_equipo.rol%type,
   permisos miembros_equipo.permisos%type,
   activo miembros_equipo.activo%type,
-  tiene_contrasena miembros_equipo.tiene_contrasena%type
+  tiene_contrasena miembros_equipo.tiene_contrasena%type,
+  negocio_id miembros_equipo.user_id%type
 )
 language sql
 security definer
 set search_path = public
 stable
 as $$
-  select id, nombre, correo, rol, permisos, activo, tiene_contrasena
+  select id, nombre, correo, rol, permisos, activo, tiene_contrasena, user_id as negocio_id
   from miembros_equipo
   where auth_user_id = auth.uid()
   limit 1;

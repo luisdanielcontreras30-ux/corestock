@@ -164,14 +164,18 @@ export async function actualizarMiembro(
   }
 }
 
-// Llamada por MiembroActivoProvider para refrescar en segundo plano los
-// permisos de un miembro ya logueado (ver supabase_refrescar_permisos_
-// miembro.sql) — sessionStorage solo guarda una foto del momento del
-// login, así que sin esto un cambio de rol/permisos hecho por el dueño
-// no se nota hasta que ese miembro cierra sesión y vuelve a entrar.
-// null = ya no existe/no corresponde a ningún miembro (ej. la sesión es
-// la del propio dueño, o el rpc todavía no está desplegado).
-export async function obtenerMiMembresia(): Promise<Miembro | null> {
+// Resuelve, contra el servidor (no contra sessionStorage), si la sesión
+// de Supabase Auth actual pertenece a un miembro del equipo (ver
+// supabase_refrescar_permisos_miembro.sql) — y si es así, a qué negocio.
+// La usan tanto obtenerMiMembresia() (refresco en segundo plano) como
+// MiembroActivoProvider al arrancar sin sessionStorage (pestaña nueva,
+// PWA reabierta, reinicio del navegador...): la sesión de Auth persiste
+// entre esos casos aunque sessionStorage no, así que sin esta consulta
+// un miembro terminaba tratado como el dueño (sin restricciones) hasta
+// volver a escribir su usuario y contraseña a mano.
+// null = esta sesión no corresponde a ningún miembro (ej. es la del
+// propio dueño, o el rpc todavía no está desplegado).
+export async function obtenerMiMembresiaConNegocio(): Promise<{ miembro: Miembro; negocioId: string } | null> {
   const { data, error } = await supabase.rpc("mi_membresia");
 
   if (error) {
@@ -183,7 +187,15 @@ export async function obtenerMiMembresia(): Promise<Miembro | null> {
   }
 
   const fila = Array.isArray(data) ? data[0] : data;
-  return (fila as Miembro | undefined) ?? null;
+  if (!fila) return null;
+
+  const { negocio_id, ...miembro } = fila as Miembro & { negocio_id: string };
+  return { miembro: miembro as Miembro, negocioId: negocio_id };
+}
+
+export async function obtenerMiMembresia(): Promise<Miembro | null> {
+  const resultado = await obtenerMiMembresiaConNegocio();
+  return resultado?.miembro ?? null;
 }
 
 async function obtenerAccessToken(): Promise<string> {
