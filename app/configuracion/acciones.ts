@@ -175,7 +175,13 @@ export async function actualizarMiembro(
 // volver a escribir su usuario y contraseña a mano.
 // null = esta sesión no corresponde a ningún miembro (ej. es la del
 // propio dueño, o el rpc todavía no está desplegado).
-export async function obtenerMiMembresiaConNegocio(): Promise<{ miembro: Miembro; negocioId: string } | null> {
+//
+// negocioId puede venir null si el proyecto de Supabase todavía tiene
+// la versión VIEJA de mi_membresia() (sin la columna negocio_id) — el
+// llamador no debe guardar ese caso en sessionStorage tal cual: un
+// negocioId inventado o vacío ahí rompería obtenerNegocioId() para el
+// resto de la sesión de ese miembro (peor que el bug que esto arregla).
+export async function obtenerMiMembresiaConNegocio(): Promise<{ miembro: Miembro; negocioId: string | null } | null> {
   const { data, error } = await supabase.rpc("mi_membresia");
 
   if (error) {
@@ -189,8 +195,8 @@ export async function obtenerMiMembresiaConNegocio(): Promise<{ miembro: Miembro
   const fila = Array.isArray(data) ? data[0] : data;
   if (!fila) return null;
 
-  const { negocio_id, ...miembro } = fila as Miembro & { negocio_id: string };
-  return { miembro: miembro as Miembro, negocioId: negocio_id };
+  const { negocio_id, ...miembro } = fila as Miembro & { negocio_id?: string };
+  return { miembro: miembro as Miembro, negocioId: negocio_id ?? null };
 }
 
 export async function obtenerMiMembresia(): Promise<Miembro | null> {

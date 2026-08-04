@@ -96,8 +96,20 @@ export default function MiembroActivoProvider({ children }: { children: ReactNod
       const resultado = await obtenerMiMembresiaConNegocio();
       if (cancelado) return;
 
-      if (resultado) {
+      if (resultado && resultado.negocioId) {
         establecerMiembroActivo(resultado.miembro, user!.id, resultado.negocioId);
+      } else if (resultado) {
+        // Es un miembro, pero el proyecto de Supabase todavía tiene la
+        // versión vieja de mi_membresia() (sin negocio_id) — se aplica
+        // la restricción de navegación igual (lo más urgente), pero sin
+        // persistir un negocioId roto en sessionStorage. Falta correr
+        // de nuevo supabase_refrescar_permisos_miembro.sql para que el
+        // resto de las consultas (que sí dependen de negocioId) también
+        // queden resueltas correctamente.
+        console.warn(
+          "mi_membresia() no devolvió negocio_id — corre de nuevo supabase_refrescar_permisos_miembro.sql."
+        );
+        setMiembroActivo(resultado.miembro);
       } else {
         setMiembroActivo(null);
       }

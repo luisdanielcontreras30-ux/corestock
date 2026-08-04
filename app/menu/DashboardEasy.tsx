@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Zap, Wrench, DollarSign, Receipt, Inbox, AlertTriangle } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { LOCALES } from "../../lib/i18n";
 import { formatoMoneda } from "../ventas/utils";
 import ContadorAnimado from "../../components/ContadorAnimado";
@@ -38,13 +39,22 @@ export default function DashboardEasy({
 }: Props) {
   const { t, idioma } = useIdioma();
   const { user } = useAuth();
+  const { miembroActivo } = useMiembroActivo();
+
+  // Un miembro del equipo inicia sesión con un correo interno sintético
+  // (nunca uno real — ver lib/identidadMiembro.ts), así que mostrarlo
+  // tal cual saludaría con algo como "miembro-<uuid>". Este dashboard
+  // en teoría nunca se monta para un miembro (page.tsx muestra su
+  // propio panel simple antes de llegar aquí), pero se prefiere su
+  // nombre real por si acaso en vez de confiar ciegamente en esa regla.
+  const nombreSaludo = miembroActivo?.nombre ?? user?.email?.split("@")[0] ?? "";
 
   return (
     <main className="fade-up dashboard-easy">
       <header className="dashboard-easy-saludo">
         <h1>
           {t("dashboard.saludo")}
-          {user?.email ? `, ${user.email.split("@")[0]}` : ""} 👋
+          {nombreSaludo ? `, ${nombreSaludo}` : ""} 👋
         </h1>
         <p suppressHydrationWarning>
           {capitalizarInicio(
