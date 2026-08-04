@@ -8,6 +8,7 @@ import { useModoInterfaz, ModoInterfaz } from "./ModoInterfazProvider";
 import { useMiembroActivo } from "./MiembroActivoProvider";
 import { useTipoNegocio } from "./TipoNegocioProvider";
 import SelectorModoInterfaz from "./SelectorModoInterfaz";
+import { supabase } from "../lib/supabase";
 
 // Pantalla de bienvenida "¿Cómo quieres usar CoreStock?" — se muestra
 // una sola vez, DESPUÉS de SeleccionNegocioModal (¿qué tipo de negocio
@@ -18,11 +19,12 @@ import SelectorModoInterfaz from "./SelectorModoInterfaz";
 export default function ModoInicialModal() {
   const { user, cargando: cargandoAuth } = useAuth();
   const { modoInterfaz, cargando: cargandoModo, cambiarModo } = useModoInterfaz();
-  const { miembroActivo, cargando: cargandoMiembro } = useMiembroActivo();
+  const { miembroActivo, cargando: cargandoMiembro, limpiarMiembroActivo } = useMiembroActivo();
   const { tipoNegocio, cargando: cargandoTipoNegocio } = useTipoNegocio();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
   const [guardando, setGuardando] = useState<ModoInterfaz | null>(null);
+  const [cerrandoSesion, setCerrandoSesion] = useState(false);
 
   // Un miembro del equipo entra con la misma sesión (mismo user.id) del
   // dueño de la cuenta — sin este chequeo, si el dueño todavía no había
@@ -59,6 +61,23 @@ export default function ModoInicialModal() {
     }
   }
 
+  // Mismo motivo que en SeleccionNegocioModal: sin esta salida, si
+  // guardar la elección falla repetidamente no hay forma de recuperarse
+  // sin borrar a mano los datos del sitio en el navegador.
+  async function cerrarSesion() {
+    if (cerrandoSesion) return;
+    setCerrandoSesion(true);
+
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      limpiarMiembroActivo();
+      window.location.href = "/login";
+    }
+  }
+
   return (
     <div className="modo-inicial-overlay">
       <div className="modo-inicial-contenido fade-up">
@@ -71,6 +90,15 @@ export default function ModoInicialModal() {
         />
 
         <p className="modo-inicial-nota">{t("modo_interfaz.nota")}</p>
+
+        <button
+          type="button"
+          className="modo-inicial-salir"
+          disabled={!!guardando || cerrandoSesion}
+          onClick={cerrarSesion}
+        >
+          {t("header.cerrar_sesion")}
+        </button>
       </div>
     </div>
   );

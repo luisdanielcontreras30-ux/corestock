@@ -7,6 +7,7 @@ import { useToast } from "./ToastProvider";
 import { useTipoNegocio } from "./TipoNegocioProvider";
 import { useMiembroActivo } from "./MiembroActivoProvider";
 import { TIPOS_NEGOCIO, TipoNegocio } from "../lib/tiposNegocio";
+import { supabase } from "../lib/supabase";
 
 // Pantalla de bienvenida "¿Qué tipo de negocio tienes?" — se muestra
 // una sola vez, ANTES de ModoInicialModal (¿Easy o Completo?) y del
@@ -17,10 +18,11 @@ import { TIPOS_NEGOCIO, TipoNegocio } from "../lib/tiposNegocio";
 export default function SeleccionNegocioModal() {
   const { user, cargando: cargandoAuth } = useAuth();
   const { tipoNegocio, cargando: cargandoTipo, elegirTipoNegocio } = useTipoNegocio();
-  const { miembroActivo, cargando: cargandoMiembro } = useMiembroActivo();
+  const { miembroActivo, cargando: cargandoMiembro, limpiarMiembroActivo } = useMiembroActivo();
   const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
   const [guardando, setGuardando] = useState(false);
+  const [cerrandoSesion, setCerrandoSesion] = useState(false);
   // "otro" pide describir el negocio en vez de enviarse solo al tocarlo
   // — sin texto, la IA no tiene con qué elegir módulos.
   const [otroActivo, setOtroActivo] = useState(false);
@@ -58,6 +60,26 @@ export default function SeleccionNegocioModal() {
       return;
     }
     elegir(opcion.id, t(opcion.claveNombre));
+  }
+
+  // Esta pantalla cubre toda la app y no tiene botón de cerrar a
+  // propósito (ver el comentario junto a debeMostrarse) — pero si
+  // guardar la elección falla una y otra vez (red caída, permisos mal
+  // configurados en Supabase, etc.) no debe dejar a la persona sin
+  // ninguna salida: sin esto, la única forma de recuperarse era borrar
+  // a mano los datos del sitio en el navegador.
+  async function cerrarSesion() {
+    if (cerrandoSesion) return;
+    setCerrandoSesion(true);
+
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      limpiarMiembroActivo();
+      window.location.href = "/login";
+    }
   }
 
   return (
@@ -107,6 +129,15 @@ export default function SeleccionNegocioModal() {
 
         {guardando && <p className="modo-inicial-nota">{t("tipo_negocio.analizando")}</p>}
         <p className="modo-inicial-nota">{t("tipo_negocio.nota")}</p>
+
+        <button
+          type="button"
+          className="modo-inicial-salir"
+          disabled={guardando || cerrandoSesion}
+          onClick={cerrarSesion}
+        >
+          {t("header.cerrar_sesion")}
+        </button>
       </div>
     </div>
   );

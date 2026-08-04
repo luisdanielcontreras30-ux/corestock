@@ -6708,6 +6708,27 @@ select optgroup {
   margin: 20px 0 0;
 }
 
+.modo-inicial-salir {
+  display: block;
+  margin: 18px auto 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.modo-inicial-salir:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.modo-inicial-salir:hover:not(:disabled) {
+  color: var(--text-secondary);
+}
+
 /* ==========================================================================
    PERSONALIZACIÓN POR TIPO DE NEGOCIO
    Pantalla de bienvenida (SeleccionNegocioModal, reutiliza
