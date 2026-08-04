@@ -141,16 +141,26 @@ export async function actualizarMiembro(
 ): Promise<void> {
   await obtenerUsuarioActual();
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("miembros_equipo")
     .update(cambios)
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     if (error.code === "23505") {
       throw new Error("NOMBRE_DUPLICADO");
     }
     throw error;
+  }
+
+  // Sin filas afectadas = RLS lo rechazó en silencio — el caso real es
+  // un miembro intentando editarse/desactivarse a sí mismo, algo que
+  // miembros_equipo_miembro_update bloquea a propósito (ver
+  // supabase_permisos_miembros.sql). Sin esto la pantalla mostraba
+  // "guardado" aunque en la base no cambió nada.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ACTUALIZAR");
   }
 }
 

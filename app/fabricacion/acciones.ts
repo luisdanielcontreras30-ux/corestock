@@ -112,12 +112,20 @@ export async function eliminarMateriaPrima(id: number) {
 
   if (!user) throw new Error("Usuario no autenticado");
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("materias_primas")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) throw error;
+
+  // Sin filas afectadas = RLS lo rechazó en silencio (materia prima de
+  // otro negocio, o un miembro sin permiso) — sin esto se mostraba
+  // como eliminada aunque en la base no cambió nada.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
+  }
 }
 
 export async function agregarIngrediente(
@@ -165,12 +173,17 @@ export async function eliminarIngrediente(id: number) {
 
   if (!user) throw new Error("Usuario no autenticado");
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("recetas")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) throw error;
+
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
+  }
 }
 
 // Produce "cantidadAProducir" unidades del producto: descuenta cada
