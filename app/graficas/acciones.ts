@@ -10,9 +10,17 @@ export async function obtenerDatosGraficas(): Promise<VentaCruda[]> {
     throw new Error("Usuario no autenticado");
   }
 
+  // El período más amplio que se puede elegir es "anual", comparado
+  // contra el año inmediatamente anterior (ver filtrarPorPeriodo en
+  // utils.ts) — nada en esta pantalla mira más atrás que eso. Sin este
+  // filtro se traía la tabla completa de ventas desde el primer día,
+  // el mismo problema que ya se arregló en el Dashboard.
+  const inicioAnioAnterior = new Date(new Date().getFullYear() - 1, 0, 1).toISOString();
+
   const { data: ventas, error } = await supabase
     .from("ventas")
     .select("*")
+    .gte("fecha", inicioAnioAnterior)
     .order("fecha", {
       ascending: true,
     });

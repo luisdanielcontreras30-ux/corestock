@@ -219,7 +219,7 @@ function TraspasosContenido() {
         subtitulo={t("traspasos.subtitulo")}
       />
 
-      {!loading && (
+      {traspasos.length > 0 && (
         <div className="modulo-resumen">
           <div className="modulo-resumen-item">
             <span className="modulo-resumen-icono">
