@@ -325,6 +325,10 @@ export const TRADUCCIONES: Diccionario = {
   // Configuración - Apariencia
   "tema.titulo": { es: "Tema de la aplicación", en: "Application theme", pt: "Tema do aplicativo", fr: "Thème de l'application", de: "Anwendungsdesign", zh: "应用主题", it: "Tema dell'applicazione" },
   "tema.subtitulo": { es: "Elige el tema con el que quieres usar CoreStock. Se guarda solo en este dispositivo.", en: "Choose the theme you want to use CoreStock with. Saved only on this device.", pt: "Escolha o tema para usar o CoreStock. Salvo apenas neste dispositivo.", fr: "Choisissez le thème d'utilisation de CoreStock. Enregistré uniquement sur cet appareil.", de: "Wähle das Design für CoreStock. Wird nur auf diesem Gerät gespeichert.", zh: "选择使用 CoreStock 的主题。仅保存在此设备上。", it: "Scegli il tema con cui vuoi usare CoreStock. Viene salvato solo su questo dispositivo." },
+  "tema.categoria_claros": { es: "Claros", en: "Light", pt: "Claros", fr: "Clairs", de: "Hell", zh: "浅色", it: "Chiari" },
+  "tema.categoria_oscuros": { es: "Oscuros", en: "Dark", pt: "Escuros", fr: "Sombres", de: "Dunkel", zh: "深色", it: "Scuri" },
+  "tema.categoria_neon": { es: "Neón", en: "Neon", pt: "Neon", fr: "Néon", de: "Neon", zh: "霓虹", it: "Neon" },
+  "tema.categoria_tematicos": { es: "Temáticos", en: "Themed", pt: "Temáticos", fr: "Thématiques", de: "Motivdesigns", zh: "主题风格", it: "A tema" },
   "tema.dark.nombre": { es: "Oscuro", en: "Dark", pt: "Escuro", fr: "Sombre", de: "Dunkel", zh: "深色", it: "Scuro" },
   "tema.dark.desc": { es: "El tema clásico de CoreStock", en: "The classic CoreStock theme", pt: "O tema clássico do CoreStock", fr: "Le thème classique de CoreStock", de: "Das klassische CoreStock-Design", zh: "CoreStock 经典主题", it: "Il tema classico di CoreStock" },
   "tema.green.nombre": { es: "Verde", en: "Green", pt: "Verde", fr: "Vert", de: "Grün", zh: "绿色", it: "Verde" },
