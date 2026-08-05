@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Sparkles, Send, Bot, ChevronDown } from "lucide-react";
+import { Sparkles, Send, Bot, ChevronDown, ImagePlus } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { Idioma } from "../../lib/i18n";
@@ -23,10 +23,11 @@ import {
 } from "./acciones";
 import type { IntencionDatos } from "./deteccion";
 import type { TemaConocimiento } from "./conocimiento";
-import { preguntarAIa, MensajeIA } from "./ia";
+import { preguntarAIa, preguntarAIaConImagen, MensajeIA } from "./ia";
 import type { EmocionCorebot } from "../../lib/groq";
 import { interpretarCalculo } from "./calculadora";
 import { normalizarTexto } from "../../lib/normalizarTexto";
+import { redimensionarImagen } from "../../lib/iaAcciones";
 
 // La base de conocimiento son ~350 KB de texto (48 temas × 7 idiomas) y
 // vivía en el bundle inicial de esta pantalla: todo el mundo la
@@ -71,6 +72,11 @@ interface Mensaje {
   // reaccione a cambios de idioma) en vez de quedar fijo en el idioma
   // que estaba activo cuando se generó el mensaje.
   claveTexto?: string;
+  // Vista previa de la foto adjunta (data URL, solo en memoria — a
+  // diferencia del chat de equipo, esta conversación nunca se guarda en
+  // Supabase, así que no hace falta subir la imagen a ningún lado para
+  // mostrarla en pantalla).
+  imagenUrl?: string;
 }
 
 // Los resultados de la calculadora salen como números crudos (ver
@@ -141,7 +147,9 @@ function AsistenteContenido() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [entrada, setEntrada] = useState("");
   const [pensando, setPensando] = useState(false);
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
   const [verTodasLasPreguntas, setVerTodasLasPreguntas] = useState(false);
+  const imagenInputRef = useRef<HTMLInputElement>(null);
   // Memoria mínima de la conversación: sobre qué se habló al final,
   // para que "cuéntame más" o "dame un ejemplo" tengan a qué referirse.
   const [ultimoTema, setUltimoTema] = useState<string | null>(null);
@@ -268,10 +276,10 @@ function AsistenteContenido() {
   // El id se deriva del último mensaje en vez de Date.now(): así la
   // función es pura (nada de relojes) y los ids siguen siendo únicos y
   // crecientes aunque se mezclen con los que genera enviarPregunta.
-  function agregarMensaje(autor: "usuario" | "asistente", texto: string) {
+  function agregarMensaje(autor: "usuario" | "asistente", texto: string, imagenUrl?: string) {
     setMensajes((prev) => {
       const id = (prev.length > 0 ? prev[prev.length - 1].id : 0) + 1;
-      return [...prev, { id, autor, texto }];
+      return [...prev, { id, autor, texto, imagenUrl }];
     });
   }
 
@@ -501,6 +509,47 @@ function AsistenteContenido() {
     }
   }
 
+  // A diferencia del texto libre, una foto no pasa por la calculadora ni
+  // por el motor de reglas (deteccion.ts no sabe nada de imágenes): va
+  // directo a la IA. Si no hay IA disponible (sin llave, sin saldo, sin
+  // conexión) se avisa en vez de fingir que no pasó nada — el motor de
+  // reglas no tiene ningún respaldo posible para "mira esta foto".
+  async function alElegirImagen(archivo: File | undefined) {
+    if (!archivo || pensando || subiendoImagen) return;
+
+    setSubiendoImagen(true);
+    try {
+      const { base64, mimeType } = await redimensionarImagen(archivo);
+      const dataUrl = `data:${mimeType};base64,${base64}`;
+
+      const textoAdjunto = entrada.trim();
+      agregarMensaje("usuario", textoAdjunto, dataUrl);
+      setEntrada("");
+      setUltimoTema(null);
+      setPensando(true);
+
+      const historialIA: MensajeIA[] = mensajes
+        .filter((m) => !m.claveTexto)
+        .map((m) => ({ rol: m.autor, texto: m.texto }));
+
+      const respuesta = await preguntarAIaConImagen(textoAdjunto, base64, mimeType, historialIA, idioma);
+
+      if (respuesta) {
+        agregarMensaje("asistente", respuesta.texto);
+        reaccionarConEmocion(respuesta.emocion);
+      } else {
+        agregarMensaje("asistente", t("asistente.msg_error_imagen"));
+      }
+    } catch (error) {
+      console.error(error);
+      agregarMensaje("asistente", t("asistente.msg_error_imagen"));
+    } finally {
+      setSubiendoImagen(false);
+      setPensando(false);
+      if (imagenInputRef.current) imagenInputRef.current.value = "";
+    }
+  }
+
   return (
     <main className="fade-up asistente-main" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <EncabezadoModulo
@@ -541,112 +590,100 @@ function AsistenteContenido() {
         )}
       </div>
 
-      {/* HILO DE CONVERSACIÓN */}
-      <div
-        className="card asistente-hilo"
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 14,
-          padding: 24,
-        }}
-      >
-        {mensajes.map((m) => (
-          <div
-            key={m.id}
-            style={{
-              display: "flex",
-              gap: 10,
-              alignItems: "flex-start",
-              flexDirection: m.autor === "usuario" ? "row-reverse" : "row",
-            }}
-          >
-            <div
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: "50%",
-                flexShrink: 0,
-                display: "grid",
-                placeItems: "center",
-                background:
-                  m.autor === "asistente" ? "var(--primary)" : "var(--card-hover)",
-                color: m.autor === "asistente" ? "#fff" : "var(--text-primary)",
-              }}
-            >
-              {m.autor === "asistente" ? (
-                <Bot size={16} />
-              ) : (
-                (user?.email?.charAt(0) ?? "U").toUpperCase()
-              )}
+      {/* HILO DE CONVERSACIÓN — mismas clases que el chat de equipo
+          (app/chat/page.tsx), para que sea el mismo lenguaje visual:
+          burbujas, avatar redondo y fondo con textura de puntos. */}
+      <div className="card asistente-panel">
+        <div className="chat-mensajes">
+          {mensajes.map((m) => {
+            const propio = m.autor === "usuario";
+            const soloImagen = !!m.imagenUrl && !m.texto && !m.claveTexto;
+
+            return (
+              <div key={m.id} className={`chat-fila ${propio ? "chat-fila-propia" : ""}`}>
+                {!propio && (
+                  <span className="chat-avatar" style={{ background: "var(--primary)" }}>
+                    <Bot size={14} />
+                  </span>
+                )}
+
+                <div
+                  className={`chat-burbuja ${propio ? "chat-burbuja-propia" : ""} ${soloImagen ? "chat-burbuja-solo-imagen" : ""}`}
+                >
+                  {m.imagenUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element -- data URL local, no next/image
+                    <img src={m.imagenUrl} alt="" className="chat-burbuja-imagen" />
+                  )}
+                  {(m.texto || m.claveTexto) && (
+                    <div className="chat-burbuja-texto">
+                      {renderizarTexto(m.claveTexto ? t(m.claveTexto) : m.texto)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {pensando && (
+            <div className="chat-fila">
+              <span className="chat-avatar" style={{ background: "var(--primary)" }}>
+                <Bot size={14} />
+              </span>
+              <div className="chat-burbuja">
+                <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>
+                  {t("asistente.pensando")}
+                </span>
+              </div>
             </div>
+          )}
 
-            <div
-              style={{
-                maxWidth: "72%",
-                minWidth: 0,
-                overflowWrap: "anywhere",
-                background:
-                  m.autor === "asistente" ? "var(--glass-bg)" : "var(--primary-soft)",
-                border: "1px solid var(--border)",
-                borderRadius: 14,
-                padding: "12px 16px",
-                fontSize: 13.5,
-                color: "var(--text-primary)",
-                lineHeight: 1.5,
-              }}
-            >
-              {renderizarTexto(m.claveTexto ? t(m.claveTexto) : m.texto)}
-            </div>
-          </div>
-        ))}
+          <div ref={finRef} />
+        </div>
 
-        {pensando && (
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <div
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: "50%",
-                display: "grid",
-                placeItems: "center",
-                background: "var(--primary)",
-                color: "#fff",
-              }}
-            >
-              <Bot size={16} />
-            </div>
-            <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>
-              {t("asistente.pensando")}
-            </span>
-          </div>
-        )}
-
-        <div ref={finRef} />
-      </div>
-
-      {/* ENTRADA DE TEXTO LIBRE */}
-      <div style={{ display: "flex", gap: 10 }}>
-        <input
-          value={entrada}
-          onChange={(e) => setEntrada(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") alEnviarLibre();
+        {/* ENTRADA DE TEXTO LIBRE + FOTO */}
+        <form
+          className="chat-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            alEnviarLibre();
           }}
-          placeholder={t("asistente.placeholder")}
-          disabled={pensando}
-        />
-        <button
-          className="btn-primary"
-          onClick={alEnviarLibre}
-          disabled={pensando}
-          aria-label={t("asistente.enviar")}
-          style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
         >
-          <Send size={15} />
-        </button>
+          <input
+            ref={imagenInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => alElegirImagen(e.target.files?.[0])}
+          />
+
+          <button
+            type="button"
+            className="chat-form-imagen"
+            disabled={pensando || subiendoImagen}
+            onClick={() => imagenInputRef.current?.click()}
+            aria-label={t("chat.adjuntar_foto")}
+            title={t("chat.adjuntar_foto")}
+          >
+            <ImagePlus size={20} />
+          </button>
+
+          <input
+            value={entrada}
+            onChange={(e) => setEntrada(e.target.value)}
+            placeholder={subiendoImagen ? t("chat.subiendo_foto") : t("asistente.placeholder")}
+            disabled={pensando || subiendoImagen}
+          />
+
+          <button
+            type="submit"
+            className="chat-form-enviar"
+            disabled={pensando || subiendoImagen || !entrada.trim()}
+            aria-label={t("asistente.enviar")}
+            title={t("asistente.enviar")}
+          >
+            <Send size={19} />
+          </button>
+        </form>
       </div>
 
       <MascotaAsistente activo={mascotaActiva} pensando={pensando} emocion={emocionMascota} />

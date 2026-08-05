@@ -48,7 +48,10 @@ function blobABase64(blob: Blob): Promise<string> {
   });
 }
 
-async function redimensionarImagen(
+// Exportada porque el Asistente (app/asistente/page.tsx) también manda
+// fotos y necesita el mismo redimensionado antes de subirlas — mismo
+// límite de tamaño de host serverless, mismo motivo.
+export async function redimensionarImagen(
   archivo: File
 ): Promise<{ base64: string; mimeType: string }> {
   try {

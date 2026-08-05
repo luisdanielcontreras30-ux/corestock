@@ -4,12 +4,16 @@ import {
   construirPromptMensajeCliente,
   construirPromptMensajeProveedor,
   construirPromptRecomendarModulos,
+  construirPromptAsistente,
   extraerResultadoProducto,
   ResultadoAnalisisProducto,
   ProductoParaVendedor,
   DatosAnalisisEntidad,
   ModuloCatalogo,
+  ContextoNegocio,
 } from "./promptsIA";
+
+export type { ContextoNegocio };
 
 // Cliente para Groq (chat). Uso EXCLUSIVO en código de servidor
 // (app/api/**) — GROQ_API_KEY nunca debe llegar al navegador.
@@ -75,16 +79,6 @@ export function modeloVisionEnUso(): { modelo: string; porDefecto: boolean } {
 // mostrador.
 const MAX_TOKENS_RESPUESTA = 700;
 
-const NOMBRE_IDIOMA: Record<string, string> = {
-  es: "español",
-  en: "inglés",
-  pt: "portugués",
-  fr: "francés",
-  de: "alemán",
-  zh: "chino",
-  it: "italiano",
-};
-
 // true cuando el servidor tiene con qué hablarle a Groq. Las
 // rutas lo usan para decidir el proveedor sin tener que atrapar un
 // error primero.
@@ -95,31 +89,6 @@ export function hayGroq(): boolean {
 export interface MensajeChat {
   rol: "usuario" | "asistente";
   texto: string;
-}
-
-// Resumen real del negocio que se le da al modelo como contexto. Sin
-// esto respondería bien de negocio en general pero no podría decir una
-// sola cifra del negocio de quien pregunta, que es la mitad del valor.
-export interface ContextoNegocio {
-  // Cuando una consulta a la base falla, sus cifras NO se mandan como
-  // cero: se marca que no se pudieron leer. Un cero y un "no se pudo
-  // leer" son cosas distintas, y confundirlos hace que el modelo afirme
-  // con total seguridad "hoy no has vendido nada" cuando lo que pasó es
-  // que la consulta falló. Una cifra inventada sobre el propio negocio
-  // es lo peor que puede decir este asistente.
-  ventasDisponibles: boolean;
-  inventarioDisponible: boolean;
-  nombreNegocio: string | null;
-  moneda: string;
-  productosActivos: number;
-  valorInventario: number;
-  agotados: string[];
-  bajoStock: string[];
-  ventasHoy: number;
-  ventasSemana: number;
-  ventasMes: number;
-  productoTop: string | null;
-  mejorCliente: string | null;
 }
 
 export class ErrorGroq extends Error {
@@ -167,7 +136,12 @@ export interface RespuestaAsistente {
 // una animación desconectada de lo que se está hablando. Si el
 // modelo no la puso, o puso algo que no está en la lista, se
 // devuelve el texto tal cual y sin emoción forzada.
-function extraerEmocion(textoCrudo: string): RespuestaAsistente {
+// Exportada porque lib/googleAI.ts también la necesita: el modelo de
+// Google cierra su respuesta con la misma línea `[[emocion:X]]` (el
+// prompt es el mismo, ver construirPromptAsistente en promptsIA.ts), y
+// mantener el recorte en un solo sitio evita que un arreglo aquí se
+// aplique solo a uno de los dos proveedores.
+export function extraerEmocion(textoCrudo: string): RespuestaAsistente {
   const coincidencia = textoCrudo.match(/\n?\s*\[\[\s*emocion\s*:\s*(\w+)\s*\]\]\s*$/i);
 
   if (!coincidencia) {
@@ -181,69 +155,6 @@ function extraerEmocion(textoCrudo: string): RespuestaAsistente {
     texto: texto || textoCrudo,
     emocion: EMOCIONES_VALIDAS.includes(candidata) ? candidata : null,
   };
-}
-
-function listaCorta(nombres: string[], maximo = 8): string {
-  if (nombres.length === 0) return "ninguno";
-  const visibles = nombres.slice(0, maximo).join(", ");
-  return nombres.length > maximo ? `${visibles} (y ${nombres.length - maximo} más)` : visibles;
-}
-
-function construirSistema(contexto: ContextoNegocio, idioma: string): string {
-  const idiomaTexto = NOMBRE_IDIOMA[idioma] ?? "español";
-  const negocio = contexto.nombreNegocio?.trim() || "el negocio";
-  const m = contexto.moneda;
-
-  return [
-    `Eres el Asistente de CoreStock, un sistema de inventario y punto de venta para negocios pequeños. Hablas con la persona dueña de ${negocio}.`,
-    "",
-    `Responde SIEMPRE en ${idiomaTexto}, aunque la pregunta venga en otro idioma.`,
-    "",
-    "CÓMO RESPONDES:",
-    "- Directo y concreto. Nada de introducciones ni de repetir la pregunta.",
-    "- Corto: 3 a 6 líneas normalmente. Solo te extiendes si de verdad hace falta.",
-    "- Puedes usar **negritas** y viñetas con •. Nada de tablas ni de encabezados de markdown.",
-    "- Tuteas, en tono de alguien que sabe del tema y habla claro, sin palabras rebuscadas.",
-    "- Si te preguntan algo que no tiene nada que ver con el negocio, contéstalo igual y con gusto. No eres solo un asistente de inventario.",
-    "",
-    "SOBRE LOS NÚMEROS DE ESTE NEGOCIO:",
-    "- Los datos de abajo son reales y de hoy. Úsalos cuando pregunten por su negocio.",
-    "- NUNCA inventes una cifra que no esté abajo. Si te preguntan algo que los datos no cubren (por ejemplo el detalle de un producto concreto), dilo y di en qué pantalla de CoreStock se ve.",
-    "- Si un dato está en cero, puede ser que de verdad sea cero o que aún no lo estén registrando. Menciónalo como posibilidad en vez de dar por hecho que el negocio va mal.",
-    "",
-    "DATOS ACTUALES:",
-    ...(contexto.inventarioDisponible
-      ? [
-          `- Productos activos: ${contexto.productosActivos}`,
-          `- Valor del inventario: ${m}${contexto.valorInventario.toFixed(2)}`,
-          `- Productos agotados: ${listaCorta(contexto.agotados)}`,
-          `- Productos por debajo del stock mínimo: ${listaCorta(contexto.bajoStock)}`,
-        ]
-      : [
-          "- Inventario: NO SE PUDO LEER en este momento. Si te preguntan por productos, stock o agotados, di que ahora mismo no puedes consultarlo y que lo revisen en la pantalla de Productos. NO digas que no tienen productos.",
-        ]),
-    ...(contexto.ventasDisponibles
-      ? [
-          `- Ventas de hoy: ${m}${contexto.ventasHoy.toFixed(2)}`,
-          `- Ventas de los últimos 7 días: ${m}${contexto.ventasSemana.toFixed(2)}`,
-          `- Ventas de los últimos 30 días: ${m}${contexto.ventasMes.toFixed(2)}`,
-          `- Producto más vendido (30 días): ${contexto.productoTop ?? "todavía no hay ventas"}`,
-          `- Mejor cliente (30 días): ${contexto.mejorCliente ?? "todavía no hay ventas con cliente"}`,
-        ]
-      : [
-          "- Ventas: NO SE PUDO LEER en este momento. Si te preguntan cuánto vendieron, di que ahora mismo no puedes consultarlo y que lo revisen en la pantalla de Ventas. NUNCA digas que no han vendido nada.",
-        ]),
-    "",
-    "LÍMITES:",
-    "- No puedes registrar ventas, cambiar precios ni modificar nada. Solo informas y aconsejas. Si te piden hacer algo, explica en qué pantalla se hace.",
-    "- En temas de impuestos, contratos o salud, da la orientación general que sepas y di con claridad cuándo conviene consultar a un profesional.",
-    "",
-    "COREBOT, TU MASCOTA:",
-    "- Eres representado en pantalla por Corebot, un robot animado. Tras escribir tu respuesta completa, agrega una última línea, sola y sin nada más, con el formato exacto `[[emocion:X]]`.",
-    "- X es UNA sola palabra de esta lista, la que mejor refleje el tono de lo que acabas de responder: feliz, sorprendido, analizando, concentrado, ayudando, emocionado, durmiendo.",
-    "- Usa feliz para una respuesta amable o positiva de rutina; sorprendido ante un dato llamativo o inesperado; analizando cuando estás repasando cifras del negocio; concentrado en un tema serio o técnico; ayudando cuando estás guiando paso a paso; emocionado ante buenas noticias o algo para celebrar; durmiendo si la conversación es de despedida, buenas noches o algo relajado.",
-    "- Esa línea es solo una instrucción para animar a Corebot: la persona nunca la ve, así que no la menciones, no la expliques y no la pongas en ningún otro lugar de la respuesta.",
-  ].join("\n");
 }
 
 export async function generarRespuestaAsistente(
@@ -264,7 +175,7 @@ export async function generarRespuestaAsistente(
   const { modelo } = modeloTextoEnUso();
 
   const mensajes = [
-    { role: "system", content: construirSistema(contexto, idioma) },
+    { role: "system", content: construirPromptAsistente(contexto, idioma) },
     ...historial.map((m) => ({
       role: m.rol === "usuario" ? "user" : "assistant",
       content: m.texto,
@@ -279,6 +190,46 @@ export async function generarRespuestaAsistente(
     // más de medio minuto ya no sirve, y cortar antes deja tiempo de
     // caer al motor de reglas dentro del límite de la función.
     plazoMs: 30000,
+  });
+
+  return extraerEmocion(textoCrudo);
+}
+
+// Misma conversación que generarRespuestaAsistente, pero con una foto
+// adjunta — usa el modelo de VISIÓN (no el de texto normal), así que
+// solo entra en juego cuando la pregunta trae una imagen. Se usa cuando
+// no hay llave de Google configurada (que es a quien prefiere atender
+// las fotos, ver app/api/ia/asistente/route.ts) para que el Asistente
+// siga aceptando fotos sin obligar a nadie a abrir una segunda cuenta.
+export async function generarRespuestaAsistenteConImagen(
+  pregunta: string,
+  imagenBase64: string,
+  mimeType: string,
+  historial: MensajeChat[],
+  contexto: ContextoNegocio,
+  idioma: string
+): Promise<RespuestaAsistente> {
+  const { modelo } = modeloVisionEnUso();
+
+  const mensajes = [
+    { role: "system", content: construirPromptAsistente(contexto, idioma) },
+    ...historial.map((m) => ({
+      role: m.rol === "usuario" ? "user" : "assistant",
+      content: m.texto,
+    })),
+    {
+      role: "user",
+      content: [
+        { type: "text", text: pregunta || "¿Qué ves en esta foto?" },
+        { type: "image_url", image_url: { url: `data:${mimeType};base64,${imagenBase64}` } },
+      ],
+    },
+  ];
+
+  const textoCrudo = await pedirTexto(modelo, mensajes, {
+    temperatura: 0.6,
+    maxTokens: MAX_TOKENS_RESPUESTA,
+    plazoMs: 45000,
   });
 
   return extraerEmocion(textoCrudo);

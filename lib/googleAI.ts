@@ -8,12 +8,15 @@ import {
   construirPromptMensajeCliente,
   construirPromptMensajeProveedor,
   construirPromptRecomendarModulos,
+  construirPromptAsistente,
   extraerResultadoProducto,
   ResultadoAnalisisProducto,
   ProductoParaVendedor,
   DatosAnalisisEntidad,
   ModuloCatalogo,
+  ContextoNegocio,
 } from "./promptsIA";
+import { RespuestaAsistente, MensajeChat, extraerEmocion } from "./groq";
 
 // Los prompts y la reparación del JSON que devuelve el modelo viven en
 // lib/promptsIA.ts: son idénticos para Google y para Groq, y
@@ -214,6 +217,51 @@ export async function analizarImagenProducto(
   );
 
   return extraerResultadoProducto(texto);
+}
+
+// El Asistente con una foto adjunta, atendida por Google cuando su
+// llave está puesta (ver app/api/ia/asistente/route.ts — a Google le
+// toca fotos, a Groq le toca texto). A diferencia del resto de las
+// funciones de este archivo, esta SÍ necesita el prompt completo del
+// Asistente (contexto del negocio, tono, la firma de Corebot): viene de
+// construirPromptAsistente en promptsIA.ts, compartido con Groq, para
+// que la persona reciba el mismo asistente sin importar cuál de los dos
+// proveedores contestó esa pregunta en particular.
+//
+// pedirTexto() de este archivo manda un solo turno (sin roles de
+// sistema/usuario como la API de Groq), así que el historial se pliega
+// como una transcripción de texto dentro de esa misma parte.
+export async function generarRespuestaAsistenteConImagen(
+  pregunta: string,
+  imagenBase64: string,
+  mimeType: string,
+  historial: MensajeChat[],
+  contexto: ContextoNegocio,
+  idioma: string
+): Promise<RespuestaAsistente> {
+  const sistema = construirPromptAsistente(contexto, idioma);
+  const transcripcion = historial
+    .map((m) => `${m.rol === "usuario" ? "Persona" : "Asistente"}: ${m.texto}`)
+    .join("\n");
+
+  const texto = await pedirTexto(
+    [
+      {
+        text: [
+          sistema,
+          transcripcion,
+          `Persona (mandó una foto adjunta): ${pregunta || "¿Qué ves en esta foto?"}`,
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
+      },
+      { inline_data: { mime_type: mimeType, data: imagenBase64 } },
+    ],
+    { temperature: 0.6, thinkingConfig: { thinkingBudget: 0 } },
+    45000
+  );
+
+  return extraerEmocion(texto);
 }
 
 // Lista los modelos que la cuenta tiene disponibles AHORA, preguntándole

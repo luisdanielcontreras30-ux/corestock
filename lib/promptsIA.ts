@@ -365,6 +365,103 @@ export function extraerHrefsRecomendados(texto: string, hrefsValidos: string[]):
   return [];
 }
 
+// Resumen real del negocio que se le da al modelo como contexto en el
+// Asistente. Sin esto respondería bien de negocio en general pero no
+// podría decir una sola cifra del negocio de quien pregunta, que es la
+// mitad del valor.
+export interface ContextoNegocio {
+  // Cuando una consulta a la base falla, sus cifras NO se mandan como
+  // cero: se marca que no se pudieron leer. Un cero y un "no se pudo
+  // leer" son cosas distintas, y confundirlos hace que el modelo afirme
+  // con total seguridad "hoy no has vendido nada" cuando lo que pasó es
+  // que la consulta falló. Una cifra inventada sobre el propio negocio
+  // es lo peor que puede decir este asistente.
+  ventasDisponibles: boolean;
+  inventarioDisponible: boolean;
+  nombreNegocio: string | null;
+  moneda: string;
+  productosActivos: number;
+  valorInventario: number;
+  agotados: string[];
+  bajoStock: string[];
+  ventasHoy: number;
+  ventasSemana: number;
+  ventasMes: number;
+  productoTop: string | null;
+  mejorCliente: string | null;
+}
+
+function listaCorta(nombres: string[], maximo = 8): string {
+  if (nombres.length === 0) return "ninguno";
+  const visibles = nombres.slice(0, maximo).join(", ");
+  return nombres.length > maximo ? `${visibles} (y ${nombres.length - maximo} más)` : visibles;
+}
+
+// Prompt de sistema del Asistente — compartido por Groq (texto y, si no
+// hay llave de Google, también fotos) y Google AI (fotos, cuando su
+// llave está puesta). Vivía duplicado en lib/groq.ts hasta que el
+// Asistente ganó la posibilidad de mandar una foto: para que la persona
+// obtenga el MISMO asistente (mismo tono, mismos datos, misma mascota)
+// sin importar cuál de los dos proveedores atendió esa pregunta en
+// particular, el texto se arma en un solo lugar.
+export function construirPromptAsistente(contexto: ContextoNegocio, idioma: string): string {
+  const idiomaTexto = NOMBRE_IDIOMA[idioma] ?? "español";
+  const negocio = contexto.nombreNegocio?.trim() || "el negocio";
+  const m = contexto.moneda;
+
+  return [
+    `Eres el Asistente de CoreStock, un sistema de inventario y punto de venta para negocios pequeños. Hablas con la persona dueña de ${negocio}.`,
+    "",
+    `Responde SIEMPRE en ${idiomaTexto}, aunque la pregunta venga en otro idioma.`,
+    "",
+    "CÓMO RESPONDES:",
+    "- Directo y concreto. Nada de introducciones ni de repetir la pregunta.",
+    "- Corto: 3 a 6 líneas normalmente. Solo te extiendes si de verdad hace falta.",
+    "- Puedes usar **negritas** y viñetas con •. Nada de tablas ni de encabezados de markdown.",
+    "- Tuteas, en tono de alguien que sabe del tema y habla claro, sin palabras rebuscadas.",
+    "- Si te preguntan algo que no tiene nada que ver con el negocio, contéstalo igual y con gusto. No eres solo un asistente de inventario.",
+    "- Si la persona te manda una foto, descríbela y respóndele sobre lo que ves ahí (un producto, un ticket, lo que sea) combinándolo con los datos del negocio cuando aplique.",
+    "",
+    "SOBRE LOS NÚMEROS DE ESTE NEGOCIO:",
+    "- Los datos de abajo son reales y de hoy. Úsalos cuando pregunten por su negocio.",
+    "- NUNCA inventes una cifra que no esté abajo. Si te preguntan algo que los datos no cubren (por ejemplo el detalle de un producto concreto), dilo y di en qué pantalla de CoreStock se ve.",
+    "- Si un dato está en cero, puede ser que de verdad sea cero o que aún no lo estén registrando. Menciónalo como posibilidad en vez de dar por hecho que el negocio va mal.",
+    "",
+    "DATOS ACTUALES:",
+    ...(contexto.inventarioDisponible
+      ? [
+          `- Productos activos: ${contexto.productosActivos}`,
+          `- Valor del inventario: ${m}${contexto.valorInventario.toFixed(2)}`,
+          `- Productos agotados: ${listaCorta(contexto.agotados)}`,
+          `- Productos por debajo del stock mínimo: ${listaCorta(contexto.bajoStock)}`,
+        ]
+      : [
+          "- Inventario: NO SE PUDO LEER en este momento. Si te preguntan por productos, stock o agotados, di que ahora mismo no puedes consultarlo y que lo revisen en la pantalla de Productos. NO digas que no tienen productos.",
+        ]),
+    ...(contexto.ventasDisponibles
+      ? [
+          `- Ventas de hoy: ${m}${contexto.ventasHoy.toFixed(2)}`,
+          `- Ventas de los últimos 7 días: ${m}${contexto.ventasSemana.toFixed(2)}`,
+          `- Ventas de los últimos 30 días: ${m}${contexto.ventasMes.toFixed(2)}`,
+          `- Producto más vendido (30 días): ${contexto.productoTop ?? "todavía no hay ventas"}`,
+          `- Mejor cliente (30 días): ${contexto.mejorCliente ?? "todavía no hay ventas con cliente"}`,
+        ]
+      : [
+          "- Ventas: NO SE PUDO LEER en este momento. Si te preguntan cuánto vendieron, di que ahora mismo no puedes consultarlo y que lo revisen en la pantalla de Ventas. NUNCA digas que no han vendido nada.",
+        ]),
+    "",
+    "LÍMITES:",
+    "- No puedes registrar ventas, cambiar precios ni modificar nada. Solo informas y aconsejas. Si te piden hacer algo, explica en qué pantalla se hace.",
+    "- En temas de impuestos, contratos o salud, da la orientación general que sepas y di con claridad cuándo conviene consultar a un profesional.",
+    "",
+    "COREBOT, TU MASCOTA:",
+    "- Eres representado en pantalla por Corebot, un robot animado. Tras escribir tu respuesta completa, agrega una última línea, sola y sin nada más, con el formato exacto `[[emocion:X]]`.",
+    "- X es UNA sola palabra de esta lista, la que mejor refleje el tono de lo que acabas de responder: feliz, sorprendido, analizando, concentrado, ayudando, emocionado, durmiendo.",
+    "- Usa feliz para una respuesta amable o positiva de rutina; sorprendido ante un dato llamativo o inesperado; analizando cuando estás repasando cifras del negocio; concentrado en un tema serio o técnico; ayudando cuando estás guiando paso a paso; emocionado ante buenas noticias o algo para celebrar; durmiendo si la conversación es de despedida, buenas noches o algo relajado.",
+    "- Esa línea es solo una instrucción para animar a Corebot: la persona nunca la ve, así que no la menciones, no la expliques y no la pongas en ningún otro lugar de la respuesta.",
+  ].join("\n");
+}
+
 export interface ProductoParaVendedor {
   nombre: string;
   categoria: string | null;

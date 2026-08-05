@@ -1176,12 +1176,23 @@ body {
 /* ==========================================================================
    CHAT DE EQUIPO
    ========================================================================== */
+/* .page-content sí tiene una altura resuelta en escritorio (flex:1 dentro
+   de .main-content, que a su vez tiene height:100vh) — chat-pagina hereda
+   esa altura para que el panel de chat pueda ocupar toda la pantalla en
+   vez de quedar limitado a 70vh. En móvil .main-content abandona ese
+   modelo (height:auto, scroll normal de documento), así que ahí se
+   revierte a los valores originales — ver el media query más abajo. */
+.chat-pagina {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .chat-panel {
   display: flex;
   flex-direction: column;
-  height: 70vh;
-  min-height: 420px;
-  max-height: 720px;
+  flex: 1;
+  min-height: 0;
   padding: 0;
   overflow: hidden;
 }
@@ -1435,6 +1446,24 @@ body {
 @media (max-width: 640px) {
   .chat-burbuja {
     max-width: 88%;
+  }
+}
+
+/* En móvil .main-content deja de tener una altura fija (pasa a
+   height:auto con scroll normal de documento, ver el media query de
+   .main-content más abajo) — chat-pagina llenando "el resto de la
+   pantalla" ya no tiene sentido ahí, así que se revierte al tamaño
+   original en vh que ya funcionaba bien en móvil. */
+@media (max-width: 768px) {
+  .chat-pagina {
+    height: auto;
+  }
+
+  .chat-panel {
+    flex: none;
+    height: 70vh;
+    min-height: 420px;
+    max-height: 720px;
   }
 }
 
@@ -2577,10 +2606,11 @@ select optgroup {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
+  padding: 7px 14px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--sync-color, var(--primary)) 30%, var(--border));
+  background: color-mix(in srgb, var(--sync-color, var(--primary)) 12%, var(--card-bg));
+  box-shadow: var(--shadow-sm);
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
@@ -2589,7 +2619,9 @@ select optgroup {
 }
 
 .sync-indicador:hover {
-  background: var(--card-hover);
+  background: color-mix(in srgb, var(--sync-color, var(--primary)) 20%, var(--card-bg));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 @media (max-width: 640px) {
@@ -2600,14 +2632,17 @@ select optgroup {
 
 .sync-indicador-verde {
   color: #10b981;
+  --sync-color: #10b981;
 }
 
 .sync-indicador-rojo {
   color: var(--danger);
+  --sync-color: var(--danger);
 }
 
 .sync-indicador-azul {
   color: #3b82f6;
+  --sync-color: #3b82f6;
 }
 
 .sync-indicador-girando svg {
@@ -4360,14 +4395,18 @@ select optgroup {
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 50%;
+  box-shadow: var(--shadow-sm);
   color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition-fast);
 }
 
 .bell-btn:hover {
-  color: var(--text-primary);
+  color: var(--primary);
   border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--card-bg));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .bell-badge {
@@ -6997,6 +7036,20 @@ select optgroup {
   height: calc(100vh - 64px);
 }
 
+/* Mismo panel que el chat de equipo (.chat-panel en la sección CHAT DE
+   EQUIPO más arriba): una tarjeta en columna que ocupa el resto del
+   alto disponible dentro de .asistente-main, con el hilo de mensajes
+   (.chat-mensajes, reutilizada tal cual) haciendo scroll interno y la
+   barra de entrada (.chat-form, también reutilizada) fija abajo. */
+.asistente-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
   /* En escritorio .main-content tiene su propio scroll interno (ver
      comentario junto a html/body arriba), así que calc(100vh - 64px)
@@ -7005,13 +7058,13 @@ select optgroup {
      altura fija basada en el 100vh completo ignoraba la barra de
      navegación inferior y el padding-bottom que la despeja, dejando el
      cuadro de texto tapado o cortado. Se usa una altura acotada para
-     el hilo de conversación en su lugar (ver .asistente-hilo).
+     el panel del chat en su lugar (ver .asistente-panel).
      */
   .asistente-main {
     height: auto;
   }
 
-  .asistente-hilo {
+  .asistente-panel {
     flex: none !important;
     height: 55vh;
   }
@@ -8226,7 +8279,7 @@ select optgroup {
 /* Con una sola fila de sugerencias en vez de cuatro, la conversación
    puede subir y ocupar el sitio que se liberó. */
 @media (max-width: 768px) {
-  .asistente-hilo {
+  .asistente-panel {
     height: 64vh;
   }
 }

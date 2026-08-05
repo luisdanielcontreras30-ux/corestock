@@ -365,7 +365,7 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <main className="fade-up chat-pagina" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <EncabezadoModulo
         Icono={MessagesSquare}
         color="#0ea5e9"

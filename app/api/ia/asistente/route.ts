@@ -4,6 +4,7 @@ import { verificarUsuarioApi } from "../../../../lib/verificarUsuarioApi";
 import { excedeLimiteIntentos } from "../../../../lib/rateLimit";
 import {
   generarRespuestaAsistente,
+  generarRespuestaAsistenteConImagen as generarRespuestaAsistenteConImagenGroq,
   probarVisionGroq,
   listarModelosGroq,
   ErrorGroq,
@@ -19,9 +20,18 @@ import {
   probarVisionGoogleAI,
   listarModelosGoogleAI,
   ErrorGoogleAI,
+  generarRespuestaAsistenteConImagen as generarRespuestaAsistenteConImagenGoogle,
 } from "../../../../lib/googleAI";
 
 const LARGO_MAXIMO_PREGUNTA = 1000;
+
+// El cliente ya redimensiona la foto antes de mandarla (ver
+// lib/iaAcciones.ts), así que en el caso normal esto pesa muy poco. Este
+// tope es solo una red de seguridad para el caso raro en que el
+// redimensionado falla y se manda la imagen original tal cual — mismo
+// límite que ya usa /api/ia/analizar-producto.
+const TAMANO_MAXIMO_BASE64 = 6 * 1024 * 1024;
+const TIPOS_IMAGEN_PERMITIDOS = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 
 // Cuántos mensajes previos se le mandan al modelo. Suficiente para que
 // "cuéntame más" y "¿y eso cómo lo aplico?" tengan sentido, y acotado
@@ -51,6 +61,8 @@ const MENSAJES: Record<string, Record<string, string>> = {
   cuerpo_invalido: { es: "Cuerpo de la solicitud inválido.", en: "Invalid request body.", pt: "Corpo da solicitação inválido.", fr: "Corps de la requête invalide.", de: "Ungültiger Anfragetext.", zh: "请求正文无效。", it: "Corpo della richiesta non valido." },
   falta_pregunta: { es: "Escribe una pregunta.", en: "Type a question.", pt: "Digite uma pergunta.", fr: "Saisissez une question.", de: "Gib eine Frage ein.", zh: "请输入问题。", it: "Scrivi una domanda." },
   limite_propio: { es: "Hiciste muchas preguntas seguidas. Espera un momento antes de continuar.", en: "You've asked a lot of questions in a row. Wait a moment before continuing.", pt: "Você fez muitas perguntas seguidas. Espere um momento antes de continuar.", fr: "Vous avez posé beaucoup de questions d'affilée. Attendez un instant avant de continuer.", de: "Du hast viele Fragen hintereinander gestellt. Warte einen Moment.", zh: "你连续提问太多了，请稍等片刻再继续。", it: "Hai fatto molte domande di seguito. Aspetta un momento prima di continuare." },
+  tipo_no_soportado: { es: "Tipo de imagen no soportado.", en: "Unsupported image type.", pt: "Tipo de imagem não suportado.", fr: "Type d'image non pris en charge.", de: "Nicht unterstützter Bildtyp.", zh: "不支持的图片类型。", it: "Tipo di immagine non supportato." },
+  imagen_muy_grande: { es: "La imagen es demasiado grande.", en: "The image is too large.", pt: "A imagem é muito grande.", fr: "L'image est trop grande.", de: "Das Bild ist zu groß.", zh: "图片太大。", it: "L'immagine è troppo grande." },
 };
 
 function mensaje(clave: keyof typeof MENSAJES, idioma: string) {
@@ -329,19 +341,41 @@ export async function POST(request: Request) {
     pregunta: preguntaBruta,
     idioma: idiomaBruto,
     historial: historialBruto,
-  } = (cuerpo ?? {}) as { pregunta?: unknown; idioma?: unknown; historial?: unknown };
+    imagenBase64: imagenBruta,
+    mimeType: mimeTypeBruto,
+  } = (cuerpo ?? {}) as {
+    pregunta?: unknown;
+    idioma?: unknown;
+    historial?: unknown;
+    imagenBase64?: unknown;
+    mimeType?: unknown;
+  };
 
   const idioma = typeof idiomaBruto === "string" ? idiomaBruto : "es";
+  const hayImagen = typeof imagenBruta === "string" && imagenBruta.length > 0;
 
-  if (typeof preguntaBruta !== "string" || !preguntaBruta.trim()) {
+  // Sin foto, el mensaje de texto sigue siendo obligatorio (comportamiento
+  // de siempre). Con foto, la persona puede mandarla sola, sin escribir
+  // nada — el prompt ya trae un "¿qué ves en esta foto?" por defecto.
+  if (!hayImagen && (typeof preguntaBruta !== "string" || !preguntaBruta.trim())) {
     return NextResponse.json({ error: mensaje("falta_pregunta", idioma) }, { status: 400 });
+  }
+
+  if (hayImagen) {
+    if (typeof mimeTypeBruto !== "string" || !TIPOS_IMAGEN_PERMITIDOS.has(mimeTypeBruto)) {
+      return NextResponse.json({ error: mensaje("tipo_no_soportado", idioma) }, { status: 400 });
+    }
+    if ((imagenBruta as string).length > TAMANO_MAXIMO_BASE64) {
+      return NextResponse.json({ error: mensaje("imagen_muy_grande", idioma) }, { status: 400 });
+    }
   }
 
   if (excedeLimiteIntentos(`ia-asistente:${user.id}`, MAX_PREGUNTAS_POR_HORA, VENTANA_MS)) {
     return NextResponse.json({ error: mensaje("limite_propio", idioma) }, { status: 429 });
   }
 
-  const pregunta = preguntaBruta.trim().slice(0, LARGO_MAXIMO_PREGUNTA);
+  const pregunta =
+    typeof preguntaBruta === "string" ? preguntaBruta.trim().slice(0, LARGO_MAXIMO_PREGUNTA) : "";
 
   // El historial viene del navegador, así que se valida en vez de
   // confiar: solo los últimos mensajes, solo con los dos roles
@@ -379,12 +413,37 @@ export async function POST(request: Request) {
 
   try {
     const contexto = await construirContexto(supabase);
-    const { texto, emocion } = await generarRespuestaAsistente(pregunta, historial, contexto, idioma);
+
+    // Igual que /api/ia/analizar-producto: las FOTOS las atiende Google
+    // cuando su llave está puesta (su catálogo de modelos de visión es
+    // más estable que el de Groq), y si no hay llave de Google se usa el
+    // modelo de visión de Groq. El texto sin foto sigue siendo siempre
+    // Groq, sin cambios.
+    const { texto, emocion } = hayImagen
+      ? hayGoogleAI()
+        ? await generarRespuestaAsistenteConImagenGoogle(
+            pregunta,
+            imagenBruta as string,
+            mimeTypeBruto as string,
+            historial,
+            contexto,
+            idioma
+          )
+        : await generarRespuestaAsistenteConImagenGroq(
+            pregunta,
+            imagenBruta as string,
+            mimeTypeBruto as string,
+            historial,
+            contexto,
+            idioma
+          )
+      : await generarRespuestaAsistente(pregunta, historial, contexto, idioma);
+
     return NextResponse.json({ respuesta: texto, emocion });
   } catch (error) {
     console.error("Asistente IA:", error);
 
-    if (error instanceof ErrorGroq) {
+    if (error instanceof ErrorGroq || error instanceof ErrorGoogleAI) {
       // 503 = "esto no va a funcionar ahora": sin llave, sin saldo o
       // modelo mal configurado. El navegador lo usa como señal para
       // caer al motor de reglas EN SILENCIO, sin enseñar un error:

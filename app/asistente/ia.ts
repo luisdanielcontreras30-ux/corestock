@@ -28,6 +28,30 @@ export async function preguntarAIa(
   historial: MensajeIA[],
   idioma: string
 ): Promise<RespuestaAIa | null> {
+  return pedirAIa({ pregunta, historial, idioma });
+}
+
+// Misma pregunta, con una foto adjunta — la calculadora y el motor de
+// reglas (deteccion.ts) no saben nada de imágenes, así que quien llama
+// (app/asistente/page.tsx) va derecho a la IA en vez de intentarlo antes
+// con esos dos, que es el orden normal para texto suelto.
+export async function preguntarAIaConImagen(
+  pregunta: string,
+  imagenBase64: string,
+  mimeType: string,
+  historial: MensajeIA[],
+  idioma: string
+): Promise<RespuestaAIa | null> {
+  return pedirAIa({ pregunta, historial, idioma, imagenBase64, mimeType });
+}
+
+async function pedirAIa(peticion: {
+  pregunta: string;
+  historial: MensajeIA[];
+  idioma: string;
+  imagenBase64?: string;
+  mimeType?: string;
+}): Promise<RespuestaAIa | null> {
   try {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
@@ -40,7 +64,7 @@ export async function preguntarAIa(
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ pregunta, historial, idioma }),
+      body: JSON.stringify(peticion),
     });
 
     if (!respuesta.ok) {
