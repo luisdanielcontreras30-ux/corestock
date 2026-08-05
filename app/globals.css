@@ -1409,6 +1409,13 @@ body {
   height: auto;
   border-radius: 10px;
   cursor: pointer;
+  /* En iOS/Safari, mantener el dedo presionado sobre una imagen saca su
+     propio menú nativo (guardar/copiar) — es un mecanismo aparte del
+     evento "contextmenu" que se bloquea en JS (ver onContextMenu en
+     app/chat/page.tsx y app/asistente/page.tsx, que cubre Android/
+     Chrome). Sin esto la foto se seguía viendo "de otra app" en iPhone
+     aunque en Android ya se hubiera arreglado. */
+  -webkit-touch-callout: none;
 }
 
 /* Mensaje de solo foto (sin texto): la imagen llena la burbuja de

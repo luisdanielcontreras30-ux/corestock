@@ -409,7 +409,21 @@ export default function ChatPage() {
                       </span>
                     )}
                     {m.imagen_url && (
-                      <a href={m.imagen_url} target="_blank" rel="noopener noreferrer" className="chat-burbuja-imagen-link">
+                      <a
+                        href={m.imagen_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chat-burbuja-imagen-link"
+                        // En Android/Chrome, mantener presionada una imagen
+                        // abre el menú nativo del sistema ("Copiar imagen",
+                        // "Descargar vínculo"...) — se enseña la URL cruda
+                        // de Supabase y no tiene nada que ver con el resto
+                        // del diseño. Un toque normal sigue abriendo la
+                        // foto de tamaño completo tal cual (el href sigue
+                        // ahí); solo se bloquea el menú de mantener
+                        // presionado.
+                        onContextMenu={(e) => e.preventDefault()}
+                      >
                         <Image
                           src={m.imagen_url}
                           alt=""

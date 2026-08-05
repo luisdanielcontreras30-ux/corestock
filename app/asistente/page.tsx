@@ -612,7 +612,16 @@ function AsistenteContenido() {
                 >
                   {m.imagenUrl && (
                     // eslint-disable-next-line @next/next/no-img-element -- data URL local, no next/image
-                    <img src={m.imagenUrl} alt="" className="chat-burbuja-imagen" />
+                    <img
+                      src={m.imagenUrl}
+                      alt=""
+                      className="chat-burbuja-imagen"
+                      // Mismo motivo que en el chat de equipo: sin esto,
+                      // mantener presionada la foto abre el menú nativo
+                      // de Android/Chrome ("Copiar imagen"...) en vez de
+                      // quedarse dentro del diseño de la app.
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
                   )}
                   {(m.texto || m.claveTexto) && (
                     <div className="chat-burbuja-texto">
