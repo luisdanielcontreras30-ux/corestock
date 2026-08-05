@@ -33,6 +33,22 @@ export function conPisoVisual<T extends object, K extends keyof T>(
   });
 }
 
+// Para las gráficas de "velas": promedio del período completo, usado
+// para decidir si un punto es "bueno" (verde) o "malo" (rojo). No se
+// compara contra el día anterior — eso hace que el color dependa del
+// vecino en vez del desempeño real (un día flojo sale verde solo porque
+// el de al lado fue peor, y viceversa), lo que se ve como algo al azar.
+// Con el promedio, verde es siempre "por encima del promedio del
+// período" y rojo "por debajo", sin importar el orden de los días.
+export function promedioCampo<T extends object, K extends keyof T>(
+  datos: T[],
+  campo: K
+): number {
+  if (datos.length === 0) return 0;
+  const suma = datos.reduce((acc, d) => acc + (Number(d[campo]) || 0), 0);
+  return suma / datos.length;
+}
+
 // Etiquetas compactas para el eje Y de las gráficas de dinero/unidades.
 // El gráfico usa un margen izquierdo negativo (margin={{ left: -20 }})
 // para que el eje no deje una franja de espacio en blanco cuando está

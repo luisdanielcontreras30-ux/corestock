@@ -26,7 +26,7 @@ import { useTipoNegocio } from "../../components/TipoNegocioProvider";
 import { TIPOS_NEGOCIO_SERVICIOS } from "../../lib/tiposNegocio";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
-import { conPisoVisual, formatoEjeCompacto } from "../../lib/graficas";
+import { conPisoVisual, formatoEjeCompacto, promedioCampo } from "../../lib/graficas";
 import { useToast } from "../../components/ToastProvider";
 import { cargarMovimientos, calcularSaldo } from "../caja/acciones";
 import { formatoMoneda } from "../ventas/utils";
@@ -209,6 +209,11 @@ export default function DashboardPremium() {
   const dataLineaVisual = useMemo(() => conPisoVisual(dataLinea, "monto"), [dataLinea]);
   const dataHoyPorHoraVisual = useMemo(() => conPisoVisual(dataHoyPorHora, "monto"), [dataHoyPorHora]);
   const dataMesPorDiaVisual = useMemo(() => conPisoVisual(dataMesPorDia, "monto"), [dataMesPorDia]);
+
+  // Promedio del período para colorear las barras del gráfico de
+  // "velas" (verde/rojo) contra el desempeño real, no contra el día
+  // anterior — ver promedioCampo en lib/graficas.ts.
+  const promedioMonto = useMemo(() => promedioCampo(dataLinea, "monto"), [dataLinea]);
 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -846,7 +851,7 @@ export default function DashboardPremium() {
           <div style={{ width: "100%", height: "260px" }}>
             <ResponsiveContainer width="100%" height="100%">
               {tipoTendencia === "barras" ? (
-                <BarChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={dataLineaVisual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                   <YAxis
                     stroke="var(--text-muted)"
@@ -859,16 +864,24 @@ export default function DashboardPremium() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                    formatter={(valor) => formatoMoneda(Number(valor))}
+                    // La barra se dibuja con "__visual" (con piso mínimo,
+                    // ver conPisoVisual en lib/graficas.ts), pero el
+                    // tooltip debe mostrar el monto real.
+                    formatter={(_valor, _nombre, item) =>
+                      formatoMoneda(Number((item.payload as { monto: number }).monto))
+                    }
                   />
-                  {/* minPointSize: con una venta mucho más grande que el
-                      resto, una barra a escala real mide 1 o 2 píxeles —
-                      prácticamente invisible aunque sí hubo venta ese
-                      día. El tooltip sigue mostrando el monto real. */}
-                  <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} fill="var(--primary)" radius={[4, 4, 0, 0]} minPointSize={4} />
+                  {/* dataKey="__visual": con una venta mucho más grande
+                      que el resto, una barra a escala real mide 1 o 2
+                      píxeles — prácticamente invisible aunque sí hubo
+                      venta ese día. El piso mínimo de conPisoVisual
+                      soluciona esto también para valores "un poco" más
+                      chicos, no solo los casi en cero; minPointSize
+                      queda como respaldo adicional. */}
+                  <Bar dataKey="__visual" name={t("dashboard.total_ventas_serie")} fill="var(--primary)" radius={[4, 4, 0, 0]} minPointSize={4} />
                 </BarChart>
               ) : tipoTendencia === "velas" ? (
-                <BarChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={dataLineaVisual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <XAxis dataKey="fecha" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                   <YAxis
                     stroke="var(--text-muted)"
@@ -881,12 +894,17 @@ export default function DashboardPremium() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                    formatter={(valor) => formatoMoneda(Number(valor))}
+                    formatter={(_valor, _nombre, item) =>
+                      formatoMoneda(Number((item.payload as { monto: number }).monto))
+                    }
                   />
-                  <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} radius={[3, 3, 3, 3]} minPointSize={4}>
-                    {dataLinea.map((punto, index) => {
-                      const anterior = index > 0 ? dataLinea[index - 1].monto : punto.monto;
-                      const sube = punto.monto >= anterior;
+                  <Bar dataKey="__visual" name={t("dashboard.total_ventas_serie")} radius={[3, 3, 3, 3]} minPointSize={4}>
+                    {dataLineaVisual.map((punto, index) => {
+                      // Verde/rojo según el promedio del período, no
+                      // contra el día anterior — así el color refleja si
+                      // ese día fue bueno o malo de verdad, en vez de
+                      // depender de qué tan bueno/malo fue el vecino.
+                      const sube = punto.monto >= promedioMonto;
                       return (
                         <Cell
                           key={`vela-${index}`}

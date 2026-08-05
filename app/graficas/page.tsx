@@ -28,7 +28,7 @@ import {
   calcularPorcentaje,
   Periodo,
 } from "./utils";
-import { conPisoVisual, formatoEjeCompacto } from "../../lib/graficas";
+import { conPisoVisual, formatoEjeCompacto, promedioCampo } from "../../lib/graficas";
 import { VentaCruda } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useTheme } from "../../components/ThemeProvider";
@@ -129,11 +129,18 @@ export default function GraficasPage() {
     [ingresosActual, periodo]
   );
 
-  // Para las gráficas de área: mismos puntos, con un piso mínimo de
-  // altura en el campo "__visual" (ver lib/graficas.ts) — el valor real
-  // sigue siendo "ventas", que es lo que muestra el tooltip.
+  // Piso mínimo de altura para que un día con venta chica siempre se
+  // note un poco (ver lib/graficas.ts) — usado tanto en el área como en
+  // las barras/velas, para que "un poco más chico" no salga invisible
+  // nada más porque hubo un día con una venta mucho más grande. El valor
+  // real sigue siendo "ventas", que es lo que muestra el tooltip.
   const puntosGraficaVisual = useMemo(
     () => conPisoVisual(puntosGrafica, "ventas"),
+    [puntosGrafica]
+  );
+
+  const promedioVentas = useMemo(
+    () => promedioCampo(puntosGrafica, "ventas"),
     [puntosGrafica]
   );
 
@@ -367,7 +374,7 @@ export default function GraficasPage() {
           <div style={{ width: "100%", height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
               {tipoTendencia === "barras" ? (
-                <BarChart data={puntosGrafica} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={puntosGraficaVisual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
                   <YAxis stroke="var(--text-secondary)" tickFormatter={formatoEjeCompacto} />
@@ -375,18 +382,30 @@ export default function GraficasPage() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                    formatter={(valor) => formatoMoneda(Number(valor))}
+                    // La barra se dibuja con "__visual" (con piso mínimo,
+                    // ver conPisoVisual en lib/graficas.ts), pero el
+                    // tooltip debe mostrar el monto real.
+                    formatter={(_valor, _nombre, item) =>
+                      formatoMoneda(Number((item.payload as { ventas: number }).ventas))
+                    }
                   />
-                  {/* minPointSize: con una venta mucho más grande que el
-                      resto, una barra chica calculada a escala real mide
-                      1 o 2 píxeles — prácticamente invisible aunque sí
-                      hubo venta ese día. Esto le pone un mínimo de alto
-                      SOLO al dibujo (el tooltip sigue mostrando el monto
-                      real, sin inflar nada). */}
-                  <Bar dataKey="ventas" fill="var(--primary)" radius={[4, 4, 0, 0]} minPointSize={4} />
+                  {/* dataKey="__visual": con una venta mucho más grande
+                      que el resto, una barra chica calculada a escala
+                      real mide 1 o 2 píxeles — prácticamente invisible
+                      aunque sí hubo venta ese día. El piso mínimo de
+                      conPisoVisual soluciona esto también para valores
+                      "un poco" más chicos, no solo los casi en cero;
+                      minPointSize queda como respaldo adicional. */}
+                  <Bar
+                    dataKey="__visual"
+                    name={t("graficas.ventas_card")}
+                    fill="var(--primary)"
+                    radius={[4, 4, 0, 0]}
+                    minPointSize={4}
+                  />
                 </BarChart>
               ) : tipoTendencia === "velas" ? (
-                <BarChart data={puntosGrafica} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={puntosGraficaVisual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
                   <YAxis stroke="var(--text-secondary)" tickFormatter={formatoEjeCompacto} />
@@ -394,12 +413,17 @@ export default function GraficasPage() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                    formatter={(valor) => formatoMoneda(Number(valor))}
+                    formatter={(_valor, _nombre, item) =>
+                      formatoMoneda(Number((item.payload as { ventas: number }).ventas))
+                    }
                   />
-                  <Bar dataKey="ventas" radius={[3, 3, 3, 3]} minPointSize={4}>
-                    {puntosGrafica.map((punto, index) => {
-                      const anterior = index > 0 ? puntosGrafica[index - 1].ventas : punto.ventas;
-                      const sube = punto.ventas >= anterior;
+                  <Bar dataKey="__visual" name={t("graficas.ventas_card")} radius={[3, 3, 3, 3]} minPointSize={4}>
+                    {puntosGraficaVisual.map((punto, index) => {
+                      // Verde/rojo según el promedio del período, no
+                      // contra el día anterior — así el color refleja si
+                      // ese día fue bueno o malo de verdad, en vez de
+                      // depender de qué tan bueno/malo fue el vecino.
+                      const sube = punto.ventas >= promedioVentas;
                       return (
                         <Cell
                           key={`vela-${index}`}
