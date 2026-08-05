@@ -6,8 +6,10 @@ import { CalendarClock } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import SinPermiso from "../../components/SinPermiso";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { MovimientoCaja } from "../caja/types";
 import { cargarCierres } from "../caja/acciones";
@@ -31,6 +33,7 @@ export default function CortesHistoricosPage() {
 function CortesHistoricosContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
 
@@ -47,6 +50,10 @@ function CortesHistoricosContenido() {
       return;
     }
 
+    // Historial de cierres de Caja — mismo permiso que ya exige esa
+    // pantalla, que Cortes históricos no comprobaba.
+    if (!puede("ver_caja")) return;
+
     cargarCierres()
       .then(setCierres)
       .catch((error) => {
@@ -54,7 +61,7 @@ function CortesHistoricosContenido() {
         mostrarToast(t("comun.msg_error_cargar_datos"), "error");
       })
       .finally(() => setLoading(false));
-  }, [cargandoAuth, user]);
+  }, [cargandoAuth, user, puede]);
 
   const filtrados = useMemo(
     () =>
@@ -75,6 +82,20 @@ function CortesHistoricosContenido() {
     return (
       <main className="fade-up">
         <CargandoLista />
+      </main>
+    );
+  }
+
+  if (!puede("ver_caja")) {
+    return (
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={CalendarClock}
+          color="#eab308"
+          titulo={t("sidebar.cortes_historicos")}
+          subtitulo={t("cortes_historicos.subtitulo")}
+        />
+        <SinPermiso />
       </main>
     );
   }

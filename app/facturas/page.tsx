@@ -7,8 +7,10 @@ import { Receipt, Wallet, FileText } from "lucide-react";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
+import SinPermiso from "../../components/SinPermiso";
 import { cargarDatos } from "../ventas/acciones";
 import { formatoFecha, formatoMoneda, agruparPorFecha } from "../ventas/utils";
 import { Venta } from "../ventas/types";
@@ -31,6 +33,7 @@ export default function FacturasPage() {
 function FacturasContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
 
@@ -47,6 +50,13 @@ function FacturasContenido() {
       return;
     }
 
+    // Mismos datos que Ventas (total facturado por venta) — mismo
+    // permiso que ya exige esa pantalla, que la de Facturas no
+    // comprobaba. El render de abajo (if (!puede("ver_ventas"))) ya
+    // corta antes de llegar al estado "loading", así que no hace
+    // falta tocarlo aquí si no se tiene el permiso.
+    if (!puede("ver_ventas")) return;
+
     cargarDatos()
       .then((datos) => setVentas(datos.ventas))
       .catch((error) => {
@@ -54,7 +64,7 @@ function FacturasContenido() {
         mostrarToast(t("comun.msg_error_cargar_datos"), "error");
       })
       .finally(() => setLoading(false));
-  }, [cargandoAuth, user]);
+  }, [cargandoAuth, user, puede]);
 
   const resumen = useMemo(
     () => ({
@@ -96,6 +106,20 @@ function FacturasContenido() {
     return (
       <main className="fade-up">
         <CargandoLista />
+      </main>
+    );
+  }
+
+  if (!puede("ver_ventas")) {
+    return (
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={Receipt}
+          color="#f43f5e"
+          titulo={t("sidebar.facturas")}
+          subtitulo={t("facturas.subtitulo")}
+        />
+        <SinPermiso />
       </main>
     );
   }

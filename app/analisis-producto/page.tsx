@@ -21,8 +21,10 @@ import { useTheme } from "../../components/ThemeProvider";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import RequierePlus from "../../components/RequierePlus";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
+import SinPermiso from "../../components/SinPermiso";
 import IaNoDisponible from "../../components/IaNoDisponible";
 import { analizarProductoConIA } from "../../lib/iaAcciones";
 import { mensajeErrorSeguro } from "../../lib/errores";
@@ -43,6 +45,7 @@ export default function AnalisisProductoPage() {
 function AnalisisProductoContenido() {
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { t, idioma } = useIdioma();
   const { mostrarToast } = useToast();
 
@@ -68,6 +71,10 @@ function AnalisisProductoContenido() {
 
     if (!IA_DISPONIBLE) return;
 
+    // Muestra margen/ganancia estimada por categoría — mismo permiso
+    // que ya exige Productos para ver esa misma información.
+    if (!puede("ver_ganancias")) return;
+
     (async () => {
       try {
         const datos = await cargarDatosAnalisis();
@@ -80,7 +87,7 @@ function AnalisisProductoContenido() {
         setCargandoDatos(false);
       }
     })();
-  }, [cargandoAuth, user]);
+  }, [cargandoAuth, user, puede]);
 
   // Se le pasa a la IA para que reutilice una categoría existente del
   // negocio en vez de inventar una variante casi idéntica — mismo
@@ -138,6 +145,20 @@ function AnalisisProductoContenido() {
     return (
       <main className="fade-up">
         <CargandoLista />
+      </main>
+    );
+  }
+
+  if (!puede("ver_ganancias")) {
+    return (
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={ScanSearch}
+          color="#c026d3"
+          titulo={t("analisis.titulo")}
+          subtitulo={t("analisis.subtitulo")}
+        />
+        <SinPermiso />
       </main>
     );
   }

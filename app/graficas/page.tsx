@@ -33,9 +33,11 @@ import { useIdioma } from "../../components/LanguageProvider";
 import { useTheme } from "../../components/ThemeProvider";
 import { useAuth } from "../../components/AuthProvider";
 import { useToast } from "../../components/ToastProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { formatoMoneda } from "../ventas/utils";
+import SinPermiso from "../../components/SinPermiso";
 
 const PERIODOS: { valor: Periodo; clave: string }[] = [
   { valor: "semanal", clave: "graficas.periodo_semanal" },
@@ -48,6 +50,7 @@ export default function GraficasPage() {
   const { tema, tipoTendencia } = useTheme();
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
   const { mostrarToast } = useToast();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
   const [loading, setLoading] = useState(true);
@@ -81,8 +84,12 @@ export default function GraficasPage() {
       return;
     }
 
+    // Ingresos/ventas por producto — mismo dato que Ventas, que ya
+    // exige este permiso; Gráficas no lo comprobaba.
+    if (!puede("ver_ventas")) return;
+
     cargarDatos();
-  }, [cargandoAuth, user]);
+  }, [cargandoAuth, user, puede]);
 
   // Ventas + servicios cobrados, solo para el KPI de "Ingresos" y su
   // gráfica de tendencia — las demás tarjetas (total de ventas,
@@ -190,7 +197,31 @@ export default function GraficasPage() {
   const maxIngresoTop = topProductos.length > 0 && topProductos[0].ingresos > 0 ? topProductos[0].ingresos : 1;
   const productosRendimiento = productosAgregados.slice(0, 6);
 
-  if (cargandoAuth || !user || loading) {
+  if (cargandoAuth || !user) {
+    return (
+      <main className="fade-up">
+        <div className="card">{t("graficas.cargando")}</div>
+      </main>
+    );
+  }
+
+  if (!puede("ver_ventas")) {
+    return (
+      <main className="fade-up">
+        <div className="section-title">
+          <EncabezadoModulo
+            Icono={BarChart3}
+            color="#06b6d4"
+            titulo={t("graficas.titulo")}
+            subtitulo={t("graficas.subtitulo")}
+          />
+        </div>
+        <SinPermiso />
+      </main>
+    );
+  }
+
+  if (loading) {
     return (
       <main className="fade-up">
         <div className="card">{t("graficas.cargando")}</div>
