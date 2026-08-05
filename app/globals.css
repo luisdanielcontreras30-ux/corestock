@@ -1191,8 +1191,17 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   padding: 20px;
+  /* Textura sutil tipo "papel tapiz" detrás de los mensajes, calcada
+     de lo que ya hacen las apps de chat — pero con el color de acento
+     del tema activo (atenuado con color-mix, mismo truco que ya usa
+     el degradado de los íconos del Dashboard) en vez de un verde fijo,
+     para que se sienta parte de CoreStock y no una copia de otra app.
+     var(--primary) cambia solo con el tema, sin necesitar una regla
+     aparte por tema. */
+  background-image: radial-gradient(color-mix(in srgb, var(--primary) 22%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
 .chat-vacio {
@@ -1204,10 +1213,32 @@ body {
   color: var(--text-secondary);
 }
 
+.chat-fila {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.chat-fila-propia {
+  justify-content: flex-end;
+}
+
+.chat-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
 .chat-burbuja {
-  align-self: flex-start;
   max-width: 75%;
-  background: var(--glass-bg);
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   border-bottom-left-radius: 4px;
@@ -1215,10 +1246,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  box-shadow: var(--shadow-sm);
 }
 
 .chat-burbuja-propia {
-  align-self: flex-end;
   background: var(--primary);
   border-color: var(--primary);
   border-bottom-left-radius: var(--radius-lg);
@@ -1233,7 +1264,6 @@ body {
 .chat-burbuja-autor {
   font-size: 12px;
   font-weight: 700;
-  color: var(--primary);
 }
 
 .chat-burbuja-texto {
@@ -1252,13 +1282,16 @@ body {
 
 .chat-form {
   display: flex;
-  gap: 10px;
-  padding: 14px 20px;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
   border-top: 1px solid var(--border);
 }
 
 .chat-form input {
   flex: 1;
+  border-radius: 999px;
+  padding: 11px 18px;
 }
 
 .chat-form-enviar,
@@ -1267,8 +1300,51 @@ body {
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 42px;
+  width: 44px;
+  height: 44px;
+  min-height: 0;
   padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.chat-form-imagen,
+.chat-form-mic {
+  background: var(--btn-secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.chat-form-imagen:hover:not(:disabled),
+.chat-form-mic:hover:not(:disabled) {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.chat-form-enviar {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+}
+
+.chat-form-enviar:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.chat-form-enviar:active:not(:disabled),
+.chat-form-imagen:active:not(:disabled),
+.chat-form-mic:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.chat-form-enviar:disabled,
+.chat-form-imagen:disabled,
+.chat-form-mic:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .chat-form-mic {
@@ -1276,11 +1352,6 @@ body {
   user-select: none;
 }
 
-/* Doble clase (en vez de solo .chat-form-mic-activo) para que su
-   especificidad no dependa de si este bloque queda antes o después de
-   .btn-secondary en la hoja de estilos — con la misma especificidad,
-   gana la regla declarada después, y .btn-secondary ya trae su propio
-   background sin condición. */
 .chat-form-mic.chat-form-mic-activo {
   background: #ef4444;
   border-color: #ef4444;
@@ -1292,7 +1363,11 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 4px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
   font-size: 13.5px;
   color: var(--text-secondary);
 }
@@ -1313,6 +1388,7 @@ body {
 .chat-burbuja-imagen-link {
   display: block;
   line-height: 0;
+  position: relative;
 }
 
 .chat-burbuja-imagen {
@@ -1322,6 +1398,32 @@ body {
   height: auto;
   border-radius: 10px;
   cursor: pointer;
+}
+
+/* Mensaje de solo foto (sin texto): la imagen llena la burbuja de
+   borde a borde, con la hora flotando encima en vez del margen normal
+   de un mensaje de texto — mismo tratamiento que ya usan la mayoría de
+   los chats con fotos. */
+.chat-burbuja-solo-imagen {
+  padding: 3px;
+  gap: 0;
+}
+
+.chat-burbuja-solo-imagen .chat-burbuja-imagen {
+  max-width: 260px;
+  border-radius: 12px;
+}
+
+.chat-burbuja-imagen-hora {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 8px;
+  pointer-events: none;
 }
 
 .chat-burbuja-audio {

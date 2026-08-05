@@ -37,6 +37,20 @@ function formatoHora(fecha: string) {
   return new Date(fecha).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+// Paleta fija (no depende del tema activo) para distinguir de un
+// vistazo quién escribió qué en el chat de equipo — mismo criterio que
+// ya usa el ranking de "Mejores clientes" en el Dashboard. Se elige
+// por hash del autor_id (estable entre mensajes y recargas) en vez de
+// por orden de aparición, para que el color de cada persona no cambie
+// según qué mensajes se hayan cargado.
+const COLORES_AUTOR = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
+
+function colorAutor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  return COLORES_AUTOR[hash % COLORES_AUTOR.length];
+}
+
 function formatoDuracion(segundos: number) {
   const m = Math.floor(segundos / 60);
   const s = segundos % 60;
@@ -371,23 +385,46 @@ export default function ChatPage() {
           ) : (
             mensajes.map((m) => {
               const propio = m.autor_id === user.id;
+              // Solo foto (sin texto): la imagen llena la burbuja de
+              // borde a borde y la hora flota encima, en vez de dejar
+              // el margen normal de un mensaje de texto.
+              const soloImagen = !!m.imagen_url && !m.texto;
+              const color = colorAutor(m.autor_id);
+
               return (
-                <div key={m.id} className={`chat-burbuja ${propio ? "chat-burbuja-propia" : ""}`}>
-                  {!propio && <span className="chat-burbuja-autor">{m.autor_nombre}</span>}
-                  {m.imagen_url && (
-                    <a href={m.imagen_url} target="_blank" rel="noopener noreferrer" className="chat-burbuja-imagen-link">
-                      <Image
-                        src={m.imagen_url}
-                        alt=""
-                        width={320}
-                        height={320}
-                        className="chat-burbuja-imagen"
-                      />
-                    </a>
+                <div key={m.id} className={`chat-fila ${propio ? "chat-fila-propia" : ""}`}>
+                  {!propio && (
+                    <span className="chat-avatar" style={{ background: color }}>
+                      {(m.autor_nombre || "?").charAt(0).toUpperCase()}
+                    </span>
                   )}
-                  {m.audio_url && <audio controls src={m.audio_url} className="chat-burbuja-audio" />}
-                  {m.texto && <p className="chat-burbuja-texto">{m.texto}</p>}
-                  <span className="chat-burbuja-hora">{formatoHora(m.creado_en)}</span>
+
+                  <div
+                    className={`chat-burbuja ${propio ? "chat-burbuja-propia" : ""} ${soloImagen ? "chat-burbuja-solo-imagen" : ""}`}
+                  >
+                    {!propio && (
+                      <span className="chat-burbuja-autor" style={{ color }}>
+                        {m.autor_nombre}
+                      </span>
+                    )}
+                    {m.imagen_url && (
+                      <a href={m.imagen_url} target="_blank" rel="noopener noreferrer" className="chat-burbuja-imagen-link">
+                        <Image
+                          src={m.imagen_url}
+                          alt=""
+                          width={320}
+                          height={320}
+                          className="chat-burbuja-imagen"
+                        />
+                        {soloImagen && (
+                          <span className="chat-burbuja-imagen-hora">{formatoHora(m.creado_en)}</span>
+                        )}
+                      </a>
+                    )}
+                    {m.audio_url && <audio controls src={m.audio_url} className="chat-burbuja-audio" />}
+                    {m.texto && <p className="chat-burbuja-texto">{m.texto}</p>}
+                    {!soloImagen && <span className="chat-burbuja-hora">{formatoHora(m.creado_en)}</span>}
+                  </div>
                 </div>
               );
             })
@@ -405,13 +442,13 @@ export default function ChatPage() {
 
           <button
             type="button"
-            className="btn-secondary chat-form-imagen"
+            className="chat-form-imagen"
             disabled={subiendoImagen || enviando || grabando || subiendoAudio}
             onClick={() => imagenInputRef.current?.click()}
             aria-label={t("chat.adjuntar_foto")}
             title={t("chat.adjuntar_foto")}
           >
-            <ImagePlus size={18} />
+            <ImagePlus size={20} />
           </button>
 
           {grabando ? (
@@ -429,31 +466,39 @@ export default function ChatPage() {
             />
           )}
 
-          <button
-            type="button"
-            className={`btn-secondary chat-form-mic ${grabando ? "chat-form-mic-activo" : ""}`}
-            disabled={enviando || subiendoImagen || subiendoAudio}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              iniciarGrabacion();
-            }}
-            onPointerUp={detenerGrabacion}
-            onPointerLeave={detenerGrabacion}
-            onPointerCancel={detenerGrabacion}
-            onContextMenu={(e) => e.preventDefault()}
-            aria-label={t("chat.mantener_para_hablar")}
-            title={t("chat.mantener_para_hablar")}
-          >
-            <Mic size={18} />
-          </button>
-
-          <button
-            type="submit"
-            className="btn-primary chat-form-enviar"
-            disabled={enviando || subiendoImagen || subiendoAudio || grabando || !texto.trim()}
-          >
-            <Send size={16} />
-          </button>
+          {/* Un solo botón que cambia entre micrófono y enviar según haya
+              texto escrito — mismo comportamiento que WhatsApp: mientras
+              el campo está vacío, mantenerlo presionado graba un audio;
+              en cuanto se escribe algo, se vuelve el botón de enviar. */}
+          {!grabando && texto.trim() ? (
+            <button
+              type="submit"
+              className="chat-form-enviar"
+              disabled={enviando || subiendoImagen || subiendoAudio}
+              aria-label={t("chat.enviar")}
+              title={t("chat.enviar")}
+            >
+              <Send size={19} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={`chat-form-mic ${grabando ? "chat-form-mic-activo" : ""}`}
+              disabled={enviando || subiendoImagen || subiendoAudio}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                iniciarGrabacion();
+              }}
+              onPointerUp={detenerGrabacion}
+              onPointerLeave={detenerGrabacion}
+              onPointerCancel={detenerGrabacion}
+              onContextMenu={(e) => e.preventDefault()}
+              aria-label={t("chat.mantener_para_hablar")}
+              title={t("chat.mantener_para_hablar")}
+            >
+              <Mic size={20} />
+            </button>
+          )}
         </form>
       </div>
     </main>
