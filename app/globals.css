@@ -1609,6 +1609,109 @@ select optgroup {
   color: var(--text-primary);
 }
 
+/* Los campos numéricos no necesitan las flechitas nativas de subir/
+   bajar (en Chrome se ven como un control de sistema operativo pegado
+   al borde derecho, sin relación con el resto del input) — se escriben
+   directo casi siempre, y donde hace falta un paso fijo ya existen
+   botones propios en el formulario. */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ==========================================================================
+   CASILLA DE VERIFICACIÓN (reemplazo visual de <input type="checkbox">)
+   ========================================================================== */
+
+/* Sigue siendo un <input type="checkbox"> de verdad (teclado, lector de
+   pantalla y formularios lo tratan exactamente igual) — solo se le
+   apaga la apariencia nativa del sistema operativo y se dibuja la
+   casilla y el check a mano, con los colores del tema activo en vez
+   del azul/gris fijo que pone Chrome. */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  padding: 0;
+  margin: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  background: var(--input-bg);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: var(--transition-fast);
+}
+
+input[type="checkbox"]:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+input[type="checkbox"]:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   BARRAS DE DESPLAZAMIENTO (reemplazo de la barra gris nativa de Chrome)
+   ========================================================================== */
+
+* {
+  /* Firefox: sin equivalente a los pseudo-elementos ::-webkit-scrollbar
+     de abajo, así que se ajustan grosor y color por esta propiedad. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+
 /* ==========================================================================
    SELECTOR PERSONALIZADO (reemplazo de <select> nativo)
    ========================================================================== */
@@ -1761,18 +1864,186 @@ select optgroup {
   cursor: not-allowed;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* ==========================================================================
+   SELECTOR DE FECHA (reemplazo de <input type="date"> nativo)
+   ========================================================================== */
+
+.selector-fecha {
+  position: relative;
+  width: 100%;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+.selector-fecha-boton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition-fast);
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 999px;
+.selector-fecha-boton:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.selector-fecha-boton:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.selector-fecha-boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.selector-fecha-icono {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.selector-fecha-texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selector-fecha-placeholder {
+  color: var(--text-muted);
+}
+
+.selector-fecha-panel {
+  /* Mismo motivo que .selector-personalizado-panel: portal a
+     document.body con position:fixed calculado en JS, para que ninguna
+     tarjeta que venga después en el layout de flexbox de la página
+     pueda pintarse encima. */
+  z-index: 1200;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  animation: overlayFade 0.15s ease;
+}
+
+.selector-fecha-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selector-fecha-mes {
+  /* La mayúscula inicial la pone el componente en JS, letra por letra
+     (ver SelectorFecha.tsx) — un text-transform:capitalize aquí
+     mayusculizaría TODAS las palabras, incluida la preposición de
+     idiomas como "agosto DE 2026". */
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.selector-fecha-nav {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.selector-fecha-nav:hover {
+  background: var(--card-hover);
+  color: var(--primary);
+}
+
+.selector-fecha-dias-semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.selector-fecha-cuadricula {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.selector-fecha-dia {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.selector-fecha-dia:hover {
+  background: var(--card-hover);
+}
+
+.selector-fecha-dia-fuera {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.selector-fecha-dia-hoy {
+  color: var(--primary);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1.5px var(--primary);
+}
+
+.selector-fecha-dia-activo,
+.selector-fecha-dia-activo:hover {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.selector-fecha-pie {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.selector-fecha-pie-boton {
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.selector-fecha-pie-boton:hover {
+  background: var(--primary-soft);
 }
 
 /* Recharts 3 activa por defecto una capa de accesibilidad que vuelve

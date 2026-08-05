@@ -18,6 +18,7 @@ import {
   eliminarPromocion,
 } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
+import SelectorFecha from "../../components/SelectorFecha";
 import { formatoMoneda } from "../ventas/utils";
 
 export default function PromocionesPage() {
@@ -286,22 +287,14 @@ function PromocionesContenido() {
             <label style={{ fontSize: 12, color: "var(--text-secondary)" }}>
               {t("promociones.fecha_inicio")}
             </label>
-            <input
-              type="date"
-              value={fechaInicio}
-              onChange={(e) => setFechaInicio(e.target.value)}
-            />
+            <SelectorFecha value={fechaInicio} onChange={setFechaInicio} />
           </div>
 
           <div>
             <label style={{ fontSize: 12, color: "var(--text-secondary)" }}>
               {t("promociones.fecha_fin")}
             </label>
-            <input
-              type="date"
-              value={fechaFin}
-              onChange={(e) => setFechaFin(e.target.value)}
-            />
+            <SelectorFecha value={fechaFin} onChange={setFechaFin} />
           </div>
         </div>
 

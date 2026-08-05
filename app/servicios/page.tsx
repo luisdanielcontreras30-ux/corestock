@@ -13,6 +13,7 @@ import RequierePlus from "../../components/RequierePlus";
 import CampoConSugerencias from "../../components/CampoConSugerencias";
 import CargandoLista from "../../components/CargandoLista";
 import FilaVacia from "../../components/FilaVacia";
+import SelectorFecha from "../../components/SelectorFecha";
 import { ClienteOpcion, EstadoTrabajo, Trabajo, PlantillaServicio } from "./types";
 import {
   cargarDatos,
@@ -443,11 +444,7 @@ function ServiciosContenido() {
             placeholder={t("servicios.servicio_placeholder")}
           />
 
-          <input
-            type="date"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-          />
+          <SelectorFecha value={fecha} onChange={setFecha} />
 
           <input
             type="number"

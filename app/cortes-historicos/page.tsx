@@ -15,6 +15,7 @@ import { MovimientoCaja } from "../caja/types";
 import { cargarCierres } from "../caja/acciones";
 import { formatoMoneda } from "../ventas/utils";
 import CargandoLista from "../../components/CargandoLista";
+import SelectorFecha from "../../components/SelectorFecha";
 
 // Evita que errores de redondeo de punto flotante (ej. 0.1 + 0.2) marquen
 // como "no cuadrado" un cierre de caja que en realidad sí cuadra.
@@ -157,11 +158,11 @@ function CortesHistoricosContenido() {
       <div className="card" style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
         <div>
           <label style={{ fontSize: 12, color: "var(--text-secondary)" }}>{t("promociones.fecha_inicio")}</label>
-          <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
+          <SelectorFecha value={desde} onChange={setDesde} />
         </div>
         <div>
           <label style={{ fontSize: 12, color: "var(--text-secondary)" }}>{t("promociones.fecha_fin")}</label>
-          <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+          <SelectorFecha value={hasta} onChange={setHasta} />
         </div>
       </div>
 
