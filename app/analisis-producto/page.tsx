@@ -19,6 +19,7 @@ import { ImagePlus, ScanSearch, TrendingUp, DollarSign, Percent, Repeat, Camera,
 import { useAuth } from "../../components/AuthProvider";
 import { useTheme } from "../../components/ThemeProvider";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
+import { conPisoVisual } from "../../lib/graficas";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
@@ -465,7 +466,7 @@ function ResultadoEstadisticas({
 
             <div style={{ width: "100%", height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={ventasPorMes} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={conPisoVisual(ventasPorMes, "unidades")} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="analisisHistorial" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.9} />
@@ -473,7 +474,12 @@ function ResultadoEstadisticas({
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="mes" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis
+                    stroke="var(--text-muted)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                  />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "var(--bg-secondary)",
@@ -482,11 +488,13 @@ function ResultadoEstadisticas({
                     }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                    formatter={(valor) => `${Number(valor)} ${t("analisis.unidades")}`}
+                    formatter={(_valor, _nombre, item) =>
+                      `${Number((item.payload as { unidades: number }).unidades)} ${t("analisis.unidades")}`
+                    }
                   />
                   <Area
                     type="monotone"
-                    dataKey="unidades"
+                    dataKey="__visual"
                     name={t("analisis.unidades")}
                     stroke="var(--primary)"
                     strokeWidth={2}

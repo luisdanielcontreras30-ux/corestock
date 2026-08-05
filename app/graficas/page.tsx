@@ -28,6 +28,7 @@ import {
   calcularPorcentaje,
   Periodo,
 } from "./utils";
+import { conPisoVisual } from "../../lib/graficas";
 import { VentaCruda } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useTheme } from "../../components/ThemeProvider";
@@ -126,6 +127,14 @@ export default function GraficasPage() {
   const puntosGrafica = useMemo(
     () => agruparPorPeriodo(ingresosActual, periodo),
     [ingresosActual, periodo]
+  );
+
+  // Para las gráficas de área: mismos puntos, con un piso mínimo de
+  // altura en el campo "__visual" (ver lib/graficas.ts) — el valor real
+  // sigue siendo "ventas", que es lo que muestra el tooltip.
+  const puntosGraficaVisual = useMemo(
+    () => conPisoVisual(puntosGrafica, "ventas"),
+    [puntosGrafica]
   );
 
   const estadisticas = useMemo(() => {
@@ -266,14 +275,14 @@ export default function GraficasPage() {
 
           <div style={{ width: "100%", height: 70, marginTop: 16 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={puntosGrafica} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+              <AreaChart data={puntosGraficaVisual} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="sparkIngresos" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={COLORES_PIE[0]} stopOpacity={0.5} />
                     <stop offset="95%" stopColor={COLORES_PIE[0]} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="ventas" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkIngresos)" />
+                <Area type="monotone" dataKey="__visual" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkIngresos)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -368,7 +377,13 @@ export default function GraficasPage() {
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                     formatter={(valor) => formatoMoneda(Number(valor))}
                   />
-                  <Bar dataKey="ventas" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  {/* minPointSize: con una venta mucho más grande que el
+                      resto, una barra chica calculada a escala real mide
+                      1 o 2 píxeles — prácticamente invisible aunque sí
+                      hubo venta ese día. Esto le pone un mínimo de alto
+                      SOLO al dibujo (el tooltip sigue mostrando el monto
+                      real, sin inflar nada). */}
+                  <Bar dataKey="ventas" fill="var(--primary)" radius={[4, 4, 0, 0]} minPointSize={4} />
                 </BarChart>
               ) : tipoTendencia === "velas" ? (
                 <BarChart data={puntosGrafica} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -381,7 +396,7 @@ export default function GraficasPage() {
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                     formatter={(valor) => formatoMoneda(Number(valor))}
                   />
-                  <Bar dataKey="ventas" radius={[3, 3, 3, 3]}>
+                  <Bar dataKey="ventas" radius={[3, 3, 3, 3]} minPointSize={4}>
                     {puntosGrafica.map((punto, index) => {
                       const anterior = index > 0 ? puntosGrafica[index - 1].ventas : punto.ventas;
                       const sube = punto.ventas >= anterior;
@@ -398,7 +413,7 @@ export default function GraficasPage() {
                 </BarChart>
               ) : (
                 <AreaChart
-                  data={puntosGrafica}
+                  data={puntosGraficaVisual}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <defs>
@@ -415,12 +430,18 @@ export default function GraficasPage() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                    formatter={(valor) => formatoMoneda(Number(valor))}
+                    // El área se dibuja con "__visual" (con piso mínimo,
+                    // ver conPisoVisual en lib/graficas.ts), pero el
+                    // tooltip debe mostrar el monto REAL — viene en
+                    // payload.ventas, el mismo punto de datos original.
+                    formatter={(_valor, _nombre, item) =>
+                      formatoMoneda(Number((item.payload as { ventas: number }).ventas))
+                    }
                   />
 
                   <Area
                     type="monotone"
-                    dataKey="ventas"
+                    dataKey="__visual"
                     stroke="var(--primary)"
                     strokeWidth={3}
                     fill="url(#ventas)"
@@ -632,7 +653,7 @@ export default function GraficasPage() {
 
                 <div style={{ width: "100%", height: 90, marginTop: 8 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={producto.historial}>
+                    <AreaChart data={conPisoVisual(producto.historial, "ventas")}>
                       <defs>
                         <linearGradient
                           id={`mini-${idx}`}
@@ -654,7 +675,7 @@ export default function GraficasPage() {
                       />
                       <Area
                         type="monotone"
-                        dataKey="ventas"
+                        dataKey="__visual"
                         stroke="var(--primary)"
                         strokeWidth={2}
                         fill={`url(#mini-${idx})`}

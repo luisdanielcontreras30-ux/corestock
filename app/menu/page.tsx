@@ -26,6 +26,7 @@ import { useTipoNegocio } from "../../components/TipoNegocioProvider";
 import { TIPOS_NEGOCIO_SERVICIOS } from "../../lib/tiposNegocio";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
+import { conPisoVisual } from "../../lib/graficas";
 import { useToast } from "../../components/ToastProvider";
 import { cargarMovimientos, calcularSaldo } from "../caja/acciones";
 import { formatoMoneda } from "../ventas/utils";
@@ -200,6 +201,14 @@ export default function DashboardPremium() {
   // tenía nada que ver con "hoy". Estas sí son por hora/por día real.
   const [dataHoyPorHora, setDataHoyPorHora] = useState<DataSparklineHora[]>([]);
   const [dataMesPorDia, setDataMesPorDia] = useState<DataSparklineDia[]>([]);
+
+  // Versiones "visuales" con piso mínimo de altura (ver lib/graficas.ts)
+  // para las áreas — sin esto, un valor mucho más chico que el pico del
+  // periodo (ej. una hora sin apenas ventas junto a otra con una venta
+  // grande) se dibuja pegado al 0, indistinguible de "no hubo nada".
+  const dataLineaVisual = useMemo(() => conPisoVisual(dataLinea, "monto"), [dataLinea]);
+  const dataHoyPorHoraVisual = useMemo(() => conPisoVisual(dataHoyPorHora, "monto"), [dataHoyPorHora]);
+  const dataMesPorDiaVisual = useMemo(() => conPisoVisual(dataMesPorDia, "monto"), [dataMesPorDia]);
 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -708,7 +717,7 @@ export default function DashboardPremium() {
 
           <div style={{ width: "100%", height: "70px", marginTop: 16 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dataHoyPorHora} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+              <AreaChart data={dataHoyPorHoraVisual} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="sparkHoy" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={COLORES_PIE[0]} stopOpacity={0.5} />
@@ -720,9 +729,11 @@ export default function DashboardPremium() {
                   contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                   labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                   itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                  formatter={(valor) => formatoMoneda(Number(valor))}
+                  formatter={(_valor, _nombre, item) =>
+                    formatoMoneda(Number((item.payload as { monto: number }).monto))
+                  }
                 />
-                <Area type="monotone" dataKey="monto" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkHoy)" />
+                <Area type="monotone" dataKey="__visual" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkHoy)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -749,7 +760,7 @@ export default function DashboardPremium() {
 
           <div style={{ width: "100%", height: "40px", marginTop: 10 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dataMesPorDia} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+              <AreaChart data={dataMesPorDiaVisual} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="sparkMes" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={COLORES_PIE[1]} stopOpacity={0.5} />
@@ -762,9 +773,11 @@ export default function DashboardPremium() {
                   labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                   itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                   labelFormatter={(dia) => `${t("dashboard.dia_abrev")} ${dia}`}
-                  formatter={(valor) => formatoMoneda(Number(valor))}
+                  formatter={(_valor, _nombre, item) =>
+                    formatoMoneda(Number((item.payload as { monto: number }).monto))
+                  }
                 />
-                <Area type="monotone" dataKey="monto" stroke={COLORES_PIE[1]} strokeWidth={2} fill="url(#sparkMes)" />
+                <Area type="monotone" dataKey="__visual" stroke={COLORES_PIE[1]} strokeWidth={2} fill="url(#sparkMes)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -847,7 +860,11 @@ export default function DashboardPremium() {
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                     formatter={(valor) => formatoMoneda(Number(valor))}
                   />
-                  <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  {/* minPointSize: con una venta mucho más grande que el
+                      resto, una barra a escala real mide 1 o 2 píxeles —
+                      prácticamente invisible aunque sí hubo venta ese
+                      día. El tooltip sigue mostrando el monto real. */}
+                  <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} fill="var(--primary)" radius={[4, 4, 0, 0]} minPointSize={4} />
                 </BarChart>
               ) : tipoTendencia === "velas" ? (
                 <BarChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -869,7 +886,7 @@ export default function DashboardPremium() {
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                     formatter={(valor) => formatoMoneda(Number(valor))}
                   />
-                  <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} radius={[3, 3, 3, 3]}>
+                  <Bar dataKey="monto" name={t("dashboard.total_ventas_serie")} radius={[3, 3, 3, 3]} minPointSize={4}>
                     {dataLinea.map((punto, index) => {
                       const anterior = index > 0 ? dataLinea[index - 1].monto : punto.monto;
                       const sube = punto.monto >= anterior;
@@ -885,7 +902,7 @@ export default function DashboardPremium() {
                   </Bar>
                 </BarChart>
               ) : (
-                <AreaChart data={dataLinea} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={dataLineaVisual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorMonto" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.9}/>
@@ -908,9 +925,11 @@ export default function DashboardPremium() {
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                     itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                    formatter={(valor) => formatoMoneda(Number(valor))}
+                    formatter={(_valor, _nombre, item) =>
+                      formatoMoneda(Number((item.payload as { monto: number }).monto))
+                    }
                   />
-                  <Area type="monotone" dataKey="monto" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorMonto)" />
+                  <Area type="monotone" dataKey="__visual" name={t("dashboard.total_ventas_serie")} stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorMonto)" />
                 </AreaChart>
               )}
             </ResponsiveContainer>
