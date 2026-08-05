@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Anima un número de su valor anterior hasta el nuevo cuando cambia.
 export default function ContadorAnimado({
@@ -11,6 +11,14 @@ export default function ContadorAnimado({
   decimales?: number;
 }) {
   const [mostrado, setMostrado] = useState(0);
+  // paso() se reprograma a sí mismo con cada cuadro — sin guardar el id
+  // más reciente en un ref, el cleanup solo podía cancelar el PRIMER
+  // requestAnimationFrame agendado. En cuanto ese primer cuadro corría
+  // y se reprogramaba, un cambio de "valor" (ej. cambiar el filtro de
+  // fechas) dejaba ese ciclo viejo corriendo en paralelo con el nuevo,
+  // los dos escribiendo sobre el mismo estado y compitiendo por el
+  // número final que se ve en pantalla.
+  const cuadroRef = useRef<number | null>(null);
 
   useEffect(() => {
     let inicio: number | null = null;
@@ -25,14 +33,16 @@ export default function ContadorAnimado({
       setMostrado(desde + (valor - desde) * facilitado);
 
       if (progreso < 1) {
-        requestAnimationFrame(paso);
+        cuadroRef.current = requestAnimationFrame(paso);
       } else {
         setMostrado(valor);
       }
     }
 
-    const cuadro = requestAnimationFrame(paso);
-    return () => cancelAnimationFrame(cuadro);
+    cuadroRef.current = requestAnimationFrame(paso);
+    return () => {
+      if (cuadroRef.current !== null) cancelAnimationFrame(cuadroRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valor]);
 
