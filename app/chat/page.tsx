@@ -10,6 +10,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import CargandoLista from "../../components/CargandoLista";
+import ReproductorAudioChat from "../../components/ReproductorAudioChat";
 import { MensajeChat } from "./types";
 import { cargarMensajes, enviarMensaje, suscribirseAMensajes, subirImagenChat, subirAudioChat } from "./acciones";
 import { obtenerNegocioId } from "../../lib/negocioActual";
@@ -421,7 +422,7 @@ export default function ChatPage() {
                         )}
                       </a>
                     )}
-                    {m.audio_url && <audio controls src={m.audio_url} className="chat-burbuja-audio" />}
+                    {m.audio_url && <ReproductorAudioChat src={m.audio_url} propio={propio} />}
                     {m.texto && <p className="chat-burbuja-texto">{m.texto}</p>}
                     {!soloImagen && <span className="chat-burbuja-hora">{formatoHora(m.creado_en)}</span>}
                   </div>

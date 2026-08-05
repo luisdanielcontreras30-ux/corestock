@@ -1437,10 +1437,108 @@ body {
   pointer-events: none;
 }
 
-.chat-burbuja-audio {
+/* Reproductor de notas de voz propio (ReproductorAudioChat.tsx) — en
+   vez del <audio controls> nativo, que en todos los navegadores se ve
+   como una barra gris genérica sin relación con el resto del diseño. */
+.audio-reproductor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-  max-width: 260px;
-  height: 38px;
+  max-width: 220px;
+  padding: 2px 0;
+}
+
+.audio-reproductor-play {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: #fff;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.audio-reproductor-play:hover {
+  filter: brightness(1.1);
+}
+
+.audio-reproductor-barra {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  /* El "progreso" pintado a mano con un degradado de dos colores en
+     vez del <progress> nativo: así el mismo elemento sirve de barra Y
+     de control arrastrable (min/max/value ya lo hacen accesible por
+     teclado), sin tener que sincronizar dos elementos separados. */
+  background: linear-gradient(to right, var(--primary) var(--progreso, 0%), var(--border) var(--progreso, 0%));
+  cursor: pointer;
+  outline: none;
+}
+
+.audio-reproductor-barra::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.audio-reproductor-barra::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.audio-reproductor-barra::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.audio-reproductor-tiempo {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  min-width: 28px;
+  text-align: right;
+}
+
+/* Dentro de una burbuja propia (fondo var(--primary)) todo pasa a
+   blanco para seguir siendo legible — mismo tratamiento que ya usan
+   .chat-burbuja-texto/.chat-burbuja-hora ahí. */
+.chat-burbuja-propia .audio-reproductor-play {
+  background: #fff;
+  color: var(--primary);
+}
+
+.chat-burbuja-propia .audio-reproductor-barra {
+  background: linear-gradient(to right, #fff var(--progreso, 0%), rgba(255, 255, 255, 0.35) var(--progreso, 0%));
+}
+
+.chat-burbuja-propia .audio-reproductor-barra::-webkit-slider-thumb,
+.chat-burbuja-propia .audio-reproductor-barra::-moz-range-thumb {
+  background: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px #fff;
+}
+
+.chat-burbuja-propia .audio-reproductor-tiempo {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 @media (max-width: 640px) {
