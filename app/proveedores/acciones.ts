@@ -169,24 +169,37 @@ export async function actualizarProveedor(
 
   validarPanel(cambios);
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("proveedores")
     .update(cambios)
     .eq("id", id)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .select("id");
 
   if (error) throw error;
+
+  // Sin filas afectadas = RLS lo rechazó en silencio (proveedor de
+  // otro negocio) — sin esto se mostraba como guardado aunque en la
+  // base no cambió nada.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ACTUALIZAR");
+  }
 }
 
 export async function eliminarProveedor(
   userId: string,
   id: string
 ): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("proveedores")
     .delete()
     .eq("id", id)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .select("id");
 
   if (error) throw error;
+
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
+  }
 }

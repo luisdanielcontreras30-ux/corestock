@@ -103,13 +103,21 @@ export async function cambiarEstadoTrabajo(id: number, estado: EstadoTrabajo) {
   // supabase_servicios_fecha_cobro.sql) — se pone al pasar a "cobrado"
   // y se limpia si el trabajo se regresa a otro estado, para no dejar
   // una fecha de cobro de una vez que ya no cuenta.
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("servicios_trabajos")
     .update({ estado, fecha_cobro: estado === "cobrado" ? new Date().toISOString() : null })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  // Sin filas afectadas = RLS lo rechazó en silencio (trabajo de otro
+  // negocio) — sin esto se mostraba como cobrado/actualizado aunque en
+  // la base no cambió nada.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ACTUALIZAR");
   }
 }
 
@@ -122,13 +130,18 @@ export async function eliminarTrabajo(id: number) {
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("servicios_trabajos")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
   }
 }
 
@@ -172,10 +185,18 @@ export async function eliminarPlantilla(id: number) {
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase.from("servicios_plantillas").delete().eq("id", id);
+  const { data, error } = await supabase
+    .from("servicios_plantillas")
+    .delete()
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
   }
 }
 

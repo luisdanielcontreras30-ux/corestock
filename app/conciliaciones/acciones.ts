@@ -72,13 +72,21 @@ export async function alternarConciliado(id: number, conciliado: boolean) {
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("conciliaciones")
     .update({ conciliado })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  // Sin filas afectadas = RLS lo rechazó en silencio (movimiento de
+  // otro negocio) — sin esto se mostraba como conciliado/desconciliado
+  // aunque en la base no cambió nada.
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ACTUALIZAR");
   }
 }
 
@@ -91,12 +99,17 @@ export async function eliminarMovimiento(id: number) {
     throw new Error("Usuario no autenticado");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("conciliaciones")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error("NO_SE_PUDO_ELIMINAR");
   }
 }
