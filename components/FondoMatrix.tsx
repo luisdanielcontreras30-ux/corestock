@@ -28,7 +28,8 @@ interface Columna {
 // y detrás de todo (pointer-events: none, z-index bajo), con opacidad
 // baja a propósito para que se sienta el ambiente sin restarle
 // legibilidad al texto de encima. Solo existe mientras el tema activo
-// es "matrix"; en el resto de los 33 temas no renderiza nada.
+// es "matrix" — en el resto de los temas (incluido "neongreen", que
+// comparte la misma paleta pero sin esta decoración) no renderiza nada.
 export default function FondoMatrix() {
   const { tema } = useTheme();
   const [columnas, setColumnas] = useState<Columna[] | null>(null);

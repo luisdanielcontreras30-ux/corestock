@@ -10,7 +10,7 @@ import React, {
 
 export type Tema =
   | "dark" | "green" | "blue" | "purple" | "amber" | "slate" | "cyan" | "wine" | "light" | "pink" | "mint" | "sunset" | "teal"
-  | "matrix" | "neonpink" | "neonblue" | "neonpurple" | "neonorange"
+  | "matrix" | "neongreen" | "neonpink" | "neonblue" | "neonpurple" | "neonorange"
   | "rose" | "ocean" | "coral" | "lavender" | "midnight" | "peach" | "steel" | "ruby" | "gold" | "ice"
   | "cyberpunk" | "tron" | "joker" | "terminator" | "strangerthings";
 
@@ -67,7 +67,7 @@ const CLAVE_STORAGE_DISTRIBUCION = "corestock-grafica-distribucion";
 
 const TEMAS_VALIDOS: Tema[] = [
   "dark", "green", "blue", "purple", "amber", "slate", "cyan", "wine", "light", "pink", "mint", "sunset", "teal",
-  "matrix", "neonpink", "neonblue", "neonpurple", "neonorange",
+  "matrix", "neongreen", "neonpink", "neonblue", "neonpurple", "neonorange",
   "rose", "ocean", "coral", "lavender", "midnight", "peach", "steel", "ruby", "gold", "ice",
   "cyberpunk", "tron", "joker", "terminator", "strangerthings",
 ];

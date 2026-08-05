@@ -381,10 +381,37 @@ html[data-theme="sunset"] {
   --table-header-bg: rgba(10, 5, 2, 0.4);
 }
 
-/* Familia de temas neón — negro puro con un acento neón distinto cada
-   uno y texto blanco. "Matrix" es el original (verde); los otros 4
-   son variantes de color para el mismo estilo. */
+/* "Matrix" vive con los temas TEMÁTICOS más abajo (categoria:
+   "tematicos" en ApariciarenciaTab.tsx) — a diferencia de la familia
+   neón de aquí abajo, trae su propia lluvia de código de fondo
+   (FondoMatrix.tsx) y el traje especial de Corebot (MascotaAsistente.tsx),
+   así que su bloque de variables se queda separado del resto aunque
+   comparta la paleta negro+verde neón con "neongreen". */
 html[data-theme="matrix"] {
+  color-scheme: dark;
+  --bg-primary: #000000;
+  --bg-secondary: #050505;
+  --card-bg: #0a0a0a;
+  --card-hover: #111111;
+  --border: #1a2e1a;
+  --primary: #39ff14;
+  --primary-hover: #2ecc0f;
+  --primary-soft: rgba(57, 255, 20, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #a6f5a0;
+  --text-muted: #8fd98a;
+  --glass-bg: rgba(57, 255, 20, 0.04);
+  --glass-border: rgba(57, 255, 20, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.6);
+  --btn-secondary-bg: #111111;
+  --table-header-bg: rgba(0, 0, 0, 0.5);
+}
+
+/* Familia de temas neón — negro puro con un acento neón distinto cada
+   uno y texto blanco. "neongreen" usa el mismo verde que "Matrix",
+   pero sin ninguna de sus decoraciones especiales: aquí es solo el
+   color, igual que las otras 4 variantes. */
+html[data-theme="neongreen"] {
   color-scheme: dark;
   --bg-primary: #000000;
   --bg-secondary: #050505;
