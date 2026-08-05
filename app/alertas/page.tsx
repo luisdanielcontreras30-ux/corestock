@@ -7,8 +7,10 @@ import { supabase } from "../../lib/supabase";
 import { Package, CheckCircle2, XCircle, AlertTriangle, Bell } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import ContadorAnimado from "../../components/ContadorAnimado";
+import SinPermiso from "../../components/SinPermiso";
 
 interface ProductoAlerta {
   id: number;
@@ -23,10 +25,17 @@ export default function Alertas() {
   const { t } = useIdioma();
   const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { miembroActivo, puede } = useMiembroActivo();
   const [alertas, setAlertas] = useState<ProductoAlerta[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [imagenesRotas, setImagenesRotas] = useState<Set<number>>(new Set());
+
+  // Mismo permiso que ya exige el propio ícono de campana en Header.tsx
+  // para mostrar este mismo dato — la página en sí no lo comprobaba,
+  // así que un miembro sin "ver_inventario"/"gestionar_inventario"
+  // podía ver todo el stock del negocio con solo escribir /alertas.
+  const puedeVer = !miembroActivo || puede("ver_inventario") || puede("gestionar_inventario");
 
   useEffect(() => {
     if (cargandoAuth) return;
@@ -36,8 +45,13 @@ export default function Alertas() {
       return;
     }
 
+    // Sin el permiso, ni se pide el stock: el render de abajo (if
+    // (!puedeVer)) ya corta antes de llegar al estado "loading", así
+    // que no hace falta tocarlo aquí.
+    if (!puedeVer) return;
+
     cargar();
-  }, [cargandoAuth, user]);
+  }, [cargandoAuth, user, puedeVer]);
 
   async function cargar() {
     setLoading(true);
@@ -68,6 +82,20 @@ export default function Alertas() {
 
   const agotados = alertas.filter((p) => p.stock === 0).length;
   const stockBajo = alertas.length - agotados;
+
+  if (!puedeVer) {
+    return (
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={Bell}
+          color="#ef4444"
+          titulo={t("alertas.titulo")}
+          subtitulo={t("alertas.subtitulo")}
+        />
+        <SinPermiso />
+      </main>
+    );
+  }
 
   if (loading) {
     return (
