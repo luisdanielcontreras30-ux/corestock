@@ -2990,6 +2990,71 @@ input[type="checkbox"]:disabled {
   margin-top: 8px;
 }
 
+.almacen-tarjeta-toggle {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.almacen-tarjeta-chevron {
+  align-self: center;
+  margin-top: 6px;
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+}
+
+.almacen-tarjeta-toggle-abierto .almacen-tarjeta-chevron {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.almacen-tarjeta-detalle {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: desplegar-cuerpo 0.22s ease;
+}
+
+.almacen-tarjeta-detalle-titulo {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin: 0 0 2px 0;
+}
+
+.almacen-tarjeta-detalle-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.almacen-tarjeta-detalle-fila strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.almacen-tarjeta-detalle-vacio {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 .upload-box-preview {
   width: 140px;
   height: 140px;
@@ -8560,6 +8625,14 @@ input[type="checkbox"]:disabled {
   }
 
   .producto-tarjeta-detalle {
+    animation: none;
+  }
+
+  .almacen-tarjeta-chevron {
+    transition: none;
+  }
+
+  .almacen-tarjeta-detalle {
     animation: none;
   }
 }

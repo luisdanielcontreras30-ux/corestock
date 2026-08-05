@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Warehouse, ImagePlus, MapPin } from "lucide-react";
+import { Warehouse, ImagePlus, MapPin, ChevronDown } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { subirImagenSegura } from "../../lib/uploads";
 import { redimensionarParaSubir } from "../../lib/imagenes";
@@ -14,7 +14,7 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import CargandoLista from "../../components/CargandoLista";
-import { Almacen } from "./types";
+import { Almacen, ProductoEnAlmacen } from "./types";
 import { cargarDatos, crearAlmacen, actualizarAlmacen, eliminarAlmacen } from "./acciones";
 
 export default function AlmacenesPage() {
@@ -34,6 +34,8 @@ function AlmacenesContenido() {
 
   const [loading, setLoading] = useState(true);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
+  const [productosPorAlmacen, setProductosPorAlmacen] = useState<Map<number, ProductoEnAlmacen[]>>(new Map());
+  const [almacenExpandidoId, setAlmacenExpandidoId] = useState<number | null>(null);
 
   const [editando, setEditando] = useState<number | null>(null);
   const [nombre, setNombre] = useState("");
@@ -64,6 +66,7 @@ function AlmacenesContenido() {
     try {
       const datos = await cargarDatos();
       setAlmacenes(datos.almacenes);
+      setProductosPorAlmacen(datos.productosPorAlmacen);
     } catch (error) {
       console.error(error);
       mostrarToast(t("almacenes.msg_error_cargar"), "error");
@@ -272,21 +275,59 @@ function AlmacenesContenido() {
             </div>
           ) : (
             <div className="almacenes-tarjetas">
-              {almacenes.map((a) => (
-                <div key={a.id} className="almacen-tarjeta">
-                  <div className="almacen-tarjeta-imagen">
-                    {a.foto_url ? (
-                      <Image src={a.foto_url} alt={a.nombre} fill sizes="220px" style={{ objectFit: "cover" }} />
-                    ) : (
-                      <MapPin size={26} color="var(--text-muted)" />
-                    )}
-                  </div>
+              {almacenes.map((a) => {
+                const expandido = almacenExpandidoId === a.id;
+                const idDetalle = `almacen-detalle-${a.id}`;
+                const productos = productosPorAlmacen.get(a.id) ?? [];
 
-                  <div className="almacen-tarjeta-cuerpo">
-                    <p className="almacen-tarjeta-nombre">{a.nombre}</p>
-                    <p className="almacen-tarjeta-descripcion">
-                      {a.descripcion?.trim() ? a.descripcion : t("almacenes.sin_descripcion")}
-                    </p>
+                return (
+                  <div key={a.id} className="almacen-tarjeta">
+                    {/* Botón real (no un div con role="button"), mismo
+                        patrón accesible que la tarjeta de producto en
+                        Productos — Editar/Eliminar quedan afuera, como
+                        hermanos, para no anidar un botón dentro de otro. */}
+                    <button
+                      type="button"
+                      className={`almacen-tarjeta-toggle${expandido ? " almacen-tarjeta-toggle-abierto" : ""}`}
+                      onClick={() => setAlmacenExpandidoId((actual) => (actual === a.id ? null : a.id))}
+                      aria-expanded={expandido}
+                      aria-controls={idDetalle}
+                      aria-label={t("almacenes.ver_productos")}
+                    >
+                      <div className="almacen-tarjeta-imagen">
+                        {a.foto_url ? (
+                          <Image src={a.foto_url} alt={a.nombre} fill sizes="220px" style={{ objectFit: "cover" }} />
+                        ) : (
+                          <MapPin size={26} color="var(--text-muted)" />
+                        )}
+                      </div>
+
+                      <div className="almacen-tarjeta-cuerpo">
+                        <p className="almacen-tarjeta-nombre">{a.nombre}</p>
+                        <p className="almacen-tarjeta-descripcion">
+                          {a.descripcion?.trim() ? a.descripcion : t("almacenes.sin_descripcion")}
+                        </p>
+
+                        <ChevronDown size={16} className="almacen-tarjeta-chevron" aria-hidden="true" />
+                      </div>
+                    </button>
+
+                    {expandido && (
+                      <div id={idDetalle} className="almacen-tarjeta-detalle">
+                        <p className="almacen-tarjeta-detalle-titulo">{t("almacenes.productos_en_almacen")}</p>
+
+                        {productos.length === 0 ? (
+                          <p className="almacen-tarjeta-detalle-vacio">{t("almacenes.sin_productos")}</p>
+                        ) : (
+                          productos.map((p) => (
+                            <div key={p.producto_id} className="almacen-tarjeta-detalle-fila">
+                              <span>{p.nombre}</span>
+                              <strong>{p.stock}</strong>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
 
                     <div className="productos-actions almacen-tarjeta-acciones">
                       <button onClick={() => editar(a)} className="btn-edit">
@@ -298,8 +339,8 @@ function AlmacenesContenido() {
                       </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </>

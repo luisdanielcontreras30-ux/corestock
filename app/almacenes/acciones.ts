@@ -1,6 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { obtenerNegocioId } from "../../lib/negocioActual";
-import { Almacen } from "./types";
+import { Almacen, ProductoEnAlmacen } from "./types";
 
 export async function cargarDatos() {
   const {
@@ -8,17 +8,41 @@ export async function cargarDatos() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { almacenes: [] as Almacen[] };
+    return { almacenes: [] as Almacen[], productosPorAlmacen: new Map<number, ProductoEnAlmacen[]>() };
   }
 
-  const { data, error } = await supabase
-    .from("ubicaciones")
-    .select("id, nombre, descripcion, foto_url")
-    .order("nombre");
+  // Las dos consultas son independientes — en paralelo en vez de una
+  // tras otra. stock_ubicaciones trae el producto ya unido (igual que
+  // en app/traspasos/acciones.ts) para no tener que cruzarlo a mano.
+  const [{ data: almacenes, error: errorAlmacenes }, { data: filasStock, error: errorStock }] = await Promise.all([
+    supabase.from("ubicaciones").select("id, nombre, descripcion, foto_url").order("nombre"),
+    supabase
+      .from("stock_ubicaciones")
+      .select("producto_id, ubicacion_id, stock, productos(nombre)")
+      .gt("stock", 0),
+  ]);
 
-  if (error) throw error;
+  if (errorAlmacenes) throw errorAlmacenes;
+  if (errorStock) throw errorStock;
 
-  return { almacenes: (data ?? []) as Almacen[] };
+  const productosPorAlmacen = new Map<number, ProductoEnAlmacen[]>();
+
+  for (const fila of (filasStock ?? []) as {
+    producto_id: number;
+    ubicacion_id: number;
+    stock: number;
+    productos: { nombre: string } | { nombre: string }[] | null;
+  }[]) {
+    const relacion = fila.productos;
+    const nombre = Array.isArray(relacion) ? relacion[0]?.nombre : relacion?.nombre;
+    if (!nombre) continue;
+
+    const lista = productosPorAlmacen.get(fila.ubicacion_id) ?? [];
+    lista.push({ producto_id: fila.producto_id, nombre, stock: fila.stock });
+    productosPorAlmacen.set(fila.ubicacion_id, lista);
+  }
+
+  return { almacenes: (almacenes ?? []) as Almacen[], productosPorAlmacen };
 }
 
 export async function crearAlmacen(nombre: string, descripcion: string, fotoUrl: string | null) {
