@@ -49,4 +49,23 @@ create policy "mensajes_chat_insert" on public.mensajes_chat
 -- Habilita las actualizaciones en vivo (Supabase Realtime) para esta
 -- tabla — sin esto, un mensaje nuevo solo aparece para los demás
 -- cuando vuelven a cargar la página.
-alter publication supabase_realtime add table public.mensajes_chat;
+--
+-- A diferencia de "create table if not exists" o "drop policy if
+-- exists", Postgres no tiene un "add table if not exists" para
+-- publicaciones — volver a correr este script (ej. sin darse cuenta
+-- de que ya se había corrido antes) truena con el error 42710
+-- ("ya es miembro de la publicación"). Se envuelve en un chequeo
+-- explícito para que el script completo se pueda volver a correr sin
+-- problema, igual que el resto de los archivos supabase_*.sql.
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'mensajes_chat'
+  ) then
+    alter publication supabase_realtime add table public.mensajes_chat;
+  end if;
+end $$;

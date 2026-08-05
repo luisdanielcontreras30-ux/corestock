@@ -15,6 +15,24 @@ import { cargarMensajes, enviarMensaje, suscribirseAMensajes, subirImagenChat, s
 import { obtenerNegocioId } from "../../lib/negocioActual";
 import { redimensionarParaSubir } from "../../lib/imagenes";
 
+// enviarMensaje() siempre manda imagen_url/audio_url en el insert
+// (aunque sea un mensaje de puro texto — ver acciones.ts), así que si
+// solo se corrió supabase_chat_equipo.sql pero no supabase_chat_
+// imagenes.sql/supabase_chat_audio.sql, ni un mensaje de texto se
+// puede mandar: Postgres rechaza CUALQUIER insert que mencione una
+// columna que no existe. Sin esto se veía como "no se pudo enviar el
+// mensaje" a secas, sin ninguna pista de qué corregir.
+function esColumnaFaltante(error: unknown): boolean {
+  const codigo = (error as { code?: string } | null)?.code;
+  const mensaje = ((error as { message?: string } | null)?.message ?? "").toLowerCase();
+  return (
+    codigo === "42703" ||
+    codigo === "PGRST204" ||
+    mensaje.includes("imagen_url") ||
+    mensaje.includes("audio_url")
+  );
+}
+
 function formatoHora(fecha: string) {
   return new Date(fecha).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
@@ -101,7 +119,10 @@ export default function ChatPage() {
         setMensajes(datos);
       } catch (error) {
         console.error(error);
-        mostrarToast(t("comun.msg_error_cargar_datos"), "error");
+        mostrarToast(
+          esColumnaFaltante(error) ? t("chat.msg_falta_migracion") : t("comun.msg_error_cargar_datos"),
+          "error"
+        );
       } finally {
         if (!cancelado) setLoading(false);
       }
@@ -149,7 +170,10 @@ export default function ChatPage() {
       // id temporal con el id real que le asigna la base de datos.
     } catch (error) {
       console.error(error);
-      mostrarToast(t("chat.msg_error_enviar"), "error");
+      mostrarToast(
+        esColumnaFaltante(error) ? t("chat.msg_falta_migracion") : t("chat.msg_error_enviar"),
+        "error"
+      );
     } finally {
       setEnviando(false);
     }
@@ -178,7 +202,10 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error(error);
-      mostrarToast(t("chat.msg_error_imagen"), "error");
+      mostrarToast(
+        esColumnaFaltante(error) ? t("chat.msg_falta_migracion") : t("chat.msg_error_imagen"),
+        "error"
+      );
     } finally {
       setSubiendoImagen(false);
       if (imagenInputRef.current) imagenInputRef.current.value = "";
@@ -292,7 +319,10 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error(error);
-      mostrarToast(t("chat.msg_error_audio"), "error");
+      mostrarToast(
+        esColumnaFaltante(error) ? t("chat.msg_falta_migracion") : t("chat.msg_error_audio"),
+        "error"
+      );
     } finally {
       setSubiendoAudio(false);
     }
