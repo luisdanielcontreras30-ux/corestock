@@ -19,7 +19,7 @@ import { ImagePlus, ScanSearch, TrendingUp, DollarSign, Percent, Repeat, Camera,
 import { useAuth } from "../../components/AuthProvider";
 import { useTheme } from "../../components/ThemeProvider";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
-import { conPisoVisual } from "../../lib/graficas";
+import { conPisoVisual, formatoEjeCompacto } from "../../lib/graficas";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
 import { useMiembroActivo } from "../../components/MiembroActivoProvider";
@@ -479,6 +479,7 @@ function ResultadoEstadisticas({
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
+                    tickFormatter={formatoEjeCompacto}
                   />
                   <Tooltip
                     contentStyle={{

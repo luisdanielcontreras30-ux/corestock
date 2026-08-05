@@ -26,7 +26,7 @@ import { useTipoNegocio } from "../../components/TipoNegocioProvider";
 import { TIPOS_NEGOCIO_SERVICIOS } from "../../lib/tiposNegocio";
 import ContadorAnimado from "../../components/ContadorAnimado";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
-import { conPisoVisual } from "../../lib/graficas";
+import { conPisoVisual, formatoEjeCompacto } from "../../lib/graficas";
 import { useToast } from "../../components/ToastProvider";
 import { cargarMovimientos, calcularSaldo } from "../caja/acciones";
 import { formatoMoneda } from "../ventas/utils";
@@ -853,11 +853,7 @@ export default function DashboardPremium() {
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(valor) =>
-                      valor >= 1000
-                        ? `${(valor / 1000).toFixed(0)}k`
-                        : String(valor)
-                    }
+                    tickFormatter={formatoEjeCompacto}
                   />
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
@@ -879,11 +875,7 @@ export default function DashboardPremium() {
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(valor) =>
-                      valor >= 1000
-                        ? `${(valor / 1000).toFixed(0)}k`
-                        : String(valor)
-                    }
+                    tickFormatter={formatoEjeCompacto}
                   />
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
@@ -920,11 +912,7 @@ export default function DashboardPremium() {
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(valor) =>
-                      valor >= 1000
-                        ? `${(valor / 1000).toFixed(0)}k`
-                        : String(valor)
-                    }
+                    tickFormatter={formatoEjeCompacto}
                   />
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}

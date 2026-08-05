@@ -28,7 +28,7 @@ import {
   calcularPorcentaje,
   Periodo,
 } from "./utils";
-import { conPisoVisual } from "../../lib/graficas";
+import { conPisoVisual, formatoEjeCompacto } from "../../lib/graficas";
 import { VentaCruda } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useTheme } from "../../components/ThemeProvider";
@@ -370,7 +370,7 @@ export default function GraficasPage() {
                 <BarChart data={puntosGrafica} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
-                  <YAxis stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" tickFormatter={formatoEjeCompacto} />
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
@@ -389,7 +389,7 @@ export default function GraficasPage() {
                 <BarChart data={puntosGrafica} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
-                  <YAxis stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" tickFormatter={formatoEjeCompacto} />
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
@@ -425,7 +425,7 @@ export default function GraficasPage() {
 
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
-                  <YAxis stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" tickFormatter={formatoEjeCompacto} />
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                     labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
