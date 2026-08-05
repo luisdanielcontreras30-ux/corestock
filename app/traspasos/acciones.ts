@@ -67,58 +67,6 @@ export async function cargarDatos() {
   };
 }
 
-export async function crearUbicacion(nombre: string) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("Usuario no autenticado");
-
-  const negocioId = await obtenerNegocioId(user.id);
-
-  const { error } = await supabase
-    .from("ubicaciones")
-    .insert({ nombre: nombre.trim(), user_id: negocioId });
-
-  if (error) throw error;
-}
-
-export async function eliminarUbicacion(id: number) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("Usuario no autenticado");
-
-  const { data: filasConStock, error: errorConsulta } = await supabase
-    .from("stock_ubicaciones")
-    .select("id")
-    .eq("ubicacion_id", id)
-    .gt("stock", 0)
-    .limit(1);
-
-  if (errorConsulta) throw errorConsulta;
-
-  if (filasConStock && filasConStock.length > 0) {
-    throw new Error("UBICACION_CON_STOCK");
-  }
-
-  const { data, error } = await supabase
-    .from("ubicaciones")
-    .delete()
-    .eq("id", id)
-    .select("id");
-
-  if (error) throw error;
-
-  // Sin filas afectadas = RLS lo rechazó en silencio (ubicación de otro
-  // negocio) — sin esto se mostraba como eliminada aunque en la base no
-  // cambió nada.
-  if (!data || data.length === 0) {
-    throw new Error("NO_SE_PUDO_ELIMINAR");
-  }
-}
-
 // Suma (o resta, con delta negativo) stock en una ubicación secundaria,
 // creando la fila si todavía no existe. Usa el mismo candado
 // compare-and-swap que el resto de la app contra condiciones de carrera.

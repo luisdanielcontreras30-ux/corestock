@@ -30,6 +30,7 @@ import {
   RotateCcw,
   HandCoins,
   Wrench,
+  Warehouse,
   LucideIcon,
 } from "lucide-react";
 
@@ -72,6 +73,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { claveNombre: "sidebar.proveedores", href: "/proveedores", Icono: Truck, colorMovil: "#b45309" },
       { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell, colorMovil: "#ef4444" },
       { claveNombre: "sidebar.ajustes_stock", href: "/ajustes-stock", Icono: SlidersHorizontal, colorMovil: "#0ea5e9" },
+      { claveNombre: "sidebar.almacenes", href: "/almacenes", Icono: Warehouse, colorMovil: "#0d9488" },
       { claveNombre: "sidebar.traspasos", href: "/traspasos", Icono: ArrowRightLeft, colorMovil: "#8b5cf6" },
       { claveNombre: "sidebar.fabricacion", href: "/fabricacion", Icono: Factory, colorMovil: "#ea580c" },
     ],

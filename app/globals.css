@@ -2924,6 +2924,72 @@ input[type="checkbox"]:disabled {
   color: var(--text-secondary);
 }
 
+.almacenes-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.almacen-tarjeta {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.almacen-tarjeta:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.almacen-tarjeta-imagen {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  border-radius: 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.almacen-tarjeta-cuerpo {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.almacen-tarjeta-nombre {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.almacen-tarjeta-descripcion {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.almacen-tarjeta-acciones {
+  margin-top: 8px;
+}
+
 .upload-box-preview {
   width: 140px;
   height: 140px;

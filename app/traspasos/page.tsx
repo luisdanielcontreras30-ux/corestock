@@ -2,17 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRightLeft, Trash2, MapPin, Package } from "lucide-react";
+import Link from "next/link";
+import { ArrowRightLeft, MapPin, Package, Warehouse } from "lucide-react";
 import { mensajeErrorSeguro } from "../../lib/errores";
 import { useAuth } from "../../components/AuthProvider";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useToast } from "../../components/ToastProvider";
-import { useConfirm } from "../../components/ConfirmProvider";
 import EncabezadoModulo from "../../components/EncabezadoModulo";
 import RequierePlus from "../../components/RequierePlus";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import { Producto, Ubicacion, StockUbicacion, Traspaso } from "./types";
-import { cargarDatos, crearUbicacion, eliminarUbicacion, realizarTraspaso } from "./acciones";
+import { cargarDatos, realizarTraspaso } from "./acciones";
 import CargandoLista from "../../components/CargandoLista";
 
 const TIENDA = "__tienda__";
@@ -30,16 +30,12 @@ function TraspasosContenido() {
   const { user, cargando: cargandoAuth } = useAuth();
   const { t } = useIdioma();
   const { mostrarToast } = useToast();
-  const { confirmar } = useConfirm();
 
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
   const [stockUbicaciones, setStockUbicaciones] = useState<StockUbicacion[]>([]);
   const [traspasos, setTraspasos] = useState<Traspaso[]>([]);
-
-  const [nombreUbicacion, setNombreUbicacion] = useState("");
-  const [guardandoUbicacion, setGuardandoUbicacion] = useState(false);
 
   const [productoId, setProductoId] = useState("");
   const [origen, setOrigen] = useState(TIENDA);
@@ -56,8 +52,6 @@ function TraspasosContenido() {
   function mensajeTraspaso(error: unknown): string | null {
     if (!(error instanceof Error)) return null;
     switch (error.message) {
-      case "UBICACION_CON_STOCK":
-        return t("traspasos.msg_ubicacion_con_stock");
       case "STOCK_INSUFICIENTE_UBICACION":
         return t("traspasos.msg_stock_insuficiente_ubicacion");
       case "STOCK_INSUFICIENTE_TIENDA":
@@ -101,39 +95,6 @@ function TraspasosContenido() {
   }, [cargandoAuth, user]);
 
   const ubicacionVistaActual = ubicacionVista || (ubicaciones[0] ? String(ubicaciones[0].id) : "");
-
-  async function agregarUbicacion() {
-    if (guardandoUbicacion) return;
-
-    if (!nombreUbicacion.trim()) {
-      mostrarToast(t("traspasos.msg_falta_nombre_ubicacion"), "error");
-      return;
-    }
-
-    try {
-      setGuardandoUbicacion(true);
-      await crearUbicacion(nombreUbicacion);
-      setNombreUbicacion("");
-      await obtenerDatos();
-    } catch (error) {
-      console.error(error);
-      mostrarToast(t("traspasos.msg_error_ubicacion"), "error");
-    } finally {
-      setGuardandoUbicacion(false);
-    }
-  }
-
-  async function borrarUbicacion(id: number) {
-    if (!(await confirmar(t("traspasos.confirmar_eliminar_ubicacion"), { peligroso: true }))) return;
-
-    try {
-      await eliminarUbicacion(id);
-      await obtenerDatos();
-    } catch (error) {
-      console.error(error);
-      mostrarToast(mensajeTraspaso(error) || mensajeErrorSeguro(error) || t("traspasos.msg_error_eliminar_ubicacion"), "error");
-    }
-  }
 
   const producto = productos.find((p) => p.id === Number(productoId)) ?? null;
 
@@ -256,29 +217,17 @@ function TraspasosContenido() {
       ) : (
       <>
       <div className="card">
-        <h2 style={{ marginBottom: 16 }}>{t("traspasos.ubicaciones")}</h2>
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <input
-            value={nombreUbicacion}
-            onChange={(e) => setNombreUbicacion(e.target.value)}
-            placeholder={t("traspasos.nombre_ubicacion_placeholder")}
-            style={{ maxWidth: 260 }}
-          />
-          <button className="btn-primary" onClick={agregarUbicacion} disabled={guardandoUbicacion}>
-            {t("traspasos.agregar_ubicacion")}
-          </button>
-        </div>
+        <h2 style={{ marginBottom: 10 }}>{t("traspasos.ubicaciones")}</h2>
+        <p style={{ color: "var(--text-secondary)", fontSize: 13.5, marginBottom: 14 }}>
+          {t("traspasos.ubicaciones_gestion_movida")}
+        </p>
 
         {ubicaciones.length > 0 && (
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
             {ubicaciones.map((u) => (
               <span
                 key={u.id}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
                   background: "var(--bg-secondary)",
                   padding: "6px 10px",
                   borderRadius: 8,
@@ -286,18 +235,18 @@ function TraspasosContenido() {
                 }}
               >
                 {u.nombre}
-                <button
-                  className="btn-delete"
-                  aria-label={t("productos.eliminar")}
-                  onClick={() => borrarUbicacion(u.id)}
-                  style={{ padding: 2 }}
-                >
-                  <Trash2 size={12} />
-                </button>
               </span>
             ))}
           </div>
         )}
+
+        <Link
+          href="/almacenes"
+          className="btn-secondary"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, width: "fit-content" }}
+        >
+          <Warehouse size={15} /> {t("sidebar.almacenes")}
+        </Link>
       </div>
 
       <div className="card">
