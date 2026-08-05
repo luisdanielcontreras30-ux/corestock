@@ -518,6 +518,8 @@ export const TRADUCCIONES: Diccionario = {
   "productos.precio": { es: "Precio", en: "Price", pt: "Preço", fr: "Prix", de: "Preis", zh: "价格", it: "Prezzo" },
   "productos.costo": { es: "Costo", en: "Cost", pt: "Custo", fr: "Coût", de: "Kosten", zh: "成本", it: "Costo" },
   "productos.stock": { es: "Stock", en: "Stock", pt: "Estoque", fr: "Stock", de: "Bestand", zh: "库存", it: "Scorta" },
+  "productos.almacen_general": { es: "Almacén general", en: "General warehouse", pt: "Armazém geral", fr: "Entrepôt général", de: "Allgemeines Lager", zh: "总仓库", it: "Magazzino generale" },
+  "productos.ver_stock_ubicaciones": { es: "Ver stock por almacén", en: "View stock by warehouse", pt: "Ver estoque por armazém", fr: "Voir le stock par entrepôt", de: "Bestand nach Lager anzeigen", zh: "按仓库查看库存", it: "Vedi scorta per magazzino" },
   "productos.stock_minimo": { es: "Stock mínimo (alerta)", en: "Minimum stock (alert)", pt: "Estoque mínimo (alerta)", fr: "Stock minimum (alerte)", de: "Mindestbestand (Warnung)", zh: "最低库存（预警）", it: "Scorta minima (avviso)" },
   "productos.subir_imagen": { es: "Subir imagen", en: "Upload image", pt: "Enviar imagem", fr: "Télécharger une image", de: "Bild hochladen", zh: "上传图片", it: "Carica immagine" },
   "productos.subir_imagen_subtexto": { es: "Arrastrar o tocar", en: "Drag or tap", pt: "Arraste ou toque", fr: "Glisser ou toucher", de: "Ziehen oder tippen", zh: "拖拽或点击", it: "Trascina o tocca" },

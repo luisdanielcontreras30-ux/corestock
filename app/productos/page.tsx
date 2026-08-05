@@ -13,7 +13,7 @@ import { mensajeErrorSeguro } from "../../lib/errores";
 import { normalizarTexto } from "../../lib/normalizarTexto";
 import { formatoMoneda } from "../ventas/utils";
 import * as XLSX from "xlsx";
-import { ImagePlus, Package, Plus, Sparkles, Eraser, Inbox, Star, MapPin } from "lucide-react";
+import { ImagePlus, Package, Plus, Sparkles, Eraser, Inbox, Star, MapPin, ChevronDown } from "lucide-react";
 import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import CampoConSugerencias from "../../components/CampoConSugerencias";
 import { useIdioma } from "../../components/LanguageProvider";
@@ -78,6 +78,15 @@ function ProductosInterno() {
   // de productos en sí. Mapa producto_id -> valor calculado.
   const [ubicacionPorProducto, setUbicacionPorProducto] = useState<Map<number, string>>(new Map());
   const [calificacionPorProducto, setCalificacionPorProducto] = useState<Map<number, number>>(new Map());
+  // Lista completa de almacenes secundarios (Traspasos) y el stock de
+  // cada producto en cada uno — producto_id -> (ubicacion_id -> stock).
+  // Separado de ubicacionPorProducto (el resumen "Bodega Norte, Tienda"
+  // de la tarjeta) porque ahí sí hace falta el desglose completo,
+  // incluyendo almacenes en 0, para el panel que se abre al tocar la
+  // tarjeta.
+  const [ubicaciones, setUbicaciones] = useState<{ id: number; nombre: string }[]>([]);
+  const [stockPorUbicacion, setStockPorUbicacion] = useState<Map<number, Map<number, number>>>(new Map());
+  const [productoExpandidoId, setProductoExpandidoId] = useState<number | null>(null);
 
   // Los tres campos leen su valor inicial de la URL (?nombre_sugerido=,
   // ?categoria_sugerida=, ?descripcion_sugerida=) cuando se llega desde
@@ -282,24 +291,47 @@ function ProductosInterno() {
   // muestra como ubicación desconocida en vez de dejarlo en blanco.
   async function cargarUbicacionesYCalificaciones() {
     try {
-      const { data: filasUbicacion, error: errorUbicacion } = await supabase
-        .from("stock_ubicaciones")
-        .select("producto_id, ubicaciones(nombre)")
-        .gt("stock", 0);
+      // Las dos consultas son independientes — en paralelo en vez de
+      // una tras otra. "ubicaciones" trae TODOS los almacenes de la
+      // cuenta (aunque un producto no tenga nada en alguno, para poder
+      // mostrarlo con 0 en el desglose), y "stock_ubicaciones" sin el
+      // filtro de stock > 0 que sí usa el resumen de la tarjeta, porque
+      // aquí también hace falta saber los almacenes en 0.
+      const [
+        { data: filasUbicacionTabla, error: errorTablaUbicaciones },
+        { data: filasStock, error: errorStock },
+      ] = await Promise.all([
+        supabase.from("ubicaciones").select("id, nombre").order("nombre"),
+        supabase.from("stock_ubicaciones").select("producto_id, ubicacion_id, stock"),
+      ]);
 
-      if (!errorUbicacion && filasUbicacion) {
-        const mapa = new Map<number, string>();
-        for (const fila of filasUbicacion as {
-          producto_id: number;
-          ubicaciones: { nombre: string } | { nombre: string }[] | null;
-        }[]) {
-          const relacion = fila.ubicaciones;
-          const nombre = Array.isArray(relacion) ? relacion[0]?.nombre : relacion?.nombre;
-          if (!nombre) continue;
-          const actual = mapa.get(fila.producto_id);
-          mapa.set(fila.producto_id, actual && !actual.includes(nombre) ? `${actual}, ${nombre}` : actual ?? nombre);
+      if (!errorTablaUbicaciones && filasUbicacionTabla) {
+        setUbicaciones(filasUbicacionTabla);
+      }
+
+      if (!errorStock && filasStock) {
+        const nombrePorUbicacionId = new Map((filasUbicacionTabla ?? []).map((u) => [u.id, u.nombre]));
+        const detalle = new Map<number, Map<number, number>>();
+        const resumen = new Map<number, string>();
+
+        for (const fila of filasStock as { producto_id: number; ubicacion_id: number; stock: number }[]) {
+          if (!detalle.has(fila.producto_id)) detalle.set(fila.producto_id, new Map());
+          detalle.get(fila.producto_id)!.set(fila.ubicacion_id, fila.stock);
+
+          if (fila.stock > 0) {
+            const nombre = nombrePorUbicacionId.get(fila.ubicacion_id);
+            if (nombre) {
+              const actual = resumen.get(fila.producto_id);
+              resumen.set(
+                fila.producto_id,
+                actual && !actual.includes(nombre) ? `${actual}, ${nombre}` : actual ?? nombre
+              );
+            }
+          }
         }
-        setUbicacionPorProducto(mapa);
+
+        setStockPorUbicacion(detalle);
+        setUbicacionPorProducto(resumen);
       }
     } catch (error) {
       console.error("No se pudo cargar la ubicación de los productos:", error);
@@ -1051,65 +1083,115 @@ function ProductosInterno() {
                       ? ubicacionPorProducto.get(p.id) ?? t("traspasos.ubicacion_desconocida")
                       : null;
 
+                  const expandido = productoExpandidoId === p.id;
+                  const idDetalle = `producto-detalle-${p.id}`;
+
                   return (
                     <div key={p.id} className="producto-tarjeta">
-                      <div className="producto-tarjeta-imagen">
-                        {p.imagen ? (
-                          <Image src={p.imagen} alt={p.nombre} fill sizes="200px" style={{ objectFit: "cover" }} />
-                        ) : (
-                          <Package size={26} color="var(--text-muted)" />
-                        )}
-                      </div>
-
-                      <div className="producto-tarjeta-cuerpo">
-                        <p className="producto-tarjeta-nombre">{p.nombre}</p>
-                        <p className="producto-tarjeta-categoria">
-                          {p.categoria?.trim() ? p.categoria : t("productos.sin_categoria")}
-                        </p>
-
-                        <div className="producto-tarjeta-calificacion" title={t("productos.calificacion")}>
-                          {[1, 2, 3, 4, 5].map((n) => (
-                            <Star
-                              key={n}
-                              size={13}
-                              fill={n <= estrellas ? "#f5b301" : "none"}
-                              color={n <= estrellas ? "#f5b301" : "var(--border)"}
-                            />
-                          ))}
-                        </div>
-
-                        <div className="producto-tarjeta-precios">
-                          <span className="producto-tarjeta-precio">{formatoMoneda(p.precio_venta)}</span>
-                          {puede("ver_ganancias") && (
-                            <span className="producto-tarjeta-costo">
-                              {t("productos.costo")}: {formatoMoneda(p.costo ?? 0)}
-                            </span>
+                      {/* Botón real (no un div con role="button") para que
+                          abrir/cerrar el desglose de stock por almacén
+                          funcione con teclado y lector de pantalla igual
+                          que TarjetaDesplegable — los botones de Editar/
+                          Eliminar quedan afuera, como hermanos, para no
+                          anidar un botón dentro de otro. */}
+                      <button
+                        type="button"
+                        className={`producto-tarjeta-toggle${expandido ? " producto-tarjeta-toggle-abierto" : ""}`}
+                        onClick={() => setProductoExpandidoId((actual) => (actual === p.id ? null : p.id))}
+                        aria-expanded={expandido}
+                        aria-controls={idDetalle}
+                        aria-label={t("productos.ver_stock_ubicaciones")}
+                      >
+                        <div className="producto-tarjeta-imagen">
+                          {p.imagen ? (
+                            <Image src={p.imagen} alt={p.nombre} fill sizes="200px" style={{ objectFit: "cover" }} />
+                          ) : (
+                            <Package size={26} color="var(--text-muted)" />
                           )}
                         </div>
 
-                        <div className="producto-tarjeta-fila-info">
-                          <span className="producto-tarjeta-stock">
-                            {t("productos.stock")}: <strong>{p.stock}</strong>
-                          </span>
-                          {ubicacion && (
-                            <span className="producto-tarjeta-ubicacion">
-                              <MapPin size={11} /> {ubicacion}
-                            </span>
-                          )}
-                        </div>
+                        <div className="producto-tarjeta-cuerpo">
+                          <p className="producto-tarjeta-nombre">{p.nombre}</p>
+                          <p className="producto-tarjeta-categoria">
+                            {p.categoria?.trim() ? p.categoria : t("productos.sin_categoria")}
+                          </p>
 
-                        {puede("gestionar_inventario") && (
-                          <div className="productos-actions producto-tarjeta-acciones">
-                            <button onClick={() => editar(p)} className="btn-edit">
-                              {t("productos.editar")}
-                            </button>
-
-                            <button onClick={() => eliminar(p.id)} className="btn-delete">
-                              {t("productos.eliminar")}
-                            </button>
+                          <div className="producto-tarjeta-calificacion" title={t("productos.calificacion")}>
+                            {[1, 2, 3, 4, 5].map((n) => (
+                              <Star
+                                key={n}
+                                size={13}
+                                fill={n <= estrellas ? "#f5b301" : "none"}
+                                color={n <= estrellas ? "#f5b301" : "var(--border)"}
+                              />
+                            ))}
                           </div>
-                        )}
-                      </div>
+
+                          <div className="producto-tarjeta-precios">
+                            <span className="producto-tarjeta-precio">{formatoMoneda(p.precio_venta)}</span>
+                            {puede("ver_ganancias") && (
+                              <span className="producto-tarjeta-costo">
+                                {t("productos.costo")}: {formatoMoneda(p.costo ?? 0)}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="producto-tarjeta-fila-info">
+                            <span className="producto-tarjeta-stock">
+                              {t("productos.stock")}: <strong>{p.stock}</strong>
+                            </span>
+                            {ubicacion && (
+                              <span className="producto-tarjeta-ubicacion">
+                                <MapPin size={11} /> {ubicacion}
+                              </span>
+                            )}
+                          </div>
+
+                          <ChevronDown size={16} className="producto-tarjeta-chevron" aria-hidden="true" />
+                        </div>
+                      </button>
+
+                      {/* Se desmonta al cerrar, igual que
+                          TarjetaDesplegable — así no queda contenido
+                          enfocable ni leído por un lector de pantalla
+                          cuando está oculto. */}
+                      {expandido && (
+                        <div id={idDetalle} className="producto-tarjeta-detalle">
+                          <p className="producto-tarjeta-detalle-titulo">{t("traspasos.stock_por_ubicacion")}</p>
+
+                          {ubicaciones.length === 0 ? (
+                            <div className="producto-tarjeta-detalle-fila">
+                              <span>{t("productos.almacen_general")}</span>
+                              <strong>{p.stock}</strong>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="producto-tarjeta-detalle-fila">
+                                <span>{t("traspasos.tienda")}</span>
+                                <strong>{p.stock}</strong>
+                              </div>
+                              {ubicaciones.map((u) => (
+                                <div key={u.id} className="producto-tarjeta-detalle-fila">
+                                  <span>{u.nombre}</span>
+                                  <strong>{stockPorUbicacion.get(p.id)?.get(u.id) ?? 0}</strong>
+                                </div>
+                              ))}
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {puede("gestionar_inventario") && (
+                        <div className="productos-actions producto-tarjeta-acciones">
+                          <button onClick={() => editar(p)} className="btn-edit">
+                            {t("productos.editar")}
+                          </button>
+
+                          <button onClick={() => eliminar(p.id)} className="btn-delete">
+                            {t("productos.eliminar")}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

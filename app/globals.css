@@ -2856,6 +2856,65 @@ input[type="checkbox"]:disabled {
   margin-top: 10px;
 }
 
+.producto-tarjeta-toggle {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.producto-tarjeta-chevron {
+  align-self: center;
+  margin-top: 6px;
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+}
+
+.producto-tarjeta-toggle-abierto .producto-tarjeta-chevron {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.producto-tarjeta-detalle {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: desplegar-cuerpo 0.22s ease;
+}
+
+.producto-tarjeta-detalle-titulo {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin: 0 0 2px 0;
+}
+
+.producto-tarjeta-detalle-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.producto-tarjeta-detalle-fila strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
 .productos-vacio {
   display: flex;
   flex-direction: column;
@@ -8427,6 +8486,14 @@ input[type="checkbox"]:disabled {
   }
 
   .tarjeta-desplegable-cuerpo {
+    animation: none;
+  }
+
+  .producto-tarjeta-chevron {
+    transition: none;
+  }
+
+  .producto-tarjeta-detalle {
     animation: none;
   }
 }
