@@ -47,9 +47,14 @@ export default function Header({
   async function cargarAlertas() {
     if (!user || !puedeVerAlertas) return;
 
+    // .eq("activo", true): mismo filtro que ya usan el resto de las
+    // consultas a productos (Ventas rápidas, Compras, Traspasos,
+    // etc.) — sin él, un producto desactivado seguiría generando
+    // alertas de stock bajo aunque ya no esté a la venta.
     const { data, error } = await supabase
       .from("productos")
       .select("id, nombre, stock, stock_minimo")
+      .eq("activo", true)
       .order("stock");
 
     if (error) {

@@ -61,9 +61,15 @@ export default function Alertas() {
     // traía la fila completa de CADA producto (precio, costo, descripción,
     // etc.) solo para filtrar por stock bajo, un desperdicio que crece con
     // el catálogo.
+    //
+    // .eq("activo", true): mismo filtro que ya usan el resto de las
+    // consultas a productos (Ventas rápidas, Compras, Traspasos, etc.)
+    // — sin él, un producto desactivado seguiría apareciendo aquí
+    // aunque ya no esté a la venta.
     const { data, error: errorConsulta } = await supabase
       .from("productos")
       .select("id, nombre, categoria, stock, stock_minimo, imagen")
+      .eq("activo", true)
       .order("stock");
 
     if (errorConsulta) {
