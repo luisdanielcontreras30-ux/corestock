@@ -729,9 +729,13 @@ export default function DashboardPremium() {
                   contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
                   labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                   itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
-                  formatter={(_valor, _nombre, item) =>
-                    formatoMoneda(Number((item.payload as { monto: number }).monto))
-                  }
+                  // El segundo elemento de la tupla reemplaza el nombre
+                  // de la serie: sin esto, Recharts usaba el dataKey tal
+                  // cual ("__visual") como si fuera el nombre a mostrar.
+                  formatter={(_valor, _nombre, item) => [
+                    formatoMoneda(Number((item.payload as { monto: number }).monto)),
+                    t("dashboard.ventas_hoy"),
+                  ]}
                 />
                 <Area type="monotone" dataKey="__visual" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkHoy)" />
               </AreaChart>
@@ -773,9 +777,10 @@ export default function DashboardPremium() {
                   labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
                   itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
                   labelFormatter={(dia) => `${t("dashboard.dia_abrev")} ${dia}`}
-                  formatter={(_valor, _nombre, item) =>
-                    formatoMoneda(Number((item.payload as { monto: number }).monto))
-                  }
+                  formatter={(_valor, _nombre, item) => [
+                    formatoMoneda(Number((item.payload as { monto: number }).monto)),
+                    t("dashboard.ventas_mes"),
+                  ]}
                 />
                 <Area type="monotone" dataKey="__visual" stroke={COLORES_PIE[1]} strokeWidth={2} fill="url(#sparkMes)" />
               </AreaChart>

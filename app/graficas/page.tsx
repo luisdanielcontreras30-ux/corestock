@@ -434,9 +434,14 @@ export default function GraficasPage() {
                     // ver conPisoVisual en lib/graficas.ts), pero el
                     // tooltip debe mostrar el monto REAL — viene en
                     // payload.ventas, el mismo punto de datos original.
-                    formatter={(_valor, _nombre, item) =>
-                      formatoMoneda(Number((item.payload as { ventas: number }).ventas))
-                    }
+                    // El segundo elemento de la tupla reemplaza el
+                    // nombre de la serie: sin esto, Recharts usa el
+                    // dataKey tal cual ("__visual") como si fuera el
+                    // nombre a mostrar.
+                    formatter={(_valor, _nombre, item) => [
+                      formatoMoneda(Number((item.payload as { ventas: number }).ventas)),
+                      t("graficas.ventas_card"),
+                    ]}
                   />
 
                   <Area
