@@ -86,6 +86,19 @@ export default function SelectorFecha({
     return () => document.removeEventListener("mousedown", alHacerClicFuera);
   }, []);
 
+  // Escape para cerrar sin usar el mouse — antes solo se cerraba con
+  // clic afuera, así que quien navega con teclado quedaba atrapado
+  // tabulando entre los 42 botones de día hasta llegar al pie.
+  useEffect(() => {
+    if (!abierto) return;
+
+    function alPresionarTecla(e: KeyboardEvent) {
+      if (e.key === "Escape") cerrar();
+    }
+    document.addEventListener("keydown", alPresionarTecla);
+    return () => document.removeEventListener("keydown", alPresionarTecla);
+  }, [abierto]);
+
   // Mismo motivo que en SelectorPersonalizado: en celular, un scroll o
   // resize del sistema (barra de direcciones, teclado) no debe cerrar
   // el panel de golpe — se recoloca en su lugar.
@@ -192,6 +205,15 @@ export default function SelectorFecha({
     : "";
   const hoyTexto = aTexto(new Date());
 
+  // Los botones de día solo mostraban el número ("15"), sin mes ni año
+  // — un lector de pantalla no tiene forma de saber a qué día
+  // corresponde sin este contexto completo.
+  const formatoDiaCompleto = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div ref={contenedorRef} className={`selector-fecha${className ? ` ${className}` : ""}`} style={style}>
       <button
@@ -271,6 +293,9 @@ export default function SelectorFecha({
                       .filter(Boolean)
                       .join(" ")}
                     onClick={() => elegirDia(d)}
+                    aria-label={formatoDiaCompleto.format(d)}
+                    aria-current={esHoy ? "date" : undefined}
+                    aria-pressed={esSeleccionado}
                   >
                     {d.getDate()}
                   </button>

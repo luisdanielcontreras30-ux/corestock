@@ -81,18 +81,26 @@ const EXTENSION_AUDIO_POR_TIPO: Record<string, string> = {
 // eso con los códecs comprimidos que usa MediaRecorder (opus/aac).
 const TAMANO_MAXIMO_AUDIO_BYTES = 8 * 1024 * 1024;
 
-export type ErrorSubidaAudio = "muy_grande" | "fallo_subida";
+export type ErrorSubidaAudio = "tipo_invalido" | "muy_grande" | "fallo_subida";
 
 // Mismo bucket y mismo criterio que subirImagenChat — solo cambia el
 // prefijo del nombre de archivo.
 export async function subirAudioChat(
   blob: Blob
 ): Promise<{ url: string | null; error: ErrorSubidaAudio | null }> {
+  // Igual que subirImagenSegura (lib/uploads.ts): se rechaza un tipo
+  // desconocido en vez de asumir ".webm" a ciegas — antes cualquier
+  // blob, tuviera o no un tipo de audio real, se subía y etiquetaba
+  // como webm sin validar nada.
+  const extension = EXTENSION_AUDIO_POR_TIPO[blob.type];
+  if (!extension) {
+    return { url: null, error: "tipo_invalido" };
+  }
+
   if (blob.size > TAMANO_MAXIMO_AUDIO_BYTES) {
     return { url: null, error: "muy_grande" };
   }
 
-  const extension = EXTENSION_AUDIO_POR_TIPO[blob.type] ?? "webm";
   const nombreArchivo = `chat-audio-${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage

@@ -211,7 +211,20 @@ export default function GraficasPage() {
 
   const topProductos = productosAgregados.slice(0, 4);
   const maxIngresoTop = topProductos.length > 0 && topProductos[0].ingresos > 0 ? topProductos[0].ingresos : 1;
-  const productosRendimiento = productosAgregados.slice(0, 6);
+  const productosRendimiento = useMemo(
+    () => productosAgregados.slice(0, 6),
+    [productosAgregados]
+  );
+
+  // Piso mínimo de altura para las mini-gráficas de "Productos con
+  // rendimiento" (mismo conPisoVisual que el resto de las gráficas de
+  // área) — memoizado junto con productosRendimiento en vez de llamarse
+  // dentro del .map() de renderizado, que lo recalculaba en cada
+  // render aunque los productos no hubieran cambiado.
+  const historialesVisualesPorProducto = useMemo(
+    () => productosRendimiento.map((producto) => conPisoVisual(producto.historial, "ventas")),
+    [productosRendimiento]
+  );
 
   if (cargandoAuth || !user) {
     return (
@@ -682,7 +695,7 @@ export default function GraficasPage() {
 
                 <div style={{ width: "100%", height: 90, marginTop: 8 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={conPisoVisual(producto.historial, "ventas")}>
+                    <AreaChart data={historialesVisualesPorProducto[idx]}>
                       <defs>
                         <linearGradient
                           id={`mini-${idx}`}
