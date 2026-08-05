@@ -27,8 +27,15 @@ import {
 import { formatoMoneda } from "../ventas/utils";
 import { exportarExcel } from "./utils";
 
+// No usa toISOString(): esa devuelve la fecha en UTC, no la local — en
+// cualquier huso al oeste de UTC, entre la medianoche UTC y la
+// medianoche local, un trabajo nuevo se fecharía "mañana" en vez de
+// "hoy" (mismo tipo de bug que desdeTexto() evita en SelectorFecha.tsx,
+// aquí en la dirección local->texto en vez de texto->local).
 function hoyISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export default function ServiciosPage() {

@@ -65,6 +65,10 @@ export async function crearPromocion(
   // Sentinels sin traducir a propósito (ver lib/errores.ts): page.tsx
   // los traduce a los mismos mensajes que ya usa su validación en el
   // navegador, mismo patrón que Traspasos/Cotizaciones/Compras.
+  if (!nombre.trim()) {
+    throw new Error("NOMBRE_VACIO");
+  }
+
   if (!Number.isFinite(valor) || valor <= 0) {
     throw new Error("VALOR_INVALIDO");
   }

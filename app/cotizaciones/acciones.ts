@@ -387,16 +387,26 @@ export async function convertirEnVenta(cotizacionParam: Cotizacion) {
     necesidades.set(item.producto_id, (necesidades.get(item.producto_id) ?? 0) + item.cantidad);
   }
 
+  // Una sola consulta por todos los productos de la cotización en vez
+  // de una por línea (podían ser varias idas y vueltas para una
+  // cotización con muchos conceptos distintos).
+  const { data: productosStock, error: errorProductos } = await supabase
+    .from("productos")
+    .select("id, stock")
+    .in("id", Array.from(necesidades.keys()));
+
+  if (errorProductos) throw errorProductos;
+
+  const stockPorProducto = new Map((productosStock ?? []).map((p) => [p.id, p.stock]));
+
   for (const [productoId, cantidad] of necesidades) {
-    const { data: producto, error: errorProducto } = await supabase
-      .from("productos")
-      .select("stock")
-      .eq("id", productoId)
-      .single();
+    const stock = stockPorProducto.get(productoId);
 
-    if (errorProducto) throw errorProducto;
+    if (stock === undefined) {
+      throw new Error("PRODUCTO_NO_EXISTE");
+    }
 
-    if (producto.stock < cantidad) {
+    if (stock < cantidad) {
       throw new Error("STOCK_INSUFICIENTE_CONVERSION");
     }
   }

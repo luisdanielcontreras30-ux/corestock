@@ -96,6 +96,8 @@ function PromocionesContenido() {
   function mensajePromocion(error: unknown): string | null {
     if (!(error instanceof Error)) return null;
     switch (error.message) {
+      case "NOMBRE_VACIO":
+        return t("promociones.msg_falta_nombre");
       case "VALOR_INVALIDO":
         return t("promociones.msg_valor_invalido");
       case "PORCENTAJE_INVALIDO":
