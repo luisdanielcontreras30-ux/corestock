@@ -106,6 +106,15 @@ function ProductosInterno() {
   const [descripcion, setDescripcion] = useState(() => searchParams.get("descripcion_sugerida") ?? "");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
+  const soloEnteros = (valor: string) => {
+  return valor.replace(/\D/g, "");
+};
+
+const soloDecimal = (valor: string) => {
+  return valor
+    .replace(/[^0-9.]/g, "")
+    .replace(/(\..*)\./g, "$1");
+};
 
   const [imagen, setImagen] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
@@ -770,17 +779,48 @@ function ProductosInterno() {
 
         {puede("ver_ganancias") ? (
           <div className="productos-grid-2col">
-            <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
-            <input value={costo} onChange={(e) => setCosto(e.target.value)} placeholder={t("productos.costo")} type="number" min="0" step="0.01" />
+            <input
+  value={precio}
+  onChange={(e) => setPrecio(soloDecimal(e.target.value))}
+  placeholder={t("productos.precio")}
+  type="text"
+  inputMode="decimal"
+/>
+            <input
+  value={costo}
+  onChange={(e) => setCosto(soloDecimal(e.target.value))}
+  placeholder={t("productos.costo")}
+  type="text"
+  inputMode="decimal"
+/>
           </div>
         ) : (
-          <input value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder={t("productos.precio")} type="number" min="0" step="0.01" />
+          <input
+  value={precio}
+  onChange={(e) => setPrecio(soloDecimal(e.target.value))}
+  placeholder={t("productos.precio")}
+  type="text"
+  inputMode="decimal"
+/>
         )}
 
         <div className="productos-grid-2col">
-          <input value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t("productos.stock")} type="number" min="0" step="1" />
-          <input value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} placeholder={t("productos.stock_minimo")} type="number" min="0" step="1" />
-        </div>
+  <input
+    value={stock}
+    onChange={(e) => setStock(soloEnteros(e.target.value))}
+    placeholder={t("productos.stock")}
+    type="text"
+    inputMode="numeric"
+  />
+
+  <input
+    value={stockMinimo}
+    onChange={(e) => setStockMinimo(soloEnteros(e.target.value))}
+    placeholder={t("productos.stock_minimo")}
+    type="text"
+    inputMode="numeric"
+  />
+</div>
 
         <div className="campo-descripcion-wrap">
           <textarea
