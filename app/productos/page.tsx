@@ -227,10 +227,10 @@ const soloDecimal = (valor: string) => {
 
     setNombre(borrador.nombre);
     setCategoria(borrador.categoria);
-    setPrecio(borrador.precio);
-    setCosto(borrador.costo);
-    setStock(borrador.stock);
-    setStockMinimo(borrador.stockMinimo);
+    setPrecio(String(borrador.precio));
+setCosto(borrador.costo != null ? String(borrador.costo) : "");
+setStock(String(borrador.stock));
+setStockMinimo(String(borrador.stockMinimo));
     setDescripcion(borrador.descripcion);
 
     if (
