@@ -30,10 +30,10 @@ const CLAVE_BORRADOR = "corestock-borrador-producto";
 interface BorradorProducto {
   nombre: string;
   categoria: string;
-  precio: string;
-  costo: string;
-  stock: string;
-  stockMinimo: string;
+  precio: number;
+  costo_de_producion: number | null;
+  stock: number;
+  stockMinimo: number;
   descripcion: string;
 }
 
