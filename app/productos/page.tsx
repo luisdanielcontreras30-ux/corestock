@@ -643,7 +643,18 @@ setStockMinimo(String(borrador.stockMinimo));
 
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
+const soloDecimal = (valor: string) => {
+  return valor
+    .replace(/[^0-9.]/g, "")
+    .replace(/(\..*)\./g, "$1");
+};
 
+const soloEnteros = (valor: string) => {
+  return valor.replace(/\D/g, "");
+};
+
+// Sin useMemo, estas dos listas se recalculaban en cada render...
+const categorias = useMemo(
   // Sin useMemo, estas dos listas se recalculaban en cada render —
   // incluida cada tecla escrita en el formulario de alta/edición de
   // producto (nombre, precio, etc.), que no tiene nada que ver con
@@ -787,11 +798,15 @@ setStockMinimo(String(borrador.stockMinimo));
   inputMode="decimal"
 />
             <input
-  value={costo}
-  onChange={(e) => setCosto(soloDecimal(e.target.value))}
-  placeholder={t("productos.costo")}
   type="text"
-  inputMode="decimal"
+  value={costo}
+  onChange={(e) => {
+    const valor = e.target.value;
+
+    if (/^\d*\.?\d*$/.test(valor)) {
+      setCosto(valor);
+    }
+  }}
 />
           </div>
         ) : (
@@ -806,20 +821,20 @@ setStockMinimo(String(borrador.stockMinimo));
 
         <div className="productos-grid-2col">
   <input
-    value={stock}
-    onChange={(e) => setStock(soloEnteros(e.target.value))}
-    placeholder={t("productos.stock")}
-    type="text"
-    inputMode="numeric"
-  />
+  value={stock}
+  onChange={(e) => setStock(soloEnteros(e.target.value))}
+  placeholder={t("productos.stock")}
+  type="text"
+  inputMode="numeric"
+/>
 
   <input
-    value={stockMinimo}
-    onChange={(e) => setStockMinimo(soloEnteros(e.target.value))}
-    placeholder={t("productos.stock_minimo")}
-    type="text"
-    inputMode="numeric"
-  />
+  value={stockMinimo}
+  onChange={(e) => setStockMinimo(soloEnteros(e.target.value))}
+  placeholder={t("productos.stock_minimo")}
+  type="text"
+  inputMode="numeric"
+/>
 </div>
 
         <div className="campo-descripcion-wrap">
