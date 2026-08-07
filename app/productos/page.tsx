@@ -789,52 +789,49 @@ const categorias = useMemo(
         </div>
 
         {puede("ver_ganancias") ? (
-          <div className="productos-grid-2col">
-            <input
-  value={precio}
-  onChange={(e) => setPrecio(soloDecimal(e.target.value))}
-  placeholder={t("productos.precio")}
-  type="text"
-  inputMode="decimal"
-/>
-            <input
-  type="text"
-  value={costo}
-  onChange={(e) => {
-    const valor = e.target.value;
+  <div className="productos-grid-2col">
+    <input
+      value={precio}
+      onChange={(e) => setPrecio(soloDecimal(e.target.value))}
+      placeholder={t("productos.precio")}
+      type="text"
+      inputMode="decimal"
+    />
 
-    if (/^\d*\.?\d*$/.test(valor)) {
-      setCosto(valor);
-    }
-  }}
-/>
-          </div>
-        ) : (
-          <input
-  value={precio}
-  onChange={(e) => setPrecio(soloDecimal(e.target.value))}
-  placeholder={t("productos.precio")}
-  type="text"
-  inputMode="decimal"
-/>
-        )}
-
-        <div className="productos-grid-2col">
+    <input
+      value={costo}
+      onChange={(e) => setCosto(soloDecimal(e.target.value))}
+      placeholder={t("productos.costo")}
+      type="text"
+      inputMode="decimal"
+    />
+  </div>
+) : (
   <input
-  value={stock}
-  onChange={(e) => setStock(soloEnteros(e.target.value))}
-  placeholder={t("productos.stock")}
-  type="text"
-  inputMode="numeric"
-/>
+    value={precio}
+    onChange={(e) => setPrecio(soloDecimal(e.target.value))}
+    placeholder={t("productos.precio")}
+    type="text"
+    inputMode="decimal"
+  />
+)}
+
+<div className="productos-grid-2col">
+  <input
+    value={stock}
+    onChange={(e) => setStock(soloEnteros(e.target.value))}
+    placeholder={t("productos.stock")}
+    type="text"
+    inputMode="numeric"
+  />
 
   <input
-  value={stockMinimo}
-  onChange={(e) => setStockMinimo(soloEnteros(e.target.value))}
-  placeholder={t("productos.stock_minimo")}
-  type="text"
-  inputMode="numeric"
-/>
+    value={stockMinimo}
+    onChange={(e) => setStockMinimo(soloEnteros(e.target.value))}
+    placeholder={t("productos.stock_minimo")}
+    type="text"
+    inputMode="numeric"
+  />
 </div>
 
         <div className="campo-descripcion-wrap">
