@@ -1,0 +1,11 @@
+-- Ejecuta esto en el SQL Editor de tu proyecto de Supabase.
+-- Agrega el campo que usa el nuevo módulo de Cuentas por Cobrar para
+-- dar seguimiento a las ventas registradas con método de pago
+-- "préstamo" (fiado).
+--
+-- Por defecto en true: no queremos marcar de golpe como "pendiente de
+-- cobro" todo un historial de ventas fiadas que en la vida real ya se
+-- cobraron. Solo las ventas NUEVAS que se registren como préstamo a
+-- partir de ahora empiezan en false (pendientes) — ver
+-- app/ventas/acciones.ts, registrarVenta().
+alter table ventas add column if not exists cobrado boolean not null default true;
