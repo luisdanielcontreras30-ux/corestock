@@ -7,11 +7,14 @@ import { supabase } from "../lib/supabase";
 import { Bell, CheckCircle2 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
 import { useAuth } from "./AuthProvider";
+import { useMiembroActivo } from "./MiembroActivoProvider";
+import IndicadorSincronizacion from "./IndicadorSincronizacion";
 
 interface ProductoAlerta {
   id: number;
   nombre: string;
   stock: number;
+  stock_minimo: number | null;
 }
 
 export default function Header({
@@ -21,7 +24,9 @@ export default function Header({
 }) {
   const { t } = useIdioma();
   const { user } = useAuth();
+  const { miembroActivo, puede } = useMiembroActivo();
   const correo = user?.email ?? "";
+  const puedeVerAlertas = !miembroActivo || puede("ver_inventario") || puede("gestionar_inventario");
 
   const [notisAbiertas, setNotisAbiertas] = useState(false);
   const [alertas, setAlertas] = useState<ProductoAlerta[]>([]);
@@ -36,20 +41,33 @@ export default function Header({
   }, []);
 
   useEffect(() => {
-    if (user) cargarAlertas();
-  }, [user]);
+    if (user && puedeVerAlertas) cargarAlertas();
+  }, [user, puedeVerAlertas]);
 
   async function cargarAlertas() {
-    if (!user) return;
+    if (!user || !puedeVerAlertas) return;
 
-    const { data } = await supabase
+    // .eq("activo", true): mismo filtro que ya usan el resto de las
+    // consultas a productos (Ventas rápidas, Compras, Traspasos,
+    // etc.) — sin él, un producto desactivado seguiría generando
+    // alertas de stock bajo aunque ya no esté a la venta.
+    const { data, error } = await supabase
       .from("productos")
-      .select("id, nombre, stock")
-      .eq("user_id", user.id)
-      .lte("stock", 5)
+      .select("id, nombre, stock, stock_minimo")
+      .eq("activo", true)
       .order("stock");
 
-    if (data) setAlertas(data as ProductoAlerta[]);
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (data) {
+      const bajos = (data as ProductoAlerta[]).filter(
+        (p) => p.stock <= (p.stock_minimo ?? 5)
+      );
+      setAlertas(bajos);
+    }
   }
 
   function alAbrirNotis() {
@@ -124,14 +142,16 @@ export default function Header({
         </div>
       )}
 
-      <Link
-        href="/alertas"
-        className="user-dropdown-item"
-        onClick={() => setNotisAbiertas(false)}
-        style={{ textAlign: "center", justifyContent: "center" }}
-      >
-        {t("header.ver_todas_alertas")}
-      </Link>
+      {!miembroActivo && (
+        <Link
+          href="/alertas"
+          className="user-dropdown-item"
+          onClick={() => setNotisAbiertas(false)}
+          style={{ textAlign: "center", justifyContent: "center" }}
+        >
+          {t("header.ver_todas_alertas")}
+        </Link>
+      )}
     </div>
   );
 
@@ -140,7 +160,7 @@ export default function Header({
       <button
         className="hamburger-btn"
         onClick={onToggleSidebar}
-        aria-label="Abrir menú"
+        aria-label={t("header.abrir_menu")}
       >
         <span />
         <span />
@@ -148,6 +168,8 @@ export default function Header({
       </button>
 
       <div className="topbar-spacer" />
+
+      <IndicadorSincronizacion />
 
       {/* NOTIFICACIONES */}
       <div className="user-menu">

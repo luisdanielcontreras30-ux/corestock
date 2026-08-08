@@ -1,4 +1,6 @@
 import { supabase } from "../../lib/supabase";
+import { traducir, Idioma } from "../../lib/i18n";
+import { formatoNumeroMoneda } from "../ventas/utils";
 
 interface ProductoRaw {
   id: number;
@@ -6,6 +8,7 @@ interface ProductoRaw {
   precio_venta: number;
   costo: number | null;
   stock: number;
+  stock_minimo: number | null;
   categoria: string;
 }
 
@@ -15,24 +18,59 @@ interface VentaRaw {
   cantidad: number;
   total: number;
   fecha: string;
+  cliente_id: number | null;
 }
 
-async function obtenerDatos(userId: string) {
-  const [{ data: productos }, { data: ventas }] = await Promise.all([
-    supabase.from("productos").select("*").eq("user_id", userId),
-    supabase.from("ventas").select("*").eq("user_id", userId),
+interface ClienteRaw {
+  id: number;
+  nombre: string;
+}
+
+async function obtenerDatos() {
+  const [
+    { data: productos, error: errorProductos },
+    { data: ventas, error: errorVentas },
+    { data: clientes, error: errorClientes },
+  ] = await Promise.all([
+    supabase.from("productos").select("*"),
+    supabase.from("ventas").select("*"),
+    supabase.from("clientes").select("id, nombre"),
   ]);
+
+  // Sin este chequeo, una consulta fallida (RLS, red, sesión vencida)
+  // se veía igual que "no tienes productos/ventas/clientes" — el
+  // Asistente respondía con total confianza algo como "no tienes
+  // productos agotados" cuando en realidad la consulta nunca corrió.
+  if (errorProductos) throw errorProductos;
+  if (errorVentas) throw errorVentas;
+  if (errorClientes) throw errorClientes;
 
   return {
     productos: (productos ?? []) as ProductoRaw[],
     ventas: (ventas ?? []) as VentaRaw[],
+    clientes: (clientes ?? []) as ClienteRaw[],
   };
 }
 
+// Traduce una clave y sustituye placeholders {nombre} por sus valores,
+// para poder armar las respuestas del Asistente en el idioma activo.
+function f(clave: string, idioma: Idioma, valores?: Record<string, string | number>): string {
+  let texto = traducir(clave, idioma);
+  if (valores) {
+    for (const [k, v] of Object.entries(valores)) {
+      texto = texto.split(`{${k}}`).join(String(v));
+    }
+  }
+  return texto;
+}
+
+// Límite superior exclusivo: evita que una venta justo en el borde entre
+// dos rangos consecutivos (ej. inicio de "esta semana" == fin de "semana
+// anterior") se cuente en ambos.
 function ventasEnRango(ventas: VentaRaw[], desde: Date, hasta: Date): VentaRaw[] {
   return ventas.filter((v) => {
     const f = new Date(v.fecha);
-    return f >= desde && f <= hasta;
+    return f >= desde && f < hasta;
   });
 }
 
@@ -54,8 +92,8 @@ function ingresosPorProducto(ventas: VentaRaw[]): Map<string, number> {
 
 // ----------------- 1. ¿QUÉ PRODUCTOS DEBO COMPRAR? -----------------
 
-export async function analizarQueComprar(userId: string): Promise<string> {
-  const { productos, ventas } = await obtenerDatos(userId);
+export async function analizarQueComprar(idioma: Idioma): Promise<string> {
+  const { productos, ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const hace30 = new Date(hoy);
@@ -64,10 +102,10 @@ export async function analizarQueComprar(userId: string): Promise<string> {
   const ventasRecientes = ventasEnRango(ventas, hace30, hoy);
   const velocidad = unidadesPorProducto(ventasRecientes);
 
-  const bajos = productos.filter((p) => p.stock <= 5);
+  const bajos = productos.filter((p) => p.stock <= (p.stock_minimo ?? 5));
 
   if (bajos.length === 0) {
-    return "✅ No tienes productos con stock bajo (5 unidades o menos) en este momento. No necesitas comprar nada urgente.";
+    return f("asistente.qc_ninguno", idioma);
   }
 
   const conVelocidad = bajos
@@ -83,26 +121,25 @@ export async function analizarQueComprar(userId: string): Promise<string> {
     .map((p, i) => {
       const urgencia =
         p.vendidos30dias > 0
-          ? `se vendieron ${p.vendidos30dias} unidades en los últimos 30 días`
-          : "sin ventas registradas en 30 días";
-      return `${i + 1}. **${p.nombre}** — quedan ${p.stock}, ${urgencia}.`;
+          ? f("asistente.qc_con_ventas", idioma, { n: p.vendidos30dias })
+          : f("asistente.qc_sin_ventas", idioma);
+      return f("asistente.qc_linea", idioma, { i: i + 1, nombre: p.nombre, stock: p.stock, urgencia });
     })
     .join("\n");
 
   const prioritarios = conVelocidad.filter((p) => p.vendidos30dias > 0);
 
-  const conclusion =
-    prioritarios.length > 0
-      ? `\n\nPrioriza primero **${prioritarios[0].nombre}** — es el que más se está vendiendo y menos stock le queda.`
-      : "\n\nNinguno de estos productos con stock bajo se ha vendido en 30 días — antes de reabastecer, revisa si todavía tienen demanda.";
+  const conclusion = prioritarios.length > 0
+    ? `\n\n${f("asistente.qc_prioriza", idioma, { nombre: prioritarios[0].nombre })}`
+    : `\n\n${f("asistente.qc_sin_venta_30d", idioma)}`;
 
-  return `Tienes ${bajos.length} producto(s) con stock bajo:\n\n${lineas}${conclusion}`;
+  return `${f("asistente.qc_header", idioma, { n: bajos.length })}\n\n${lineas}${conclusion}`;
 }
 
 // ----------------- 2. ¿QUÉ PRODUCTOS DEJAN MÁS GANANCIAS? -----------------
 
-export async function analizarGanancias(userId: string): Promise<string> {
-  const { productos, ventas } = await obtenerDatos(userId);
+export async function analizarGanancias(idioma: Idioma): Promise<string> {
+  const { productos, ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const hace30 = new Date(hoy);
@@ -111,41 +148,48 @@ export async function analizarGanancias(userId: string): Promise<string> {
   const ventasRecientes = ventasEnRango(ventas, hace30, hoy);
   const unidades = unidadesPorProducto(ventasRecientes);
 
-  const tieneCostos = productos.some((p) => Number(p.costo) > 0);
-
   const calculados = productos
     .map((p) => {
       const vendidos = unidades.get(p.nombre) ?? 0;
       const margenUnitario = Number(p.precio_venta) - Number(p.costo ?? 0);
       const gananciaTotal = margenUnitario * vendidos;
-      return { nombre: p.nombre, vendidos, margenUnitario, gananciaTotal };
+      return { nombre: p.nombre, vendidos, margenUnitario, gananciaTotal, tieneCosto: Number(p.costo) > 0 };
     })
     .filter((p) => p.vendidos > 0)
     .sort((a, b) => b.gananciaTotal - a.gananciaTotal);
 
   if (calculados.length === 0) {
-    return "No hay ventas registradas en los últimos 30 días para calcular ganancias.";
+    return f("asistente.gan_sin_ventas", idioma);
   }
 
-  const lineas = calculados
-    .slice(0, 6)
-    .map(
-      (p, i) =>
-        `${i + 1}. **${p.nombre}** — $${p.gananciaTotal.toFixed(2)} de ganancia (${p.vendidos} unidades, margen de $${p.margenUnitario.toFixed(2)} c/u).`
+  const mostrados = calculados.slice(0, 6);
+
+  const lineas = mostrados
+    .map((p, i) =>
+      f("asistente.gan_linea", idioma, {
+        i: i + 1,
+        nombre: p.nombre,
+        total: formatoNumeroMoneda(p.gananciaTotal),
+        vendidos: p.vendidos,
+        margen: formatoNumeroMoneda(p.margenUnitario),
+      })
     )
     .join("\n");
 
-  const aviso = !tieneCostos
-    ? "\n\n⚠️ No has registrado el costo de tus productos (todos están en $0), así que esto en realidad es tu **ingreso**, no tu ganancia real. Ve a Productos y agrega el costo de cada uno para que este cálculo sea preciso."
-    : "";
+  // El aviso se basa solo en los productos que efectivamente se
+  // muestran en el ranking: si esos no tienen costo registrado, su
+  // "ganancia" reportada es en realidad su ingreso completo (aunque
+  // otros productos del inventario sí tengan costo capturado).
+  const tieneCostosEnMostrados = mostrados.some((p) => p.tieneCosto);
+  const aviso = !tieneCostosEnMostrados ? `\n\n${f("asistente.gan_aviso_sin_costos", idioma)}` : "";
 
-  return `Ganancia estimada por producto (últimos 30 días):\n\n${lineas}${aviso}`;
+  return `${f("asistente.gan_header", idioma)}\n\n${lineas}${aviso}`;
 }
 
 // ----------------- 3. ¿POR QUÉ BAJARON MIS VENTAS? -----------------
 
-export async function analizarBajaVentas(userId: string): Promise<string> {
-  const { ventas } = await obtenerDatos(userId);
+export async function analizarBajaVentas(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const inicioSemana = new Date(hoy);
@@ -160,13 +204,17 @@ export async function analizarBajaVentas(userId: string): Promise<string> {
   const totalAnterior = semanaAnterior.reduce((sum, v) => sum + Number(v.total), 0);
 
   if (totalAnterior === 0) {
-    return "No tengo suficientes ventas de la semana pasada para comparar todavía.";
+    return f("asistente.baja_insuficiente", idioma);
   }
 
   const cambio = ((totalActual - totalAnterior) / totalAnterior) * 100;
 
   if (cambio >= 0) {
-    return `Buenas noticias: tus ventas **subieron ${cambio.toFixed(1)}%** esta semana ($${totalActual.toFixed(2)}) comparado con la semana pasada ($${totalAnterior.toFixed(2)}). No bajaron.`;
+    return f("asistente.baja_subieron", idioma, {
+      pct: cambio.toFixed(1),
+      actual: formatoNumeroMoneda(totalActual),
+      anterior: formatoNumeroMoneda(totalAnterior),
+    });
   }
 
   const ingresosActual = ingresosPorProducto(semanaActual);
@@ -183,18 +231,22 @@ export async function analizarBajaVentas(userId: string): Promise<string> {
 
   const detalleProductos =
     caidas.length > 0
-      ? `\n\nLos productos que más cayeron:\n${caidas
-          .map((p, i) => `${i + 1}. **${p.nombre}** — $${p.caida.toFixed(2)} menos que la semana pasada.`)
+      ? `\n\n${f("asistente.baja_productos_header", idioma)}\n${caidas
+          .map((p, i) => f("asistente.baja_producto_linea", idioma, { i: i + 1, nombre: p.nombre, monto: formatoNumeroMoneda(p.caida) }))
           .join("\n")}`
       : "";
 
-  return `Tus ventas **bajaron ${Math.abs(cambio).toFixed(1)}%** esta semana ($${totalActual.toFixed(2)}) comparado con la semana pasada ($${totalAnterior.toFixed(2)}).${detalleProductos}`;
+  return `${f("asistente.baja_bajaron", idioma, {
+    pct: Math.abs(cambio).toFixed(1),
+    actual: formatoNumeroMoneda(totalActual),
+    anterior: formatoNumeroMoneda(totalAnterior),
+  })}${detalleProductos}`;
 }
 
 // ----------------- 5. VENTAS DE HOY -----------------
 
-export async function analizarVentasHoy(userId: string): Promise<string> {
-  const { ventas } = await obtenerDatos(userId);
+export async function analizarVentasHoy(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const inicioDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
@@ -205,21 +257,25 @@ export async function analizarVentasHoy(userId: string): Promise<string> {
   const total = ventasHoy.reduce((sum, v) => sum + Number(v.total), 0);
 
   if (ventasHoy.length === 0) {
-    return "Todavía no tienes ventas registradas el día de hoy.";
+    return f("asistente.hoy_ninguna", idioma);
   }
 
   const unidades = ventasHoy.reduce((sum, v) => sum + Number(v.cantidad), 0);
 
-  return `Hoy llevas **$${total.toFixed(2)}** en ventas, repartidos en ${ventasHoy.length} transacción(es) y ${unidades} unidades vendidas.`;
+  return f("asistente.hoy_resumen", idioma, {
+    total: formatoNumeroMoneda(total),
+    n: ventasHoy.length,
+    unidades,
+  });
 }
 
 // ----------------- 6. PRODUCTO MÁS VENDIDO -----------------
 
-export async function analizarProductoTop(userId: string): Promise<string> {
-  const { ventas } = await obtenerDatos(userId);
+export async function analizarProductoTop(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
 
   if (ventas.length === 0) {
-    return "Todavía no tienes ventas registradas para saber cuál es tu producto estrella.";
+    return f("asistente.top_ninguna", idioma);
   }
 
   const unidades = unidadesPorProducto(ventas);
@@ -229,40 +285,49 @@ export async function analizarProductoTop(userId: string): Promise<string> {
   const topIngresos = Array.from(ingresos.entries()).sort((a, b) => b[1] - a[1])[0];
 
   if (topUnidades[0] === topIngresos[0]) {
-    return `Tu producto estrella es **${topUnidades[0]}** — es el más vendido tanto en unidades (${topUnidades[1]}) como en ingresos ($${topIngresos[1].toFixed(2)}), de todo tu historial.`;
+    return f("asistente.top_mismo", idioma, {
+      nombre: topUnidades[0],
+      unidades: topUnidades[1],
+      ingresos: formatoNumeroMoneda(topIngresos[1]),
+    });
   }
 
-  return `Depende de cómo lo midas:\n\n- Por **unidades vendidas**: **${topUnidades[0]}** (${topUnidades[1]} unidades).\n- Por **ingresos generados**: **${topIngresos[0]}** ($${topIngresos[1].toFixed(2)}).`;
+  return f("asistente.top_distinto", idioma, {
+    nombreU: topUnidades[0],
+    unidadesU: topUnidades[1],
+    nombreI: topIngresos[0],
+    ingresosI: formatoNumeroMoneda(topIngresos[1]),
+  });
 }
 
 // ----------------- 7. PRODUCTOS AGOTADOS -----------------
 
-export async function analizarAgotados(userId: string): Promise<string> {
-  const { productos } = await obtenerDatos(userId);
+export async function analizarAgotados(idioma: Idioma): Promise<string> {
+  const { productos } = await obtenerDatos();
 
   const agotados = productos.filter((p) => p.stock === 0);
 
   if (agotados.length === 0) {
-    return "✅ No tienes ningún producto agotado en este momento.";
+    return f("asistente.agotados_ninguno", idioma);
   }
 
   const lineas = agotados
     .slice(0, 10)
-    .map((p, i) => `${i + 1}. **${p.nombre}**`)
+    .map((p, i) => f("asistente.agotados_linea", idioma, { i: i + 1, nombre: p.nombre }))
     .join("\n");
 
-  const extra = agotados.length > 10 ? `\n\n...y ${agotados.length - 10} más.` : "";
+  const extra = agotados.length > 10 ? `\n\n${f("asistente.agotados_extra", idioma, { n: agotados.length - 10 })}` : "";
 
-  return `Tienes **${agotados.length} producto(s) agotados**:\n\n${lineas}${extra}`;
+  return `${f("asistente.agotados_header", idioma, { n: agotados.length })}\n\n${lineas}${extra}`;
 }
 
 // ----------------- 8. RESUMEN DE INVENTARIO -----------------
 
-export async function analizarInventario(userId: string): Promise<string> {
-  const { productos } = await obtenerDatos(userId);
+export async function analizarInventario(idioma: Idioma): Promise<string> {
+  const { productos } = await obtenerDatos();
 
   if (productos.length === 0) {
-    return "Todavía no tienes productos registrados en tu catálogo.";
+    return f("asistente.inv_vacio", idioma);
   }
 
   const unidadesTotales = productos.reduce((sum, p) => sum + Number(p.stock), 0);
@@ -270,17 +335,20 @@ export async function analizarInventario(userId: string): Promise<string> {
     (sum, p) => sum + Number(p.stock) * Number(p.precio_venta),
     0
   );
-  const bajos = productos.filter((p) => p.stock <= 5 && p.stock > 0).length;
+  const bajos = productos.filter((p) => p.stock <= (p.stock_minimo ?? 5) && p.stock > 0).length;
   const agotados = productos.filter((p) => p.stock === 0).length;
 
-  return `Tu catálogo tiene **${productos.length} productos**, con **${unidadesTotales} unidades** en total.\n\nValor estimado del inventario (a precio de venta): **$${valorInventario.toFixed(2)}**.\n\n${agotados} agotados, ${bajos} con stock bajo.`;
-}
+  const resumen = f("asistente.inv_resumen", idioma, { n: productos.length, unidades: unidadesTotales });
+  const valor = f("asistente.inv_valor", idioma, { valor: formatoNumeroMoneda(valorInventario) });
+  const estado = f("asistente.inv_estado", idioma, { agotados, bajos });
 
+  return `${resumen}\n\n${valor}\n\n${estado}`;
+}
 
 // ----------------- 4. RESUMEN DE VENTAS DE LA SEMANA -----------------
 
-export async function analizarResumenSemana(userId: string): Promise<string> {
-  const { ventas } = await obtenerDatos(userId);
+export async function analizarResumenSemana(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
 
   const hoy = new Date();
   const inicioSemana = new Date(hoy);
@@ -306,12 +374,141 @@ export async function analizarResumenSemana(userId: string): Promise<string> {
 
   const lineaCambio =
     cambio !== null
-      ? `${cambio >= 0 ? "▲" : "▼"} ${Math.abs(cambio).toFixed(1)}% vs la semana anterior`
-      : "sin datos de la semana anterior para comparar";
+      ? `${cambio >= 0 ? "▲" : "▼"} ${Math.abs(cambio).toFixed(1)}% ${f("asistente.resumen_vs_semana_anterior", idioma)}`
+      : f("asistente.resumen_sin_datos_anteriores", idioma);
 
   const lineaTop = top
-    ? `Tu producto más vendido fue **${top[0]}**, con $${top[1].toFixed(2)} en ingresos.`
-    : "No hubo ventas registradas esta semana.";
+    ? f("asistente.resumen_top", idioma, { nombre: top[0], monto: formatoNumeroMoneda(top[1]) })
+    : f("asistente.resumen_sin_ventas", idioma);
 
-  return `**Resumen de los últimos 7 días:**\n\n- Ingresos totales: $${totalActual.toFixed(2)} (${lineaCambio})\n- Ventas registradas: ${numTransacciones}\n- Ticket promedio: $${ticketPromedio.toFixed(2)}\n\n${lineaTop}`;
+  const titulo = f("asistente.resumen_titulo", idioma);
+  const lineaIngresos = f("asistente.resumen_ingresos", idioma, { total: formatoNumeroMoneda(totalActual), cambio: lineaCambio });
+  const lineaVentas = f("asistente.resumen_ventas", idioma, { n: numTransacciones });
+  const lineaTicket = f("asistente.resumen_ticket", idioma, { monto: formatoNumeroMoneda(ticketPromedio) });
+
+  return `${titulo}\n\n${lineaIngresos}\n${lineaVentas}\n${lineaTicket}\n\n${lineaTop}`;
+}
+
+// ----------------- 9. MEJORES CLIENTES -----------------
+
+export async function analizarMejorCliente(idioma: Idioma): Promise<string> {
+  const { ventas, clientes } = await obtenerDatos();
+
+  const conCliente = ventas.filter((v) => v.cliente_id != null);
+
+  if (conCliente.length === 0) {
+    return f("asistente.clientes_ninguno", idioma);
+  }
+
+  const nombrePorId = new Map(clientes.map((c) => [c.id, c.nombre]));
+
+  const totales = new Map<number, { total: number; compras: number }>();
+  for (const v of conCliente) {
+    const id = v.cliente_id as number;
+    const actual = totales.get(id) ?? { total: 0, compras: 0 };
+    actual.total += Number(v.total);
+    actual.compras += 1;
+    totales.set(id, actual);
+  }
+
+  const ranking = Array.from(totales.entries())
+    .map(([id, datos]) => ({
+      nombre: nombrePorId.get(id) ?? f("asistente.clientes_eliminado", idioma),
+      ...datos,
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  const lineas = ranking
+    .slice(0, 5)
+    .map((c, i) => f("asistente.clientes_linea", idioma, { i: i + 1, nombre: c.nombre, total: formatoNumeroMoneda(c.total), compras: c.compras }))
+    .join("\n");
+
+  return `${f("asistente.clientes_header", idioma)}\n\n${lineas}`;
+}
+
+// ----------------- 10. VENTAS DEL MES -----------------
+
+export async function analizarVentasMes(idioma: Idioma): Promise<string> {
+  const { ventas } = await obtenerDatos();
+
+  const hoy = new Date();
+  const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+
+  // La comparación es "en lo que va del mes", así que el mes pasado se
+  // corta en el mismo punto (misma duración transcurrida desde su
+  // inicio) — no en el mes pasado completo, que exageraría la caída/alza
+  // en los primeros días de cada mes.
+  //
+  // El tope en inicioMes importa cuando el mes pasado es más corto que
+  // lo que va del actual (ej. hoy 31 de marzo: febrero + 30 días caería
+  // en el 3 de marzo), porque si no el rango "mes anterior" se metería
+  // dentro del mes actual y contaría esas ventas en los dos lados.
+  const msTranscurridos = hoy.getTime() - inicioMes.getTime();
+  const finMesAnteriorComparable = new Date(
+    Math.min(inicioMesAnterior.getTime() + msTranscurridos, inicioMes.getTime())
+  );
+
+  const mesActual = ventasEnRango(ventas, inicioMes, hoy);
+  const mesAnterior = ventasEnRango(ventas, inicioMesAnterior, finMesAnteriorComparable);
+
+  const totalActual = mesActual.reduce((sum, v) => sum + Number(v.total), 0);
+  const totalAnterior = mesAnterior.reduce((sum, v) => sum + Number(v.total), 0);
+
+  if (mesActual.length === 0) {
+    return f("asistente.mes_ninguna", idioma);
+  }
+
+  const unidades = mesActual.reduce((sum, v) => sum + Number(v.cantidad), 0);
+  const ticketPromedio = totalActual / mesActual.length;
+
+  const lineaCambio =
+    totalAnterior > 0
+      ? f("asistente.mes_comparacion", idioma, {
+          pct: (((totalActual - totalAnterior) / totalAnterior) * 100).toFixed(1),
+          signo: totalActual >= totalAnterior ? "+" : "",
+        })
+      : f("asistente.mes_sin_comparacion", idioma);
+
+  return f("asistente.mes_resumen", idioma, {
+    total: formatoNumeroMoneda(totalActual),
+    n: mesActual.length,
+    unidades,
+    ticket: formatoNumeroMoneda(ticketPromedio),
+    comparacion: lineaCambio,
+  });
+}
+
+// ----------------- 11. CATEGORÍA QUE MÁS VENDE -----------------
+
+export async function analizarCategoriaTop(idioma: Idioma): Promise<string> {
+  const { productos, ventas } = await obtenerDatos();
+
+  if (ventas.length === 0) {
+    return f("asistente.cat_ninguna", idioma);
+  }
+
+  const categoriaPorNombre = new Map(productos.map((p) => [p.nombre, p.categoria || f("asistente.cat_sin_categoria", idioma)]));
+
+  const porCategoria = new Map<string, { ingresos: number; unidades: number }>();
+  for (const v of ventas) {
+    const categoria = categoriaPorNombre.get(v.producto) ?? f("asistente.cat_sin_categoria", idioma);
+    const actual = porCategoria.get(categoria) ?? { ingresos: 0, unidades: 0 };
+    actual.ingresos += Number(v.total);
+    actual.unidades += Number(v.cantidad);
+    porCategoria.set(categoria, actual);
+  }
+
+  const ranking = Array.from(porCategoria.entries())
+    .map(([nombre, datos]) => ({ nombre, ...datos }))
+    .sort((a, b) => b.ingresos - a.ingresos);
+
+  const lineas = ranking
+    .slice(0, 5)
+    .map((c, i) =>
+      f("asistente.cat_linea", idioma, { i: i + 1, nombre: c.nombre, ingresos: formatoNumeroMoneda(c.ingresos), unidades: c.unidades })
+    )
+    .join("\n");
+
+  return `${f("asistente.cat_header", idioma)}\n\n${lineas}`;
 }

@@ -1,0 +1,90 @@
+import { supabase } from "../../../lib/supabase";
+
+export interface ProductoPublico {
+  id: number;
+  nombre: string;
+  precio: number;
+  imagen: string | null;
+  categoria: string;
+  descripcion: string | null;
+}
+
+interface FilaCatalogoPublico {
+  nombre_negocio: string;
+  logo_url: string | null;
+  color_principal: string | null;
+  telefono: string | null;
+  producto_id: number | null;
+  producto_nombre: string | null;
+  producto_precio: number | null;
+  producto_imagen: string | null;
+  producto_categoria: string | null;
+  producto_descripcion: string | null;
+  // Llegan con supabase_catalogo_apariencia.sql. Opcionales porque la
+  // función pública anterior no las devolvía: sin la migración corrida
+  // vienen como undefined y el catálogo se ve igual que siempre.
+  catalogo_color_fondo?: string | null;
+  catalogo_color_producto?: string | null;
+  catalogo_color_borde?: string | null;
+  catalogo_color_titulo?: string | null;
+  catalogo_color_precio?: string | null;
+  catalogo_color_boton?: string | null;
+  catalogo_colores_categoria?: Record<string, string> | null;
+}
+
+// Un color viniendo de la base se pinta tal cual en el navegador de un
+// cliente final. La base ya lo restringe a un hex, pero esta función es
+// la última línea: si por lo que sea llegara otra cosa, se descarta en
+// vez de meterla en un atributo de estilo.
+const HEX = /^#[0-9a-fA-F]{6}$/;
+
+function colorSeguro(valor: string | null | undefined): string | null {
+  return valor && HEX.test(valor) ? valor : null;
+}
+
+export async function obtenerCatalogoPublico(userId: string) {
+  const { data, error } = await supabase.rpc("obtener_catalogo_publico", {
+    p_user_id: userId,
+  });
+
+  if (error) throw error;
+
+  const filas = (data ?? []) as FilaCatalogoPublico[];
+
+  if (filas.length === 0) {
+    return { encontrado: false as const };
+  }
+
+  const [primera] = filas;
+
+  const productos: ProductoPublico[] = filas
+    .filter((fila) => fila.producto_id !== null)
+    .map((fila) => ({
+      id: fila.producto_id as number,
+      nombre: fila.producto_nombre ?? "",
+      precio: fila.producto_precio ?? 0,
+      imagen: fila.producto_imagen,
+      categoria: fila.producto_categoria?.trim() || "",
+      descripcion: fila.producto_descripcion?.trim() || null,
+    }));
+
+  return {
+    encontrado: true as const,
+    nombreNegocio: primera.nombre_negocio,
+    logoUrl: primera.logo_url,
+    colorPrincipal: colorSeguro(primera.color_principal) ?? "#5945e4",
+    telefono: primera.telefono,
+    colorFondo: colorSeguro(primera.catalogo_color_fondo),
+    colorProducto: colorSeguro(primera.catalogo_color_producto),
+    colorBorde: colorSeguro(primera.catalogo_color_borde),
+    colorTitulo: colorSeguro(primera.catalogo_color_titulo),
+    colorPrecio: colorSeguro(primera.catalogo_color_precio),
+    colorBoton: colorSeguro(primera.catalogo_color_boton),
+    coloresCategoria: Object.fromEntries(
+      Object.entries(primera.catalogo_colores_categoria ?? {}).filter(([, c]) =>
+        HEX.test(String(c))
+      )
+    ) as Record<string, string>,
+    productos,
+  };
+}

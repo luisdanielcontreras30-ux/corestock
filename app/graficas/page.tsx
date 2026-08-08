@@ -3,18 +3,24 @@
 import "./graficas.css";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DollarSign, ShoppingBag, Box, TrendingUp, TrendingDown, BarChart3, Trophy } from "lucide-react";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
 import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  BarChart,
+  Bar,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
 } from "recharts";
 
-import { obtenerDatosGraficas } from "./acciones";
+import { obtenerDatosGraficas, obtenerIngresosServicios } from "./acciones";
 import {
   agruparPorPeriodo,
   filtrarPorPeriodo,
@@ -22,11 +28,17 @@ import {
   calcularPorcentaje,
   Periodo,
 } from "./utils";
+import { conPisoVisual, formatoEjeCompacto, promedioCampo } from "../../lib/graficas";
 import { VentaCruda } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useTheme } from "../../components/ThemeProvider";
+import { useAuth } from "../../components/AuthProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
 import { obtenerPaletaGrafica } from "../../lib/chartColors";
 import ContadorAnimado from "../../components/ContadorAnimado";
+import { formatoMoneda } from "../ventas/utils";
+import SinPermiso from "../../components/SinPermiso";
 
 const PERIODOS: { valor: Periodo; clave: string }[] = [
   { valor: "semanal", clave: "graficas.periodo_semanal" },
@@ -36,27 +48,58 @@ const PERIODOS: { valor: Periodo; clave: string }[] = [
 
 export default function GraficasPage() {
   const { t } = useIdioma();
-  const { tema } = useTheme();
+  const { tema, tipoTendencia } = useTheme();
+  const router = useRouter();
+  const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
+  const { mostrarToast } = useToast();
   const COLORES_PIE = obtenerPaletaGrafica(tema);
   const [loading, setLoading] = useState(true);
   const [ventasCrudas, setVentasCrudas] = useState<VentaCruda[]>([]);
+  const [serviciosCrudos, setServiciosCrudos] = useState<VentaCruda[]>([]);
   const [periodo, setPeriodo] = useState<Periodo>("semanal");
-
-  useEffect(() => {
-    cargarDatos();
-  }, []);
 
   async function cargarDatos() {
     try {
       setLoading(true);
-      const datos = await obtenerDatosGraficas();
+      // obtenerIngresosServicios() ya devuelve [] si algo falla (tabla
+      // sin migrar, etc.) en vez de rechazar, así que un problema ahí
+      // nunca debe tumbar el resto de Gráficas — solo obtenerDatosGraficas
+      // (ventas) es indispensable para que la pantalla tenga sentido.
+      const [datos, servicios] = await Promise.all([obtenerDatosGraficas(), obtenerIngresosServicios()]);
       setVentasCrudas(datos);
+      setServiciosCrudos(servicios);
     } catch (error) {
       console.error(error);
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (cargandoAuth) return;
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    // Ingresos/ventas por producto — mismo dato que Ventas, que ya
+    // exige este permiso; Gráficas no lo comprobaba.
+    if (!puede("ver_ventas")) return;
+
+    cargarDatos();
+  }, [cargandoAuth, user, puede]);
+
+  // Ventas + servicios cobrados, solo para el KPI de "Ingresos" y su
+  // gráfica de tendencia — las demás tarjetas (total de ventas,
+  // productos vendidos, venta promedio) y "Top productos" se quedan
+  // calculadas solo con ventasCrudas, sin tocar.
+  const ingresosCrudos = useMemo(
+    () => [...ventasCrudas, ...serviciosCrudos],
+    [ventasCrudas, serviciosCrudos]
+  );
 
   const ventasActual = useMemo(
     () => filtrarPorPeriodo(ventasCrudas, periodo, 0),
@@ -68,34 +111,67 @@ export default function GraficasPage() {
     [ventasCrudas, periodo]
   );
 
+  // Mismo filtro de periodo, pero sobre ventas + servicios cobrados —
+  // solo alimenta el KPI de ingresos y la gráfica de tendencia; el
+  // resto de estadisticas sigue viniendo de ventasActual/Anterior.
+  const ingresosActual = useMemo(
+    () => filtrarPorPeriodo(ingresosCrudos, periodo, 0),
+    [ingresosCrudos, periodo]
+  );
+
+  const ingresosAnterior = useMemo(
+    () => filtrarPorPeriodo(ingresosCrudos, periodo, 1),
+    [ingresosCrudos, periodo]
+  );
+
   const puntosGrafica = useMemo(
-    () => agruparPorPeriodo(ventasActual, periodo),
-    [ventasActual, periodo]
+    () => agruparPorPeriodo(ingresosActual, periodo),
+    [ingresosActual, periodo]
+  );
+
+  // Piso mínimo de altura para que un día con venta chica siempre se
+  // note un poco (ver lib/graficas.ts) — usado tanto en el área como en
+  // las barras/velas, para que "un poco más chico" no salga invisible
+  // nada más porque hubo un día con una venta mucho más grande. El valor
+  // real sigue siendo "ventas", que es lo que muestra el tooltip.
+  const puntosGraficaVisual = useMemo(
+    () => conPisoVisual(puntosGrafica, "ventas"),
+    [puntosGrafica]
+  );
+
+  const promedioVentas = useMemo(
+    () => promedioCampo(puntosGrafica, "ventas"),
+    [puntosGrafica]
   );
 
   const estadisticas = useMemo(() => {
     const totalVentas = ventasActual.length;
-    const ingresos = ventasActual.reduce((acc, v) => acc + v.total, 0);
+    const ingresosVentas = ventasActual.reduce((acc, v) => acc + v.total, 0);
     const productosVendidos = ventasActual.reduce(
       (acc, v) => acc + v.cantidad,
       0
     );
-    const ventaPromedio = totalVentas > 0 ? ingresos / totalVentas : 0;
+    // La venta promedio se queda solo con ventas: mezclar ingresos de
+    // servicios aquí infla el "ticket promedio" con dinero que no vino
+    // de ninguna de las totalVentas del denominador.
+    const ventaPromedio = totalVentas > 0 ? ingresosVentas / totalVentas : 0;
+    const ingresos = ingresosActual.reduce((acc, v) => acc + v.total, 0);
 
     return { totalVentas, ingresos, productosVendidos, ventaPromedio };
-  }, [ventasActual]);
+  }, [ventasActual, ingresosActual]);
 
   const estadisticasAnterior = useMemo(() => {
     const totalVentas = ventasAnterior.length;
-    const ingresos = ventasAnterior.reduce((acc, v) => acc + v.total, 0);
+    const ingresosVentas = ventasAnterior.reduce((acc, v) => acc + v.total, 0);
     const productosVendidos = ventasAnterior.reduce(
       (acc, v) => acc + v.cantidad,
       0
     );
-    const ventaPromedio = totalVentas > 0 ? ingresos / totalVentas : 0;
+    const ventaPromedio = totalVentas > 0 ? ingresosVentas / totalVentas : 0;
+    const ingresos = ingresosAnterior.reduce((acc, v) => acc + v.total, 0);
 
     return { totalVentas, ingresos, productosVendidos, ventaPromedio };
-  }, [ventasAnterior]);
+  }, [ventasAnterior, ingresosAnterior]);
 
   const cambio = {
     totalVentas: calcularPorcentaje(
@@ -129,13 +205,50 @@ export default function GraficasPage() {
   }, [puntosGrafica]);
 
   const productosAgregados = useMemo(
-    () => agregarPorProducto(ventasActual),
-    [ventasActual]
+    () => agregarPorProducto(ventasActual, ventasCrudas),
+    [ventasActual, ventasCrudas]
   );
 
   const topProductos = productosAgregados.slice(0, 4);
-  const maxIngresoTop = topProductos.length > 0 ? topProductos[0].ingresos : 1;
-  const productosRendimiento = productosAgregados.slice(0, 6);
+  const maxIngresoTop = topProductos.length > 0 && topProductos[0].ingresos > 0 ? topProductos[0].ingresos : 1;
+  const productosRendimiento = useMemo(
+    () => productosAgregados.slice(0, 6),
+    [productosAgregados]
+  );
+
+  // Piso mínimo de altura para las mini-gráficas de "Productos con
+  // rendimiento" (mismo conPisoVisual que el resto de las gráficas de
+  // área) — memoizado junto con productosRendimiento en vez de llamarse
+  // dentro del .map() de renderizado, que lo recalculaba en cada
+  // render aunque los productos no hubieran cambiado.
+  const historialesVisualesPorProducto = useMemo(
+    () => productosRendimiento.map((producto) => conPisoVisual(producto.historial, "ventas")),
+    [productosRendimiento]
+  );
+
+  if (cargandoAuth || !user) {
+    return (
+      <main className="fade-up">
+        <div className="card">{t("graficas.cargando")}</div>
+      </main>
+    );
+  }
+
+  if (!puede("ver_ventas")) {
+    return (
+      <main className="fade-up">
+        <div className="section-title">
+          <EncabezadoModulo
+            Icono={BarChart3}
+            color="#06b6d4"
+            titulo={t("graficas.titulo")}
+            subtitulo={t("graficas.subtitulo")}
+          />
+        </div>
+        <SinPermiso />
+      </main>
+    );
+  }
 
   if (loading) {
     return (
@@ -148,12 +261,12 @@ export default function GraficasPage() {
   return (
     <main className="fade-up">
       <div className="section-title">
-        <div>
-          <h1 style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <BarChart3 size={26} /> {t("graficas.titulo")}
-          </h1>
-          <p>{t("graficas.subtitulo")}</p>
-        </div>
+        <EncabezadoModulo
+          Icono={BarChart3}
+          color="#06b6d4"
+          titulo={t("graficas.titulo")}
+          subtitulo={t("graficas.subtitulo")}
+        />
       </div>
 
       {/* TARJETAS DE ESTADÍSTICAS: GRID ASIMÉTRICO */}
@@ -182,23 +295,26 @@ export default function GraficasPage() {
 
           <div style={{ width: "100%", height: 70, marginTop: 16 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={puntosGrafica} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+              <AreaChart data={puntosGraficaVisual} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="sparkIngresos" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={COLORES_PIE[0]} stopOpacity={0.5} />
                     <stop offset="95%" stopColor={COLORES_PIE[0]} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="ventas" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkIngresos)" />
+                <Area type="monotone" dataKey="__visual" stroke={COLORES_PIE[0]} strokeWidth={2} fill="url(#sparkIngresos)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="dashboard-card-mes card">
+          {/* Color fijo, no de la paleta rotativa: en varios temas su
+              color en este índice es pastel y el ícono blanco quedaba
+              casi invisible (mismo bug ya corregido en el Dashboard). */}
           <TarjetaMetricaContenido
             icono={<ShoppingBag size={18} color="#fff" />}
-            colorIcono={COLORES_PIE[1]}
+            colorIcono="#3b82f6"
             titulo={t("graficas.total_ventas")}
             valor={estadisticas.totalVentas}
             decimales={0}
@@ -209,7 +325,7 @@ export default function GraficasPage() {
         <div className="dashboard-card-prod card">
           <TarjetaMetricaContenido
             icono={<Box size={18} color="#fff" />}
-            colorIcono={COLORES_PIE[2]}
+            colorIcono="#22c55e"
             titulo={t("graficas.productos_vendidos")}
             valor={estadisticas.productosVendidos}
             decimales={0}
@@ -255,45 +371,125 @@ export default function GraficasPage() {
               </p>
             </div>
 
-            <select
+            <SelectorPersonalizado
               value={periodo}
-              onChange={(e) => setPeriodo(e.target.value as Periodo)}
+              onChange={(v) => setPeriodo(v as Periodo)}
               style={{ width: "auto", minWidth: 160 }}
             >
               {PERIODOS.map((p) => (
-                <option key={p.valor} value={p.valor}>
+                <OpcionSelector key={p.valor} value={p.valor}>
                   {t(p.clave)}
-                </option>
+                </OpcionSelector>
               ))}
-            </select>
+            </SelectorPersonalizado>
           </div>
 
           <div style={{ width: "100%", height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={puntosGrafica}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="ventas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+              {tipoTendencia === "barras" ? (
+                <BarChart data={puntosGraficaVisual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" tickFormatter={formatoEjeCompacto} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    // La barra se dibuja con "__visual" (con piso mínimo,
+                    // ver conPisoVisual en lib/graficas.ts), pero el
+                    // tooltip debe mostrar el monto real.
+                    formatter={(_valor, _nombre, item) =>
+                      formatoMoneda(Number((item.payload as { ventas: number }).ventas))
+                    }
+                  />
+                  {/* dataKey="__visual": con una venta mucho más grande
+                      que el resto, una barra chica calculada a escala
+                      real mide 1 o 2 píxeles — prácticamente invisible
+                      aunque sí hubo venta ese día. El piso mínimo de
+                      conPisoVisual soluciona esto también para valores
+                      "un poco" más chicos, no solo los casi en cero;
+                      minPointSize queda como respaldo adicional. */}
+                  <Bar
+                    dataKey="__visual"
+                    name={t("graficas.ventas_card")}
+                    fill="var(--primary)"
+                    radius={[4, 4, 0, 0]}
+                    minPointSize={4}
+                  />
+                </BarChart>
+              ) : tipoTendencia === "velas" ? (
+                <BarChart data={puntosGraficaVisual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" tickFormatter={formatoEjeCompacto} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    formatter={(_valor, _nombre, item) =>
+                      formatoMoneda(Number((item.payload as { ventas: number }).ventas))
+                    }
+                  />
+                  <Bar dataKey="__visual" name={t("graficas.ventas_card")} radius={[3, 3, 3, 3]} minPointSize={4}>
+                    {puntosGraficaVisual.map((punto, index) => {
+                      // Verde/rojo según el promedio del período, no
+                      // contra el día anterior — así el color refleja si
+                      // ese día fue bueno o malo de verdad, en vez de
+                      // depender de qué tan bueno/malo fue el vecino.
+                      const sube = punto.ventas >= promedioVentas;
+                      return (
+                        <Cell
+                          key={`vela-${index}`}
+                          fill={sube ? "#10b981" : "#ef4444"}
+                          stroke={sube ? "#059669" : "#b91c1c"}
+                          strokeWidth={2}
+                        />
+                      );
+                    })}
+                  </Bar>
+                </BarChart>
+              ) : (
+                <AreaChart
+                  data={puntosGraficaVisual}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="ventas" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.95} />
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.3} />
+                    </linearGradient>
+                  </defs>
 
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
-                <YAxis stroke="var(--text-secondary)" />
-                <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="nombre" stroke="var(--text-secondary)" />
+                  <YAxis stroke="var(--text-secondary)" tickFormatter={formatoEjeCompacto} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px" }}
+                    labelStyle={{ color: "var(--text-secondary)", fontSize: "12px" }}
+                    itemStyle={{ color: "var(--text-primary)", fontSize: "13px" }}
+                    // El área se dibuja con "__visual" (con piso mínimo,
+                    // ver conPisoVisual en lib/graficas.ts), pero el
+                    // tooltip debe mostrar el monto REAL — viene en
+                    // payload.ventas, el mismo punto de datos original.
+                    // El segundo elemento de la tupla reemplaza el
+                    // nombre de la serie: sin esto, Recharts usa el
+                    // dataKey tal cual ("__visual") como si fuera el
+                    // nombre a mostrar.
+                    formatter={(_valor, _nombre, item) => [
+                      formatoMoneda(Number((item.payload as { ventas: number }).ventas)),
+                      t("graficas.ventas_card"),
+                    ]}
+                  />
 
-                <Area
-                  type="monotone"
-                  dataKey="ventas"
-                  stroke="var(--primary)"
-                  strokeWidth={3}
-                  fill="url(#ventas)"
-                />
-              </AreaChart>
+                  <Area
+                    type="monotone"
+                    dataKey="__visual"
+                    stroke="var(--primary)"
+                    strokeWidth={3}
+                    fill="url(#ventas)"
+                  />
+                </AreaChart>
+              )}
             </ResponsiveContainer>
           </div>
 
@@ -322,9 +518,9 @@ export default function GraficasPage() {
               >
                 {mejorPeorPunto.mejor ? mejorPeorPunto.mejor.nombre : "—"}
               </p>
-              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0 }}>
+              <p style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600, margin: 0 }}>
                 {mejorPeorPunto.mejor
-                  ? `$${mejorPeorPunto.mejor.ventas.toFixed(2)}`
+                  ? formatoMoneda(mejorPeorPunto.mejor.ventas)
                   : t("graficas.sin_datos")}
               </p>
             </div>
@@ -343,9 +539,9 @@ export default function GraficasPage() {
               >
                 {mejorPeorPunto.peor ? mejorPeorPunto.peor.nombre : "—"}
               </p>
-              <p style={{ color: "var(--text-secondary)", fontSize: 11, margin: 0 }}>
+              <p style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600, margin: 0 }}>
                 {mejorPeorPunto.peor
-                  ? `$${mejorPeorPunto.peor.ventas.toFixed(2)}`
+                  ? formatoMoneda(mejorPeorPunto.peor.ventas)
                   : t("graficas.sin_datos")}
               </p>
             </div>
@@ -417,7 +613,7 @@ export default function GraficasPage() {
                         fontWeight: 600,
                       }}
                     >
-                      ${producto.ingresos.toFixed(2)}
+                      {formatoMoneda(producto.ingresos)}
                     </span>
                   </div>
 
@@ -446,7 +642,10 @@ export default function GraficasPage() {
           {t("graficas.productos_rendimiento")}
         </h2>
         <p style={{ color: "var(--text-secondary)", marginBottom: 20 }}>
-          {t("graficas.desempeno_7dias")}
+          {t("graficas.desempeno_periodo").replace(
+            "{periodo}",
+            t(PERIODOS.find((p) => p.valor === periodo)?.clave ?? "graficas.periodo_semanal")
+          )}
         </p>
 
         {productosRendimiento.length === 0 ? (
@@ -491,12 +690,12 @@ export default function GraficasPage() {
                 </div>
 
                 <span style={{ color: "#10b981", fontSize: 22, fontWeight: 700 }}>
-                  ${producto.ingresos.toFixed(2)}
+                  {formatoMoneda(producto.ingresos)}
                 </span>
 
                 <div style={{ width: "100%", height: 90, marginTop: 8 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={producto.historial}>
+                    <AreaChart data={historialesVisualesPorProducto[idx]}>
                       <defs>
                         <linearGradient
                           id={`mini-${idx}`}
@@ -518,7 +717,7 @@ export default function GraficasPage() {
                       />
                       <Area
                         type="monotone"
-                        dataKey="ventas"
+                        dataKey="__visual"
                         stroke="var(--primary)"
                         strokeWidth={2}
                         fill={`url(#mini-${idx})`}
@@ -539,10 +738,7 @@ export default function GraficasPage() {
                 >
                   <span>{t("graficas.unidades").charAt(0).toUpperCase() + t("graficas.unidades").slice(1)}: {producto.unidades}</span>
                   <span>
-                    {t("graficas.precio_prom")}: $
-                    {producto.unidades > 0
-                      ? (producto.ingresos / producto.unidades).toFixed(2)
-                      : "0.00"}
+                    {t("graficas.precio_prom")}: {formatoMoneda(producto.unidades > 0 ? producto.ingresos / producto.unidades : 0)}
                   </span>
                 </div>
               </div>

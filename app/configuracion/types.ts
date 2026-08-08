@@ -14,7 +14,9 @@ export type Permiso =
   | "eliminar_ventas"
   | "ver_ganancias"
   | "exportar_datos"
+  | "ver_inventario"
   | "gestionar_inventario"
+  | "ver_caja"
   | "configuracion";
 
 export const PERMISOS: { valor: Permiso; clave: string }[] = [
@@ -24,7 +26,9 @@ export const PERMISOS: { valor: Permiso; clave: string }[] = [
   { valor: "eliminar_ventas", clave: "permiso.eliminar_ventas" },
   { valor: "ver_ganancias", clave: "permiso.ver_ganancias" },
   { valor: "exportar_datos", clave: "permiso.exportar_datos" },
+  { valor: "ver_inventario", clave: "permiso.ver_inventario" },
   { valor: "gestionar_inventario", clave: "permiso.gestionar_inventario" },
+  { valor: "ver_caja", clave: "permiso.ver_caja" },
   { valor: "configuracion", clave: "permiso.configuracion" },
 ];
 
@@ -38,10 +42,12 @@ export const PERMISOS_POR_ROL: Record<Rol, Permiso[]> = {
     "editar_ventas",
     "ver_ganancias",
     "exportar_datos",
+    "ver_inventario",
     "gestionar_inventario",
+    "ver_caja",
   ],
-  cajero: ["ver_ventas", "registrar_ventas"],
-  almacen: ["gestionar_inventario", "ver_ventas"],
+  cajero: ["ver_ventas", "registrar_ventas", "ver_caja"],
+  almacen: ["ver_inventario", "gestionar_inventario", "ver_ventas"],
 };
 
 export interface Miembro {
@@ -51,6 +57,7 @@ export interface Miembro {
   rol: Rol;
   permisos: Permiso[];
   activo: boolean;
+  tiene_contrasena: boolean;
 }
 
 export interface EmpresaConfig {
@@ -65,6 +72,20 @@ export interface EmpresaConfig {
   zona_horaria: string;
   idioma: string;
   color_principal: string;
+  // Apariencia del catálogo público. Todas opcionales: llegan con
+  // supabase_catalogo_apariencia.sql y la consulta usa select("*"), así
+  // que sin la migración simplemente no vienen y la pantalla sigue
+  // funcionando con el color principal de siempre.
+  catalogo_color_fondo?: string | null;
+  catalogo_color_producto?: string | null;
+  catalogo_color_borde?: string | null;
+  catalogo_color_titulo?: string | null;
+  catalogo_color_precio?: string | null;
+  catalogo_color_boton?: string | null;
+  catalogo_colores_categoria?: Record<string, string> | null;
+  // Ver supabase_limpieza_ventas.sql — opcional porque select("*") no
+  // trae la columna si esa migración todavía no corrió.
+  limpieza_ventas_activa?: boolean;
 }
 
 export const EMPRESA_VACIA: EmpresaConfig = {

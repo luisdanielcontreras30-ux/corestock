@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DollarSign } from "lucide-react";
 import Historial from "./Historial";
+import { mensajeErrorSeguro } from "../../lib/errores";
 import VentaForm from "./components/VentaForm";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 
 import {
   cargarDatos,
   registrarVenta,
   eliminarVenta,
+  limpiarVentasAntiguas,
 } from "./acciones";
 
 import { exportarExcel } from "./utils";
@@ -16,38 +20,151 @@ import {
   Producto,
   Cliente,
   Venta,
+  Promocion,
+  MetodoPago,
 } from "./types";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useAuth } from "../../components/AuthProvider";
+import { useConfirm } from "../../components/ConfirmProvider";
+import { useToast } from "../../components/ToastProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import { useSuscripcion } from "../../components/SuscripcionProvider";
+import SinPermiso from "../../components/SinPermiso";
+import TicketModal, { ItemTicket } from "./components/TicketModal";
+import { obtenerPromocionAplicable, calcularPrecioConDescuento } from "../../lib/promociones";
+import { guardarBorrador, leerBorrador, borrarBorrador } from "../../lib/borrador";
+
+const CLAVE_BORRADOR = "corestock-borrador-venta";
+
+interface BorradorVenta {
+  productoId: string;
+  clienteId: string;
+  clienteNombre: string;
+  cantidad: number;
+  metodoPago: MetodoPago;
+}
+
+interface TicketPendiente {
+  folioId: number;
+  fecha: string;
+  clienteNombre: string;
+  clienteTelefono: string | null;
+  metodoPago: MetodoPago;
+  items: ItemTicket[];
+  total: number;
+}
 
 export default function VentasPage() {
   const { t } = useIdioma();
+  const { user } = useAuth();
+  const { confirmar } = useConfirm();
+  const { mostrarToast } = useToast();
+  const { puede } = useMiembroActivo();
+  const { esPlus } = useSuscripcion();
+  // Sufijado con el id de quien tiene la sesión — sin esto, dos cuentas
+  // de negocio distintas que compartan el mismo navegador (ej. una
+  // terminal de venta) verían y sobrescribirían el borrador de la otra.
+  const claveBorrador = user ? `${CLAVE_BORRADOR}-${user.id}` : null;
+
+  // acciones.ts lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce; null si el error no es
+  // ninguno de los esperados (deja pasar a mensajeErrorSeguro/fallback).
+  function mensajeVenta(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "CLIENTE_OBLIGATORIO":
+        return t("ventas_rapidas.msg_cliente_obligatorio");
+      case "CANTIDAD_INVALIDA":
+        return t("ventas.msg_cantidad_mayor");
+      case "SIN_STOCK":
+        return t("ventas.msg_sin_stock");
+      case "PRECIO_INVALIDO":
+        return t("ventas.msg_precio_invalido");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      case "YA_ELIMINADA":
+        return t("comun.msg_ya_eliminado");
+      default:
+        return null;
+    }
+  }
   const [loading, setLoading] = useState(true);
+  const [ticket, setTicket] = useState<TicketPendiente | null>(null);
 
   const [productos, setProductos] = useState<Producto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [ventas, setVentas] = useState<Venta[]>([]);
+  const [promociones, setPromociones] = useState<Promocion[]>([]);
 
   const [productoId, setProductoId] = useState("");
   const [clienteId, setClienteId] = useState("");
   const [clienteNombre, setClienteNombre] = useState("");
   const [cantidad, setCantidad] = useState(1);
+  const [metodoPago, setMetodoPago] = useState<MetodoPago>("efectivo");
+  const [plazoDias, setPlazoDias] = useState(30);
   const [guardando, setGuardando] = useState(false);
 
   async function obtenerDatos() {
     setLoading(true);
 
-    const datos = await cargarDatos();
+    try {
+      const datos = await cargarDatos();
 
-    setProductos(datos.productos);
-    setClientes(datos.clientes);
-    setVentas(datos.ventas);
-
-    setLoading(false);
+      setProductos(datos.productos);
+      setClientes(datos.clientes);
+      setVentas(datos.ventas);
+      setPromociones(datos.promociones);
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     obtenerDatos();
+    // Mantenimiento en segundo plano — no bloquea la carga de la
+    // pantalla ni sus errores se muestran como los de arriba (ver
+    // comentario en limpiarVentasAntiguas).
+    limpiarVentasAntiguas();
   }, []);
+
+  // Recupera lo que ya se había llenado del formulario de venta si la
+  // página se recargó a medio capturar.
+  useEffect(() => {
+    if (!claveBorrador) return;
+
+    const borrador = leerBorrador<BorradorVenta>(claveBorrador);
+    if (!borrador) return;
+
+    setProductoId(borrador.productoId);
+    setClienteId(borrador.clienteId);
+    setClienteNombre(borrador.clienteNombre);
+    setCantidad(borrador.cantidad);
+    setMetodoPago(borrador.metodoPago);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claveBorrador]);
+
+  useEffect(() => {
+    if (!claveBorrador) return;
+
+    const vacio = !productoId && !clienteId && !clienteNombre && cantidad === 1 && metodoPago === "efectivo";
+
+    if (vacio) {
+      borrarBorrador(claveBorrador);
+      return;
+    }
+
+    guardarBorrador<BorradorVenta>(claveBorrador, {
+      productoId,
+      clienteId,
+      clienteNombre,
+      cantidad,
+      metodoPago,
+    });
+  }, [claveBorrador, productoId, clienteId, clienteNombre, cantidad, metodoPago]);
 
   const producto = productos.find(
     (p) => p.id === Number(productoId)
@@ -56,7 +173,15 @@ export default function VentasPage() {
   const cliente =
     clientes.find((c) => c.id === Number(clienteId)) ?? null;
 
-  const total = producto ? producto.precio_venta * cantidad : 0;
+  const promoAplicable = producto
+    ? obtenerPromocionAplicable(producto.id, promociones)
+    : null;
+
+  const precioUnitario = producto
+    ? calcularPrecioConDescuento(producto.precio_venta, promoAplicable)
+    : 0;
+
+  const total = precioUnitario * cantidad;
 
   function alCambiarClienteNombre(nombre: string) {
     setClienteNombre(nombre);
@@ -72,41 +197,84 @@ export default function VentasPage() {
     if (guardando) return;
 
     if (!producto) {
-      alert(t("ventas.msg_selecciona_producto"));
+      mostrarToast(t("ventas.msg_selecciona_producto"), "error");
       return;
     }
 
     if (cantidad <= 0) {
-      alert(t("ventas.msg_cantidad_mayor"));
+      mostrarToast(t("ventas.msg_cantidad_mayor"), "error");
+      return;
+    }
+
+    if (!Number.isInteger(cantidad)) {
+      mostrarToast(t("comun.msg_cantidad_entera"), "error");
       return;
     }
 
     if (cantidad > producto.stock) {
-      alert(t("ventas.msg_sin_stock"));
+      mostrarToast(t("ventas.msg_sin_stock"), "error");
+      return;
+    }
+
+    if (metodoPago === "credito" && clienteNombre.trim() === "") {
+      mostrarToast(t("ventas_rapidas.msg_cliente_obligatorio"), "error");
       return;
     }
 
     try {
       setGuardando(true);
 
-      await registrarVenta(producto, cliente, cantidad, clienteNombre);
+      const resultado = await registrarVenta(
+        producto,
+        cliente,
+        cantidad,
+        clienteNombre,
+        precioUnitario,
+        metodoPago,
+        undefined,
+        metodoPago === "credito" ? plazoDias : null
+      );
+
+      if (esPlus && resultado) {
+        setTicket({
+          folioId: resultado.id,
+          fecha: new Date().toISOString(),
+          clienteNombre: cliente?.nombre || clienteNombre.trim() || t("ventas.cliente_general"),
+          clienteTelefono: cliente?.telefono ?? null,
+          metodoPago,
+          items: [
+            {
+              producto: producto.nombre,
+              cantidad,
+              precioUnitario,
+              total,
+            },
+          ],
+          total,
+        });
+      }
 
       setProductoId("");
       setClienteId("");
       setClienteNombre("");
       setCantidad(1);
+      setMetodoPago("efectivo");
+      setPlazoDias(30);
+      if (claveBorrador) borrarBorrador(claveBorrador);
 
+      mostrarToast(t("ventas.msg_venta_registrada"), "exito");
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      alert(t("ventas.msg_error_registrar"));
+      const detalle = mensajeVenta(error) || mensajeErrorSeguro(error);
+      mostrarToast(detalle || t("ventas.msg_error_registrar"), "error");
     } finally {
       setGuardando(false);
     }
   }
 
   async function borrarVenta(id: number) {
-    if (!confirm(t("ventas.confirmar_eliminar"))) {
+    if (!(await confirmar(t("ventas.confirmar_eliminar"), { peligroso: true }))) {
       return;
     }
 
@@ -115,9 +283,26 @@ export default function VentasPage() {
       await obtenerDatos();
     } catch (error) {
       console.error(error);
-      const detalle = error instanceof Error ? error.message : "";
-      alert(`${t("ventas.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`);
+      const detalle = mensajeVenta(error) || mensajeErrorSeguro(error);
+      mostrarToast(`${t("ventas.msg_error_eliminar")}${detalle ? ": " + detalle : ""}`, "error");
     }
+  }
+
+  if (!puede("ver_ventas")) {
+    return (
+      <main
+        className="fade-up"
+        style={{ display: "flex", flexDirection: "column", gap: 24 }}
+      >
+        <EncabezadoModulo
+          Icono={DollarSign}
+          color="#10b981"
+          titulo={t("ventas.titulo")}
+          subtitulo={t("ventas.subtitulo")}
+        />
+        <SinPermiso />
+      </main>
+    );
   }
 
   return (
@@ -129,38 +314,75 @@ export default function VentasPage() {
         gap: 24,
       }}
     >
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700 }}>{t("ventas.titulo")}</h1>
-
-        <p style={{ color: "var(--text-secondary)" }}>
-          {t("ventas.subtitulo")}
-        </p>
-      </div>
-
-      <VentaForm
-        productos={productos}
-        clientes={clientes}
-        producto={producto}
-        productoId={productoId}
-        setProductoId={setProductoId}
-        clienteNombre={clienteNombre}
-        setClienteNombre={alCambiarClienteNombre}
-        cantidad={cantidad}
-        setCantidad={setCantidad}
-        total={total}
-        guardando={guardando}
-        onGuardar={guardarVenta}
+      <EncabezadoModulo
+        Icono={DollarSign}
+        color="#10b981"
+        titulo={t("ventas.titulo")}
+        subtitulo={t("ventas.subtitulo")}
       />
 
+      {puede("registrar_ventas") && (
+        <div className="ventas-form-desktop">
+          <VentaForm
+            productos={productos}
+            clientes={clientes}
+            producto={producto}
+            productoId={productoId}
+            setProductoId={setProductoId}
+            clienteNombre={clienteNombre}
+            setClienteNombre={alCambiarClienteNombre}
+            cantidad={cantidad}
+            setCantidad={setCantidad}
+            metodoPago={metodoPago}
+            setMetodoPago={setMetodoPago}
+            plazoDias={plazoDias}
+            setPlazoDias={setPlazoDias}
+            total={total}
+            precioUnitario={precioUnitario}
+            promocion={promoAplicable}
+            guardando={guardando}
+            onGuardar={guardarVenta}
+          />
+        </div>
+      )}
+
       {loading ? (
-        <div className="card">{t("header.cargando")}</div>
+        <div className="card">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="skeleton" style={{ width: 180, height: 22, borderRadius: 6 }} />
+              <div className="skeleton" style={{ width: 240, height: 14, borderRadius: 4 }} />
+            </div>
+            <div className="skeleton" style={{ width: 130, height: 38, borderRadius: 10 }} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="skeleton"
+                style={{ height: 52, borderRadius: 10, animationDelay: `${i * 0.06}s` }}
+              />
+            ))}
+          </div>
+        </div>
       ) : (
         <Historial
           ventas={ventas}
-          eliminarVenta={borrarVenta}
-          exportarExcel={() => exportarExcel(ventas)}
+          eliminarVenta={puede("eliminar_ventas") ? borrarVenta : undefined}
+          exportarExcel={puede("exportar_datos") ? () => exportarExcel(ventas) : undefined}
         />
       )}
+
+      {ticket && <TicketModal {...ticket} onClose={() => setTicket(null)} />}
     </main>
   );
 }

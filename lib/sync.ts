@@ -1,0 +1,260 @@
+import { db, VentaPendiente, CajaPendiente, esFalloDeRed } from "./db";
+import { registrarVenta } from "../app/ventas/acciones";
+import { registrarMovimiento } from "../app/caja/acciones";
+import { mensajeErrorSeguro } from "./errores";
+import { Producto } from "../app/ventas/types";
+
+// Drena las colas de Dexie (ventas_pendientes, caja_pendientes) contra
+// Supabase reutilizando las mismas acciones que usa la app cuando hay
+// conexión — así se hereda gratis toda su validación (stock,
+// compare-and-swap, saldo de caja) en vez de reimplementarla aparte
+// para el camino offline.
+//
+// Se procesa secuencialmente (no en paralelo) y en el orden en que se
+// crearon: revive el mismo orden en que un cajero real las hizo, lo
+// que importa para el saldo de caja y para no vender el mismo último
+// artículo dos veces si dos líneas pendientes compiten por el mismo
+// stock.
+export interface ResultadoSincronizacion {
+  ventasSincronizadas: number;
+  ventasConError: number;
+  cajaSincronizada: number;
+  cajaConError: number;
+  // true cuando la tanda se cortó porque volvió a caerse la red. Lo que
+  // quedó sigue en "pendiente", listo para el siguiente intento.
+  interrumpidaPorRed: boolean;
+}
+
+export async function sincronizarPendientes(
+  userId: string
+): Promise<ResultadoSincronizacion> {
+  const resultado: ResultadoSincronizacion = {
+    ventasSincronizadas: 0,
+    ventasConError: 0,
+    cajaSincronizada: 0,
+    cajaConError: 0,
+    interrumpidaPorRed: false,
+  };
+
+  const ventasPendientes = await db.ventas_pendientes
+    .where("user_id")
+    .equals(userId)
+    .and((v) => v.estado === "pendiente")
+    .sortBy("creado_en");
+
+  for (const venta of ventasPendientes) {
+    try {
+      // Objeto mínimo: registrarVenta() relee el stock real desde
+      // Supabase antes de vender, así que stock/stock_minimo aquí no
+      // se usan para ninguna validación — solo id/nombre/precio.
+      const productoStub: Producto = {
+        id: venta.producto_id,
+        nombre: venta.producto_nombre,
+        precio_venta: venta.precio_venta_producto,
+        stock: 0,
+        stock_minimo: 0,
+        imagen: null,
+        categoria: null,
+      };
+
+      await registrarVenta(
+        productoStub,
+        null,
+        venta.cantidad,
+        venta.nombre_cliente,
+        venta.precio_unitario,
+        venta.metodo_pago,
+        venta.uuid,
+        venta.plazo_dias
+      );
+
+      // Se borra la fila local en vez de marcarla "sincronizado": una
+      // vez que Supabase la aceptó, esa copia en IndexedDB ya no la lee
+      // nadie (ni los contadores, que solo miran "pendiente"/"error",
+      // ni el panel de errores). Dejarlas acumuladas hacía crecer la
+      // base local sin límite en un dispositivo que se usa a diario, y
+      // cada barrido de la cola las recorría todas para descartarlas.
+      await db.ventas_pendientes.delete(venta.uuid);
+      resultado.ventasSincronizadas++;
+    } catch (error) {
+      // Si solo se volvió a caer la red, la venta NO es un error: sigue
+      // siendo válida y debe quedarse "pendiente" para el próximo
+      // intento. Marcarla "error" aquí (como se hacía antes) mandaba al
+      // panel de revisión manual toda la cola restante cada vez que la
+      // conexión se cortaba a media tanda, que es justo lo que la cola
+      // offline existe para evitar. Se corta la tanda porque las que
+      // siguen fallarían igual, cada una gastando su plazo de espera.
+      if (esFalloDeRed(error)) {
+        resultado.interrumpidaPorRed = true;
+        break;
+      }
+
+      // Rechazo real del servidor (sin stock, etc.): no se descarta,
+      // queda marcada "error" para que la interfaz la muestre y alguien
+      // decida qué hacer (ej. ya no hay stock porque otro dispositivo
+      // vendió el último mientras ambos estaban sin conexión — eso es
+      // preferible a inventar stock que no existe).
+      const mensaje = mensajeErrorSeguro(error) || "Error de sincronización.";
+      await db.ventas_pendientes.update(venta.uuid, {
+        estado: "error",
+        error: mensaje,
+      });
+      resultado.ventasConError++;
+    }
+  }
+
+  // Si ya se cayó la red drenando ventas, no tiene caso intentar la
+  // caja: cada movimiento se comería su plazo de espera para fallar
+  // igual. Queda todo pendiente para el siguiente intento.
+  if (resultado.interrumpidaPorRed) {
+    return resultado;
+  }
+
+  const cajaPendientes = await db.caja_pendientes
+    .where("user_id")
+    .equals(userId)
+    .and((c) => c.estado === "pendiente")
+    .sortBy("creado_en");
+
+  for (const mov of cajaPendientes) {
+    try {
+      await registrarMovimiento(
+        mov.tipo,
+        mov.monto,
+        mov.motivo ?? "",
+        {
+          montoEsperado: mov.monto_esperado ?? undefined,
+          diferencia: mov.diferencia ?? undefined,
+        },
+        mov.uuid
+      );
+
+      // Igual que con las ventas: aceptada por Supabase, la copia local
+      // ya no sirve para nada.
+      await db.caja_pendientes.delete(mov.uuid);
+      resultado.cajaSincronizada++;
+    } catch (error) {
+      // Igual que con las ventas: una caída de red deja el movimiento
+      // "pendiente", no lo manda a revisión manual.
+      if (esFalloDeRed(error)) {
+        resultado.interrumpidaPorRed = true;
+        break;
+      }
+
+      const mensaje = mensajeErrorSeguro(error) || "Error de sincronización.";
+      await db.caja_pendientes.update(mov.uuid, {
+        estado: "error",
+        error: mensaje,
+      });
+      resultado.cajaConError++;
+    }
+  }
+
+  return resultado;
+}
+
+// Barre las filas que quedaron marcadas "sincronizado" antes de que
+// sincronizarPendientes() pasara a borrarlas al terminar. Sin esto, un
+// dispositivo que ya venía usando la app se queda con esa acumulación
+// para siempre: nadie las lee, pero cada consulta de la cola las
+// recorre igual. Se llama una vez al arrancar (ver SyncProvider).
+export async function limpiarSincronizados(userId: string): Promise<void> {
+  await Promise.all([
+    db.ventas_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((v) => v.estado === "sincronizado")
+      .delete(),
+    db.caja_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((c) => c.estado === "sincronizado")
+      .delete(),
+  ]);
+}
+
+export async function contarPendientes(userId: string): Promise<number> {
+  const [ventas, caja] = await Promise.all([
+    db.ventas_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((v) => v.estado === "pendiente")
+      .count(),
+    db.caja_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((c) => c.estado === "pendiente")
+      .count(),
+  ]);
+
+  return ventas + caja;
+}
+
+export async function contarConError(userId: string): Promise<number> {
+  const [ventas, caja] = await Promise.all([
+    db.ventas_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((v) => v.estado === "error")
+      .count(),
+    db.caja_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((c) => c.estado === "error")
+      .count(),
+  ]);
+
+  return ventas + caja;
+}
+
+// Para el panel de "Pendientes con error" (ver components/PanelErroresSync.tsx):
+// una venta o movimiento de caja offline que falló al sincronizar (no
+// por un problema de red, sino por un rechazo real del servidor —
+// sin stock, sin saldo, etc.) se queda marcado "error" para siempre
+// si nadie lo revisa. Esto expone esas filas para que la persona
+// decida: reintentar (por si ya se resolvió, ej. se repuso stock) o
+// descartar (dar de baja esa venta/movimiento, ya no se va a cobrar).
+export async function listarConError(
+  userId: string
+): Promise<{ ventas: VentaPendiente[]; caja: CajaPendiente[] }> {
+  const [ventas, caja] = await Promise.all([
+    db.ventas_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((v) => v.estado === "error")
+      .sortBy("creado_en"),
+    db.caja_pendientes
+      .where("user_id")
+      .equals(userId)
+      .and((c) => c.estado === "error")
+      .sortBy("creado_en"),
+  ]);
+
+  return { ventas, caja };
+}
+
+// Vuelve a poner la fila en "pendiente" para que la próxima
+// sincronización (automática o manual, con sincronizarAhora()) la
+// vuelva a intentar — no la sincroniza de inmediato aquí, para no
+// duplicar la lógica de reintento ya centralizada en
+// sincronizarPendientes().
+export async function reintentarVenta(uuid: string): Promise<void> {
+  await db.ventas_pendientes.update(uuid, { estado: "pendiente", error: null });
+}
+
+export async function reintentarCaja(uuid: string): Promise<void> {
+  await db.caja_pendientes.update(uuid, { estado: "pendiente", error: null });
+}
+
+// Descarta definitivamente una venta o movimiento que falló y que la
+// persona decidió no reintentar (ej. ya no hay stock del producto y
+// no va a reponerse). Solo borra la fila local en IndexedDB — nunca
+// se llegó a insertar nada en Supabase para esta fila, así que no hay
+// nada más que revertir.
+export async function descartarVenta(uuid: string): Promise<void> {
+  await db.ventas_pendientes.delete(uuid);
+}
+
+export async function descartarCaja(uuid: string): Promise<void> {
+  await db.caja_pendientes.delete(uuid);
+}

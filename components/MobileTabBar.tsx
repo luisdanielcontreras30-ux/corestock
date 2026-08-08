@@ -2,103 +2,163 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   DollarSign,
   Package,
+  Plus,
   Menu as MenuIcon,
-  BarChart3,
-  Bell,
-  Sparkles,
-  Settings,
-  Truck,
+  Camera,
+  Zap,
   X,
+  Inbox,
 } from "lucide-react";
 import { useIdioma } from "./LanguageProvider";
+import { useMiembroActivo } from "./MiembroActivoProvider";
+import { useModoInterfaz } from "./ModoInterfazProvider";
 
 export default function MobileTabBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useIdioma();
-  const [masAbierto, setMasAbierto] = useState(false);
+  const { miembroActivo, puede } = useMiembroActivo();
+  const { esEasy } = useModoInterfaz();
+  const [fabAbierto, setFabAbierto] = useState(false);
 
+  // Sin ninguno de los dos permisos, el panel del "+" se abriría vacío
+  // (solo el encabezado, sin ninguna opción) — mejor no mostrar el
+  // botón que abrir un panel en blanco.
+  const tieneAccionesFab = puede("registrar_ventas") || puede("gestionar_inventario");
+
+  // En modo Easy, "Caja" reemplaza a "Ventas" en la barra — vender de
+  // verdad ya vive en el botón central (+), y Caja es uno de los
+  // cuatro destinos principales de este modo.
   const tabs = [
-    { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard" },
-    { href: "/productos", Icono: Package, clave: "sidebar.productos" },
+    { href: "/menu", Icono: LayoutDashboard, clave: "sidebar.dashboard", color: "#6366f1" },
+    { href: "/productos", Icono: Package, clave: "sidebar.productos", color: "#22c55e" },
+    ...(esEasy
+      ? [{ href: "/caja", Icono: Inbox, clave: "sidebar.caja", color: "#84cc16" }]
+      : puede("ver_ventas")
+      ? [{ href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas", color: "#10b981" }]
+      : []),
   ];
 
-  // "Ventas" (que ya incluye el formulario de nueva venta) y el resto
-  // de secciones viven solo dentro de "Más" en celular.
-  const masItems = [
-    { href: "/ventas", Icono: DollarSign, clave: "sidebar.ventas" },
-    { href: "/graficas", Icono: BarChart3, clave: "sidebar.graficas" },
-    { href: "/proveedores", Icono: Truck, clave: "sidebar.proveedores" },
-    { href: "/alertas", Icono: Bell, clave: "sidebar.alertas" },
-    { href: "/asistente", Icono: Sparkles, clave: "sidebar.asistente" },
-    { href: "/configuracion", Icono: Settings, clave: "sidebar.configuracion" },
-  ];
+  function irAVentaRapida() {
+    setFabAbierto(false);
+    router.push("/ventas-rapidas");
+  }
+
+  function irANuevoProducto() {
+    setFabAbierto(false);
+    // El parámetro le dice a la página de Productos que abra
+    // la cámara automáticamente para tomar la foto del producto.
+    router.push("/productos?camara=1");
+  }
 
   return (
     <>
-      {masAbierto && (
+      {fabAbierto && (
         <div
           className="mobile-mas-overlay"
-          onClick={() => setMasAbierto(false)}
+          onClick={() => setFabAbierto(false)}
         />
       )}
 
-      {masAbierto && (
-        <div className="mobile-mas-sheet fade-up">
-          <div className="mobile-mas-sheet-header">
-            <p>{t("sidebar.mas_opciones")}</p>
-            <button onClick={() => setMasAbierto(false)} aria-label="Cerrar">
-              <X size={18} />
+      {fabAbierto && (
+        <div className="mobile-fab-sheet fade-up">
+          <div className="mobile-fab-sheet-header">
+            <p>{t("mobile.acciones_rapidas")}</p>
+            <button onClick={() => setFabAbierto(false)} aria-label={t("mobile.cerrar")}>
+              <X size={16} />
             </button>
           </div>
 
-          {masItems.map((item) => {
-            const Icono = item.Icono;
-            const activo = pathname === item.href;
+          {puede("registrar_ventas") && (
+            <button className="mobile-fab-opcion" onClick={irAVentaRapida}>
+              <span className="mobile-fab-opcion-icono" style={{ background: "#10b981" }}>
+                <Zap size={26} color="#fff" />
+              </span>
+              {t("mobile.venta_rapida")}
+            </button>
+          )}
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMasAbierto(false)}
-                className={`mobile-mas-item ${activo ? "mobile-mas-item-activo" : ""}`}
-              >
-                <Icono size={18} />
-                {t(item.clave)}
-              </Link>
-            );
-          })}
+          {puede("gestionar_inventario") && (
+            <button className="mobile-fab-opcion" onClick={irANuevoProducto}>
+              <span className="mobile-fab-opcion-icono" style={{ background: "var(--primary)" }}>
+                <Camera size={26} color="#fff" />
+              </span>
+              {t("mobile.nuevo_producto")}
+            </button>
+          )}
         </div>
       )}
 
       <nav className="mobile-tabbar">
-        {tabs.map((tab) => {
-          const Icono = tab.Icono;
-          const activo = pathname === tab.href;
+        <div className="mobile-tabbar-lado">
+          {/* Un miembro del equipo navega desde el dashboard simple,
+              no desde esta barra — solo ve el "+" del centro. */}
+          {!miembroActivo && tabs.slice(0, 2).map((tab) => {
+            const Icono = tab.Icono;
+            const activo = pathname === tab.href;
 
-          return (
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`mobile-tab ${activo ? "mobile-tab-activo" : ""}`}
+              >
+                <Icono size={21} color={activo ? "var(--primary)" : tab.color} />
+                <span>{t(tab.clave)}</span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {tieneAccionesFab && (
+          <button
+            className="mobile-tab-fab"
+            aria-label={t("mobile.acciones_rapidas")}
+            onClick={() => setFabAbierto((v) => !v)}
+          >
+            <Plus
+              size={24}
+              color="#fff"
+              style={{
+                transform: fabAbierto ? "rotate(45deg)" : "none",
+                transition: "transform .2s ease",
+              }}
+            />
+          </button>
+        )}
+
+        <div className="mobile-tabbar-lado">
+          {!miembroActivo && tabs.slice(2).map((tab) => {
+            const Icono = tab.Icono;
+            const activo = pathname === tab.href;
+
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`mobile-tab ${activo ? "mobile-tab-activo" : ""}`}
+              >
+                <Icono size={21} color={activo ? "var(--primary)" : tab.color} />
+                <span>{t(tab.clave)}</span>
+              </Link>
+            );
+          })}
+
+          {!miembroActivo && (
             <Link
-              key={tab.href}
-              href={tab.href}
-              className={`mobile-tab ${activo ? "mobile-tab-activo" : ""}`}
+              href="/mas"
+              className={`mobile-tab ${pathname === "/mas" ? "mobile-tab-activo" : ""}`}
             >
-              <Icono size={21} />
-              <span>{t(tab.clave)}</span>
+              <MenuIcon size={21} />
+              <span>{t("sidebar.mas")}</span>
             </Link>
-          );
-        })}
-
-        <button
-          className={`mobile-tab ${masAbierto ? "mobile-tab-activo" : ""}`}
-          onClick={() => setMasAbierto((v) => !v)}
-        >
-          <MenuIcon size={21} />
-          <span>{t("sidebar.mas")}</span>
-        </button>
+          )}
+        </div>
       </nav>
     </>
   );

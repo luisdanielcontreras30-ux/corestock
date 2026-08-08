@@ -1,13 +1,33 @@
 import * as XLSX from "xlsx";
-import { Venta } from "./types";
+import { Venta, MetodoPago } from "./types";
+
+export const CLAVE_METODO_PAGO: Record<MetodoPago, string> = {
+  efectivo: "ventas.metodo_efectivo",
+  tarjeta: "ventas.metodo_tarjeta",
+  transferencia: "ventas.metodo_transferencia",
+  credito: "ventas.metodo_credito",
+  otro: "ventas.metodo_otro",
+};
+
+// Para ventas a crédito: convierte el plazo elegido (en días) en la
+// fecha límite real, contando desde el momento de la venta.
+export function calcularFechaVencimiento(plazoDias: number): string {
+  const fecha = new Date();
+  fecha.setDate(fecha.getDate() + plazoDias);
+  return fecha.toISOString();
+}
 
 export function exportarExcel(ventas: Venta[]) {
   const datos = ventas.map((venta) => ({
     Fecha: new Date(venta.fecha).toLocaleString(),
     Producto: venta.producto,
-    Cantidad: venta.cantidad,
-    Precio: venta.precio,
-    Total: venta.total,
+    Cantidad: Number(venta.cantidad),
+    // precio/total son numeric en Postgres — Supabase los devuelve como
+    // string. Sin convertir, json_to_sheet los escribe como texto en la
+    // hoja y =SUMA(...) sobre esa columna da 0 en vez del total real.
+    Precio: Number(venta.precio),
+    Total: Number(venta.total),
+    "Metodo de pago": venta.metodo_pago ?? "efectivo",
   }));
 
   const hoja = XLSX.utils.json_to_sheet(datos);
@@ -26,10 +46,28 @@ export function exportarExcel(ventas: Venta[]) {
   );
 }
 
-export function formatoMoneda(
-  valor: number
-) {
-  return `$${valor.toFixed(2)}`;
+// toLocaleString pone el signo pegado a los dígitos ("-45.50") — para
+// formatoMoneda(), pegarle el "$" delante de eso da "$-45.50". El signo
+// tiene que ir antes del símbolo de moneda ("-$45.50"), así que se
+// separa aquí y cada función de abajo decide dónde ponerlo.
+function separarSigno(valor: number): { signo: string; absoluto: string } {
+  return {
+    signo: valor < 0 ? "-" : "",
+    absoluto: Math.abs(valor).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+  };
+}
+
+export function formatoMoneda(valor: number) {
+  const { signo, absoluto } = separarSigno(valor);
+  return `${signo}$${absoluto}`;
+}
+
+// Igual que formatoMoneda() pero sin el "$" — para plantillas de texto
+// (ej. las respuestas del Asistente) que ya traen su propio "$" en el
+// string traducido y solo necesitan el número con separadores de miles.
+export function formatoNumeroMoneda(valor: number) {
+  const { signo, absoluto } = separarSigno(valor);
+  return `${signo}${absoluto}`;
 }
 
 export function formatoFecha(
@@ -40,15 +78,55 @@ export function formatoFecha(
   ).toLocaleString();
 }
 
-export function buscarVentas(
-  ventas: Venta[],
-  texto: string
-) {
-  if (!texto.trim()) return ventas;
+export interface GrupoFecha<T> {
+  etiqueta: string;
+  items: T[];
+}
 
-  return ventas.filter((venta) =>
-    venta.producto
-      .toLowerCase()
-      .includes(texto.toLowerCase())
-  );
+// Agrupa una lista (se asume ya ordenada de más reciente a más
+// antigua, como llega ventas.acciones.ts) en secciones por fecha —
+// mismo criterio compartido por Ventas y Facturas, para que una lista
+// larga se pueda escanear de un vistazo en vez de ser un bloque
+// continuo de filas. Se evitó agregar un corte por "este mes" porque,
+// cerca del día 1, ese rango puede quedar más reciente que el de
+// "últimos 7 días" y desordenar los grupos.
+export function agruparPorFecha<T>(
+  items: T[],
+  obtenerFecha: (item: T) => string,
+  etiquetas: { hoy: string; ayer: string; ultimos7Dias: string; anteriores: string }
+): GrupoFecha<T>[] {
+  const ahora = new Date();
+  const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  const inicioAyer = new Date(inicioHoy);
+  inicioAyer.setDate(inicioAyer.getDate() - 1);
+  // "Hoy" y "Ayer" ya se separan en sus propios grupos — para que
+  // "Últimos 7 días" represente de verdad los últimos 7 días
+  // calendario (contando hoy), el corte va 6 días atrás, no 7. Con 7
+  // el rango combinado (hoy + ayer + este grupo) terminaba cubriendo 8
+  // días en vez de 7.
+  const inicioUltimos7Dias = new Date(inicioHoy);
+  inicioUltimos7Dias.setDate(inicioUltimos7Dias.getDate() - 6);
+
+  const grupos: GrupoFecha<T>[] = [
+    { etiqueta: etiquetas.hoy, items: [] },
+    { etiqueta: etiquetas.ayer, items: [] },
+    { etiqueta: etiquetas.ultimos7Dias, items: [] },
+    { etiqueta: etiquetas.anteriores, items: [] },
+  ];
+
+  for (const item of items) {
+    const fecha = new Date(obtenerFecha(item));
+
+    if (fecha >= inicioHoy) {
+      grupos[0].items.push(item);
+    } else if (fecha >= inicioAyer) {
+      grupos[1].items.push(item);
+    } else if (fecha >= inicioUltimos7Dias) {
+      grupos[2].items.push(item);
+    } else {
+      grupos[3].items.push(item);
+    }
+  }
+
+  return grupos.filter((grupo) => grupo.items.length > 0);
 }

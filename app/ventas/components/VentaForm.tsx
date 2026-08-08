@@ -1,7 +1,11 @@
 "use client";
 
-import { Producto, Cliente } from "../types";
+import { Tag } from "lucide-react";
+import { Producto, Cliente, MetodoPago } from "../types";
+import { PromocionAplicable } from "../../../lib/promociones";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { formatoMoneda } from "../utils";
+import SelectorPersonalizado, { OpcionSelector } from "../../../components/SelectorPersonalizado";
 
 interface Props {
   productos: Producto[];
@@ -13,7 +17,13 @@ interface Props {
   setClienteNombre: (v: string) => void;
   cantidad: number;
   setCantidad: (v: number) => void;
+  metodoPago: MetodoPago;
+  setMetodoPago: (v: MetodoPago) => void;
+  plazoDias: number;
+  setPlazoDias: (v: number) => void;
   total: number;
+  precioUnitario: number;
+  promocion?: PromocionAplicable | null;
   guardando: boolean;
   onGuardar: () => void;
 }
@@ -28,7 +38,13 @@ export default function VentaForm({
   setClienteNombre,
   cantidad,
   setCantidad,
+  metodoPago,
+  setMetodoPago,
+  plazoDias,
+  setPlazoDias,
   total,
+  precioUnitario,
+  promocion,
   guardando,
   onGuardar,
 }: Props) {
@@ -42,18 +58,18 @@ export default function VentaForm({
         <div>
           <label>{t("tabla.producto")}</label>
 
-          <select
+          <SelectorPersonalizado
             value={productoId}
-            onChange={(e) => setProductoId(e.target.value)}
+            onChange={setProductoId}
           >
-            <option value="">{t("ventas.selecciona_producto")}</option>
+            <OpcionSelector value="">{t("ventas.selecciona_producto")}</OpcionSelector>
 
             {productos.map((p) => (
-              <option key={p.id} value={p.id}>
+              <OpcionSelector key={p.id} value={p.id}>
                 {p.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
         </div>
 
         <div>
@@ -80,6 +96,7 @@ export default function VentaForm({
           <input
             type="number"
             min={1}
+            step={1}
             value={cantidad}
             onChange={(e) => setCantidad(Number(e.target.value))}
           />
@@ -88,8 +105,38 @@ export default function VentaForm({
         <div>
           <label>{t("tabla.total")}</label>
 
-          <input readOnly value={`$${total.toFixed(2)}`} />
+          <input readOnly value={formatoMoneda(total)} />
         </div>
+
+        <div>
+          <label>{t("ventas.metodo_pago")}</label>
+
+          <SelectorPersonalizado
+            value={metodoPago}
+            onChange={(v) => setMetodoPago(v as MetodoPago)}
+          >
+            <OpcionSelector value="efectivo">{t("ventas.metodo_efectivo")}</OpcionSelector>
+            <OpcionSelector value="tarjeta">{t("ventas.metodo_tarjeta")}</OpcionSelector>
+            <OpcionSelector value="transferencia">{t("ventas.metodo_transferencia")}</OpcionSelector>
+            <OpcionSelector value="credito">{t("ventas.metodo_credito")}</OpcionSelector>
+            <OpcionSelector value="otro">{t("ventas.metodo_otro")}</OpcionSelector>
+          </SelectorPersonalizado>
+        </div>
+
+        {metodoPago === "credito" && (
+          <div>
+            <label>{t("ventas.plazo_pago")}</label>
+
+            <SelectorPersonalizado
+              value={String(plazoDias)}
+              onChange={(v) => setPlazoDias(Number(v))}
+            >
+              <OpcionSelector value="15">{t("ventas.plazo_15")}</OpcionSelector>
+              <OpcionSelector value="30">{t("ventas.plazo_30")}</OpcionSelector>
+              <OpcionSelector value="60">{t("ventas.plazo_60")}</OpcionSelector>
+            </SelectorPersonalizado>
+          </div>
+        )}
       </div>
 
       {producto && (
@@ -103,7 +150,36 @@ export default function VentaForm({
         >
           <strong>{t("ventas.stock_disponible")}:</strong> {producto.stock}
           <br />
-          <strong>{t("productos.precio")}:</strong> ${producto.precio_venta.toFixed(2)}
+          <strong>{t("productos.precio")}:</strong>{" "}
+          {promocion ? (
+            <>
+              <span style={{ textDecoration: "line-through", color: "var(--text-secondary)" }}>
+                {formatoMoneda(producto.precio_venta)}
+              </span>{" "}
+              <strong style={{ color: "#10b981" }}>{formatoMoneda(precioUnitario)}</strong>
+            </>
+          ) : (
+            <>{formatoMoneda(precioUnitario)}</>
+          )}
+
+          {promocion && (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                marginLeft: 10,
+                padding: "3px 9px",
+                borderRadius: 999,
+                background: "rgba(16,185,129,0.12)",
+                color: "#10b981",
+                fontSize: 11.5,
+                fontWeight: 700,
+              }}
+            >
+              <Tag size={11} /> {promocion.nombre}
+            </div>
+          )}
         </div>
       )}
 

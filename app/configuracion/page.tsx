@@ -1,37 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Settings } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
+import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import SinPermiso from "../../components/SinPermiso";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
 import ConfigTabs from "./components/ConfigTabs";
 import ApariciarenciaTab from "./components/ApariciarenciaTab";
 import EmpresaTab from "./components/EmpresaTab";
+import PersonalizacionTab from "./components/PersonalizacionTab";
 import UsuariosTab from "./components/UsuariosTab";
 import CuentaTab from "./components/CuentaTab";
 import IdiomaTab from "./components/IdiomaTab";
+import AyudaTab from "./components/AyudaTab";
+import CargandoLista from "../../components/CargandoLista";
 
 export default function ConfiguracionPage() {
   const [tab, setTab] = useState("apariencia");
   const { t } = useIdioma();
+  const router = useRouter();
+  const { user, cargando: cargandoAuth } = useAuth();
+  const { puede } = useMiembroActivo();
+
+  useEffect(() => {
+    if (cargandoAuth) return;
+    if (!user) router.push("/login");
+  }, [cargandoAuth, user, router]);
+
+  if (cargandoAuth || !user) {
+    return (
+      <main className="fade-up">
+        <CargandoLista />
+      </main>
+    );
+  }
 
   return (
     <main
       className="fade-up"
       style={{ display: "flex", flexDirection: "column", gap: 24 }}
     >
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700 }}>{t("config.titulo")}</h1>
-        <p style={{ color: "var(--text-secondary)" }}>
-          {t("config.subtitulo")}
-        </p>
-      </div>
+      <EncabezadoModulo
+        Icono={Settings}
+        color="#64748b"
+        titulo={t("config.titulo")}
+        subtitulo={t("config.subtitulo")}
+      />
 
       <ConfigTabs activa={tab} onCambiar={setTab} />
 
       {tab === "apariencia" && <ApariciarenciaTab />}
-      {tab === "empresa" && <EmpresaTab />}
-      {tab === "usuarios" && <UsuariosTab />}
+      {tab === "empresa" && (puede("configuracion") ? <EmpresaTab /> : <SinPermiso />)}
+      {tab === "personalizacion" && (puede("configuracion") ? <PersonalizacionTab /> : <SinPermiso />)}
+      {tab === "usuarios" && (puede("configuracion") ? <UsuariosTab /> : <SinPermiso />)}
       {tab === "cuenta" && <CuentaTab />}
       {tab === "idioma" && <IdiomaTab />}
+      {tab === "ayuda" && <AyudaTab />}
     </main>
   );
 }

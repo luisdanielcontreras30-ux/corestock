@@ -1,6 +1,6 @@
 "use client";
 
-import { Palette, Store, Users, UserCircle, Globe, LucideIcon } from "lucide-react";
+import { Palette, Store, Users, UserCircle, Globe, LifeBuoy, LayoutGrid, LucideIcon } from "lucide-react";
 import { useIdioma } from "../../../components/LanguageProvider";
 
 interface Props {
@@ -11,9 +11,11 @@ interface Props {
 const tabs: { id: string; clave: string; Icono: LucideIcon }[] = [
   { id: "apariencia", clave: "config.tab.apariencia", Icono: Palette },
   { id: "empresa", clave: "config.tab.empresa", Icono: Store },
+  { id: "personalizacion", clave: "config.tab.personalizacion", Icono: LayoutGrid },
   { id: "usuarios", clave: "config.tab.usuarios", Icono: Users },
   { id: "cuenta", clave: "config.tab.cuenta", Icono: UserCircle },
   { id: "idioma", clave: "config.tab.idioma", Icono: Globe },
+  { id: "ayuda", clave: "config.tab.ayuda", Icono: LifeBuoy },
 ];
 
 export default function ConfigTabs({ activa, onCambiar }: Props) {

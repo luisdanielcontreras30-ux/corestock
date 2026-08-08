@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Printer, MessageCircle } from "lucide-react";
 import { Venta } from "../types";
-import { formatoFecha, formatoMoneda } from "../utils";
+import { formatoFecha, formatoMoneda, CLAVE_METODO_PAGO } from "../utils";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { useEmpresa } from "../../../lib/useEmpresa";
+import { enlaceWhatsApp } from "../../../lib/whatsapp";
 
 interface Props {
   venta: Venta;
@@ -12,21 +15,23 @@ interface Props {
 
 export default function FacturaModal({ venta, onClose }: Props) {
   const { t } = useIdioma();
+  const empresa = useEmpresa();
+  const [logoRoto, setLogoRoto] = useState(false);
+  const nombreNegocio = empresa?.nombre_negocio?.trim() || "CoreStock";
   const folio = `F-${String(venta.id).padStart(6, "0")}`;
 
   function compartirPorWhatsApp() {
     const cliente = venta.clientes?.nombre ?? t("ventas.cliente_general");
 
     const mensaje =
-      `🧾 *CoreStock — ${t("factura.numero")} ${folio}*\n\n` +
+      `🧾 *${nombreNegocio} — ${t("factura.numero")} ${folio}*\n\n` +
       `${t("factura.facturado_a")}: ${cliente}\n` +
       `${formatoFecha(venta.fecha)}\n\n` +
       `${venta.producto} x${venta.cantidad}\n` +
       `${t("tabla.total")}: ${formatoMoneda(venta.total)}\n\n` +
       `${t("factura.gracias")}`;
 
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, "_blank");
+    window.open(enlaceWhatsApp(mensaje, venta.clientes?.telefono), "_blank");
   }
 
   return (
@@ -60,9 +65,21 @@ export default function FacturaModal({ venta, onClose }: Props) {
 
         <div className="factura-hoja">
           <div className="factura-header">
-            <div>
-              <h1>CoreStock</h1>
-              <p>{t("factura.subtitulo")}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {empresa?.logo_url && !logoRoto && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={empresa.logo_url}
+                  alt={nombreNegocio}
+                  onError={() => setLogoRoto(true)}
+                  style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }}
+                />
+              )}
+              <div>
+                <h1>{nombreNegocio}</h1>
+                <p>{t("factura.subtitulo")}</p>
+                {empresa?.direccion && <p>{empresa.direccion}</p>}
+              </div>
             </div>
 
             <div className="factura-folio">
@@ -78,6 +95,9 @@ export default function FacturaModal({ venta, onClose }: Props) {
             <p className="factura-cliente-label">{t("factura.facturado_a")}</p>
             <p className="factura-cliente-nombre">
               {venta.clientes?.nombre ?? t("ventas.cliente_general")}
+            </p>
+            <p style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 4 }}>
+              {t("ventas.metodo_pago")}: {t(CLAVE_METODO_PAGO[venta.metodo_pago] ?? CLAVE_METODO_PAGO.efectivo)}
             </p>
           </div>
 

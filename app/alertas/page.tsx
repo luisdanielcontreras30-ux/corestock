@@ -1,48 +1,86 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "../../lib/supabase";
-import { Package, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { Package, CheckCircle2, XCircle, AlertTriangle, Bell } from "lucide-react";
 import { useIdioma } from "../../components/LanguageProvider";
 import { useAuth } from "../../components/AuthProvider";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
+import ContadorAnimado from "../../components/ContadorAnimado";
+import SinPermiso from "../../components/SinPermiso";
 
 interface ProductoAlerta {
   id: number;
   nombre: string;
   categoria: string;
   stock: number;
+  stock_minimo: number | null;
   imagen: string | null;
 }
 
 export default function Alertas() {
   const { t } = useIdioma();
+  const router = useRouter();
   const { user, cargando: cargandoAuth } = useAuth();
+  const { miembroActivo, puede } = useMiembroActivo();
   const [alertas, setAlertas] = useState<ProductoAlerta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [imagenesRotas, setImagenesRotas] = useState<Set<number>>(new Set());
+
+  // Mismo permiso que ya exige el propio ícono de campana en Header.tsx
+  // para mostrar este mismo dato — la página en sí no lo comprobaba,
+  // así que un miembro sin "ver_inventario"/"gestionar_inventario"
+  // podía ver todo el stock del negocio con solo escribir /alertas.
+  const puedeVer = !miembroActivo || puede("ver_inventario") || puede("gestionar_inventario");
 
   useEffect(() => {
     if (cargandoAuth) return;
 
     if (!user) {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
 
-    cargar(user.id);
-  }, [cargandoAuth, user]);
+    // Sin el permiso, ni se pide el stock: el render de abajo (if
+    // (!puedeVer)) ya corta antes de llegar al estado "loading", así
+    // que no hace falta tocarlo aquí.
+    if (!puedeVer) return;
 
-  async function cargar(userId: string) {
+    cargar();
+  }, [cargandoAuth, user, puedeVer]);
+
+  async function cargar() {
     setLoading(true);
+    setError(false);
 
-    const { data } = await supabase
+    // Solo estas 6 columnas se usan aquí (ver ProductoAlerta) — select("*")
+    // traía la fila completa de CADA producto (precio, costo, descripción,
+    // etc.) solo para filtrar por stock bajo, un desperdicio que crece con
+    // el catálogo.
+    //
+    // .eq("activo", true): mismo filtro que ya usan el resto de las
+    // consultas a productos (Ventas rápidas, Compras, Traspasos, etc.)
+    // — sin él, un producto desactivado seguiría apareciendo aquí
+    // aunque ya no esté a la venta.
+    const { data, error: errorConsulta } = await supabase
       .from("productos")
-      .select("*")
-      .eq("user_id", userId)
-      .lte("stock", 5)
+      .select("id, nombre, categoria, stock, stock_minimo, imagen")
+      .eq("activo", true)
       .order("stock");
 
-    if (data) {
-      setAlertas(data as ProductoAlerta[]);
+    if (errorConsulta) {
+      console.error(errorConsulta);
+      setError(true);
+      setAlertas([]);
+    } else {
+      const bajos = ((data ?? []) as ProductoAlerta[]).filter(
+        (p) => p.stock <= (p.stock_minimo ?? 5)
+      );
+      setAlertas(bajos);
     }
 
     setLoading(false);
@@ -51,10 +89,49 @@ export default function Alertas() {
   const agotados = alertas.filter((p) => p.stock === 0).length;
   const stockBajo = alertas.length - agotados;
 
+  if (!puedeVer) {
+    return (
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={Bell}
+          color="#ef4444"
+          titulo={t("alertas.titulo")}
+          subtitulo={t("alertas.subtitulo")}
+        />
+        <SinPermiso />
+      </main>
+    );
+  }
+
   if (loading) {
     return (
-      <main className="fade-up">
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={Bell}
+          color="#ef4444"
+          titulo={t("alertas.titulo")}
+          subtitulo={t("alertas.subtitulo")}
+        />
         <div className="card">{t("alertas.cargando")}</div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <EncabezadoModulo
+          Icono={Bell}
+          color="#ef4444"
+          titulo={t("alertas.titulo")}
+          subtitulo={t("alertas.subtitulo")}
+        />
+        <div className="card" style={{ textAlign: "center", padding: "50px 20px" }}>
+          <p style={{ color: "#ef4444", marginBottom: 14 }}>{t("alertas.msg_error_cargar")}</p>
+          <button className="btn-primary" onClick={() => user && cargar()}>
+            {t("empresa.reintentar")}
+          </button>
+        </div>
       </main>
     );
   }
@@ -64,12 +141,12 @@ export default function Alertas() {
       className="fade-up"
       style={{ display: "flex", flexDirection: "column", gap: 24 }}
     >
-      <div>
-        <h1 style={{ fontSize: 34, fontWeight: 700 }}>{t("alertas.titulo")}</h1>
-        <p style={{ color: "var(--text-secondary)" }}>
-          {t("alertas.subtitulo")}
-        </p>
-      </div>
+      <EncabezadoModulo
+        Icono={Bell}
+        color="#ef4444"
+        titulo={t("alertas.titulo")}
+        subtitulo={t("alertas.subtitulo")}
+      />
 
       <div
         style={{
@@ -82,21 +159,27 @@ export default function Alertas() {
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
             {t("alertas.total_alertas")}
           </p>
-          <h2 style={{ fontSize: 30, margin: "10px 0 0 0" }}>{alertas.length}</h2>
+          <h2 style={{ fontSize: 30, margin: "10px 0 0 0" }}>
+            <ContadorAnimado valor={alertas.length} decimales={0} />
+          </h2>
         </div>
 
         <div className="card">
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
             {t("alertas.stock_bajo")}
           </p>
-          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#f59e0b" }}>{stockBajo}</h2>
+          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#f59e0b" }}>
+            <ContadorAnimado valor={stockBajo} decimales={0} />
+          </h2>
         </div>
 
         <div className="card">
           <p style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, textTransform: "uppercase", margin: 0 }}>
             {t("alertas.agotados")}
           </p>
-          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#ef4444" }}>{agotados}</h2>
+          <h2 style={{ fontSize: 30, margin: "10px 0 0 0", color: "#ef4444" }}>
+            <ContadorAnimado valor={agotados} decimales={0} />
+          </h2>
         </div>
       </div>
 
@@ -120,13 +203,16 @@ export default function Alertas() {
           {alertas.map((producto) => (
             <div key={producto.id} className="card">
               <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-                {producto.imagen ? (
-                  <img
+                {producto.imagen && !imagenesRotas.has(producto.id) ? (
+                  <Image
                     src={producto.imagen}
                     alt={producto.nombre}
+                    width={52}
+                    height={52}
+                    onError={() =>
+                      setImagenesRotas((prev) => new Set(prev).add(producto.id))
+                    }
                     style={{
-                      width: 52,
-                      height: 52,
                       borderRadius: 10,
                       objectFit: "cover",
                       flexShrink: 0,

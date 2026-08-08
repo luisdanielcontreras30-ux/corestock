@@ -5,12 +5,28 @@ export interface Producto {
   stock: number;
   stock_minimo: number;
   imagen: string | null;
+  // La consulta siempre la trajo (usa select *); faltaba exponerla para
+  // poder agrupar el mostrador por categorías.
+  categoria: string | null;
 }
 
 export interface Cliente {
   id: number;
   nombre: string;
+  telefono?: string | null;
 }
+
+export interface Promocion {
+  id: number;
+  nombre: string;
+  producto_id: number | null;
+  tipo: "porcentaje" | "monto";
+  valor: number;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+}
+
+export type MetodoPago = "efectivo" | "tarjeta" | "transferencia" | "credito" | "otro";
 
 export interface Venta {
   id: number;
@@ -19,11 +35,20 @@ export interface Venta {
   cantidad: number;
   precio: number;
   total: number;
+  metodo_pago: MetodoPago;
+  // Solo es relevante cuando metodo_pago es "credito" — indica si esa
+  // venta a crédito ya se cobró. Cualquier otro método siempre queda en
+  // true (ver registrarVenta()). Usado por el módulo Cuentas por Cobrar.
+  cobrado: boolean;
+  // Solo aplica a ventas a crédito: la fecha límite para pagar, elegida
+  // al momento de la venta (hoy + el plazo seleccionado).
+  fecha_vencimiento: string | null;
 
   producto_id: number;
   cliente_id: number | null;
 
   clientes?: {
     nombre: string;
+    telefono: string | null;
   } | null;
 }

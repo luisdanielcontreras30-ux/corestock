@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { CheckCircle2, XCircle, ImagePlus, X } from "lucide-react";
 import { EmpresaConfig, EMPRESA_VACIA } from "../types";
 import { cargarEmpresa, guardarEmpresa } from "../acciones";
-import { supabase } from "../../../lib/supabase";
+import { subirImagenSegura } from "../../../lib/uploads";
+import { redimensionarParaSubir } from "../../../lib/imagenes";
 import { useIdioma } from "../../../components/LanguageProvider";
+import SelectorPersonalizado, { OpcionSelector } from "../../../components/SelectorPersonalizado";
 
 const MONEDAS = ["MXN", "USD", "EUR", "COP", "ARS", "CLP", "PEN"];
 const IDIOMAS = [
@@ -15,6 +18,7 @@ const IDIOMAS = [
   { valor: "fr", nombre: "Français" },
   { valor: "de", nombre: "Deutsch" },
   { valor: "zh", nombre: "中文" },
+  { valor: "it", nombre: "Italiano" },
 ];
 const ZONAS_HORARIAS = [
   "America/Mexico_City",
@@ -29,19 +33,30 @@ export default function EmpresaTab() {
   const { t } = useIdioma();
   const [empresa, setEmpresa] = useState<EmpresaConfig>(EMPRESA_VACIA);
   const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [subiendoLogo, setSubiendoLogo] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
   const inputArchivoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    cargar();
+  }, []);
+
+  function cargar() {
+    setCargando(true);
+    setErrorCarga(false);
+
     cargarEmpresa()
       .then((datos) => {
         if (datos) setEmpresa(datos);
       })
-      .catch((error) => console.error(error))
+      .catch((error) => {
+        console.error(error);
+        setErrorCarga(true);
+      })
       .finally(() => setCargando(false));
-  }, []);
+  }
 
   function actualizarCampo<K extends keyof EmpresaConfig>(
     campo: K,
@@ -52,24 +67,26 @@ export default function EmpresaTab() {
 
   async function alSubirLogo(archivo: File) {
     setSubiendoLogo(true);
+    setMensaje(null);
 
     try {
-      const nombreArchivo = `logo-${Date.now()}-${archivo.name}`;
+      const archivoParaSubir = await redimensionarParaSubir(archivo);
+      const { url, error } = await subirImagenSegura("productos", archivoParaSubir, "logo-");
 
-      const { error: errorSubida } = await supabase.storage
-        .from("productos")
-        .upload(nombreArchivo, archivo);
-
-      if (errorSubida) {
-        throw errorSubida;
+      if (error === "tipo_invalido") {
+        setMensaje({ tipo: "error", texto: t("empresa.msg_logo_tipo_invalido") });
+      } else if (error === "muy_grande") {
+        setMensaje({ tipo: "error", texto: t("empresa.msg_logo_muy_grande") });
+      } else if (error || !url) {
+        setMensaje({ tipo: "error", texto: t("empresa.msg_error_logo") });
+      } else {
+        actualizarCampo("logo_url", url);
       }
-
-      const { data } = supabase.storage
-        .from("productos")
-        .getPublicUrl(nombreArchivo);
-
-      actualizarCampo("logo_url", data.publicUrl);
     } catch (error) {
+      // Sin este catch, un fallo inesperado (red caída a medio subir,
+      // etc.) dejaba el botón en "Subiendo..." deshabilitado para
+      // siempre, sin ningún mensaje — igual que ya se protege
+      // alGuardar() más abajo en este mismo archivo.
       console.error(error);
       setMensaje({ tipo: "error", texto: t("empresa.msg_error_logo") });
     } finally {
@@ -78,6 +95,8 @@ export default function EmpresaTab() {
   }
 
   async function alGuardar() {
+    if (guardando) return;
+
     setGuardando(true);
     setMensaje(null);
 
@@ -94,6 +113,19 @@ export default function EmpresaTab() {
 
   if (cargando) {
     return <div className="card">{t("empresa.cargando")}</div>;
+  }
+
+  if (errorCarga) {
+    return (
+      <div className="card">
+        <p style={{ color: "#ef4444", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
+          <XCircle size={16} /> {t("empresa.msg_error_cargar")}
+        </p>
+        <button className="btn-primary" onClick={cargar}>
+          {t("empresa.reintentar")}
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -115,6 +147,7 @@ export default function EmpresaTab() {
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div
             style={{
+              position: "relative",
               width: 72,
               height: 72,
               borderRadius: 14,
@@ -127,10 +160,12 @@ export default function EmpresaTab() {
             }}
           >
             {empresa.logo_url ? (
-              <img
+              <Image
                 src={empresa.logo_url}
                 alt={t("empresa.logotipo")}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                fill
+                sizes="72px"
+                style={{ objectFit: "cover" }}
               />
             ) : (
               <ImagePlus size={22} color="var(--text-muted)" />
@@ -195,7 +230,7 @@ export default function EmpresaTab() {
           <input
             value={empresa.direccion}
             onChange={(e) => actualizarCampo("direccion", e.target.value)}
-            placeholder="Calle, número, ciudad"
+            placeholder={t("empresa.direccion_placeholder")}
           />
         </div>
 
@@ -219,77 +254,76 @@ export default function EmpresaTab() {
         </div>
 
         <div>
-          <label>{t("empresa.rfc")}</label>
-          <input
-            value={empresa.rfc}
-            onChange={(e) => actualizarCampo("rfc", e.target.value)}
-            placeholder="Según tu país"
-          />
-        </div>
-
-        <div>
           <label>{t("empresa.moneda")}</label>
-          <select
+          <SelectorPersonalizado
             value={empresa.moneda}
-            onChange={(e) => actualizarCampo("moneda", e.target.value)}
+            onChange={(v) => actualizarCampo("moneda", v)}
           >
             {MONEDAS.map((m) => (
-              <option key={m} value={m}>
+              <OpcionSelector key={m} value={m}>
                 {m}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
         </div>
 
         <div>
           <label>{t("empresa.zona_horaria")}</label>
-          <select
+          <SelectorPersonalizado
             value={empresa.zona_horaria}
-            onChange={(e) =>
-              actualizarCampo("zona_horaria", e.target.value)
-            }
+            onChange={(v) => actualizarCampo("zona_horaria", v)}
           >
             {ZONAS_HORARIAS.map((z) => (
-              <option key={z} value={z}>
+              <OpcionSelector key={z} value={z}>
                 {z}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
         </div>
 
         <div>
           <label>{t("empresa.idioma_negocio")}</label>
-          <select
+          <SelectorPersonalizado
             value={empresa.idioma}
-            onChange={(e) => actualizarCampo("idioma", e.target.value)}
+            onChange={(v) => actualizarCampo("idioma", v)}
           >
             {IDIOMAS.map((i) => (
-              <option key={i.valor} value={i.valor}>
+              <OpcionSelector key={i.valor} value={i.valor}>
                 {i.nombre}
-              </option>
+              </OpcionSelector>
             ))}
-          </select>
+          </SelectorPersonalizado>
         </div>
+      </div>
 
-        <div>
-          <label>{t("empresa.color_principal")}</label>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <input
-              type="color"
-              value={empresa.color_principal}
-              onChange={(e) =>
-                actualizarCampo("color_principal", e.target.value)
-              }
-              style={{ width: 46, height: 40, padding: 2, cursor: "pointer" }}
-            />
-            <input
-              value={empresa.color_principal}
-              onChange={(e) =>
-                actualizarCampo("color_principal", e.target.value)
-              }
-            />
-          </div>
-        </div>
+      <div
+        style={{
+          marginTop: 22,
+          paddingTop: 20,
+          borderTop: "1px solid var(--border)",
+        }}
+      >
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            cursor: "pointer",
+            fontSize: 13.5,
+            color: "var(--text-primary)",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={!!empresa.limpieza_ventas_activa}
+            onChange={(e) => actualizarCampo("limpieza_ventas_activa", e.target.checked)}
+            style={{ width: 18, height: 18 }}
+          />
+          {t("empresa.limpieza_ventas_activar")}
+        </label>
+        <p style={{ color: "var(--text-secondary)", fontSize: 12.5, marginTop: 6, marginLeft: 28 }}>
+          {t("empresa.limpieza_ventas_desc")}
+        </p>
       </div>
 
       {mensaje && (

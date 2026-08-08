@@ -1,22 +1,65 @@
 "use client";
 
-import React, { ReactNode, useState } from "react";
-import { usePathname } from "next/navigation";
+import React, { ReactNode, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import MobileTabBar from "./MobileTabBar";
+import PantallaCarga from "./PantallaCarga";
+import TutorialInicioModal from "./TutorialInicioModal";
+import ModoInicialModal from "./ModoInicialModal";
+import SeleccionNegocioModal from "./SeleccionNegocioModal";
+import { useMiembroActivo } from "./MiembroActivoProvider";
+import { useModoInterfaz } from "./ModoInterfazProvider";
+import { useTipoNegocio } from "./TipoNegocioProvider";
+import { RUTAS_PERMITIDAS_MIEMBRO } from "../lib/navegacion";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { miembroActivo, puede, cargando: cargandoMiembro } = useMiembroActivo();
+  const { modoInterfaz, cargando: cargandoModo } = useModoInterfaz();
+  const { tipoNegocio, cargando: cargandoTipoNegocio } = useTipoNegocio();
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
 
-  // La pantalla de login/registro y la de bienvenida se muestran solas,
-  // sin sidebar ni header.
+  // La pantalla de login/registro, la de bienvenida, el catálogo
+  // público y el portal de cada cliente (todas sin sesión) se
+  // muestran solas, sin sidebar ni header.
   const esPantallaPublica =
-    pathname === "/login" || pathname === "/bienvenida";
+    pathname === "/login" ||
+    pathname === "/bienvenida" ||
+    pathname.startsWith("/catalogo/") ||
+    pathname.startsWith("/portal-clientes/");
+
+  // Un miembro del equipo solo puede navegar a Dashboard/Caja/Ventas/
+  // Productos — cualquier otra URL (aunque no aparezca en el menú) lo
+  // regresa al dashboard en vez de mostrarle esa pantalla. Configuración
+  // es la excepción: el dueño puede darle ese permiso puntual a un
+  // miembro (checkbox "Acceso a configuración" en Usuarios), así que se
+  // permite además cuando puede("configuracion") es verdadero.
+  const rutaPermitida =
+    !miembroActivo ||
+    esPantallaPublica ||
+    RUTAS_PERMITIDAS_MIEMBRO.some((r) => pathname === r || pathname.startsWith(`${r}/`)) ||
+    (puede("configuracion") && (pathname === "/configuracion" || pathname.startsWith("/configuracion/")));
+
+  useEffect(() => {
+    if (!cargandoMiembro && !rutaPermitida) {
+      router.replace("/menu");
+    }
+  }, [cargandoMiembro, rutaPermitida, router]);
 
   if (esPantallaPublica) {
     return <>{children}</>;
+  }
+
+  // Mientras se resuelve si esta sesión tiene un miembro activo, se
+  // muestra la pantalla de marca en vez de montar el sidebar/header
+  // con el área de contenido vacía — así el arranque de la app se ve
+  // como una pantalla completa, no como un hueco en blanco dentro del
+  // layout ya armado.
+  if (cargandoMiembro) {
+    return <PantallaCarga />;
   }
 
   return (
@@ -32,11 +75,23 @@ export default function AppShell({ children }: { children: ReactNode }) {
         />
 
         <div className="page-content fade-up" key={pathname}>
-          {children}
+          {rutaPermitida ? children : null}
         </div>
       </div>
 
       <MobileTabBar />
+      {/* El tutorial general solo se evalúa una vez que ya se sabe el
+          tipo de negocio Y el modo de interfaz — si no, alguien que
+          todavía no eligió podría ver el tutorial (o varias pantallas
+          de bienvenida a la vez) antes de responder las preguntas
+          iniciales. SeleccionNegocioModal va primero (¿qué tipo de
+          negocio?), luego ModoInicialModal (¿Easy o Completo?) — cada
+          una ya espera a la anterior con su propio "debeMostrarse". */}
+      {!cargandoModo && !cargandoTipoNegocio && modoInterfaz !== null && tipoNegocio !== null && (
+        <TutorialInicioModal />
+      )}
+      <SeleccionNegocioModal />
+      <ModoInicialModal />
     </div>
   );
 }

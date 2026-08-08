@@ -1,0 +1,388 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowRightLeft, MapPin, Package, Warehouse } from "lucide-react";
+import { mensajeErrorSeguro } from "../../lib/errores";
+import { useAuth } from "../../components/AuthProvider";
+import { useIdioma } from "../../components/LanguageProvider";
+import { useToast } from "../../components/ToastProvider";
+import EncabezadoModulo from "../../components/EncabezadoModulo";
+import RequierePlus from "../../components/RequierePlus";
+import SelectorPersonalizado, { OpcionSelector } from "../../components/SelectorPersonalizado";
+import { Producto, Ubicacion, StockUbicacion, Traspaso } from "./types";
+import { cargarDatos, realizarTraspaso } from "./acciones";
+import CargandoLista from "../../components/CargandoLista";
+
+const TIENDA = "__tienda__";
+
+export default function TraspasosPage() {
+  return (
+    <RequierePlus>
+      <TraspasosContenido />
+    </RequierePlus>
+  );
+}
+
+function TraspasosContenido() {
+  const router = useRouter();
+  const { user, cargando: cargandoAuth } = useAuth();
+  const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+
+  const [loading, setLoading] = useState(true);
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
+  const [stockUbicaciones, setStockUbicaciones] = useState<StockUbicacion[]>([]);
+  const [traspasos, setTraspasos] = useState<Traspaso[]>([]);
+
+  const [productoId, setProductoId] = useState("");
+  const [origen, setOrigen] = useState(TIENDA);
+  const [destino, setDestino] = useState("");
+  const [cantidad, setCantidad] = useState("");
+  const [traspasando, setTraspasando] = useState(false);
+
+  const [ubicacionVista, setUbicacionVista] = useState("");
+
+  // acciones.ts lanza sentinels sin traducir (ver comentario en
+  // lib/errores.ts) para los casos donde sí hay un mensaje pensado
+  // para mostrarse — esta función los traduce; null si el error no es
+  // ninguno de los esperados (deja pasar a mensajeErrorSeguro/fallback).
+  function mensajeTraspaso(error: unknown): string | null {
+    if (!(error instanceof Error)) return null;
+    switch (error.message) {
+      case "STOCK_INSUFICIENTE_UBICACION":
+        return t("traspasos.msg_stock_insuficiente_ubicacion");
+      case "STOCK_INSUFICIENTE_TIENDA":
+        return t("traspasos.msg_stock_insuficiente_tienda");
+      case "STOCK_CAMBIO":
+        return t("comun.msg_stock_cambio");
+      case "ORIGEN_DESTINO_IGUALES":
+        return t("traspasos.msg_origen_destino_iguales");
+      case "CANTIDAD_INVALIDA":
+        return t("fabricacion.msg_cantidad_invalida");
+      default:
+        return null;
+    }
+  }
+
+  async function obtenerDatos() {
+    setLoading(true);
+    try {
+      const datos = await cargarDatos();
+      setProductos(datos.productos);
+      setUbicaciones(datos.ubicaciones);
+      setStockUbicaciones(datos.stockUbicaciones);
+      setTraspasos(datos.traspasos);
+    } catch (error) {
+      console.error(error);
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (cargandoAuth) return;
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    obtenerDatos();
+  }, [cargandoAuth, user]);
+
+  const ubicacionVistaActual = ubicacionVista || (ubicaciones[0] ? String(ubicaciones[0].id) : "");
+
+  const producto = productos.find((p) => p.id === Number(productoId)) ?? null;
+
+  const stockOrigenDisponible = useMemo(() => {
+    if (!producto) return 0;
+    if (origen === TIENDA) return producto.stock;
+
+    const fila = stockUbicaciones.find(
+      (s) => s.producto_id === producto.id && s.ubicacion_id === Number(origen)
+    );
+    return fila?.stock ?? 0;
+  }, [producto, origen, stockUbicaciones]);
+
+  function limpiarTraspaso() {
+    setProductoId("");
+    setOrigen(TIENDA);
+    setDestino("");
+    setCantidad("");
+  }
+
+  async function hacerTraspaso() {
+    if (traspasando) return;
+
+    if (!producto) {
+      mostrarToast(t("traspasos.msg_selecciona_producto"), "error");
+      return;
+    }
+
+    if (!destino) {
+      mostrarToast(t("traspasos.selecciona_destino"), "error");
+      return;
+    }
+
+    if (origen === destino) {
+      mostrarToast(t("traspasos.msg_origen_destino_iguales"), "error");
+      return;
+    }
+
+    const cantidadNum = Number(cantidad);
+    if (!Number.isFinite(cantidadNum) || cantidadNum <= 0) {
+      mostrarToast(t("fabricacion.msg_cantidad_invalida"), "error");
+      return;
+    }
+
+    const origenId = origen === TIENDA ? null : Number(origen);
+    const destinoId = destino === TIENDA ? null : Number(destino);
+    const origenNombre = origen === TIENDA ? null : ubicaciones.find((u) => u.id === origenId)?.nombre ?? null;
+    const destinoNombre = destino === TIENDA ? null : ubicaciones.find((u) => u.id === destinoId)?.nombre ?? null;
+
+    try {
+      setTraspasando(true);
+      await realizarTraspaso(producto, cantidadNum, origenId, destinoId, origenNombre, destinoNombre);
+      limpiarTraspaso();
+      await obtenerDatos();
+    } catch (error) {
+      console.error(error);
+      mostrarToast(mensajeTraspaso(error) || mensajeErrorSeguro(error) || t("traspasos.msg_error_traspaso"), "error");
+    } finally {
+      setTraspasando(false);
+    }
+  }
+
+  const unidadesTraspasadas = traspasos.reduce((sum, tr) => sum + tr.cantidad, 0);
+
+  const stockEnUbicacionVista = stockUbicaciones.filter(
+    (s) => String(s.ubicacion_id) === ubicacionVistaActual
+  );
+
+  if (cargandoAuth || !user) {
+    return (
+      <main className="fade-up">
+        <CargandoLista />
+      </main>
+    );
+  }
+
+  return (
+    <main className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <EncabezadoModulo
+        Icono={ArrowRightLeft}
+        color="#8b5cf6"
+        titulo={t("sidebar.traspasos")}
+        subtitulo={t("traspasos.subtitulo")}
+      />
+
+      {traspasos.length > 0 && (
+        <div className="modulo-resumen">
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <MapPin size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{ubicaciones.length}</span>
+              <span className="modulo-resumen-etiqueta">{t("traspasos.resumen_ubicaciones")}</span>
+            </div>
+          </div>
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <ArrowRightLeft size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{traspasos.length}</span>
+              <span className="modulo-resumen-etiqueta">{t("traspasos.resumen_traspasos")}</span>
+            </div>
+          </div>
+          <div className="modulo-resumen-item">
+            <span className="modulo-resumen-icono">
+              <Package size={17} />
+            </span>
+            <div>
+              <span className="modulo-resumen-valor">{unidadesTraspasadas}</span>
+              <span className="modulo-resumen-etiqueta">{t("traspasos.resumen_unidades")}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <CargandoLista />
+      ) : (
+      <>
+      <div className="card">
+        <h2 style={{ marginBottom: 10 }}>{t("traspasos.ubicaciones")}</h2>
+        <p style={{ color: "var(--text-secondary)", fontSize: 13.5, marginBottom: 14 }}>
+          {t("traspasos.ubicaciones_gestion_movida")}
+        </p>
+
+        {ubicaciones.length > 0 && (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+            {ubicaciones.map((u) => (
+              <span
+                key={u.id}
+                style={{
+                  background: "var(--bg-secondary)",
+                  padding: "6px 10px",
+                  borderRadius: 8,
+                  fontSize: 13,
+                }}
+              >
+                {u.nombre}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <Link
+          href="/almacenes"
+          className="btn-secondary"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, width: "fit-content" }}
+        >
+          <Warehouse size={15} /> {t("sidebar.almacenes")}
+        </Link>
+      </div>
+
+      <div className="card">
+        <h2 style={{ marginBottom: 16 }}>{t("traspasos.traspasar")}</h2>
+
+        <div className="productos-grid">
+          <SelectorPersonalizado value={productoId} onChange={setProductoId}>
+            <OpcionSelector value="">{t("fabricacion.selecciona_producto")}</OpcionSelector>
+            {productos.map((p) => (
+              <OpcionSelector key={p.id} value={p.id}>
+                {p.nombre}
+              </OpcionSelector>
+            ))}
+          </SelectorPersonalizado>
+
+          <SelectorPersonalizado value={origen} onChange={setOrigen}>
+            <OpcionSelector value={TIENDA}>{t("traspasos.tienda")}</OpcionSelector>
+            {ubicaciones.map((u) => (
+              <OpcionSelector key={u.id} value={u.id}>
+                {u.nombre}
+              </OpcionSelector>
+            ))}
+          </SelectorPersonalizado>
+
+          <SelectorPersonalizado value={destino} onChange={setDestino}>
+            <OpcionSelector value="">{t("traspasos.selecciona_destino")}</OpcionSelector>
+            <OpcionSelector value={TIENDA}>{t("traspasos.tienda")}</OpcionSelector>
+            {ubicaciones.map((u) => (
+              <OpcionSelector key={u.id} value={u.id}>
+                {u.nombre}
+              </OpcionSelector>
+            ))}
+          </SelectorPersonalizado>
+
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={cantidad}
+            onChange={(e) => setCantidad(e.target.value)}
+            placeholder={t("traspasos.cantidad_a_transferir")}
+          />
+        </div>
+
+        {producto && (
+          <p style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 10 }}>
+            {t("traspasos.disponible_en_origen")}: <strong>{stockOrigenDisponible}</strong>
+          </p>
+        )}
+
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+          <button className="btn-primary" onClick={hacerTraspaso} disabled={traspasando}>
+            {traspasando ? t("compras.guardando") : t("traspasos.traspasar")}
+          </button>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2 style={{ marginBottom: 16 }}>{t("traspasos.stock_por_ubicacion")}</h2>
+
+        {ubicaciones.length === 0 ? (
+          <p style={{ color: "var(--text-secondary)", fontSize: 13.5 }}>{t("traspasos.sin_ubicaciones")}</p>
+        ) : (
+          <>
+            <SelectorPersonalizado value={ubicacionVistaActual} onChange={setUbicacionVista} style={{ maxWidth: 260 }}>
+              {ubicaciones.map((u) => (
+                <OpcionSelector key={u.id} value={u.id}>
+                  {u.nombre}
+                </OpcionSelector>
+              ))}
+            </SelectorPersonalizado>
+
+            <div className="tabla" style={{ marginTop: 16 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>{t("tabla.producto")}</th>
+                    <th>{t("traspasos.col_stock")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stockEnUbicacionVista.length === 0 ? (
+                    <tr>
+                      <td colSpan={2} style={{ textAlign: "center", padding: 24, color: "var(--text-secondary)" }}>
+                        {t("traspasos.sin_stock_ubicacion")}
+                      </td>
+                    </tr>
+                  ) : (
+                    stockEnUbicacionVista.map((s) => (
+                      <tr key={s.id}>
+                        <td>{s.producto_nombre}</td>
+                        <td style={{ fontWeight: 700 }}>{s.stock}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="tabla">
+        <table>
+          <thead>
+            <tr>
+              <th>{t("tabla.fecha")}</th>
+              <th>{t("tabla.producto")}</th>
+              <th>{t("traspasos.col_origen")}</th>
+              <th>{t("traspasos.col_destino")}</th>
+              <th>{t("tabla.cantidad")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {traspasos.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: "center", padding: 32, color: "var(--text-secondary)" }}>
+                  {t("traspasos.sin_traspasos")}
+                </td>
+              </tr>
+            ) : (
+              traspasos.map((tr) => (
+                <tr key={tr.id}>
+                  <td>{new Date(tr.fecha).toLocaleString()}</td>
+                  <td>{tr.producto_nombre}</td>
+                  <td>{tr.ubicacion_origen_nombre ?? t("traspasos.tienda")}</td>
+                  <td>{tr.ubicacion_destino_nombre ?? t("traspasos.tienda")}</td>
+                  <td style={{ fontWeight: 700 }}>{tr.cantidad}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      </>
+      )}
+    </main>
+  );
+}

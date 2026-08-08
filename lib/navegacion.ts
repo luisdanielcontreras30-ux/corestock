@@ -1,0 +1,133 @@
+import {
+  LayoutDashboard,
+  BarChart3,
+  Package,
+  Bell,
+  DollarSign,
+  Settings,
+  Sparkles,
+  Truck,
+  Users,
+  ShoppingCart,
+  FileText,
+  Receipt,
+  Files,
+  Percent,
+  ArrowRightLeft,
+  SlidersHorizontal,
+  Factory,
+  Inbox,
+  CalendarClock,
+  UserCircle,
+  BookOpen,
+  MessageCircle,
+  MessagesSquare,
+  Landmark,
+  PlayCircle,
+  Crown,
+  Zap,
+  ScanSearch,
+  RotateCcw,
+  HandCoins,
+  Wrench,
+  Warehouse,
+  LucideIcon,
+} from "lucide-react";
+
+export interface ItemNav {
+  claveNombre: string;
+  href: string;
+  Icono: LucideIcon;
+  // Módulos que todavía no tienen funcionalidad real (ver
+  // components/ProximamentePage.tsx) — se marcan en la navegación para
+  // que el usuario no piense que ya funcionan antes de entrar.
+  proximamente?: boolean;
+  // Color de acento de este apartado — solo se usa en móvil (página
+  // "Más" y la barra inferior), para que cada apartado se distinga a
+  // simple vista. El sidebar de escritorio no lo usa a propósito.
+  colorMovil: string;
+}
+
+export interface SeccionNav {
+  claveTitulo: string;
+  items: ItemNav[];
+}
+
+// Fuente única de la navegación de la app: la usan tanto el sidebar de
+// escritorio como la página "/mas" en móvil.
+export const SECCIONES_NAV: SeccionNav[] = [
+  {
+    claveTitulo: "sidebar.principal",
+    items: [
+      { claveNombre: "sidebar.dashboard", href: "/menu", Icono: LayoutDashboard, colorMovil: "#6366f1" },
+      { claveNombre: "sidebar.graficas", href: "/graficas", Icono: BarChart3, colorMovil: "#06b6d4" },
+      { claveNombre: "sidebar.asistente", href: "/asistente", Icono: Sparkles, colorMovil: "#a855f7" },
+      { claveNombre: "sidebar.chat", href: "/chat", Icono: MessagesSquare, colorMovil: "#0ea5e9" },
+    ],
+  },
+  {
+    claveTitulo: "sidebar.inventario",
+    items: [
+      { claveNombre: "sidebar.productos", href: "/productos", Icono: Package, colorMovil: "#22c55e" },
+      { claveNombre: "sidebar.analisis_producto", href: "/analisis-producto", Icono: ScanSearch, colorMovil: "#c026d3" },
+      { claveNombre: "sidebar.proveedores", href: "/proveedores", Icono: Truck, colorMovil: "#b45309" },
+      { claveNombre: "sidebar.alertas", href: "/alertas", Icono: Bell, colorMovil: "#ef4444" },
+      { claveNombre: "sidebar.ajustes_stock", href: "/ajustes-stock", Icono: SlidersHorizontal, colorMovil: "#0ea5e9" },
+      { claveNombre: "sidebar.almacenes", href: "/almacenes", Icono: Warehouse, colorMovil: "#0d9488" },
+      { claveNombre: "sidebar.traspasos", href: "/traspasos", Icono: ArrowRightLeft, colorMovil: "#8b5cf6" },
+      { claveNombre: "sidebar.fabricacion", href: "/fabricacion", Icono: Factory, colorMovil: "#ea580c" },
+    ],
+  },
+  {
+    claveTitulo: "sidebar.operaciones",
+    items: [
+      { claveNombre: "sidebar.ventas", href: "/ventas", Icono: DollarSign, colorMovil: "#10b981" },
+      { claveNombre: "sidebar.ventas_rapidas", href: "/ventas-rapidas", Icono: Zap, colorMovil: "#10b981" },
+      { claveNombre: "sidebar.devoluciones", href: "/devoluciones", Icono: RotateCcw, colorMovil: "#fb7185" },
+      { claveNombre: "sidebar.cuentas_por_cobrar", href: "/cuentas-por-cobrar", Icono: HandCoins, colorMovil: "#facc15" },
+      { claveNombre: "sidebar.clientes", href: "/clientes", Icono: Users, colorMovil: "#ec4899" },
+      { claveNombre: "sidebar.compras", href: "/compras", Icono: ShoppingCart, colorMovil: "#14b8a6" },
+      { claveNombre: "sidebar.servicios", href: "/servicios", Icono: Wrench, colorMovil: "#65a30d" },
+      { claveNombre: "sidebar.cotizaciones", href: "/cotizaciones", Icono: FileText, colorMovil: "#3b82f6" },
+      { claveNombre: "sidebar.facturas", href: "/facturas", Icono: Receipt, colorMovil: "#f43f5e" },
+      { claveNombre: "sidebar.facturas_globales", href: "/facturas-globales", Icono: Files, colorMovil: "#d946ef" },
+      { claveNombre: "sidebar.caja", href: "/caja", Icono: Inbox, colorMovil: "#84cc16" },
+      { claveNombre: "sidebar.cortes_historicos", href: "/cortes-historicos", Icono: CalendarClock, colorMovil: "#eab308" },
+      { claveNombre: "sidebar.conciliaciones", href: "/conciliaciones", Icono: Landmark, colorMovil: "#0d9488" },
+    ],
+  },
+  {
+    claveTitulo: "sidebar.marketing",
+    items: [
+      { claveNombre: "sidebar.promociones", href: "/promociones", Icono: Percent, colorMovil: "#f97316" },
+      { claveNombre: "sidebar.catalogo_linea", href: "/catalogo-linea", Icono: BookOpen, colorMovil: "#7c3aed" },
+      { claveNombre: "sidebar.portal_clientes", href: "/portal-clientes", Icono: UserCircle, colorMovil: "#db2777" },
+      { claveNombre: "sidebar.whatsapp", href: "/whatsapp", Icono: MessageCircle, colorMovil: "#25d366" },
+    ],
+  },
+  {
+    claveTitulo: "sidebar.sistema",
+    items: [
+      { claveNombre: "sidebar.suscripcion", href: "/suscripcion", Icono: Crown, colorMovil: "#f59e0b" },
+      { claveNombre: "sidebar.configuracion", href: "/configuracion", Icono: Settings, colorMovil: "#64748b" },
+      { claveNombre: "sidebar.tutoriales", href: "/tutoriales", Icono: PlayCircle, colorMovil: "#0891b2" },
+    ],
+  },
+];
+
+// Rutas que ya tienen su propio ícono fijo en la barra inferior móvil,
+// así que no hace falta repetirlas en la página "Más".
+export const RUTAS_EN_TABBAR_MOVIL = ["/menu", "/ventas", "/productos"];
+
+// CoreStock Easy: navegación reducida a lo esencial para vender y
+// controlar el negocio del día a día. El sidebar de escritorio y la
+// barra móvil colapsan a estas rutas (sin secciones) cuando el modo es
+// "easy" — todo lo demás sigue existiendo, solo deja de competir por
+// atención en la navegación principal (ver /mas).
+export const RUTAS_EASY = ["/menu", "/ventas-rapidas", "/productos", "/caja", "/configuracion"];
+
+// Un miembro del equipo (no el dueño) solo puede navegar a estas
+// rutas — Dashboard, Caja, Ventas y Productos. Se usa tanto para
+// ocultar el resto de la navegación (Sidebar, MobileTabBar) como para
+// bloquear el acceso directo por URL (AppShell).
+export const RUTAS_PERMITIDAS_MIEMBRO = ["/menu", "/caja", "/ventas", "/ventas-rapidas", "/productos", "/chat"];

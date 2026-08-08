@@ -1,20 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LogOut } from "lucide-react";
 import { supabase } from "../../../lib/supabase";
 import { useIdioma } from "../../../components/LanguageProvider";
 import { useAuth } from "../../../components/AuthProvider";
+import { useMiembroActivo } from "../../../components/MiembroActivoProvider";
+import { LOCALES } from "../../../lib/i18n";
+import CargandoLista from "../../../components/CargandoLista";
 
 export default function CuentaTab() {
-  const { t } = useIdioma();
+  const { t, idioma } = useIdioma();
   const { user, cargando } = useAuth();
+  const { miembroActivo, limpiarMiembroActivo } = useMiembroActivo();
   const [cerrando, setCerrando] = useState(false);
 
-  const correo = user?.email || "Sin correo";
+  const correo = user?.email || t("cuenta.sin_correo");
 
   const creadoEn = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString("es-MX", {
+    ? new Date(user.created_at).toLocaleDateString(LOCALES[idioma], {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -28,6 +32,7 @@ export default function CuentaTab() {
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     } finally {
+      limpiarMiembroActivo();
       window.location.href = "/login";
     }
   }
@@ -35,7 +40,7 @@ export default function CuentaTab() {
   const inicial = correo ? correo.charAt(0).toUpperCase() : "U";
 
   if (cargando) {
-    return <div className="card">{t("header.cargando")}</div>;
+    return <CargandoLista filas={3} />;
   }
 
   return (
@@ -101,6 +106,23 @@ export default function CuentaTab() {
           )}
         </div>
       </div>
+
+      {miembroActivo && (
+        <div
+          className="card"
+          style={{
+            borderColor: "var(--primary)",
+            background: "var(--primary-soft)",
+            marginBottom: 20,
+            padding: 14,
+          }}
+        >
+          <p style={{ margin: 0, fontSize: 13 }}>
+            {t("cuenta.entraste_como")} <strong>{miembroActivo.nombre}</strong>.{" "}
+            {t("cuenta.entraste_como_desc")}
+          </p>
+        </div>
+      )}
 
       <button
         className="logout-real-btn"

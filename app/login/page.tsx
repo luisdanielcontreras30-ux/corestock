@@ -4,6 +4,9 @@ import { Suspense, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Package, BarChart3, Zap } from "lucide-react";
+import { useMiembroActivo } from "../../components/MiembroActivoProvider";
+import { entrarComoMiembro, RazonLoginMiembro } from "../configuracion/acciones";
+import { useIdioma } from "../../components/LanguageProvider";
 
 export default function Login() {
   return (
@@ -19,49 +22,114 @@ function LoginInterno() {
   const modoInicial =
     searchParams.get("modo") === "registro" ? "registro" : "login";
 
-  const [modo, setModo] = useState<"login" | "registro">(modoInicial);
+  const [modo, setModo] = useState<"login" | "registro" | "recuperar">(modoInicial);
   const [correo, setCorreo] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmarPassword, setConfirmarPassword] = useState("");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const { establecerMiembroActivo, limpiarMiembroActivo } = useMiembroActivo();
+  const { t } = useIdioma();
 
   async function iniciarSesion() {
+    // El botón de enviar ya se deshabilita con "cargando", pero los
+    // campos de texto no — Enter dentro de un input dispara el mismo
+    // onSubmit igual, así que un Enter doble entra dos veces aquí
+    // antes de que el primer setCargando(true) alcance a re-renderizar.
+    if (cargando) return;
+
     setError("");
     setMensaje("");
 
     if (!correo || !password) {
-      setError("Ingresa tu correo y contraseña.");
+      setError(t("login.msg_faltan_campos"));
       return;
     }
+
+    const nombreUsuario = usuario.trim();
 
     setCargando(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: correo,
-      password,
-    });
+    // Sin nombre de usuario, entra como el dueño de la cuenta (sin
+    // restricciones) con su correo y contraseña, como siempre.
+    if (!nombreUsuario) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: correo,
+        password,
+      });
 
-    if (error) {
-      setError(traducirError(error.message));
-      setCargando(false);
+      if (error) {
+        setError(traducirError(error.message));
+        setCargando(false);
+        return;
+      }
+
+      limpiarMiembroActivo();
+      router.push("/");
       return;
     }
 
-    router.push("/");
+    // Con un nombre de usuario, la contraseña escrita es la del
+    // miembro (no la de la cuenta) — nunca necesita la contraseña
+    // principal. Se valida en el servidor y, si coincide, se abre
+    // sesión con el token que devuelve en vez de un signInWithPassword.
+    try {
+      const resultado = await entrarComoMiembro(correo, nombreUsuario, password);
+
+      if (!resultado.ok) {
+        setError(traducirRazonLoginMiembro(resultado.razon));
+        setCargando(false);
+        return;
+      }
+
+      const { error: errorOtp } = await supabase.auth.verifyOtp({
+        token_hash: resultado.tokenHash,
+        type: "magiclink",
+      });
+
+      if (errorOtp) {
+        console.error(errorOtp);
+        setError(t("login.error_generico"));
+        setCargando(false);
+        return;
+      }
+
+      establecerMiembroActivo(resultado.miembro, resultado.userId, resultado.negocioId);
+      router.push("/");
+    } catch (err) {
+      console.error(err);
+      setError(t("login.error_generico"));
+      setCargando(false);
+    }
+  }
+
+  function traducirRazonLoginMiembro(razon: RazonLoginMiembro): string {
+    if (razon === "no_encontrado") return t("login.razon_no_encontrado");
+    if (razon === "sin_contrasena") return t("login.razon_sin_contrasena");
+    if (razon === "demasiados_intentos") return t("login.razon_demasiados_intentos");
+    return t("login.razon_incorrecto");
   }
 
   async function registrarse() {
+    if (cargando) return;
+
     setError("");
     setMensaje("");
 
     if (!correo || !password) {
-      setError("Ingresa tu correo y contraseña.");
+      setError(t("login.msg_faltan_campos"));
       return;
     }
 
     if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
+      setError(t("login.msg_password_corta"));
+      return;
+    }
+
+    if (password !== confirmarPassword) {
+      setError(t("login.msg_passwords_no_coinciden"));
       return;
     }
 
@@ -85,24 +153,63 @@ function LoginInterno() {
       return;
     }
 
-    setMensaje("Cuenta creada. Revisa tu correo para confirmarla.");
+    setMensaje(t("login.msg_cuenta_creada"));
+    setCargando(false);
+  }
+
+  async function enviarRecuperacion() {
+    if (cargando) return;
+
+    setError("");
+    setMensaje("");
+
+    if (!correo) {
+      setError(t("login.msg_faltan_campos"));
+      return;
+    }
+
+    setCargando(true);
+
+    // No se distingue si el correo existe o no en la respuesta (ni en
+    // el mensaje que se muestra) — así nadie puede usar este formulario
+    // para averiguar qué correos están registrados en CoreStock.
+    const { error } = await supabase.auth.resetPasswordForEmail(correo, {
+      redirectTo: `${window.location.origin}/restablecer-contrasena`,
+    });
+
+    if (error) {
+      console.error(error);
+      setError(t("login.error_generico"));
+      setCargando(false);
+      return;
+    }
+
+    setMensaje(t("login.msg_recuperacion_enviada"));
     setCargando(false);
   }
 
   function traducirError(msg: string): string {
     if (msg.includes("Invalid login credentials")) {
-      return "Correo o contraseña incorrectos.";
+      return t("login.error_credenciales");
     }
     if (msg.includes("already registered")) {
-      return "Ese correo ya está registrado.";
+      return t("login.error_ya_registrado");
     }
-    return msg;
+    // Cualquier otro error de Supabase Auth (límite de intentos,
+    // contraseña débil, etc.) no tiene traducción propia — mostrarlo
+    // tal cual dejaba texto en inglés crudo para las otras 6 idiomas
+    // que soporta la app. Se deja en consola para poder diagnosticar
+    // qué mensaje nuevo hizo falta mapear.
+    console.error("Error de auth sin traducción:", msg);
+    return t("login.error_generico");
   }
 
   function alEnviar(e: React.FormEvent) {
     e.preventDefault();
     if (modo === "login") {
       iniciarSesion();
+    } else if (modo === "recuperar") {
+      enviarRecuperacion();
     } else {
       registrarse();
     }
@@ -119,14 +226,13 @@ function LoginInterno() {
           <div className="login-brand-logo">⬢</div>
           <h1>CoreStock</h1>
           <p>
-            Controla tu inventario, tus ventas y tu crecimiento
-            desde un solo lugar, con estadísticas en tiempo real.
+            {t("login.brand_desc")}
           </p>
 
           <ul className="login-brand-list">
-            <li><Package size={15} /> Inventario con imágenes por producto</li>
-            <li><BarChart3 size={15} /> Gráficas de ventas Semanal / Mensual / Anual</li>
-            <li><Zap size={15} /> Importa y exporta tu catálogo en Excel</li>
+            <li><Package size={15} /> {t("login.brand_item1")}</li>
+            <li><BarChart3 size={15} /> {t("login.brand_item2")}</li>
+            <li><Zap size={15} /> {t("login.brand_item3")}</li>
           </ul>
         </div>
       </div>
@@ -137,12 +243,20 @@ function LoginInterno() {
           className="login-card fade-up"
           onSubmit={alEnviar}
         >
-          <h1>{modo === "login" ? "Bienvenido de vuelta" : "Crea tu cuenta"}</h1>
+          <h1>
+            {modo === "login"
+              ? t("login.titulo_login")
+              : modo === "recuperar"
+              ? t("login.titulo_recuperar")
+              : t("login.titulo_registro")}
+          </h1>
 
           <p>
             {modo === "login"
-              ? "Inicia sesión para continuar"
-              : "Empieza a organizar tu inventario"}
+              ? t("login.subtitulo_login")
+              : modo === "recuperar"
+              ? t("login.subtitulo_recuperar")
+              : t("login.subtitulo_registro")}
           </p>
 
           {error && <div className="login-alert login-alert-error">{error}</div>}
@@ -150,46 +264,114 @@ function LoginInterno() {
             <div className="login-alert login-alert-success">{mensaje}</div>
           )}
 
-          <label className="login-label">Correo electrónico</label>
+          <label className="login-label" htmlFor="login-correo">{t("login.label_correo")}</label>
           <input
+            id="login-correo"
             type="email"
             placeholder="tucorreo@ejemplo.com"
             value={correo}
             onChange={(e) => setCorreo(e.target.value)}
           />
 
-          <label className="login-label">Contraseña</label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          {modo === "login" && (
+            <>
+              <label className="login-label" htmlFor="login-usuario">
+                {t("login.label_usuario")} <span className="login-label-opcional">{t("login.label_usuario_opcional")}</span>
+              </label>
+              <input
+                id="login-usuario"
+                type="text"
+                placeholder={t("login.placeholder_usuario")}
+                value={usuario}
+                onChange={(e) => setUsuario(e.target.value)}
+              />
+            </>
+          )}
+
+          {modo !== "recuperar" && (
+            <>
+              <label className="login-label" htmlFor="login-password">{t("login.label_password")}</label>
+              <input
+                id="login-password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </>
+          )}
+
+          {modo === "login" && (
+            <button
+              type="button"
+              className="login-link-recuperar"
+              disabled={cargando}
+              onClick={() => {
+                setModo("recuperar");
+                setError("");
+                setMensaje("");
+              }}
+            >
+              {t("login.link_olvidaste_password")}
+            </button>
+          )}
+
+          {modo === "registro" && (
+            <>
+              <label className="login-label" htmlFor="login-confirmar-password">{t("login.label_confirmar_password")}</label>
+              <input
+                id="login-confirmar-password"
+                type="password"
+                placeholder="••••••••"
+                value={confirmarPassword}
+                onChange={(e) => setConfirmarPassword(e.target.value)}
+              />
+            </>
+          )}
 
           <button className="btn-login" disabled={cargando} type="submit">
             {cargando ? (
               <span className="login-spinner" />
             ) : modo === "login" ? (
-              "Iniciar sesión"
+              t("login.btn_iniciar_sesion")
+            ) : modo === "recuperar" ? (
+              t("login.btn_enviar_recuperacion")
             ) : (
-              "Registrarse"
+              t("login.btn_registrarse")
             )}
           </button>
 
-          <button
-            className="btn-register"
-            type="button"
-            disabled={cargando}
-            onClick={() => {
-              setModo(modo === "login" ? "registro" : "login");
-              setError("");
-              setMensaje("");
-            }}
-          >
-            {modo === "login"
-              ? "¿No tienes cuenta? Regístrate"
-              : "¿Ya tienes cuenta? Inicia sesión"}
-          </button>
+          {modo === "recuperar" ? (
+            <button
+              className="btn-register"
+              type="button"
+              disabled={cargando}
+              onClick={() => {
+                setModo("login");
+                setError("");
+                setMensaje("");
+              }}
+            >
+              {t("login.btn_ir_login")}
+            </button>
+          ) : (
+            <button
+              className="btn-register"
+              type="button"
+              disabled={cargando}
+              onClick={() => {
+                setModo(modo === "login" ? "registro" : "login");
+                setError("");
+                setMensaje("");
+                setConfirmarPassword("");
+                setUsuario("");
+              }}
+            >
+              {modo === "login"
+                ? t("login.btn_ir_registro")
+                : t("login.btn_ir_login")}
+            </button>
+          )}
         </form>
       </div>
     </main>

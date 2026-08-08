@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Info, CheckCircle2, XCircle } from "lucide-react";
+import SelectorPersonalizado, { OpcionSelector } from "../../../components/SelectorPersonalizado";
 import {
   Miembro,
   Rol,
@@ -16,15 +17,29 @@ import {
   actualizarMiembro,
   eliminarMiembro,
   cambiarMiContrasena,
+  establecerContrasenaMiembro,
 } from "../acciones";
 import { useIdioma } from "../../../components/LanguageProvider";
+import { useToast } from "../../../components/ToastProvider";
+import { useConfirm } from "../../../components/ConfirmProvider";
+import { useMiembroActivo } from "../../../components/MiembroActivoProvider";
 
 export default function UsuariosTab() {
   const { t } = useIdioma();
+  const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
+  // Un miembro del equipo entra con la misma sesión de Supabase Auth
+  // del dueño (no tiene una identidad propia — ver entrar-como-miembro),
+  // así que "Cambiar mi contraseña" en realidad sobrescribiría la
+  // contraseña real de la cuenta dueña, no una contraseña propia del
+  // miembro. Ese widget solo debe verlo el dueño (miembroActivo null);
+  // la contraseña de un miembro se gestiona desde "Editar miembro".
+  const { miembroActivo } = useMiembroActivo();
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [cargando, setCargando] = useState(true);
   const [editando, setEditando] = useState<Miembro | null>(null);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [alternandoId, setAlternandoId] = useState<string | null>(null);
 
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
@@ -32,9 +47,11 @@ export default function UsuariosTab() {
   const [permisos, setPermisos] = useState<Permiso[]>(
     PERMISOS_POR_ROL.cajero
   );
+  const [contrasenaMiembro, setContrasenaMiembro] = useState("");
   const [guardando, setGuardando] = useState(false);
 
   const [nuevaContrasena, setNuevaContrasena] = useState("");
+  const [confirmarContrasena, setConfirmarContrasena] = useState("");
   const [guardandoPass, setGuardandoPass] = useState(false);
   const [mensajePass, setMensajePass] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
 
@@ -45,6 +62,7 @@ export default function UsuariosTab() {
       setMiembros(datos);
     } catch (error) {
       console.error(error);
+      mostrarToast(t("comun.msg_error_cargar_datos"), "error");
     } finally {
       setCargando(false);
     }
@@ -60,6 +78,7 @@ export default function UsuariosTab() {
     setCorreo("");
     setRol("cajero");
     setPermisos(PERMISOS_POR_ROL.cajero);
+    setContrasenaMiembro("");
     setMostrarForm(true);
   }
 
@@ -69,6 +88,7 @@ export default function UsuariosTab() {
     setCorreo(m.correo ?? "");
     setRol(m.rol);
     setPermisos(m.permisos);
+    setContrasenaMiembro("");
     setMostrarForm(true);
   }
 
@@ -84,59 +104,110 @@ export default function UsuariosTab() {
   }
 
   async function guardarMiembro() {
+    if (guardando) return;
+
     if (!nombre.trim()) {
-      alert(t("usuarios.msg_falta_nombre"));
+      mostrarToast(t("usuarios.msg_falta_nombre"), "error");
+      return;
+    }
+
+    // El login de un miembro (entrar-como-miembro) busca por nombre
+    // exacto (sin distinguir mayúsculas) y se queda con la primera
+    // coincidencia — sin este chequeo, un segundo miembro con el mismo
+    // nombre nunca podría entrar: la búsqueda siempre resolvería en el
+    // primero, sin importar que la contraseña del segundo sí fuera
+    // correcta.
+    const nombreNormalizado = nombre.trim().toLowerCase();
+    const nombreDuplicado = miembros.some(
+      (m) => m.nombre.trim().toLowerCase() === nombreNormalizado && m.id !== editando?.id
+    );
+    if (nombreDuplicado) {
+      mostrarToast(t("usuarios.msg_nombre_duplicado"), "error");
+      return;
+    }
+
+    if (contrasenaMiembro && contrasenaMiembro.length < 6) {
+      mostrarToast(t("usuarios.msg_contrasena_corta"), "error");
       return;
     }
 
     setGuardando(true);
 
     try {
+      let id: string;
+
       if (editando) {
-        await actualizarMiembro(editando.id, {
-          nombre,
-          correo,
-          rol,
-          permisos,
-        });
+        await actualizarMiembro(editando.id, { nombre, correo, rol, permisos });
+        id = editando.id;
       } else {
-        await crearMiembro(nombre, correo, rol, permisos);
+        id = await crearMiembro(nombre, correo, rol, permisos);
+      }
+
+      if (contrasenaMiembro) {
+        try {
+          await establecerContrasenaMiembro(id, contrasenaMiembro);
+        } catch (error) {
+          console.error(error);
+          mostrarToast(t("usuarios.msg_error_contrasena"), "error");
+        }
       }
 
       setMostrarForm(false);
       await refrescar();
     } catch (error) {
       console.error(error);
-      alert(t("usuarios.msg_error_guardar_miembro"));
+      // El chequeo de arriba solo ve la lista ya cargada en el
+      // navegador — dos guardados casi simultáneos pueden pasarlo
+      // igual; NOMBRE_DUPLICADO es lo que crearMiembro/actualizarMiembro
+      // lanzan cuando el índice único de la base de datos es quien de
+      // verdad lo bloquea (ver supabase_miembros_nombre_unico.sql).
+      const detalle =
+        error instanceof Error && error.message === "NOMBRE_DUPLICADO"
+          ? t("usuarios.msg_nombre_duplicado")
+          : t("usuarios.msg_error_guardar_miembro");
+      mostrarToast(detalle, "error");
     } finally {
       setGuardando(false);
     }
   }
 
   async function alEliminar(m: Miembro) {
-    if (!confirm(t("usuarios.confirmar_eliminar").replace("{nombre}", m.nombre))) return;
+    if (!(await confirmar(t("usuarios.confirmar_eliminar").replace("{nombre}", m.nombre), { peligroso: true }))) return;
 
     try {
       await eliminarMiembro(m.id);
       await refrescar();
     } catch (error) {
       console.error(error);
-      alert(t("usuarios.msg_error_eliminar"));
+      mostrarToast(t("usuarios.msg_error_eliminar"), "error");
     }
   }
 
   async function alternarActivo(m: Miembro) {
+    if (alternandoId !== null) return;
+
+    setAlternandoId(m.id);
     try {
       await actualizarMiembro(m.id, { activo: !m.activo });
       await refrescar();
     } catch (error) {
       console.error(error);
+      mostrarToast(t("usuarios.msg_error_guardar_miembro"), "error");
+    } finally {
+      setAlternandoId(null);
     }
   }
 
   async function alCambiarContrasena() {
+    if (guardandoPass) return;
+
     if (nuevaContrasena.length < 6) {
       setMensajePass({ tipo: "error", texto: t("usuarios.msg_pass_corta") });
+      return;
+    }
+
+    if (nuevaContrasena !== confirmarContrasena) {
+      setMensajePass({ tipo: "error", texto: t("usuarios.msg_pass_no_coincide") });
       return;
     }
 
@@ -147,6 +218,7 @@ export default function UsuariosTab() {
       await cambiarMiContrasena(nuevaContrasena);
       setMensajePass({ tipo: "ok", texto: t("usuarios.msg_pass_ok") });
       setNuevaContrasena("");
+      setConfirmarContrasena("");
     } catch (error) {
       console.error(error);
       setMensajePass({ tipo: "error", texto: t("usuarios.msg_pass_error") });
@@ -174,57 +246,76 @@ export default function UsuariosTab() {
         </p>
       </div>
 
-      {/* CAMBIAR MI CONTRASEÑA */}
-      <div className="card">
-        <h2 style={{ marginBottom: 6 }}>{t("usuarios.cambiar_contrasena")}</h2>
-        <p
-          style={{
-            color: "var(--text-secondary)",
-            marginBottom: 16,
-            fontSize: 13,
-          }}
-        >
-          {t("usuarios.cambiar_contrasena_desc")}
-        </p>
-
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <input
-            type="password"
-            placeholder={t("usuarios.nueva_contrasena")}
-            value={nuevaContrasena}
-            onChange={(e) => setNuevaContrasena(e.target.value)}
-            style={{ maxWidth: 260 }}
-          />
-
-          <button
-            className="btn-primary"
-            onClick={alCambiarContrasena}
-            disabled={guardandoPass}
-          >
-            {guardandoPass ? t("usuarios.guardando") : t("usuarios.actualizar_contrasena")}
-          </button>
+      {/* CAMBIAR MI CONTRASEÑA — solo el dueño de la cuenta, no un
+          miembro del equipo actuando con la sesión compartida (ver
+          comentario junto a useMiembroActivo más arriba). */}
+      {miembroActivo ? (
+        <div className="card">
+          <h2 style={{ marginBottom: 6 }}>{t("usuarios.cambiar_contrasena")}</h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
+            {t("usuarios.cambiar_contrasena_miembro_desc")}
+          </p>
         </div>
-
-        {mensajePass && (
+      ) : (
+        <div className="card">
+          <h2 style={{ marginBottom: 6 }}>{t("usuarios.cambiar_contrasena")}</h2>
           <p
             style={{
-              marginTop: 10,
+              color: "var(--text-secondary)",
+              marginBottom: 16,
               fontSize: 13,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              color: mensajePass.tipo === "ok" ? "#10b981" : "#ef4444",
             }}
           >
-            {mensajePass.tipo === "ok" ? (
-              <CheckCircle2 size={14} />
-            ) : (
-              <XCircle size={14} />
-            )}
-            {mensajePass.texto}
+            {t("usuarios.cambiar_contrasena_desc")}
           </p>
-        )}
-      </div>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <input
+              type="password"
+              placeholder={t("usuarios.nueva_contrasena")}
+              value={nuevaContrasena}
+              onChange={(e) => setNuevaContrasena(e.target.value)}
+              style={{ maxWidth: 260 }}
+            />
+
+            <input
+              type="password"
+              placeholder={t("usuarios.confirmar_contrasena")}
+              value={confirmarContrasena}
+              onChange={(e) => setConfirmarContrasena(e.target.value)}
+              style={{ maxWidth: 260 }}
+            />
+
+            <button
+              className="btn-primary"
+              onClick={alCambiarContrasena}
+              disabled={guardandoPass}
+            >
+              {guardandoPass ? t("usuarios.guardando") : t("usuarios.actualizar_contrasena")}
+            </button>
+          </div>
+
+          {mensajePass && (
+            <p
+              style={{
+                marginTop: 10,
+                fontSize: 13,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                color: mensajePass.tipo === "ok" ? "#10b981" : "#ef4444",
+              }}
+            >
+              {mensajePass.tipo === "ok" ? (
+                <CheckCircle2 size={14} />
+              ) : (
+                <XCircle size={14} />
+              )}
+              {mensajePass.texto}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* LISTA DE MIEMBROS */}
       <div className="card">
@@ -265,6 +356,7 @@ export default function UsuariosTab() {
                   <th>{t("usuarios.col_correo")}</th>
                   <th>{t("usuarios.col_rol")}</th>
                   <th>{t("usuarios.col_permisos")}</th>
+                  <th>{t("usuarios.col_contrasena")}</th>
                   <th>{t("usuarios.col_estado")}</th>
                   <th>{t("usuarios.col_acciones")}</th>
                 </tr>
@@ -278,10 +370,27 @@ export default function UsuariosTab() {
                     <td style={{ textTransform: "capitalize" }}>
                       {t(ROLES.find((r) => r.valor === m.rol)?.clave ?? m.rol)}
                     </td>
-                    <td>{m.permisos.length} {t("usuarios.permisos_cantidad")}</td>
+                    <td>
+                      {m.permisos.length}{" "}
+                      {t(m.permisos.length === 1 ? "usuarios.permiso_singular" : "usuarios.permisos_cantidad")}
+                    </td>
+                    <td>
+                      <span
+                        style={{
+                          color: m.tiene_contrasena ? "#10b981" : "#f59e0b",
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {m.tiene_contrasena
+                          ? t("usuarios.contrasena_configurada")
+                          : t("usuarios.contrasena_sin_configurar")}
+                      </span>
+                    </td>
                     <td>
                       <button
                         onClick={() => alternarActivo(m)}
+                        disabled={alternandoId !== null}
                         style={{
                           background: m.activo
                             ? "rgba(16,185,129,0.12)"
@@ -292,7 +401,8 @@ export default function UsuariosTab() {
                           padding: "4px 10px",
                           fontSize: 11.5,
                           fontWeight: 700,
-                          cursor: "pointer",
+                          cursor: alternandoId !== null ? "default" : "pointer",
+                          opacity: alternandoId !== null && alternandoId !== m.id ? 0.5 : 1,
                         }}
                       >
                         {m.activo ? t("usuarios.activo") : t("usuarios.inactivo")}
@@ -328,13 +438,13 @@ export default function UsuariosTab() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.55)",
+            background: "rgba(0, 0, 0, 0.6)",
             display: "flex",
             alignItems: "flex-start",
             justifyContent: "center",
             padding: "40px 20px",
             overflowY: "auto",
-            zIndex: 200,
+            zIndex: 600,
           }}
           onClick={() => setMostrarForm(false)}
         >
@@ -368,17 +478,31 @@ export default function UsuariosTab() {
               </div>
 
               <div>
+                <label>{t("usuarios.contrasena_miembro")}</label>
+                <input
+                  type="password"
+                  value={contrasenaMiembro}
+                  onChange={(e) => setContrasenaMiembro(e.target.value)}
+                  placeholder={
+                    editando
+                      ? t("usuarios.contrasena_miembro_editar")
+                      : t("usuarios.contrasena_miembro_nueva")
+                  }
+                />
+              </div>
+
+              <div>
                 <label>{t("usuarios.col_rol")}</label>
-                <select
+                <SelectorPersonalizado
                   value={rol}
-                  onChange={(e) => alCambiarRol(e.target.value as Rol)}
+                  onChange={(v) => alCambiarRol(v as Rol)}
                 >
                   {ROLES.map((r) => (
-                    <option key={r.valor} value={r.valor}>
+                    <OpcionSelector key={r.valor} value={r.valor}>
                       {t(r.clave)}
-                    </option>
+                    </OpcionSelector>
                   ))}
-                </select>
+                </SelectorPersonalizado>
               </div>
 
               <div>
@@ -398,6 +522,7 @@ export default function UsuariosTab() {
                   {PERMISOS.map((p) => (
                     <label
                       key={p.valor}
+                      className="permiso-item"
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -411,7 +536,7 @@ export default function UsuariosTab() {
                         type="checkbox"
                         checked={permisos.includes(p.valor)}
                         onChange={() => alternarPermiso(p.valor)}
-                        style={{ width: "auto" }}
+                        style={{ width: 18, height: 18 }}
                       />
                       {t(p.clave)}
                     </label>

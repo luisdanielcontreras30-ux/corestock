@@ -1,0 +1,168 @@
+"use client";
+
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  ReactNode,
+} from "react";
+import { useAuth } from "./AuthProvider";
+import {
+  sincronizarPendientes,
+  contarPendientes,
+  contarConError,
+  limpiarSincronizados,
+} from "../lib/sync";
+
+export type EstadoSync = "sin_conexion" | "sincronizando" | "conectado" | "todo_sincronizado";
+
+interface SyncContexto {
+  estado: EstadoSync;
+  pendientes: number;
+  conError: number;
+  sincronizarAhora: () => Promise<void>;
+  actualizarContadores: () => Promise<void>;
+}
+
+const Contexto = createContext<SyncContexto>({
+  estado: "conectado",
+  pendientes: 0,
+  conError: 0,
+  sincronizarAhora: async () => {},
+  actualizarContadores: async () => {},
+});
+
+export function useSync() {
+  return useContext(Contexto);
+}
+
+const INTERVALO_REINTENTO_MS = 60000;
+
+export default function SyncProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const [online, setOnline] = useState(true);
+  const [sincronizando, setSincronizando] = useState(false);
+  const [pendientes, setPendientes] = useState(0);
+  const [conError, setConError] = useState(0);
+
+  const refrescarContadores = useCallback(async () => {
+    if (!user) {
+      setPendientes(0);
+      setConError(0);
+      return;
+    }
+
+    // Leer IndexedDB puede fallar por completo: Safari en navegación
+    // privada, un webview que bloquea el almacenamiento (abrir la app
+    // desde un enlace de WhatsApp o Facebook), o la cuota llena. Sin
+    // este try el rechazo se quedaba sin dueño — ni el efecto de abajo
+    // ni sincronizarAhora() (que llama aquí desde su finally, y a su
+    // vez se dispara desde el evento "online" y desde el setInterval)
+    // atrapan nada. Si no se puede leer la cola, los contadores se
+    // quedan como están y el resto de la app sigue funcionando en
+    // línea, que es el caso normal.
+    try {
+      const [p, e] = await Promise.all([contarPendientes(user.id), contarConError(user.id)]);
+      setPendientes(p);
+      setConError(e);
+    } catch (error) {
+      console.error("No se pudo leer la cola offline:", error);
+    }
+  }, [user]);
+
+  const sincronizarAhora = useCallback(async () => {
+    if (!user || typeof navigator === "undefined" || !navigator.onLine || sincronizando) return;
+
+    setSincronizando(true);
+    try {
+      await sincronizarPendientes(user.id);
+    } catch (error) {
+      console.error("Error sincronizando pendientes:", error);
+    } finally {
+      setSincronizando(false);
+      await refrescarContadores();
+    }
+  }, [user, sincronizando, refrescarContadores]);
+
+  // sincronizarAhora cambia de identidad en cada render donde cambian
+  // user/sincronizando (useCallback), pero el efecto de abajo solo
+  // registra los listeners una vez (deps []). Sin este ref, alConectar
+  // quedaría con la versión de sincronizarAhora capturada en el primer
+  // render — y como SyncProvider está montado por encima de que
+  // AuthProvider resuelva la sesión (ver app/layout.tsx), en ese
+  // primer render "user" todavía es null, así que esa versión
+  // capturada siempre se cancelaba a sí misma (línea "if (!user) ...
+  // return") sin importar que luego sí hubiera sesión — el evento
+  // "online" del navegador nunca disparaba una sincronización real,
+  // solo la red de seguridad del setInterval de abajo.
+  const sincronizarAhoraRef = useRef(sincronizarAhora);
+  useEffect(() => {
+    sincronizarAhoraRef.current = sincronizarAhora;
+  }, [sincronizarAhora]);
+
+  // Detecta conexión/desconexión y dispara una sincronización apenas
+  // vuelve Internet — no se espera a que el usuario haga nada.
+  useEffect(() => {
+    setOnline(navigator.onLine);
+
+    function alConectar() {
+      setOnline(true);
+      sincronizarAhoraRef.current();
+    }
+
+    function alDesconectar() {
+      setOnline(false);
+    }
+
+    window.addEventListener("online", alConectar);
+    window.addEventListener("offline", alDesconectar);
+
+    return () => {
+      window.removeEventListener("online", alConectar);
+      window.removeEventListener("offline", alDesconectar);
+    };
+  }, []);
+
+  useEffect(() => {
+    refrescarContadores();
+  }, [refrescarContadores]);
+
+  // Limpieza de arranque: borra las filas ya sincronizadas que dejó la
+  // versión anterior del motor de sincronización. Es de una sola vez
+  // por sesión y no bloquea nada — si falla, se ignora.
+  useEffect(() => {
+    if (!user) return;
+    limpiarSincronizados(user.id).catch((error) => {
+      console.error("No se pudo limpiar la cola offline ya sincronizada:", error);
+    });
+  }, [user]);
+
+  // Red de seguridad: algunos navegadores (sobre todo iOS en segundo
+  // plano) no disparan el evento "online" de forma confiable — se
+  // reintenta cada minuto si sigue habiendo pendientes, en vez de
+  // depender solo del evento.
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (navigator.onLine && pendientes > 0) sincronizarAhora();
+    }, INTERVALO_REINTENTO_MS);
+
+    return () => clearInterval(id);
+  }, [pendientes, sincronizarAhora]);
+
+  let estado: EstadoSync;
+  if (!online) estado = "sin_conexion";
+  else if (sincronizando) estado = "sincronizando";
+  else if (pendientes > 0) estado = "conectado";
+  else estado = "todo_sincronizado";
+
+  return (
+    <Contexto.Provider
+      value={{ estado, pendientes, conError, sincronizarAhora, actualizarContadores: refrescarContadores }}
+    >
+      {children}
+    </Contexto.Provider>
+  );
+}
